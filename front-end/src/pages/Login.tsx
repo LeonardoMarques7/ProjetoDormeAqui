@@ -4,9 +4,10 @@ import logo__secondary from "../assets/plano__fundo.png";
 
 const Login = () => {
   return (
-    <section className="flex items-center">
+    <section className="flex items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto">
         <div className="w-1/2 h-full flex items-center relative justify-center"> 
-        <img src={logo__secondary} className="h-[90svh] object-cover" alt="" /></div>
+          <img src={logo__secondary} className="w-full object-cover" alt="" />
+        </div>
         <div className="max-w-96 mx-auto gap-4 flex flex-col items-center w-full">
             <h1 className="text-3xl font-bold">Bem-vindo de volta</h1>
             <h3>Entre na sua conta para continuar</h3>
