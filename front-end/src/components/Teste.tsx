@@ -5,40 +5,43 @@ export default function GridBackground() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return; // checa se o canvas existe
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return; // checa se o contexto existe
+    if (!ctx) return;
 
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
     const gridSize = 40; // tamanho de cada quadrado
+    const fadeRadius = 150; // raio do “halo” ao redor do mou
 
     const draw = (mouse?: { x: number; y: number }) => {
       ctx.clearRect(0, 0, width, height);
 
-      // linhas verticais
       for (let x = 0; x <= width; x += gridSize) {
-        let opacity = 0.2;
-        if (mouse && Math.abs(mouse.x - x) < 100) opacity = 0.8;
+        for (let y = 0; y <= height; y += gridSize) {
+          let opacity = 0;
+          
+          
+          if (mouse) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = mouse.x - rect.left;
+            const mouseY = mouse.y - rect.top;
 
-        ctx.strokeStyle = `rgba(255,255,255,${opacity})`;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
-      }
+            const dx = mouseX - (x + gridSize / 2);
+            const dy = mouseY - (y + gridSize / 2);
+            const distance = Math.sqrt(dx * dx + dy * dy);
 
-      // linhas horizontais
-      for (let y = 0; y <= height; y += gridSize) {
-        let opacity = 0.2;
-        if (mouse && Math.abs(mouse.y - y) < 100) opacity = 0.8;
+            if (distance < fadeRadius) {
+              opacity = 0.8 * (1 - distance / fadeRadius); // centralizado no meio do mouse
+            }
+          }
 
-        ctx.strokeStyle = `rgba(255,255,255,${opacity})`;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
+          ctx.strokeStyle = `rgba(175, 255, 130,${opacity})`;
+          ctx.beginPath();
+          ctx.rect(x, y, gridSize, gridSize);
+          ctx.stroke();
+        }
       }
     };
 
@@ -54,7 +57,8 @@ export default function GridBackground() {
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("resize", handleResize);
-    draw();
+
+    draw(); // desenha inicialmente
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
@@ -62,5 +66,5 @@ export default function GridBackground() {
     };
   }, []);
 
-  return <canvas ref={canvasRef} style={{ backgroundColor: "black" }} />;
+  return <canvas ref={canvasRef} style={{ backgroundColor: "black"}} />;
 }

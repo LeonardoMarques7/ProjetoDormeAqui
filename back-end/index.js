@@ -1,12 +1,12 @@
 import "dotenv/config";
 import express from "express";
+import UserRoutes from "./domains/users/routes.js";
 
 const app = express();
 const { PORT } = process.env; 
 
-app.get("/", (req, res) => [
-    res.json("Hello World")
-])
+app.use(express.json())
+app.use("users", UserRoutes);
 
 app.listen(PORT, () => {
     console.log(`Sevidor está ON em: ${PORT}`)
