@@ -37,7 +37,7 @@ const Login = () => {
 
 	return (
 		<section className="flex items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
-			<div className="w-1/2 h-full flex items-center relative justify-cente ease-in-out duration-500 transition-allr">
+			<div className="w-1/2 h-full flex items-center relative justify-center ease-in-out duration-500 transition-allr">
 				<img src={logo__secondary} className="w-full object-cover" alt="" />
 			</div>
 			<div className="max-w-96 mx-auto gap-4 flex flex-col items-center w-full">

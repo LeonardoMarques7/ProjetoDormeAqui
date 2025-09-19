@@ -77,7 +77,11 @@ router.post("/login", async (req, res) => {
       if (passwordCorrect) {
         const newUserObj = { name, email, _id };
         jwt.sign(newUserObj, JWT_SECRET_KEY, {}, (error, token) => {
-            if (error) throw error;
+            if (error) {
+              throw error;
+			  res.status(500).json(error);
+			  return
+            }
             res.cookie("token", token).json(newUserObj);
         });
     

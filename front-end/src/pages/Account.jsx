@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useParams } from "react-router-dom";
 import AccProfile from "../components/AccProfile";
+import AccPlaces from "../components/AccPlaces";
 
 const Account = () => {
 	const { subpage } = useParams();
@@ -17,7 +18,7 @@ const Account = () => {
 	};
 
 	return (
-		<section className="p-8 text-center max-w-7xl mx-auto">
+		<section className="p-8 text-center max-w-7xl w-full mx-auto">
 			<div className="flex flex-col gap-4">
 				<div className="flex">
 					<Link
@@ -36,6 +37,8 @@ const Account = () => {
 						Acomodações
 					</Link>
 				</div>
+				{subpage === "profile" && <AccProfile />}
+				{subpage === "places" && <AccPlaces />}
 				{subpage === "profile" && <AccProfile />}
 			</div>
 		</section>
