@@ -39,7 +39,6 @@ const Account = () => {
 				</div>
 				{subpage === "profile" && <AccProfile />}
 				{subpage === "places" && <AccPlaces />}
-				{subpage === "profile" && <AccProfile />}
 			</div>
 		</section>
 	);

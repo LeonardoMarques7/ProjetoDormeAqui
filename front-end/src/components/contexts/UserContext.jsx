@@ -1,12 +1,9 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
-export const userContext = createContext(null);
+export const UserContext = createContext(null);
 
-export const useUserContext = () => useContext(userContext);
-
-import React from "react";
+export const useUserContext = () => useContext(UserContext);
 
 export const UserContextProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
@@ -17,14 +14,13 @@ export const UserContextProvider = ({ children }) => {
 
 			setUser(data);
 		};
+
 		axiosGet();
 	}, []);
 
 	return (
-		<userContext.Provider value={{ user, setUser }}>
+		<UserContext.Provider value={{ user, setUser }}>
 			{children}
-		</userContext.Provider>
+		</UserContext.Provider>
 	);
 };
-
-export default UserContextProvider;
