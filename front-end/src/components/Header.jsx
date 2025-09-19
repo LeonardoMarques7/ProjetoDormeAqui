@@ -1,9 +1,10 @@
 import { Menu, Search } from "lucide-react";
 import logoPrimary from "../assets/logo__primary.png";
 import { Link } from "react-router-dom";
+import { useUserContext } from "./contexts/UserContext";
 
-const Header = ({ user }) => {
-	console.log(user);
+const Header = () => {
+	const { user } = useUserContext();
 
 	return (
 		<header className="shadow-md">
@@ -30,7 +31,7 @@ const Header = ({ user }) => {
 				</Link>
 
 				<Link
-					to={user ? "/account" : "/login"}
+					to={user ? "/account/profile" : "/login"}
 					className="flex items-center border border-gray-200 px-4 py-2 rounded-full gap-2"
 				>
 					<Menu className="size-5 text-gray-600" />

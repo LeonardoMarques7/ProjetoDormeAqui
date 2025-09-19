@@ -3,8 +3,11 @@ import { Link, Navigate } from "react-router-dom";
 import logo__secondary from "../assets/plano__fundo.png";
 import { useState } from "react";
 import axios from "axios";
+import { useUserContext } from "../components/contexts/UserContext";
 
-const Login = ({ setUser, user }) => {
+const Login = () => {
+	const { user, setUser } = useUserContext();
+
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [message, setMessage] = useState("");
@@ -23,7 +26,7 @@ const Login = ({ setUser, user }) => {
 				setUser(userDoc);
 				setRedirect(true);
 			} catch (error) {
-				setMessage(`Ops.. Erro ao logar! a ${error.response.data}`);
+				setMessage(`Ops, erro ao logar.. ${error.response.data}`);
 			}
 		} else {
 			setMessage("Erro ao fazer login. Verifique seus dados.");
@@ -33,8 +36,8 @@ const Login = ({ setUser, user }) => {
 	if (redirect || user) return <Navigate to="/" />;
 
 	return (
-		<section className="flex items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto">
-			<div className="w-1/2 h-full flex items-center relative justify-center">
+		<section className="flex items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
+			<div className="w-1/2 h-full flex items-center relative justify-cente ease-in-out duration-500 transition-allr">
 				<img src={logo__secondary} className="w-full object-cover" alt="" />
 			</div>
 			<div className="max-w-96 mx-auto gap-4 flex flex-col items-center w-full">

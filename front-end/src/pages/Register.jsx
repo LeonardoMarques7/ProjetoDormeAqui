@@ -3,8 +3,11 @@ import { Link, Navigate } from "react-router-dom";
 import logo__secondary from "../assets/plano__fundo.png";
 import { useState } from "react";
 import axios from "axios";
+import { useUserContext } from "../components/contexts/UserContext";
 
-const Register = ({ setUser }) => {
+const Register = () => {
+	const { setUser } = useUserContext();
+
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -14,28 +17,29 @@ const Register = ({ setUser }) => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
-		// if (email && password) {
-		// 	try {
-		// 		const { data: userDoc } = await axios.post("/users/login", {
-		// 			email,
-		// 			password,
-		// 		});
+		if (email && password && name) {
+			try {
+				const { data: userDoc } = await axios.post("/users", {
+					name,
+					email,
+					password,
+				});
 
-		// 		setUser(userDoc);
-		// 		setRedirect(true);
-		// 	} catch (error) {
-		// 		setMessage(`Ops.. Erro ao logar! a ${error.response.data}`);
-		// 	}
-		// } else {
-		// 	setMessage("Erro ao fazer login. Verifique seus dados.");
-		// }
+				setUser(userDoc);
+				setRedirect(true);
+			} catch (error) {
+				alert(`Deu um erro ao cadastrar o usuário: ${error.response.data}`);
+			}
+		} else {
+			alert("Você precisa preencher o e-mail, o nome e a senha!");
+		}
 	};
 
 	if (redirect) return <Navigate to="/" />;
 
 	return (
-		<section className="flex items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto">
-			<div className="w-1/2 h-full flex items-center relative justify-center">
+		<section className="flex flex-row-reverse items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
+			<div className="w-1/2 h-full flex items-center relative justify-center ease-in-out duration-500 transition-all">
 				<img src={logo__secondary} className="w-full object-cover" alt="" />
 			</div>
 			<div className="max-w-96 mx-auto gap-4 flex flex-col items-center w-full">
