@@ -14,11 +14,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 const Perks = () => {
 	const [perks, setPerks] = useState([]);
 
+	console.log(perks);
+
 	return (
 		<div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
 			<label
 				htmlFor="wifi"
-				className={`flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-gray-200 rounded-xl border-1 border-gray-300 transition-colors`}
+				className={`flex items-center gap-2 cursor-pointer px-3 hover:bg-primary-300 hover:text-white py-2 rounded-xl border-1 border-gray-300 transition-colors ${
+					perks.includes("wifi")
+						? "bg-primary-500 text-white border-transparent"
+						: "bg-white text-gray-800"
+				}`}
 			>
 				<Checkbox
 					id="wifi"
@@ -38,7 +44,11 @@ const Perks = () => {
 			</label>
 			<label
 				htmlFor="parking"
-				className={`flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-gray-200 rounded-xl border-1 border-gray-300 transition-colors`}
+				className={`flex items-center gap-2 cursor-pointer px-3 hover:bg-primary-300 hover:text-white py-2 rounded-xl border-1 border-gray-300 transition-colors ${
+					perks.includes("parking")
+						? "bg-primary-500 text-white border-transparent"
+						: "bg-white text-gray-800"
+				}`}
 			>
 				<Checkbox
 					id="parking"
@@ -58,7 +68,11 @@ const Perks = () => {
 			</label>
 			<label
 				htmlFor="tv"
-				className={`flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-gray-200 rounded-xl border-1 border-gray-300 transition-colors`}
+				className={`flex items-center gap-2 cursor-pointer px-3 hover:bg-primary-300 hover:text-white py-2 rounded-xl border-1 border-gray-300 transition-colors ${
+					perks.includes("tv")
+						? "bg-primary-500 text-white border-transparent"
+						: "bg-white text-gray-800"
+				}`}
 			>
 				<Checkbox
 					id="tv"
@@ -78,7 +92,11 @@ const Perks = () => {
 			</label>
 			<label
 				htmlFor="radio"
-				className={`flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-gray-200 rounded-xl border-1 border-gray-300 transition-colors`}
+				className={`flex items-center gap-2 cursor-pointer px-3 hover:bg-primary-300 hover:text-white py-2 rounded-xl border-1 border-gray-300 transition-colors ${
+					perks.includes("radio")
+						? "bg-primary-500 text-white border-transparent"
+						: "bg-white text-gray-800"
+				}`}
 			>
 				<Checkbox
 					id="radio"
@@ -98,7 +116,11 @@ const Perks = () => {
 			</label>
 			<label
 				htmlFor="pet"
-				className={`flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-gray-200 rounded-xl border-1 border-gray-300 transition-colors`}
+				className={`flex items-center gap-2 cursor-pointer px-3 hover:bg-primary-300 hover:text-white py-2 rounded-xl border-1 border-gray-300 transition-colors ${
+					perks.includes("pet")
+						? "bg-primary-500 text-white border-transparent"
+						: "bg-white text-gray-800"
+				}`}
 			>
 				<Checkbox
 					id="pet"
@@ -118,7 +140,11 @@ const Perks = () => {
 			</label>
 			<label
 				htmlFor="entrance"
-				className={`flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-gray-200 rounded-xl border-1 border-gray-300 transition-colors`}
+				className={`flex items-center gap-2 cursor-pointer px-3 hover:bg-primary-300 hover:text-white py-2 rounded-xl border-1 border-gray-300 transition-colors ${
+					perks.includes("entrance")
+						? "bg-primary-500 text-white border-transparent"
+						: "bg-white text-gray-800"
+				}`}
 			>
 				<Checkbox
 					id="entrance"
