@@ -11,24 +11,53 @@ import {
 	Wifi,
 } from "lucide-react";
 
+import { Navigate } from "react-router-dom";
+
 import { useState } from "react";
 import Perks from "./Perks";
+
+import Message from "./Message";
 
 const NewPlace = () => {
 	const [title, setTitle] = useState("");
 	const [city, setCity] = useState("");
-	const [photos, setPhotos] = useState("");
+	const [photos, setPhotos] = useState([]);
 	const [description, setDescription] = useState("");
 	const [extras, setExtras] = useState("");
 	const [price, setPrice] = useState("");
+	const [perks, setPerks] = useState([]);
 	const [checkin, setCheckin] = useState("");
 	const [checkout, setCheckout] = useState("");
 	const [guests, setGuests] = useState("");
 	const [message, setMessage] = useState("");
+	const [redirect, setRedirect] = useState(false);
+	const [open, setOpen] = useState(false);
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+
+		if (
+			(title && city,
+			photos.length > 0 &&
+				description &&
+				price &&
+				checkin &&
+				checkout &&
+				guests)
+		) {
+		} else {
+			setMessage("Preencha todas as informações!");
+			setOpen(true);
+		}
+		// try {
+		// 	setRedirect(true);
+		// } catch (error) {
+		// 	console.log("Erro ao enviar o formulário: ", JSON.stringify(error));
+		// 	setMessage("Deu erro ao enviar formulário de novo lugar!");
+		// }
 	};
+
+	if (redirect) return <Navigate to="/account/places" />;
 
 	return (
 		<>
@@ -144,7 +173,7 @@ const NewPlace = () => {
 					>
 						Comodidades
 					</label>
-					<Perks />
+					<Perks perks={perks} setPerks={setPerks} />
 				</div>
 				<div className="label__input text-start flex flex-col gap-2 w-full">
 					<label
@@ -261,12 +290,15 @@ const NewPlace = () => {
 						</div>
 					</div>
 				</div>
+				<Message
+					message={message}
+					type="warning"
+					open={open}
+					onOpenChange={setOpen}
+				/>
 				<button className="flex w-fit gap-4 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
 					Salvar acomodação
 				</button>
-				{message && (
-					<div className="text-red-500 text-center mt-2">{message}</div>
-				)}
 			</form>
 		</>
 	);

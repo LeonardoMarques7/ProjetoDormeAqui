@@ -11,11 +11,7 @@ import {
 
 import { Checkbox } from "@/components/ui/checkbox";
 
-const Perks = () => {
-	const [perks, setPerks] = useState([]);
-
-	console.log(perks);
-
+const Perks = ({ perks, setPerks }) => {
 	return (
 		<div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
 			<label
