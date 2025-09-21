@@ -6,7 +6,7 @@ import { useUserContext } from "../components/contexts/UserContext";
 
 const Account = () => {
 	const { subpage } = useParams();
-	const { user } = useUserContext();
+	const { user, ready } = useUserContext();
 
 	const buttonClass = (button) => {
 		let finalClass =
@@ -19,7 +19,7 @@ const Account = () => {
 		return finalClass;
 	};
 
-	if (!user) return <Navigate to="/login" />;
+	if (!user && ready) return <Navigate to="/login" />;
 
 	return (
 		<section className="p-8 text-center max-w-7xl w-full mx-auto">

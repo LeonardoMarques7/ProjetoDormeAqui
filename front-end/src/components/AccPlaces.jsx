@@ -1,7 +1,7 @@
 import { HousePlus } from "lucide-react";
-import React from "react";
-import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
+
 import NewPlace from "./NewPlace";
 
 const AccPlaces = () => {

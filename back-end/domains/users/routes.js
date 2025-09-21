@@ -3,7 +3,6 @@ import { Router } from "express";
 import { connectDb } from "../../config/db.js";
 import User from "./model.js";
 import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken";
 import { JWTSign, JWTVerify } from "../../ultis/jwt.js";
 
 const router = Router();

@@ -12,7 +12,7 @@ import {
 
 import { Terminal, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 
-const Message = ({ type = "info", message, open, onOpenChange }) => {
+const Message = ({ type, message, open, onOpenChange }) => {
 	if (!message) return null;
 
 	const config = {

@@ -1,3 +1,12 @@
+import { useState } from "react";
+import axios from "axios";
+import { Navigate } from "react-router-dom";
+
+import { useUserContext } from "./contexts/UserContext";
+import { useMessage } from "./contexts/MessageContext";
+
+import Perks from "./Perks";
+
 import {
 	ArrowUpFromLine,
 	CalendarArrowDown,
@@ -10,18 +19,15 @@ import {
 	Users,
 	Wifi,
 } from "lucide-react";
-
-import { Navigate } from "react-router-dom";
-
-import { useState } from "react";
-import Perks from "./Perks";
-
-import Message from "./Message";
+import PhotosUploader from "./PhotosUploader";
 
 const NewPlace = () => {
+	const { user } = useUserContext();
+	const { showMessage } = useMessage();
 	const [title, setTitle] = useState("");
 	const [city, setCity] = useState("");
 	const [photos, setPhotos] = useState([]);
+	const [photolink, setPhotoLink] = useState("");
 	const [description, setDescription] = useState("");
 	const [extras, setExtras] = useState("");
 	const [price, setPrice] = useState("");
@@ -29,32 +35,40 @@ const NewPlace = () => {
 	const [checkin, setCheckin] = useState("");
 	const [checkout, setCheckout] = useState("");
 	const [guests, setGuests] = useState("");
-	const [message, setMessage] = useState("");
 	const [redirect, setRedirect] = useState(false);
-	const [open, setOpen] = useState(false);
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
+		// photos.length > 0 &&
 		if (
-			(title && city,
-			photos.length > 0 &&
-				description &&
-				price &&
-				checkin &&
-				checkout &&
-				guests)
+			(title && city, description && price && checkin && checkout && guests)
 		) {
+			try {
+				const newPlace = await axios.post("/places", {
+					owner: user._id,
+					title,
+					city,
+					photos,
+					description,
+					extras,
+					perks,
+					price,
+					checkin,
+					checkout,
+					guests,
+				});
+				showMessage("Sua acomodação foi adicionada com sucesso!", "success");
+				setRedirect(true);
+
+				console.log(newPlace);
+			} catch (error) {
+				console.log("Erro ao enviar o formulário: ", JSON.stringify(error));
+				showMessage("Deu erro ao enviar formulário de novo lugar!", "error");
+			}
 		} else {
-			setMessage("Preencha todas as informações!");
-			setOpen(true);
+			showMessage("Preencha todas as informações!", "warning");
 		}
-		// try {
-		// 	setRedirect(true);
-		// } catch (error) {
-		// 	console.log("Erro ao enviar o formulário: ", JSON.stringify(error));
-		// 	setMessage("Deu erro ao enviar formulário de novo lugar!");
-		// }
 	};
 
 	if (redirect) return <Navigate to="/account/places" />;
@@ -82,7 +96,6 @@ const NewPlace = () => {
 							value={title}
 							onChange={(e) => {
 								setTitle(e.target.value);
-								if (message) setMessage("");
 							}}
 						/>
 					</div>
@@ -104,46 +117,13 @@ const NewPlace = () => {
 							value={city}
 							onChange={(e) => {
 								setCity(e.target.value);
-								if (message) setMessage("");
 							}}
 						/>
 					</div>
 				</div>
-				<div className="label__input text-start flex flex-col gap-2 w-full">
-					<label
-						htmlFor="photos"
-						className="text-2xl ml-2 font-medium text-gray-600"
-					>
-						Fotos
-					</label>
-					<div className="group__input relative flex justify-center items-center">
-						<Camera className="absolute left-4 text-gray-400 size-6" />
-						<input
-							type="text"
-							id="photos"
-							placeholder="Adicione a(s) foto(s)"
-							className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
-							value={photos}
-							onChange={(e) => {
-								setPhotos(e.target.value);
-								if (message) setMessage("");
-							}}
-						/>
-						<button className="absolute right-2 w-fit bg-primary-400 rounded-xl px-5 py-2.5 text-white cursor-pointer hover:bg-primary-500 ease-in-out duration-300">
-							Enviar foto
-						</button>
-					</div>
-					<div className="mt-2 grid grid-cols-4 gap-5">
-						<label
-							htmlFor="file"
-							className="aspect-square min-w-40 flex gap-2 justify-center items-center rounded-xl border-dashed border-1 border-gray-300 cursor-pointer hover:border-solid ease-in-out duration-300 hover:border-primary-300"
-						>
-							<input type="file" id="file" className="hidden" />
-							<ArrowUpFromLine className="opacity-80" />
-							Upload
-						</label>
-					</div>
-				</div>
+
+				<PhotosUploader {...{ photolink, setPhotoLink, photos, setPhotos }} />
+
 				<div className="label__input text-start flex flex-col gap-2 w-full">
 					<label
 						htmlFor="description"
@@ -161,7 +141,6 @@ const NewPlace = () => {
 							value={description}
 							onChange={(e) => {
 								setDescription(e.target.value);
-								if (message) setMessage("");
 							}}
 						/>
 					</div>
@@ -192,7 +171,6 @@ const NewPlace = () => {
 							value={extras}
 							onChange={(e) => {
 								setExtras(e.target.value);
-								if (message) setMessage("");
 							}}
 						/>
 					</div>
@@ -218,7 +196,6 @@ const NewPlace = () => {
 								value={price}
 								onChange={(e) => {
 									setPrice(e.target.value);
-									if (message) setMessage("");
 								}}
 							/>
 						</div>
@@ -240,7 +217,6 @@ const NewPlace = () => {
 								value={checkin}
 								onChange={(e) => {
 									setCheckin(e.target.value);
-									if (message) setMessage("");
 								}}
 							/>
 						</div>
@@ -262,7 +238,6 @@ const NewPlace = () => {
 								value={checkout}
 								onChange={(e) => {
 									setCheckout(e.target.value);
-									if (message) setMessage("");
 								}}
 							/>
 						</div>
@@ -284,18 +259,11 @@ const NewPlace = () => {
 								value={guests}
 								onChange={(e) => {
 									setGuests(e.target.value);
-									if (message) setMessage("");
 								}}
 							/>
 						</div>
 					</div>
 				</div>
-				<Message
-					message={message}
-					type="warning"
-					open={open}
-					onOpenChange={setOpen}
-				/>
 				<button className="flex w-fit gap-4 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
 					Salvar acomodação
 				</button>
