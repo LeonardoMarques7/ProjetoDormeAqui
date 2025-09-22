@@ -7,7 +7,6 @@ import { JWTSign, JWTVerify } from "../../ultis/jwt.js";
 
 const router = Router();
 const bcryptSalt = bcrypt.genSaltSync();
-const { JWT_SECRET_KEY } = process.env;
 
 router.get("/", async (req, res) => {
   connectDb();

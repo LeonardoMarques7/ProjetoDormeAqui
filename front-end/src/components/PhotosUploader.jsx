@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { ArrowUpFromLine, Camera } from "lucide-react";
+import { ArrowUpFromLine, Camera, Star, Trash } from "lucide-react";
 
 const PhotosUploader = ({
 	photolink,
@@ -45,6 +45,18 @@ const PhotosUploader = ({
 		}
 	};
 
+	const deletePhoto = (fileUrl) => {
+		const newPhotos = photos.filter((photo) => photo !== fileUrl);
+
+		setPhotos(newPhotos);
+	};
+
+	const promotePhoto = (fileUrl) => {
+		const newPhotos = [fileUrl, ...photos.filter((photo) => photo !== fileUrl)];
+
+		setPhotos(newPhotos);
+	};
+
 	return (
 		<div className="label__input text-start flex flex-col gap-2 w-full">
 			<label
@@ -72,12 +84,29 @@ const PhotosUploader = ({
 			</div>
 			<div className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] gap-5">
 				{photos.map((photo, idx) => (
-					<img
-						key={idx}
-						src={`${photo}`}
-						alt="Imagem do Lugar"
-						className="aspect-square min-w-40 flex gap-2 justify-center items-center rounded-xl border-dashed border-1 border-gray-300 cursor-pointer hover:border-solid ease-in-out duration-300 hover:border-primary-300"
-					/>
+					<div className="relative">
+						<img
+							key={idx}
+							src={`${photo}`}
+							alt="Imagem do Lugar"
+							className="aspect-square min-w-40 flex gap-2 justify-center items-center rounded-xl border-dashed border-1 border-gray-300 cursor-pointer hover:border-solid ease-in-out duration-300 hover:border-primary-300"
+						/>
+
+						<div className="actions__image absolute bottom-1 gap-1 flex right-1">
+							<span
+								onClick={() => promotePhoto(photo)}
+								className="badge__action bg-white/70 rounded-[10px] p-1 cursor-pointer hover:bg-primary-200  transition-all duration-300 ease-in-out"
+							>
+								<Star size={25} />
+							</span>
+							<span
+								onClick={() => deletePhoto(photo)}
+								className="badge__action bg-white/70 rounded-[10px] p-1 cursor-pointer hover:bg-primary-200  transition-all duration-300 ease-in-out"
+							>
+								<Trash size={25} />
+							</span>
+						</div>
+					</div>
 				))}
 				<label
 					htmlFor="file"

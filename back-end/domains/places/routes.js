@@ -41,6 +41,53 @@ router.get("/owner", async (req, res) => {
     
 });
 
+
+router.get("/:id", async (req, res) => {
+    connectDb();
+
+    const { id: _id } = req.params;
+    
+    try {
+        const placeDoc = await Place.findOne({_id});
+
+        res.json(placeDoc);
+    } catch (error) {
+        res.status(500).json("Deu erro ao encontrar a acomodação.",error);
+        throw error;
+    }
+    
+    
+});
+
+router.put("/:id", async (req, res) => {
+    connectDb();
+
+    const { id: _id } = req.params;
+
+    const { title, city, photos, description, extras, perks, price, checkin, checkout, guests } = req.body;
+
+        try {
+            const updatePlaceDoc = await Place.findOneAndUpdate({_id}, {
+                title,
+                city,
+                photos,
+                description,
+                extras,
+                perks,
+                price,
+                checkin,
+                checkout,
+                guests
+            });
+
+            res.json(updatePlaceDoc);
+
+        } catch (error) {
+            res.status(500).json("Deu erro ao atualizar a acomodação...",error);
+            throw error;
+        }
+});
+
 router.post("/", async (req, res) => {
     connectDb();
 

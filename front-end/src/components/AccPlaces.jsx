@@ -17,7 +17,7 @@ const AccPlaces = () => {
 		};
 
 		axiosGet();
-	}, []);
+	}, [action]);
 
 	return (
 		<>

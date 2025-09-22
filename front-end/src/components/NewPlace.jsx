@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { Navigate } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 
 import { useUserContext } from "./contexts/UserContext";
 import { useMessage } from "./contexts/MessageContext";
@@ -23,6 +23,7 @@ import PhotosUploader from "./PhotosUploader";
 
 const NewPlace = () => {
 	const { user } = useUserContext();
+	const { id } = useParams();
 	const { showMessage } = useMessage();
 	const [title, setTitle] = useState("");
 	const [city, setCity] = useState("");
@@ -37,6 +38,31 @@ const NewPlace = () => {
 	const [guests, setGuests] = useState("");
 	const [redirect, setRedirect] = useState(false);
 
+	console.log(id);
+
+	useEffect(() => {
+		if (id) {
+			const axiosGet = async () => {
+				const { data } = await axios.get(`/places/${id}`);
+
+				console.log(data);
+
+				setTitle(data.title);
+				setCity(data.city);
+				setPhotos(data.photos);
+				setDescription(data.description);
+				setExtras(data.extras);
+				setPrice(data.price);
+				setPerks(data.perks);
+				setCheckin(data.checkin);
+				setCheckout(data.checkout);
+				setGuests(data.guests);
+			};
+
+			axiosGet();
+		}
+	}, []);
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
@@ -50,28 +76,51 @@ const NewPlace = () => {
 			checkout &&
 			guests
 		) {
-			try {
-				const newPlace = await axios.post("/places", {
-					owner: user._id,
-					title,
-					city,
-					photos,
-					description,
-					extras,
-					perks,
-					price,
-					checkin,
-					checkout,
-					guests,
-				});
-				showMessage("Sua acomodação foi adicionada com sucesso!", "success");
-				setRedirect(true);
-
-				console.log(newPlace);
-			} catch (error) {
-				console.log("Erro ao enviar o formulário: ", JSON.stringify(error));
-				showMessage("Deu erro ao enviar formulário de novo lugar!", "error");
+			if (id) {
+				try {
+					const modifiedPlace = await axios.put(`/places/${id}`, {
+						title,
+						city,
+						photos,
+						description,
+						extras,
+						perks,
+						price,
+						checkin,
+						checkout,
+						guests,
+					});
+					showMessage("Sua acomodação foi atualizada com sucesso!", "success");
+				} catch (error) {
+					console.log("Erro ao enviar o formulário: ", JSON.stringify(error));
+					showMessage("Deu erro ao atualizar a acomodação!", "error");
+				}
+			} else {
+				try {
+					const newPlace = await axios.post("/places", {
+						owner: user._id,
+						title,
+						city,
+						photos,
+						description,
+						extras,
+						perks,
+						price,
+						checkin,
+						checkout,
+						guests,
+					});
+					showMessage("Sua acomodação foi adicionada com sucesso!", "success");
+				} catch (error) {
+					console.log("Erro ao enviar o formulário: ", JSON.stringify(error));
+					showMessage(
+						"Deu erro ao enviar formulário de nova acomodação!",
+						"error"
+					);
+				}
 			}
+
+			setRedirect(true);
 		} else {
 			showMessage("Preencha todas as informações!", "warning");
 		}
@@ -159,7 +208,11 @@ const NewPlace = () => {
 						className="text-2xl ml-2 font-medium text-gray-600"
 					>
 						Comodidades
+						<p className="text-sm font-normal">
+							Selecione os items da comodidade
+						</p>
 					</label>
+
 					<Perks perks={perks} setPerks={setPerks} />
 				</div>
 				<div className="label__input text-start flex flex-col gap-2 w-full">
