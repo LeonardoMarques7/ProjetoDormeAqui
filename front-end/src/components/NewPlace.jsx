@@ -122,7 +122,9 @@ const NewPlace = () => {
 					</div>
 				</div>
 
-				<PhotosUploader {...{ photolink, setPhotoLink, photos, setPhotos }} />
+				<PhotosUploader
+					{...{ photolink, setPhotoLink, photos, setPhotos, showMessage }}
+				/>
 
 				<div className="label__input text-start flex flex-col gap-2 w-full">
 					<label

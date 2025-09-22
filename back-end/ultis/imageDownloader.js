@@ -1,10 +1,16 @@
 import download from "image-downloader";
 import mime from "mime-types";
 
-export const downloadImage = async (link, destination) => {
-	const mimeType = mime.lookup(link);
+export const getExtension = (path) => {
+	const mimeType = mime.lookup(path);
 	const contentType = mime.contentType(mimeType);
 	const extension = mime.extension(contentType);
+
+	return extension;
+}
+
+export const downloadImage = async (link, destination) => {
+	const extension = getExtension(link);
 	const filename = `${Date.now()}.${extension}`;
 	const fullPath = `${destination}${filename}`;
 
@@ -23,7 +29,7 @@ export const downloadImage = async (link, destination) => {
 
 		await download.image(options);
 
-		return filename;
+		return {filename, fullPath, mimeType};
 
 	} catch (error) {
 		throw error;

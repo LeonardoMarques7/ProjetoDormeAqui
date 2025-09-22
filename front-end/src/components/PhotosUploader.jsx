@@ -1,9 +1,14 @@
 import axios from "axios";
-import React from "react";
 
 import { ArrowUpFromLine, Camera } from "lucide-react";
 
-const PhotosUploader = ({ photolink, setPhotoLink, setPhotos, photos }) => {
+const PhotosUploader = ({
+	photolink,
+	setPhotoLink,
+	setPhotos,
+	photos,
+	showMessage,
+}) => {
 	const uploadByLink = async (e) => {
 		e.preventDefault();
 
@@ -14,7 +19,29 @@ const PhotosUploader = ({ photolink, setPhotoLink, setPhotos, photos }) => {
 
 			setPhotos((prevValue) => [...prevValue, filename]);
 		} else {
-			alert("Não existe nenhum link a ser enviado!");
+			showMessage("Erro ao enviar imagem!", "error");
+			console.error("Erro ao enviar imagem para o S3", JSON.stringify(e));
+		}
+	};
+
+	const uploadPhoto = async (e) => {
+		const { files } = e.target;
+		const filesArray = [...files];
+
+		const formData = new FormData();
+
+		filesArray.forEach((file) => formData.append("files", file));
+
+		try {
+			const { data: urlArray } = await axios.post("/places/upload", formData, {
+				headers: { "Content-Type": "multipart/form-data" },
+			});
+
+			console.log(urlArray);
+			setPhotos((prevValue) => [...prevValue, ...urlArray]);
+		} catch (error) {
+			showMessage("Erro ao enviar imagem!", "error");
+			console.error("Erro ao enviar imagem para o S3", JSON.stringify(e));
 		}
 	};
 
@@ -44,10 +71,10 @@ const PhotosUploader = ({ photolink, setPhotoLink, setPhotos, photos }) => {
 				</button>
 			</div>
 			<div className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] gap-5">
-				{photos.map((photo) => (
+				{photos.map((photo, idx) => (
 					<img
-						key={photo}
-						src={`${axios.defaults.baseURL}/tmp/${photo}`}
+						key={idx}
+						src={`${photo}`}
 						alt="Imagem do Lugar"
 						className="aspect-square min-w-40 flex gap-2 justify-center items-center rounded-xl border-dashed border-1 border-gray-300 cursor-pointer hover:border-solid ease-in-out duration-300 hover:border-primary-300"
 					/>
@@ -56,7 +83,13 @@ const PhotosUploader = ({ photolink, setPhotoLink, setPhotos, photos }) => {
 					htmlFor="file"
 					className="aspect-square min-w-40 flex gap-2 justify-center items-center rounded-xl border-dashed border-1 border-gray-300 cursor-pointer hover:border-solid ease-in-out duration-300 hover:border-primary-300"
 				>
-					<input type="file" id="file" className="hidden" />
+					<input
+						type="file"
+						id="file"
+						className="hidden"
+						onChange={uploadPhoto}
+						multiple
+					/>
 					<ArrowUpFromLine className="opacity-80" />
 					Upload
 				</label>
