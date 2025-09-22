@@ -1,8 +1,9 @@
+import { Link } from "react-router-dom";
 import image1 from "../assets/lugares/image__1.jpg";
 
 const Item = ({ place }) => {
 	return (
-		<a href="/">
+		<Link to={`/places/${place._id}`}>
 			<div className="flex flex-col gap-2">
 				<img
 					src={place.photos[0]}
@@ -17,7 +18,7 @@ const Item = ({ place }) => {
 					<span className="font-semibold">{place.price}</span> por noite
 				</p>
 			</div>
-		</a>
+		</Link>
 	);
 };
 
