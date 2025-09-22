@@ -8,62 +8,83 @@ import { sendToS3, uploadImage } from "../controller.js";
 
 const router = Router();
 
-router.post("/", async (req, res) => {
-connectDb();
-
-const { title, city, photos, description, extras, perks, price, checkin, checkout, guests } = req.body;
-
+router.get("/", async (req, res) => {
+    connectDb();
     try {
-        const { _id } = await JWTVerify(req);
-        const newPlaceDoc = await Place.create({
-            owner: _id,
-            title,
-            city,
-            photos,
-            description,
-            extras,
-            perks,
-            price,
-            checkin,
-            checkout,
-            guests
-        });
+        const placeDocs = await Place.find({});
 
-        res.json(newPlaceDoc);
-
+        res.json(placeDocs);
     } catch (error) {
-        res.status(500).json("Deu erro ao criar novo lugar..",error);
+        res.status(500).json("Deu erro ao encontrar as acomodações.",error);
         throw error;
     }
+    
+});
+
+router.get("/owner", async (req, res) => {
+    connectDb();
+    try {
+        const { _id } = await JWTVerify(req);
+
+        try {
+            const placeDocs = await Place.find({owner: _id});
+
+            res.json(placeDocs);
+        } catch (error) {
+            res.status(500).json("Deu erro ao encontrar as acomodações.",error);
+            throw error;
+        }
+    } catch (error) {
+        res.status(500).json("Deu erro ao verificar o usuário.",error);
+        throw error;
+    }
+    
+});
+
+router.post("/", async (req, res) => {
+    connectDb();
+
+    const { title, city, photos, description, extras, perks, price, checkin, checkout, guests } = req.body;
+
+        try {
+            const { _id } = await JWTVerify(req);
+            const newPlaceDoc = await Place.create({
+                owner: _id,
+                title,
+                city,
+                photos,
+                description,
+                extras,
+                perks,
+                price,
+                checkin,
+                checkout,
+                guests
+            });
+
+            res.json(newPlaceDoc);
+
+        } catch (error) {
+            res.status(500).json("Deu erro ao criar novo lugar..",error);
+            throw error;
+        }
 });
 
 router.post("/upload/link", async (req, res) => {
-const { link } = req.body;
-const path =  `${__dirname}/tmp/`
+    const { link } = req.body;
+    const path =  `${__dirname}/tmp/`
 
-try {
-    const {filename, fullPath, mimeType} = await downloadImage(link,  path);
+    try {
+        const {filename, fullPath, mimeType} = await downloadImage(link,  path);
 
-    const fileUrl = await sendToS3(filename, fullPath, mimeType)
+        const fileUrl = await sendToS3(filename, fullPath, mimeType)
 
-    res.json(fileUrl);
-} catch (error) {
-    console.error(error);
-    res.status(500).json("Erro ao baixar a imagem.");
-}
+        res.json(fileUrl);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json("Erro ao baixar a imagem.");
+    }
 });
-
-// {
-//   fieldname: 'files',
-//   originalname: 'image3.jpg',
-//   encoding: '7bit',
-//   mimetype: 'image/jpeg',
-//   destination: 'C:\\Users\\leona\\Desktop\\ProjetoDormeAqui\\back-end/tmp',
-//   filename: '1758510226329.jpg',
-//   path: 'C:\\Users\\leona\\Desktop\\ProjetoDormeAqui\\back-end\\tmp\\1758510226329.jpg',
-//   size: 140384
-// }
-
 
 router.post("/upload", uploadImage().array("files", 10), async (req, res) => {
     const {files} = req;

@@ -6,11 +6,11 @@ export const getExtension = (path) => {
 	const contentType = mime.contentType(mimeType);
 	const extension = mime.extension(contentType);
 
-	return extension;
+	return {extension, mimeType};
 }
 
 export const downloadImage = async (link, destination) => {
-	const extension = getExtension(link);
+	const { extension, mimeType } = getExtension(link);
 	const filename = `${Date.now()}.${extension}`;
 	const fullPath = `${destination}${filename}`;
 

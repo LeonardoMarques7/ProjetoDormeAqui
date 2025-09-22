@@ -40,9 +40,15 @@ const NewPlace = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
-		// photos.length > 0 &&
 		if (
-			(title && city, description && price && checkin && checkout && guests)
+			title &&
+			city &&
+			photos.length > 0 &&
+			description &&
+			price &&
+			checkin &&
+			checkout &&
+			guests
 		) {
 			try {
 				const newPlace = await axios.post("/places", {
