@@ -38,6 +38,18 @@ const NewPlace = () => {
 	const [guests, setGuests] = useState("");
 	const [redirect, setRedirect] = useState(false);
 
+	const photosPlaceholder = [
+		{
+			image: "https://placehold.co/600x400",
+		},
+		{
+			image: "https://placehold.co/200x200",
+		},
+		{
+			image: "https://placehold.co/200x200",
+		},
+	];
+
 	console.log(id);
 
 	useEffect(() => {
@@ -128,11 +140,16 @@ const NewPlace = () => {
 
 	if (redirect) return <Navigate to="/account/places" />;
 
+	const previewImages = [
+		...photos.slice(0, 3), // pega até 3 fotos reais
+		...photosPlaceholder.map((item) => item.image), // adiciona placeholders
+	].slice(0, 3); // garante que no máximo 3 sejam renderizados
+
 	return (
-		<>
+		<div className="flex gap-5">
 			<form
 				onSubmit={handleSubmit}
-				className="container__form flex flex-col gap-4 w-1/2"
+				className="container__form flex grow flex-col gap-4 w-full"
 			>
 				<div className="label__input text-start flex flex-col gap-2 w-full">
 					<label
@@ -329,7 +346,31 @@ const NewPlace = () => {
 					Salvar acomodação
 				</button>
 			</form>
-		</>
+			{/* Preview */}
+			<section className="w-fit">
+				<div className="flex flex-col gap-2">
+					<div className="text-2xl font-bold">
+						{title ? title : <>Título da acomodação</>}
+					</div>
+					<div className="flex gap-2">
+						<MapPin />
+						<span>{city ? city : <>Cidade/País da acomodação</>}</span>
+					</div>
+					<div className="relative grid grid-cols-[2fr_1fr] grid-rows-2 aspect-[3/2] gap-5 overflow-hidden rounded-2xl transtions hover:opacity-95 cursor-pointer">
+						{previewImages.map((src, index) => (
+							<img
+								key={index}
+								src={src}
+								className={`${
+									index === 0 ? "row-span-2 h-full" : ""
+								} aspect-square w-full object-cover cursor-pointer hover:opacity-90 transition-opacity`}
+								alt="Imagem da acomodação"
+							/>
+						))}
+					</div>
+				</div>
+			</section>
+		</div>
 	);
 };
 
