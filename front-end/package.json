@@ -20,6 +20,7 @@
     "@tsparticles/slim": "^3.9.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lightgallery": "^2.9.0-beta.1",
     "lucide-react": "^0.541.0",
     "react": "^19.1.1",
     "react-canvas-grid": "^0.14.0",
