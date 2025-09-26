@@ -23,15 +23,15 @@ const Perks = ({ perks, setPerks }) => {
 				}`}
 			>
 				<Checkbox
-					id="wifi"
-					name="wifi"
-					value="wifi"
-					checked={perks.includes("wifi")}
+					id="Wifi"
+					name="Wifi"
+					value="Wifi"
+					checked={perks.includes("Wifi")}
 					onCheckedChange={(checked) => {
 						setPerks((prevValue) =>
 							checked
-								? [...prevValue, "wifi"]
-								: prevValue.filter((perk) => perk !== "wifi")
+								? [...prevValue, "Wifi"]
+								: prevValue.filter((perk) => perk !== "Wifi")
 						);
 					}}
 				/>

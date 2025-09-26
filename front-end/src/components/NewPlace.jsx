@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Navigate, useParams } from "react-router-dom";
 
@@ -7,6 +7,15 @@ import { useMessage } from "./contexts/MessageContext";
 
 import Perks from "./Perks";
 
+import lgThumbnail from "lightgallery/plugins/thumbnail";
+import lgZoom from "lightgallery/plugins/zoom";
+import lgFullscreen from "lightgallery/plugins/fullscreen";
+import LightGallery from "lightgallery/react";
+import "lightgallery/css/lightgallery.css";
+import "lightgallery/css/lg-zoom.css";
+import "lightgallery/css/lg-thumbnail.css";
+import "lightgallery/css/lg-fullscreen.css";
+
 import {
 	ArrowUpFromLine,
 	CalendarArrowDown,
@@ -14,8 +23,10 @@ import {
 	Camera,
 	DollarSign,
 	Home,
+	ImagePlus,
 	MapPin,
 	NotepadTextDashed,
+	User,
 	Users,
 	Wifi,
 } from "lucide-react";
@@ -37,6 +48,7 @@ const NewPlace = () => {
 	const [checkout, setCheckout] = useState("");
 	const [guests, setGuests] = useState("");
 	const [redirect, setRedirect] = useState(false);
+	const lightGalleryRef = useRef(null);
 
 	const photosPlaceholder = [
 		{
@@ -140,10 +152,17 @@ const NewPlace = () => {
 
 	if (redirect) return <Navigate to="/account/places" />;
 
-	const previewImages = [
-		...photos.slice(0, 3), // pega até 3 fotos reais
-		...photosPlaceholder.map((item) => item.image), // adiciona placeholders
-	].slice(0, 3); // garante que no máximo 3 sejam renderizados
+	const handleImageClick = (index) => {
+		if (lightGalleryRef.current) {
+			lightGalleryRef.current.openGallery(index);
+		}
+	};
+
+	const handleShowMoreClick = () => {
+		if (lightGalleryRef.current) {
+			lightGalleryRef.current.openGallery(0);
+		}
+	};
 
 	return (
 		<div className="flex gap-5">
@@ -349,7 +368,7 @@ const NewPlace = () => {
 			{/* Preview */}
 			<section className="w-fit">
 				<div className="flex flex-col gap-2">
-					<div className="text-2xl font-bold">
+					<div className="text-2xl font-bold text-start">
 						{title ? title : <>Título da acomodação</>}
 					</div>
 					<div className="flex gap-2">
@@ -357,17 +376,82 @@ const NewPlace = () => {
 						<span>{city ? city : <>Cidade/País da acomodação</>}</span>
 					</div>
 					<div className="relative grid grid-cols-[2fr_1fr] grid-rows-2 aspect-[3/2] gap-5 overflow-hidden rounded-2xl transtions hover:opacity-95 cursor-pointer">
-						{previewImages.map((src, index) => (
-							<img
-								key={index}
-								src={src}
-								className={`${
-									index === 0 ? "row-span-2 h-full" : ""
-								} aspect-square w-full object-cover cursor-pointer hover:opacity-90 transition-opacity`}
-								alt="Imagem da acomodação"
-							/>
-						))}
+						{photos
+							.filter((photo, index) => index < 3)
+							.map((photo, index) => (
+								<img
+									key={index}
+									className={`${
+										index === 0 ? "row-span-2 h-full" : ""
+									} aspect-square w-full object-cover cursor-pointer hover:opacity-90 transition-opacity`}
+									src={photo}
+									alt="Imagem da acomodação"
+									onClick={() => handleImageClick(index)}
+								/>
+							))}
+						<span
+							className="absolute bottom-2 items-center right-2 flex px-2 py-2 rounded-[10px] gap-2 bg-white/70 hover:scale-105 hover:-translate-x-1 ease-in-out duration-300 hover:bg-primary-300 cursor-pointer"
+							onClick={handleShowMoreClick}
+						>
+							<ImagePlus /> Mostrar mais fotos
+						</span>
 					</div>
+					<LightGallery
+						onInit={(detail) => {
+							lightGalleryRef.current = detail.instance;
+						}}
+						speed={500}
+						plugins={[lgThumbnail, lgZoom, lgFullscreen]}
+						dynamic={true}
+						dynamicEl={photos.map((photo) => ({
+							src: photo,
+							thumb: photo,
+							subHtml: `<h4>${title}</h4>`,
+						}))}
+						closable={true}
+						showCloseIcon={true}
+						counter={true}
+					/>
+					<p className="text-start">
+						<h2 className="text-xl font-bold">Descrição</h2>
+						{description}
+					</p>
+					<p className="text-start flex flex-col">
+						<h2 className="text-xl font-bold">Horários e Restrições</h2>
+						<span className="flex gap-2 my-2">
+							<span className="flex gap-2 items-center">
+								<CalendarArrowUp className="text-primary-500" size={20} />
+								Checki-in: {checkin}
+							</span>
+							<span className="flex gap-2 items-center">
+								<CalendarArrowDown color="gray" size={20} />
+								Checki-out: {checkout}
+							</span>
+						</span>
+						<span className="flex gap-2 items-center">
+							<Users color="gray" size={20} />
+							Nº máximo de convidados: {guests}
+						</span>
+					</p>
+					<p className="text-start flex flex-col">
+						<h2 className="text-xl font-bold">Diferenciais</h2>
+						{perks.map((perk, index) => (
+							<span className="flex gap-2 capitalize">{perk}</span>
+						))}
+					</p>
+					<p className="text-start">
+						<h2 className="text-xl font-bold">Informações Extras</h2>
+						{extras}
+					</p>
+					<p className="text-start flex flex-col">
+						<h2 className="text-xl font-bold">Preço</h2>
+						<span className=" w-fit mt-2 rounded-xl text-xl font-medium">
+							<span className="text-primary-500 font-bold text-2xl">
+								R$ {price},00
+							</span>{" "}
+							por noite
+						</span>
+					</p>
 				</div>
 			</section>
 		</div>
