@@ -11,7 +11,7 @@ const Account = () => {
 
 	const buttonClass = (button) => {
 		let finalClass =
-			" w-40 py-2.5 flex items-center gap-2 justify-center cursor-pointer ease-in-out duration-300 transtiol-all text-gray-600";
+			" w-40 py-2.5 flex items-center gap-2 justify-center cursor-pointer ease-in-out duration-300 transtion-all text-gray-600";
 		if (button === subpage) {
 			finalClass +=
 				" text-white rounded-full font-bold bg-primary-300 !border-primary-300 scale-[1.01] transition-all";

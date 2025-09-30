@@ -5,6 +5,8 @@ import { Navigate, useParams } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
 import { useMessage } from "./contexts/MessageContext";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 import Perks from "./Perks";
 
 import lgThumbnail from "lightgallery/plugins/thumbnail";
@@ -26,6 +28,7 @@ import {
 	ImagePlus,
 	MapPin,
 	NotepadTextDashed,
+	Search,
 	User,
 	Users,
 	Wifi,
@@ -49,6 +52,11 @@ const NewPlace = () => {
 	const [guests, setGuests] = useState("");
 	const [redirect, setRedirect] = useState(false);
 	const lightGalleryRef = useRef(null);
+	const [loaded, setLoaded] = useState([]);
+
+	const handleImageLoad = (index) => {
+		setLoaded((prev) => [...prev, index]);
+	};
 
 	const photosPlaceholder = [
 		{
@@ -366,8 +374,14 @@ const NewPlace = () => {
 				</button>
 			</form>
 			{/* Preview */}
-			<section className="w-fit">
-				<div className="flex flex-col gap-2">
+			<div className="mockup-browser h-fit w-full">
+				<div className="mockup-browser-toolbar pt-4 gap-4">
+					<div className=" rounded-2xl w-full text-start px-5 flex py-2.5 items-center gap-5 text-gray-500 border-1">
+						<Search size={20} />
+						https://preview.com
+					</div>
+				</div>
+				<div className="flex flex-col gap-2 p-4 pb-5">
 					<div className="text-2xl font-bold text-start">
 						{title ? title : <>Título da acomodação</>}
 					</div>
@@ -375,18 +389,51 @@ const NewPlace = () => {
 						<MapPin />
 						<span>{city ? city : <>Cidade/País da acomodação</>}</span>
 					</div>
-					<div className="relative grid grid-cols-[2fr_1fr] grid-rows-2 aspect-[3/2] gap-5 overflow-hidden rounded-2xl transtions hover:opacity-95 cursor-pointer">
-						{photos
-							.filter((photo, index) => index < 3)
-							.map((photo, index) => (
-								<img
+					<div className="relative grid grid-cols-[2fr_1fr] grid-rows-2 aspect-[3/2] gap-5  overflow-hidden rounded-2xl transtions hover:opacity-95">
+						{Array.from({ length: 3 }).map((_, index) => {
+							const photo = photos[index]; // pega a imagem correspondente se existir
+
+							return (
+								<div
+									key={index}
+									className={`relative overflow-hidden ${
+										index === 0 ? "row-span-2 h-full" : ""
+									} aspect-square w-full `}
+								>
+									{photo ? (
+										<>
+											{!loaded.includes(index) && (
+												<Skeleton
+													className={` ${
+														index == 0 ? "hidden" : ""
+													} absolute inset-0 w-full h-full`}
+												/>
+											)}
+											<img
+												src={photo}
+												alt="Imagem da acomodação"
+												onLoad={() => handleImageLoad(index)}
+												className={`w-full h-full object-cover cursor-pointer transition-opacity duration-500 ${
+													loaded.includes(index) ? "opacity-100" : "opacity-0"
+												}`}
+												onClick={() => handleImageClick(index)}
+											/>
+										</>
+									) : (
+										<Skeleton className="w-full h-full bg-red-300" />
+									)}
+								</div>
+							);
+						})}
+
+						{/* Caso não tenha fotos, só mostra placeholders */}
+						{photos.length === 0 &&
+							Array.from({ length: 3 }).map((_, index) => (
+								<Skeleton
 									key={index}
 									className={`${
 										index === 0 ? "row-span-2 h-full" : ""
-									} aspect-square w-full object-cover cursor-pointer hover:opacity-90 transition-opacity`}
-									src={photo}
-									alt="Imagem da acomodação"
-									onClick={() => handleImageClick(index)}
+									} aspect-square w-full`}
 								/>
 							))}
 						<span
@@ -414,46 +461,68 @@ const NewPlace = () => {
 					/>
 					<p className="text-start">
 						<h2 className="text-xl font-bold">Descrição</h2>
-						{description}
+						{description ? (
+							<>{description}</>
+						) : (
+							<>
+								<Skeleton className="h-10 w-2/3 mb-5"></Skeleton>
+								<Skeleton className="h-20 w-1/2"></Skeleton>
+							</>
+						)}
 					</p>
 					<p className="text-start flex flex-col">
 						<h2 className="text-xl font-bold">Horários e Restrições</h2>
 						<span className="flex gap-2 my-2">
 							<span className="flex gap-2 items-center">
 								<CalendarArrowUp className="text-primary-500" size={20} />
-								Checki-in: {checkin}
+								Checki-in: {checkin ? <></> : "A definir"}
 							</span>
 							<span className="flex gap-2 items-center">
 								<CalendarArrowDown color="gray" size={20} />
-								Checki-out: {checkout}
+								Checki-out: {checkout ? <></> : "A definir"}
 							</span>
 						</span>
 						<span className="flex gap-2 items-center">
 							<Users color="gray" size={20} />
-							Nº máximo de convidados: {guests}
+							Nº máximo de convidados: {guests ? <></> : "A definir"}
 						</span>
 					</p>
 					<p className="text-start flex flex-col">
 						<h2 className="text-xl font-bold">Diferenciais</h2>
-						{perks.map((perk, index) => (
-							<span className="flex gap-2 capitalize">{perk}</span>
-						))}
+						{perks.length > 0 ? (
+							perks.map((perk, index) => (
+								<span className="flex gap-2 capitalize">{perk}</span>
+							))
+						) : (
+							<div className="flex gap-2">
+								<Skeleton className="h-10 w-20"></Skeleton>
+								<Skeleton className="h-10 w-20"></Skeleton>
+								<Skeleton className="h-10 w-20"></Skeleton>
+							</div>
+						)}
 					</p>
 					<p className="text-start">
 						<h2 className="text-xl font-bold">Informações Extras</h2>
-						{extras}
+						{extras ? (
+							<>{extras}</>
+						) : (
+							<>
+								<Skeleton className="h-5 w-60 mb-5"></Skeleton>
+								<Skeleton className="h-5 w-40"></Skeleton>
+							</>
+						)}
 					</p>
 					<p className="text-start flex flex-col">
 						<h2 className="text-xl font-bold">Preço</h2>
 						<span className=" w-fit mt-2 rounded-xl text-xl font-medium">
 							<span className="text-primary-500 font-bold text-2xl">
-								R$ {price},00
+								{price ? <>R$ {price},00</> : "R$ 0,00"}
 							</span>{" "}
 							por noite
 						</span>
 					</p>
 				</div>
-			</section>
+			</div>
 		</div>
 	);
 };
