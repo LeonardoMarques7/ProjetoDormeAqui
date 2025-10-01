@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import Perk from "./Perk";
 
 const Perks = ({ perks, setPerks }) => {
 	return (
@@ -35,8 +36,7 @@ const Perks = ({ perks, setPerks }) => {
 						);
 					}}
 				/>
-				<Wifi className="w-4 h-4" />
-				<span>Wi-fi</span>
+				<Perk perk={"wifi"}></Perk>
 			</label>
 			<label
 				htmlFor="parking"
@@ -59,8 +59,7 @@ const Perks = ({ perks, setPerks }) => {
 						);
 					}}
 				/>
-				<CircleParking className="w-4 h-4" />
-				<span>Estacionamento gratuito</span>
+				<Perk perk={"parking"}></Perk>
 			</label>
 			<label
 				htmlFor="tv"
@@ -83,8 +82,7 @@ const Perks = ({ perks, setPerks }) => {
 						);
 					}}
 				/>
-				<TvMinimal className="w-4 h-4" />
-				<span>TV</span>
+				<Perk perk={"tv"}></Perk>
 			</label>
 			<label
 				htmlFor="radio"
@@ -107,8 +105,7 @@ const Perks = ({ perks, setPerks }) => {
 						);
 					}}
 				/>
-				<BoomBox className="w-4 h-4" />
-				<span>Rádio</span>
+				<Perk perk={"radio"}></Perk>
 			</label>
 			<label
 				htmlFor="pet"
@@ -131,8 +128,7 @@ const Perks = ({ perks, setPerks }) => {
 						);
 					}}
 				/>
-				<Dog className="w-4 h-4" />
-				<span>Pets</span>
+				<Perk perk={"pet"}></Perk>
 			</label>
 			<label
 				htmlFor="entrance"
@@ -155,8 +151,7 @@ const Perks = ({ perks, setPerks }) => {
 						);
 					}}
 				/>
-				<ShieldCheck className="w-4 h-4" />
-				<span>Entrada privada</span>
+				<Perk perk={"entrance"}></Perk>
 			</label>
 		</div>
 	);

@@ -1,0 +1,30 @@
+@media (width <= 768px) {
+    section  {
+        padding: 10px 15px;
+    }
+
+
+    .form__place {
+        width: 100%;
+        border: none;
+        padding: 0px;
+        position: relative;
+        text-align: start;
+        justify-content: start;
+        margin-bottom: 2rem;   
+        margin-top: -20px;
+     }
+
+    .column__check {
+        justify-content: start;
+    }
+
+    .form__place p:first-child {
+        text-align: start;
+    } 
+
+    .description {
+        padding: 0px;
+    }
+    
+}

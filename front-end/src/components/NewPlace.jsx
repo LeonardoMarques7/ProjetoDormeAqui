@@ -413,14 +413,14 @@ const NewPlace = () => {
 												src={photo}
 												alt="Imagem da acomodação"
 												onLoad={() => handleImageLoad(index)}
-												className={`w-full h-full object-cover cursor-pointer transition-opacity duration-500 ${
+												className={`w-full h-full hover:scale-120 transition-all object-cover cursor-pointer duration-500 ${
 													loaded.includes(index) ? "opacity-100" : "opacity-0"
 												}`}
 												onClick={() => handleImageClick(index)}
 											/>
 										</>
 									) : (
-										<Skeleton className="w-full h-full bg-red-300" />
+										<Skeleton className=" relative w-full h-full" />
 									)}
 								</div>
 							);
