@@ -22,22 +22,67 @@ import { useMessage } from "../components/contexts/MessageContext";
 import Perk from "../components/Perk";
 import "./Place.css";
 
+import { format, isBefore, addDays } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import Booking from "../components/Booking";
+
 const Place = () => {
 	const { id } = useParams();
 	const { user } = useUserContext();
 	const { showMessage } = useMessage();
 	const [place, setPlace] = useState(null);
 	const lightGalleryRef = useRef(null);
+	const [redirect, setRedirect] = useState(false);
 	const [checkin, setCheckin] = useState("");
 	const [checkout, setCheckout] = useState("");
 	const [guests, setGuests] = useState("");
+	const [date, setDate] = useState({
+		from: new Date(),
+		to: addDays(new Date(), 7),
+	});
+	const [booking, setBooking] = useState(null);
+
+	const numberOfDays = (date1, date2) => {
+		const date1GMT = date1 + "GMT-03:00";
+		const date2GMT = date2 + "GMT-03:00";
+
+		const dateCheckin = new Date(date1GMT);
+		const dateCheckout = new Date(date2GMT);
+
+		return (
+			(dateCheckout.getTime() - dateCheckin.getTime()) / (1000 * 60 * 60 * 24)
+		);
+	};
+
+	useEffect(() => {
+		if (place) {
+			const axiosGet = async () => {
+				const { data } = await axios.get("/bookings/owner");
+				setBooking(
+					data.filter((booking) => {
+						console.log(booking.place._id, place._id);
+						return booking.place._id === place._id;
+					})[0]
+				);
+			};
+
+			axiosGet();
+		}
+	}, [place]);
 
 	useEffect(() => {
 		if (id) {
 			const axiosGet = async () => {
 				const { data } = await axios.get(`/places/${id}`);
 
-				console.log(data);
 				setPlace(data);
 			};
 
@@ -57,14 +102,47 @@ const Place = () => {
 		}
 	};
 
-	const handleBooking = (e) => {
+	const handleBooking = async (e) => {
 		e.preventDefault();
 
 		if (checkin && checkout && guests) {
-			console.log("Fez a reserva");
+			const nights = numberOfDays(checkin, checkout);
+
+			const objBooking = {
+				place: id,
+				user: user._id,
+				price: place.price,
+				total: place.price * nights,
+				checkin,
+				checkout,
+				guests,
+				nights,
+			};
+
+			const { data } = await axios.post("/bookings", objBooking);
+
+			setRedirect(true);
 		} else {
-			showMessage("Complete todas as informações", "warning");
+			showMessage("Insira todas as informações!", "warning");
 		}
+	};
+
+	const handleCheckin = (date) => {
+		setCheckin(date);
+		// Se já tinha checkout selecionado mas é antes do novo checkin → reseta checkout
+		if (checkout && isBefore(checkout, date)) {
+			setCheckout(null);
+			showMessage("Insira uma data válida!", "error");
+		} else {
+		}
+	};
+
+	const handleCheckout = (date) => {
+		if (checkin && isBefore(date, checkin)) {
+			showMessage("Insira uma data válida!", "error");
+			return;
+		}
+		setCheckout(date);
 	};
 
 	if (!place) return <></>;
@@ -72,6 +150,7 @@ const Place = () => {
 	return (
 		<section>
 			<div className="sm:px-8 max-w-7xl mx-auto flex flex-col gap-4">
+				{booking ? <Booking booking={booking} place={true} /> : ""}
 				{/* Títulos da acomodação */}
 				<div className="flex flex-col gap-2">
 					<div className="sm:text-2xl text-large font-bold">{place.title}</div>
@@ -169,63 +248,117 @@ const Place = () => {
 						</div>
 					</div>
 
-					<form className="form__place order-1 md:order-none sm:border-0 justify-self-end self-start sticky top-4 flex flex-col gap-4 border-gray-200 border rounded-2xl px-8 sm:px-0 py-4 ">
-						<p className="sm:text-2xl text-large font-bold text-center sm:text-start">
-							Preço: R$ {place.price} por noite
-						</p>
-						{/* Checkin e Checkout */}
-						<div className="column__check flex justify-center sm:justify-start">
-							<div className="border border-primay-200 rounded-tl-2xl rounded-bl-2xl px-4 py-2">
-								<p className="font-bold">Check-in</p>
-								<input
-									type="date"
-									value={checkin}
-									onChange={(e) => {
-										setCheckin(e.target.value);
-									}}
-								/>
-							</div>
-							<div className="border border-primay-200 border-l-0 rounded-tr-2xl rounded-br-2xl px-4 py-2">
-								<p className="font-bold">Check-out</p>
-								<input
-									type="date"
-									value={checkout}
-									onChange={(e) => {
-										setCheckout(e.target.value);
-									}}
-								/>
-							</div>
-						</div>
+					{console.log(booking)}
 
-						{/* Convidados */}
-						<div className="py-2 flex flex-col gap-2 justify-center sm:mx-auto sm:w-full ">
-							<p className="font-bold px-3 sm:px-0">Nº Convidados</p>
-							<input
-								type="number"
-								value={guests}
-								placeholder="2"
-								className="border border-primay-200 w-20 rounded-2xl px-4 py-2"
-								onChange={(e) => {
-									setGuests(e.target.value);
-								}}
-							/>
-						</div>
-						{user ? (
-							<button
-								onClick={handleBooking}
-								className="text-center font-bold rounded-full text-xl cursor-pointer w-full py-2 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300"
-							>
-								Reservar
-							</button>
-						) : (
-							<Link
-								to={"/login"}
-								className="text-center font-bold rounded-full text-xl cursor-pointer w-full py-2 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300"
-							>
-								Entre para continuar
-							</Link>
-						)}
-					</form>
+					{/* Booking */}
+					{booking ? (
+						""
+					) : (
+						<form className="form__place order-1 md:order-none sm:border-0 justify-self-end self-start sticky top-4 flex flex-col gap-4 border-gray-200 border rounded-2xl px-8 sm:px-0 py-4 ">
+							<p className="sm:text-2xl text-xl font-medium text-center sm:text-start text-gray-600">
+								Preço:{" "}
+								<span className="font-bold text-primary-500">
+									R$ {place.price}
+								</span>{" "}
+								por noite
+							</p>
+							{/* Checkin e Checkout */}
+							<div className="column__check flex justify-center sm:justify-start">
+								<div className="flex gap-4">
+									{/* Check-in */}
+									<div className="py-2">
+										<p className="font-bold mb-2">Check-in</p>
+										<Popover>
+											<PopoverTrigger asChild>
+												<Button
+													variant="outline"
+													className={cn(
+														"w-[200px] justify-start text-left font-normal",
+														!checkin && "text-muted-foreground"
+													)}
+												>
+													<CalendarIcon className="mr-2 h-4 w-4" />
+													{checkin ? (
+														format(checkin, "dd/MM/yyyy")
+													) : (
+														<span>Selecione</span>
+													)}
+												</Button>
+											</PopoverTrigger>
+											<PopoverContent className="w-auto p-0" align="start">
+												<Calendar
+													mode="single"
+													selected={checkin}
+													onSelect={handleCheckin}
+													initialFocus
+												/>
+											</PopoverContent>
+										</Popover>
+									</div>
+
+									{/* Check-out */}
+									<div className="py-2">
+										<p className="font-bold mb-2">Check-out</p>
+										<Popover>
+											<PopoverTrigger asChild>
+												<Button
+													variant="outline"
+													className={cn(
+														"w-[200px] justify-start text-left font-normal",
+														!checkout && "text-muted-foreground"
+													)}
+												>
+													<CalendarIcon className="mr-2 h-4 w-4" />
+													{checkout ? (
+														format(checkout, "dd/MM/yyyy")
+													) : (
+														<span>Selecione</span>
+													)}
+												</Button>
+											</PopoverTrigger>
+											<PopoverContent className="w-auto p-0" align="start">
+												<Calendar
+													mode="single"
+													selected={checkout}
+													onSelect={handleCheckout}
+													initialFocus
+												/>
+											</PopoverContent>
+										</Popover>
+									</div>
+								</div>
+							</div>
+
+							{/* Convidados */}
+							<div className="py-2 flex flex-col gap-2 justify-center sm:mx-auto sm:w-full ">
+								<p className="font-bold px-3 sm:px-0">Nº Convidados</p>
+								<input
+									type="number"
+									value={guests}
+									placeholder="2"
+									className="border border-primay-200 w-20 rounded-2xl px-4 py-2"
+									onChange={(e) => {
+										setGuests(e.target.value);
+									}}
+								/>
+							</div>
+							{user ? (
+								<button
+									onClick={handleBooking}
+									className="text-center font-bold rounded-full text-xl cursor-pointer w-full py-2 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300"
+								>
+									Reservar
+								</button>
+							) : (
+								<Link
+									to={"/login"}
+									className="text-center font-bold rounded-full text-xl cursor-pointer w-full py-2 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300"
+								>
+									Entre para continuar
+								</Link>
+							)}
+						</form>
+					)}
 				</div>
 			</div>
 		</section>

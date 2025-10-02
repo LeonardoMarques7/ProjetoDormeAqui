@@ -2,6 +2,7 @@ import React from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import AccProfile from "../components/AccProfile";
 import AccPlaces from "../components/AccPlaces";
+import AccBookings from "../components/AccBookings";
 import { useUserContext } from "../components/contexts/UserContext";
 import { Calendar, House, User } from "lucide-react";
 
@@ -38,6 +39,7 @@ const Account = () => {
 				</div>
 				{subpage === "profile" && <AccProfile />}
 				{subpage === "places" && <AccPlaces />}
+				{subpage === "bookings" && <AccBookings />}
 			</div>
 		</section>
 	);
