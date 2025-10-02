@@ -24,7 +24,7 @@ const Booking = ({ booking, place = false }) => {
 				className="cursor-pointer pointer-events-none mt-5 flex rounded-2xl border border-primary-100 gap-5 "
 			>
 				<div className="flex flex-col items-start gap-2 w-full text-gray-500 p-5">
-					<div className="flex flex-col gap-0 w-full">
+					<div className="flex flex-col gap-0 w-full text-start">
 						<h5 className="text-primary-600 font-medium uppercase">
 							Seu Ticket de Reserva
 						</h5>
@@ -47,7 +47,7 @@ const Booking = ({ booking, place = false }) => {
 								<span className="flex gap-2 pt-2 flex-col items-start">
 									<p className="uppercase ">Check-in</p>
 									<p className="flex items-center gap-2 text-gray-700 font-medium">
-										<CalendarArrowUp size={20} className="text-primary-500" />
+										<CalendarArrowUp size={18} className="text-primary-500" />
 										{new Date(booking.checkin).toLocaleDateString("pt-br")}
 									</p>
 								</span>
@@ -66,24 +66,37 @@ const Booking = ({ booking, place = false }) => {
 									</p>
 								</span>
 							</span>
-						</div>
-						<div className="flex gap-5 pt-2">
-							<span className="flex gap-2 items-center">
-								<Moon size={20} className="text-primary-500" />
-								Noites: {booking.nights}
-							</span>
-							<span className="flex gap-2 items-center">
-								<Users size={20} className="text-primary-500" />
-								Nº máximo de hóspedes: {booking.guests}
-							</span>
+							<div className="flex gap-3 my-2 items-start flex-col">
+								<p className="uppercase ">Noites</p>
+								<p className="flex items-center gap-2 text-gray-700 font-medium">
+									<Moon size={18} className="text-primary-500" />
+									{booking.nights}
+								</p>
+								<span className="flex gap-2 pt-2 flex-col items-start">
+									<p className="uppercase ">Nº máximo de hóspedes</p>
+									<p className="flex items-center gap-2 text-gray-700 font-medium">
+										<Users size={18} className="text-primary-500" />
+										{booking.guests}
+									</p>
+								</span>
+							</div>
 						</div>
 					</div>
 				</div>
 				<div className="p-4 border-l-3 min-h-full w-100 border-dashed flex items-center justify-center flex-col ">
 					<img src={imageDormeAqui} alt="Logo do DormeAqui" className="w-50" />
-					<img src={imageQrCode} alt="" className="w-50" />
-					<span className="flex gap-2 items-center">
-						Valor total: R${booking.priceTotal.toLocaleString()},00
+					<div className="relative">
+						<img src={imageQrCode} alt="" className="w-50" />
+						<caption className="absolute -bottom-2 text-sm text-gray-500 text-center w-full left-0">
+							EasterEgg
+						</caption>
+					</div>
+					<span className="flex gap-1 items-center flex-col pt-2">
+						<p className="text-primary-500 font-bold">Valor total </p>
+						{booking.priceTotal?.toLocaleString("pt-BR", {
+							style: "currency",
+							currency: "BRL",
+						})}
 					</span>
 				</div>
 			</Link>

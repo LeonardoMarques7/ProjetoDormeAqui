@@ -21,7 +21,8 @@ import { useUserContext } from "../components/contexts/UserContext";
 import { useMessage } from "../components/contexts/MessageContext";
 import Perk from "../components/Perk";
 import "./Place.css";
-
+import imageQrCode from "../assets/qrcode_leonardomdev.png";
+import imageDormeAqui from "../assets/logo__primary.png";
 import { format, isBefore, addDays } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -149,8 +150,8 @@ const Place = () => {
 
 	return (
 		<section>
-			<div className="sm:px-8 max-w-7xl mx-auto flex flex-col gap-4">
-				{booking ? <Booking booking={booking} place={true} /> : ""}
+			<div className="sm:px-8 pb-10 max-w-7xl mx-auto flex flex-col gap-4">
+				{booking ? <Booking booking={booking} place={true} /> : "mt-5"}
 				{/* Títulos da acomodação */}
 				<div className="flex flex-col gap-2">
 					<div className="sm:text-2xl text-large font-bold">{place.title}</div>
@@ -252,7 +253,16 @@ const Place = () => {
 
 					{/* Booking */}
 					{booking ? (
-						""
+						<div className="sticky top-4 text-center ml-auto text-xl border-1 w-fit h-fit rounded-2xl py-5 ">
+							Acesse sua reserva
+							<div className="relative">
+								<img src={imageQrCode} alt="" className="w-50 mx-auto" />
+								<caption className="absolute -bottom-2 text-sm text-gray-500 text-center w-full left-0">
+									EasterEgg
+								</caption>
+							</div>
+							<img src={imageDormeAqui} alt="" className="w-25 mx-auto pt-4" />
+						</div>
 					) : (
 						<form className="form__place order-1 md:order-none sm:border-0 justify-self-end self-start sticky top-4 flex flex-col gap-4 border-gray-200 border rounded-2xl px-8 sm:px-0 py-4 ">
 							<p className="sm:text-2xl text-xl font-medium text-center sm:text-start text-gray-600">
