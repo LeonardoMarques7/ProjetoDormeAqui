@@ -1,0 +1,17 @@
+@media (width <=768px) {
+    section {
+        padding: 10px 15px;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .image__login {
+        margin-bottom: 1rem;
+        object-fit: cover;
+    }
+
+
+    .container__image {
+        height: fit-content;
+    }
+}

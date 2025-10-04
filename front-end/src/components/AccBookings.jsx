@@ -15,7 +15,7 @@ const AccBookings = () => {
 	}, []);
 
 	return (
-		<div className="flex w-full max-w-7xl flex-col gap-8">
+		<div className="flex w-full max-w-full lg:max-w-7xl flex-col gap-8">
 			{bookings.map((booking) => (
 				<Booking booking={booking} key={booking._id} />
 			))}

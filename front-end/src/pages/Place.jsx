@@ -151,7 +151,11 @@ const Place = () => {
 	return (
 		<section>
 			<div className="sm:px-8 pb-10 max-w-7xl mx-auto flex flex-col gap-4">
-				{booking ? <Booking booking={booking} place={true} /> : "mt-5"}
+				{booking ? (
+					<Booking booking={booking} place={true} />
+				) : (
+					<span className="mt-1"></span>
+				)}
 				{/* Títulos da acomodação */}
 				<div className="flex flex-col gap-2">
 					<div className="sm:text-2xl text-large font-bold">{place.title}</div>
@@ -283,7 +287,7 @@ const Place = () => {
 												<Button
 													variant="outline"
 													className={cn(
-														"w-[200px] justify-start text-left font-normal",
+														"w-fit justify-start text-left font-normal",
 														!checkin && "text-muted-foreground"
 													)}
 												>
@@ -314,7 +318,7 @@ const Place = () => {
 												<Button
 													variant="outline"
 													className={cn(
-														"w-[200px] justify-start text-left font-normal",
+														"w-fit justify-start text-left font-normal",
 														!checkout && "text-muted-foreground"
 													)}
 												>

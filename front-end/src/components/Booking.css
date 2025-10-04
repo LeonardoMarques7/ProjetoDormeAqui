@@ -1,0 +1,67 @@
+@media (width <=768px) { 
+    .ticket__booking {
+        border: 0px #000 solid;
+        border-radius: 0px;
+        padding-bottom: 2rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px dashed #000;
+        flex-direction: column-reverse;
+        
+    }
+
+    .ticket__booking div {
+        padding: 5px;
+    }
+    
+    .container__qrcode {
+        border: none;
+        margin: 0 auto;
+        width: fit-content;
+    }
+
+    .header__ticket, .location__ticket {
+        text-align: center;
+        margin: 5px auto;
+    }
+
+    h5, p {
+        font-size: 14px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+
+    .infos__ticket {
+        font-size: 15px;
+        flex-direction: column;
+    }
+
+    .item-1 {
+        order: 2;
+    }
+
+    .item-2 {
+        order: 3;
+    }
+
+    .item-3 {
+        order: 1;
+    }
+
+    .item-4 {
+        order: 4;
+    }
+
+    .footer__ticket {
+        display: block;
+        position: absolute;
+        bottom: -.7rem;
+        width: 100%;
+    }
+
+    .footer__ticket strong {
+        background-color: #fff;
+        padding: 0px 5px;
+    }
+}

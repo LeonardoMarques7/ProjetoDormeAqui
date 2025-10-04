@@ -8,7 +8,7 @@ const Header = () => {
 
 	return (
 		<header className="shadow-md">
-			<div className="flex items-center justify-between px-4 sm:px-8 py-4 max-w-7xl mx-auto">
+			<div className="max-w-full flex items-center justify-between px-4 sm:px-8 py-4 lg:max-w-7xl mx-auto">
 				<Link to="/" className="flex items-center">
 					<img
 						src={logoPrimary}

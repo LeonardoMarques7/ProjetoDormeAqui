@@ -39,8 +39,12 @@ const Register = () => {
 
 	return (
 		<section className="flex flex-row-reverse items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
-			<div className="w-1/2 h-full flex items-center relative justify-center ease-in-out duration-500 transition-all">
-				<img src={logo__secondary} className="w-full object-cover" alt="" />
+			<div className="w-1/2 h-full flex items-center relative justify-center ease-in-out container__image duration-500 transition-all">
+				<img
+					src={logo__secondary}
+					className="w-full object-cover image__login"
+					alt=""
+				/>
 			</div>
 			<div className="max-w-96 mx-auto gap-4 flex flex-col items-center w-full">
 				<h1 className="text-3xl font-bold">Cadastre-se e descubra</h1>

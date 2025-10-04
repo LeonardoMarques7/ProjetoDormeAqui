@@ -26,7 +26,7 @@ const Account = () => {
 	return (
 		<section className="p-8 text-center max-w-7xl w-full mx-auto">
 			<div className="flex flex-col gap-4">
-				<div className="flex w-full mx-auto justify-center items-center">
+				<div className="w-full mx-auto justify-center items-center hidden">
 					<Link to="/account/profile" className={`${buttonClass("profile")}`}>
 						<User /> Perfil
 					</Link>

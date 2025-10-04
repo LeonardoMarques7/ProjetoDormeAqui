@@ -4,6 +4,7 @@ import logo__secondary from "../assets/plano__fundo.png";
 import { useState } from "react";
 import axios from "axios";
 import { useUserContext } from "../components/contexts/UserContext";
+import "./Login.css";
 
 const Login = () => {
 	const { user, setUser } = useUserContext();
@@ -36,11 +37,15 @@ const Login = () => {
 	if (redirect || user) return <Navigate to="/" />;
 
 	return (
-		<section className="flex items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
-			<div className="w-1/2 h-full flex items-center relative justify-center ease-in-out duration-500 transition-allr">
-				<img src={logo__secondary} className="w-full object-cover" alt="" />
+		<section className="flex items-center justify-between sm:px-8 py-4 max-w-7xl  mx-auto ease-in-out duration-500 transition-all">
+			<div className="container__image w-1/2 h-full flex items-center relative justify-center ease-in-out duration-500 transition-all">
+				<img
+					src={logo__secondary}
+					className="w-full object-cover image__login"
+					alt=""
+				/>
 			</div>
-			<div className="max-w-96 mx-auto gap-4 flex flex-col items-center w-full">
+			<div className="max-w-96 mx-auto gap-4 flex flex-col items-center w-full ">
 				<h1 className="text-3xl font-bold">Bem-vindo de volta</h1>
 				<h3>Entre na sua conta para continuar</h3>
 				<form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
