@@ -459,7 +459,7 @@ const NewPlace = () => {
 						showCloseIcon={true}
 						counter={true}
 					/>
-					<p className="text-start">
+					<span className="text-start">
 						<h2 className="text-xl font-bold">Descrição</h2>
 						{description ? (
 							<>{description}</>
@@ -469,25 +469,25 @@ const NewPlace = () => {
 								<Skeleton className="h-20 w-1/2"></Skeleton>
 							</>
 						)}
-					</p>
-					<p className="text-start flex flex-col">
+					</span>
+					<span className="text-start flex flex-col">
 						<h2 className="text-xl font-bold">Horários e Restrições</h2>
 						<span className="flex gap-2 my-2">
 							<span className="flex gap-2 items-center">
 								<CalendarArrowUp className="text-primary-500" size={20} />
-								Checki-in: {checkin ? <></> : "A definir"}
+								Checki-in: {checkin ? <>{checkin}</> : "A definir"}
 							</span>
 							<span className="flex gap-2 items-center">
 								<CalendarArrowDown color="gray" size={20} />
-								Checki-out: {checkout ? <></> : "A definir"}
+								Checki-out: {checkout ? <>{checkout}</> : "A definir"}
 							</span>
 						</span>
 						<span className="flex gap-2 items-center">
 							<Users color="gray" size={20} />
-							Nº máximo de convidados: {guests ? <></> : "A definir"}
+							Nº máximo de convidados: {guests ? <>{guests}</> : "A definir"}
 						</span>
-					</p>
-					<p className="text-start flex flex-col">
+					</span>
+					<span className="text-start flex flex-col">
 						<h2 className="text-xl font-bold">Diferenciais</h2>
 						{perks.length > 0 ? (
 							perks.map((perk, index) => (
@@ -500,8 +500,8 @@ const NewPlace = () => {
 								<Skeleton className="h-10 w-20"></Skeleton>
 							</div>
 						)}
-					</p>
-					<p className="text-start">
+					</span>
+					<span className="text-start">
 						<h2 className="text-xl font-bold">Informações Extras</h2>
 						{extras ? (
 							<>{extras}</>
@@ -511,8 +511,8 @@ const NewPlace = () => {
 								<Skeleton className="h-5 w-40"></Skeleton>
 							</>
 						)}
-					</p>
-					<p className="text-start flex flex-col">
+					</span>
+					<span className="text-start flex flex-col">
 						<h2 className="text-xl font-bold">Preço</h2>
 						<span className=" w-fit mt-2 rounded-xl text-xl font-medium">
 							<span className="text-primary-500 font-bold text-2xl">
@@ -520,7 +520,7 @@ const NewPlace = () => {
 							</span>{" "}
 							por noite
 						</span>
-					</p>
+					</span>
 				</div>
 			</div>
 		</div>

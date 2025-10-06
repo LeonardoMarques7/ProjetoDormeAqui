@@ -16,9 +16,9 @@ const Perks = ({ perks, setPerks }) => {
 	return (
 		<div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
 			<label
-				htmlFor="wifi"
+				htmlFor="Wifi"
 				className={`flex items-center gap-2 cursor-pointer px-3 hover:bg-primary-300 hover:text-white py-2 rounded-xl border-1 border-gray-300 transition-colors ${
-					perks.includes("wifi")
+					perks.includes("Wifi")
 						? "bg-primary-500 text-white border-transparent"
 						: "bg-white text-gray-800"
 				}`}
@@ -36,7 +36,7 @@ const Perks = ({ perks, setPerks }) => {
 						);
 					}}
 				/>
-				<Perk perk={"wifi"}></Perk>
+				<Perk perk={"Wifi"}></Perk>
 			</label>
 			<label
 				htmlFor="parking"

@@ -40,7 +40,7 @@ const Perk = ({ perk }) => {
 				<span>Estacionamento gratuito</span>
 			</>
 		),
-		wifi: (
+		Wifi: (
 			<>
 				<Wifi className="w-4 h-4" />
 				<span>Wi-fi</span>

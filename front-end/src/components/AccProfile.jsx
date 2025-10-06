@@ -24,7 +24,7 @@ const AccProfile = () => {
 	if (!user) return <></>;
 
 	return (
-		<div className="flex flex-col items-center gap-4">
+		<div id="Perfil" className="flex flex-col items-center gap-4">
 			<p>
 				Logado como {user.name} ({user.email})
 			</p>
