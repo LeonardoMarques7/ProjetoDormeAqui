@@ -2,7 +2,7 @@ import "dotenv/config";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import fs, { link } from "fs";
 import multer from "multer";
-import { __dirname } from "../server.js";
+import { __dirname } from "../ultis/dirname.js";
 import path from "path";
 import { getExtension } from "../ultis/imageDownloader.js";
 

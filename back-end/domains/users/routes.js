@@ -2,6 +2,7 @@ import "dotenv/config";
 import { Router } from "express";
 import { connectDb } from "../../config/db.js";
 import User from "./model.js";
+import { __dirname } from "../../ultis/dirname.js";
 import bcrypt from "bcrypt"
 import { JWTSign, JWTVerify } from "../../ultis/jwt.js";
 
@@ -47,7 +48,7 @@ router.post("/", async (req, res) => {
   } 
   catch (error) {
     res.status(500).json("Erro ao assinar com o JWT", error);
-  }
+  }d
   
 
 

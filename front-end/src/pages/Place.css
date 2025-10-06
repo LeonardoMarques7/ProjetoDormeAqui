@@ -27,4 +27,7 @@
         padding: 0px;
     }
     
+    .alert__booking {
+        margin: 0 auto;
+    }
 }

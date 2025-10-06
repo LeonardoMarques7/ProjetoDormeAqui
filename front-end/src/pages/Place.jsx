@@ -8,7 +8,7 @@ import {
 	Users,
 } from "lucide-react";
 import React, { useEffect, useState, useRef, useContext } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import lgThumbnail from "lightgallery/plugins/thumbnail";
 import lgZoom from "lightgallery/plugins/zoom";
 import lgFullscreen from "lightgallery/plugins/fullscreen";
@@ -31,9 +31,11 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, InfoIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Booking from "../components/Booking";
+import { Toaster } from "sonner";
+import BookingAlert from "../components/BookingAlert";
 
 const Place = () => {
 	const { id } = useParams();
@@ -128,6 +130,8 @@ const Place = () => {
 		}
 	};
 
+	if (redirect) return <Navigate to={`accounts/bookings`} />;
+
 	const handleCheckin = (date) => {
 		setCheckin(date);
 		// Se já tinha checkout selecionado mas é antes do novo checkin → reseta checkout
@@ -150,7 +154,7 @@ const Place = () => {
 
 	return (
 		<section>
-			<div className="sm:px-8 pb-10 max-w-7xl mx-auto flex flex-col gap-4">
+			<div className="sm:px-8 pb-10 max-w-7xl mx-auto flex flex-col gap-2">
 				{booking ? (
 					<Booking booking={booking} place={true} />
 				) : (
@@ -257,16 +261,10 @@ const Place = () => {
 
 					{/* Booking */}
 					{booking ? (
-						<div className="sticky top-4 text-center ml-auto text-xl border-1 w-fit h-fit rounded-2xl py-5 ">
-							Acesse sua reserva
-							<div className="relative">
-								<img src={imageQrCode} alt="" className="w-50 mx-auto" />
-								<caption className="absolute -bottom-2 text-sm text-gray-500 text-center w-full left-0">
-									EasterEgg
-								</caption>
-							</div>
-							<img src={imageDormeAqui} alt="" className="w-25 mx-auto pt-4" />
-						</div>
+						<>
+							<BookingAlert />
+							<Toaster position="top-center" richColors />
+						</>
 					) : (
 						<form className="form__place order-1 md:order-none sm:border-0 justify-self-end self-start sticky top-4 flex flex-col gap-4 border-gray-200 border rounded-2xl px-8 sm:px-0 py-4 ">
 							<p className="sm:text-2xl text-xl font-medium text-center sm:text-start text-gray-600">

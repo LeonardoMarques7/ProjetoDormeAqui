@@ -11,4 +11,21 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    // 1. Configura o Proxy
+    proxy: {
+      // Qualquer requisição que comece com /api será redirecionada para o backend
+      '/api': {
+        target: 'http://localhost:3000', // Altere para a porta que seu Express usa!
+        changeOrigin: true, // Necessário para evitar problemas de CORS
+        secure: false,
+      },
+      // Faz o mesmo para a rota /tmp
+      '/tmp': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      }
+    },
+  },
 })

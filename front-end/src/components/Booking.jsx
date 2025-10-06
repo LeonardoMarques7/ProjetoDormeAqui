@@ -90,15 +90,15 @@ const Booking = ({ booking, place = false }) => {
 						</div>
 					</div>
 				</div>
-				<div className="container__qrcode p-4 border-l-3 min-h-full w-100 border-dashed flex items-center justify-center flex-col ">
+				<div className="container__qrcode bg-primary-100/20 p-4 border-l-3 min-h-full w-100 border-dashed flex items-center justify-center flex-col ">
 					<img src={imageDormeAqui} alt="Logo do DormeAqui" className="w-50" />
 					<div className="relative">
 						<img src={imageQrCode} alt="" className="w-50" />
-						<caption className="absolute -bottom-2 text-sm text-gray-500 text-center w-full left-0">
+						<caption className="absolute -bottom-1 text-sm text-gray-500 text-center w-full left-0">
 							EasterEgg
 						</caption>
 					</div>
-					<span className="flex gap-1 items-center flex-col ">
+					<span className="flex  items-center flex-col ">
 						<p className="text-primary-500 font-bold">Valor total </p>
 						{booking.priceTotal?.toLocaleString("pt-BR", {
 							style: "currency",
