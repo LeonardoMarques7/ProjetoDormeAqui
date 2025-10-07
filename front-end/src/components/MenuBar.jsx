@@ -56,9 +56,9 @@ function MenuBar() {
 					<motion.button
 						whileHover={{ scale: 1.05 }}
 						whileTap={{ scale: 0.95 }}
+						key={item.path}
 					>
 						<Link
-							key={item.path}
 							to={item.path}
 							className={`flex items-center gap-2  rounded-full px-4 justify-between py-2 transition-colors  ${
 								scrolled
