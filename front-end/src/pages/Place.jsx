@@ -47,6 +47,7 @@ const Place = () => {
 	const [checkin, setCheckin] = useState("");
 	const [checkout, setCheckout] = useState("");
 	const [guests, setGuests] = useState("");
+	const [placeHeader, setPlaceHeader] = useState("");
 	const [date, setDate] = useState({
 		from: new Date(),
 		to: addDays(new Date(), 7),
@@ -153,21 +154,39 @@ const Place = () => {
 	if (!place) return <></>;
 
 	return (
-		<section>
-			<div className="sm:px-8 pb-10 max-w-7xl mx-auto flex flex-col gap-2">
+		<section className="">
+			<div
+				className={`p-8 w-full ${
+					booking && "mb-50"
+				} bg-primary-500 relative h-[50svh] flex-col text-white flex justify-center items-center text-center`}
+			>
 				{booking ? (
 					<Booking booking={booking} place={true} />
 				) : (
-					<span className="mt-1"></span>
-				)}
-				{/* Títulos da acomodação */}
-				<div className="flex flex-col gap-2">
-					<div className="sm:text-2xl text-large font-bold">{place.title}</div>
-					<div className="flex gap-2">
-						<MapPin />
-						<span>{place.city}</span>
+					<div className="bg-white absolute -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4 text-gray-800  justify-center items-center gap-2">
+						<div className="sm:text-2xl text-4xl font-bold">{place.title}</div>
+						<div className="flex gap-2">
+							<MapPin />
+							<span>{place.city}</span>
+						</div>
 					</div>
-				</div>
+				)}
+			</div>
+			<div className="sm:px-8 pb-10 max-w-7xl mx-auto flex flex-col gap-2">
+				{/* Títulos da acomodação */}
+				{booking ? (
+					<div className="flex flex-col gap-2">
+						<div className="sm:text-2xl text-large font-bold">
+							{place.title}
+						</div>
+						<div className="flex gap-2">
+							<MapPin />
+							<span>{place.city}</span>
+						</div>
+					</div>
+				) : (
+					<div className="mt-15"></div>
+				)}
 
 				{/* Imagens da acomodação */}
 				<div className="relative grid sm:grid-cols-[2fr_1fr] aspect-square sm:grid-rows-2 sm:aspect-[3/2] gap-5 overflow-hidden rounded-2xl hover:opacity-95 cursor-pointer">

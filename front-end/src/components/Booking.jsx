@@ -18,11 +18,11 @@ const Booking = ({ booking, place = false }) => {
 	const { action } = useParams();
 
 	return (
-		<div>
+		<div className="bg-white/80 backdrop-blur-sm absolute -bottom-35 w-full lg:max-w-5xl shadow-xl shadow-primary-200/50 rounded-2xl ">
 			<Link
 				to={`/place/${booking.place._id}`}
 				key={booking.place._id}
-				className="ticket__booking relative cursor-pointer pointer-events-none mt-5 flex rounded-2xl border border-primary-100 gap-5 "
+				className="ticket__ooking relative cursor-pointer pointer-events-none flex rounded-2xl border border-primary-100 gap-5 "
 			>
 				<div className="flex flex-col items-start gap-2 w-full text-gray-500 p-5">
 					<div className="flex flex-col gap-1 w-full text-start header__ticket">
@@ -90,7 +90,7 @@ const Booking = ({ booking, place = false }) => {
 						</div>
 					</div>
 				</div>
-				<div className="container__qrcode bg-primary-100/20 p-4 border-l-3 min-h-full w-100 border-dashed flex items-center justify-center flex-col ">
+				<div className="container__qrcode bg-primary-100/5 backdrop-blur-lg p-4 border-l-3 min-h-full w-100 border-dashed flex items-center justify-center flex-col ">
 					<img src={imageDormeAqui} alt="Logo do DormeAqui" className="w-50" />
 					<div className="relative">
 						<img src={imageQrCode} alt="" className="w-50" />
