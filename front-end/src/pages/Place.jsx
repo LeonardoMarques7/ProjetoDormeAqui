@@ -1,7 +1,11 @@
 import axios from "axios";
 import {
+	Bath,
+	Bed,
+	BedDouble,
 	CalendarArrowUpIcon,
 	Expand,
+	Home,
 	ImagePlus,
 	LocateIcon,
 	MapPin,
@@ -158,16 +162,31 @@ const Place = () => {
 			<div
 				className={`p-8 w-full ${
 					booking && "mb-50"
-				} bg-primary-500 relative h-[50svh] flex-col text-white flex justify-center items-center text-center`}
+				} bg-primary-500 relative flex flex-col justify-center items-center h-[25svh]`}
 			>
 				{booking ? (
 					<Booking booking={booking} place={true} />
 				) : (
-					<div className="bg-white absolute -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4 text-gray-800  justify-center items-center gap-2">
-						<div className="sm:text-2xl text-4xl font-bold">{place.title}</div>
-						<div className="flex gap-2">
-							<MapPin />
-							<span>{place.city}</span>
+					<div className=" py-4 w-full max-w-full lg:max-w-7xl  mx-auto shadow-primary-500/50 absolute -bottom-12 px-8 mt-4 text-gray-500 flex flex-col justify-center items-center gap-5">
+						<div className="text-4xl font-bold text-white ">{place.title}</div>
+						<div className="flex gap-4 items-center">
+							<div className="flex gap-2">
+								<MapPin />
+								<span>{place.city}</span>
+							</div>
+							<span className="flex gap-2 border-l-1 px-5 items-center">
+								<Users size={18} />
+								{place.guests} Hóspedes
+							</span>
+							<span className="flex gap-2 items-center border-l-1  px-5">
+								<Home size={18} />2 Quartos
+							</span>
+							<span className="flex gap-2 items-center border-l-1  px-5">
+								<BedDouble size={18} />2 Camas
+							</span>
+							<span className="flex gap-2 items-center border-l-1  px-5">
+								<Bath size={18} />2 Banheiros
+							</span>
 						</div>
 					</div>
 				)}
