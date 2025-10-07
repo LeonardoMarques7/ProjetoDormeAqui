@@ -35,7 +35,7 @@ function MenuBar() {
 
 	useEffect(() => {
 		const handleScroll = () => {
-			setScrolled(window.scrollY > 10); // ativa quando rola 10px
+			setScrolled(window.scrollY > 200); // ativa quando rola 10px
 		};
 
 		window.addEventListener("scroll", handleScroll);
@@ -43,49 +43,51 @@ function MenuBar() {
 	}, []);
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger
-				className={`absolute z-50 -top-6 ${
-					scrolled ? "bg-transparent border-0 " : "bg-white border-2"
-				}  p-3 rounded-full hover:scale-105 transition-transform duration-200`}
-			>
-				<Menu className="w-5 h-5" />
-			</DropdownMenuTrigger>
-
-			<DropdownMenuContent className="mx-4 p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2">
-				{/* Perfil */}
-				<div className="flex flex-col items-center gap-2 px-4 py-2">
-					<img src={logo__primary} alt="Logo do DormeAqui" className="w-40" />
-				</div>
-
-				<DropdownMenuSeparator />
-
-				{/* Navegação */}
-				{navItems.map((item) => {
-					const isActive = location.pathname === item.path;
-					return (
+		<motion.nav
+			initial={{ opacity: 0, y: -20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.8, delay: 0.5 }}
+			className="flex items-center gap-2"
+		>
+			{/* Navegação */}
+			{navItems.map((item) => {
+				const isActive = location.pathname === item.path;
+				return (
+					<motion.button
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
+					>
 						<Link
 							key={item.path}
 							to={item.path}
-							className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-								isActive ? "bg-primary-300 text-white" : "hover:bg-primary-200"
+							className={`flex items-center gap-2  rounded-full px-4 justify-between py-2 transition-colors  ${
+								scrolled
+									? isActive
+										? "bg-primary-500 text-white border-primary-500 border-1"
+										: ""
+									: isActive
+									? "bg-white text-primary-500 border-primary-500 border-1"
+									: "hover:bg-primary-200 text-white"
 							}`}
 						>
+							<motion.div
+								transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
+							/>
 							<item.icon className="w-5 h-5" />
 							{item.label}
 						</Link>
-					);
-				})}
-				{!user && (
-					<Link
-						to={"/login"}
-						className="text-white bg-primary-500 px-5 border-1 rounded-xl py-2"
-					>
-						Entre ou Cadastre-se
-					</Link>
-				)}
-			</DropdownMenuContent>
-		</DropdownMenu>
+					</motion.button>
+				);
+			})}
+			{!user && (
+				<Link
+					to={"/login"}
+					className="text-white bg-primary-500 px-5 border-1 rounded-xl py-2"
+				>
+					Entre ou Cadastre-se
+				</Link>
+			)}
+		</motion.nav>
 	);
 }
 

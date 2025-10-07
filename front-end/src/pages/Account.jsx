@@ -24,7 +24,7 @@ const Account = () => {
 	if (!user && ready) return <Navigate to="/login" />;
 
 	return (
-		<section className="p-8 text-center max-w-7xl w-full mx-auto">
+		<section className="">
 			<div className="flex flex-col gap-4">
 				<div className="w-full mx-auto justify-center items-center hidden">
 					<Link to="/account/profile" className={`${buttonClass("profile")}`}>

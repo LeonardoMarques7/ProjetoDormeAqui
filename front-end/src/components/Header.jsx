@@ -4,7 +4,7 @@ import logoPrimary from "../assets/logo__primary.png";
 import logoSecondary from "../assets/logo__secondary.png";
 import { Link } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
-import MenuBar from "./MenuBax";
+import MenuBar from "./MenuBar";
 
 const Header = () => {
 	const { user } = useUserContext();
@@ -12,7 +12,7 @@ const Header = () => {
 
 	useEffect(() => {
 		const handleScroll = () => {
-			setScrolled(window.scrollY > 10); // ativa quando rola 10px
+			setScrolled(window.scrollY > 200);
 		};
 
 		window.addEventListener("scroll", handleScroll);

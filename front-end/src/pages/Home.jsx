@@ -49,7 +49,7 @@ const Home = () => {
 	return (
 		<section>
 			<div className="p-8 w-full bg-primary-500 mb-15 relative h-[50svh] flex-col text-white flex justify-center items-center text-center">
-				<div className="titles flex flex-col gap-5 pb-10">
+				<div className="titles flex flex-col gap-5">
 					<h1 className="text-5xl font-bold">Encontre seu lugar perfeito</h1>
 					<p className="text-lg">
 						Descubra acomodações únicas para sua próxima viagem
