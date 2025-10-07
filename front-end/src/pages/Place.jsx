@@ -167,8 +167,10 @@ const Place = () => {
 				{booking ? (
 					<Booking booking={booking} place={true} />
 				) : (
-					<div className=" py-4 w-full max-w-full lg:max-w-7xl  mx-auto shadow-primary-500/50 absolute -bottom-12 px-8 mt-4 text-gray-500 flex flex-col justify-center items-center gap-5">
-						<div className="text-4xl font-bold text-white ">{place.title}</div>
+					<div className=" py-4 w-fit px-15 bg-white shadow-lg rounded-2xl max-w-full lg:max-w-7xl  mx-auto shadow-primary-500/25 absolute -bottom-12 mt-4 text-gray-500 flex flex-col justify-center items-center gap-5">
+						<div className="text-4xl font-bold text-gray-700 ">
+							{place.title}
+						</div>
 						<div className="flex gap-4 items-center">
 							<div className="flex gap-2">
 								<MapPin />
@@ -204,7 +206,7 @@ const Place = () => {
 						</div>
 					</div>
 				) : (
-					<div className="mt-15"></div>
+					<div className="mt-20"></div>
 				)}
 
 				{/* Imagens da acomodação */}
