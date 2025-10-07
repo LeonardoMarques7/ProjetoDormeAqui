@@ -127,7 +127,7 @@ const AccProfile = () => {
 					<Phone size={18} /> (12) 12121-1212
 				</span>
 			</div>
-			<div className="flex w-fit mb-10">
+			<div className="flex flex-col w-fit mb-10">
 				<div className="profile relative left-22 top-5 lg:max-w-7xl min-w-full">
 					<span className="flex gap-2 flex-col mb-4">
 						<span className="flex items-end gap-2">
@@ -150,37 +150,32 @@ const AccProfile = () => {
 						</p>
 					</div>
 				</div>
-				<div className="text-nowrap">
-					<h2 className="text-2xl mb-5 font-medium ">
+				<div className="profile relative left-22 top-5 lg:max-w-7xl min-w-full">
+					<h2 className="text-2xl my-5 font-medium ">
 						Meus Anúncios ({places.length})
 					</h2>
+					<div className="mx-auto grid max-w-full pr-22 grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8 lg:max-w-7xl">
+						{places.map((item, idx) => (
+							<div className="relative hover:scale-105 transition-all ease-in-out duration-500 hover:saturate-125 not-hover:grayscale-25">
+								<Link to={`/places/${item._id}`}>
+									<img
+										src={item.photos[0]}
+										className=" w-300 h-60 object-cover !z-9 rounded-2xl before:rounded-2xl after:rounded-2xl"
+										alt=""
+									/>
 
-					<div className="w-105 h-65 bg-primary-100 shadow-lg !z-99 border-8 border-primary-100 rounded-2xl absolute hover:scale-105 duration-500 hover:saturate-125 ease-in-out transition-all">
-						<Carousel
-							className="w-100 !z-10 absolute rounded-2xl before:rounded-2xl after:rounded-2xl"
-							plugins={[plugin.current]}
-							setApi={setApi}
-						>
-							<CarouselContent className="rounded-2xl !z-9">
-								{places.map((item, idx) => (
-									<CarouselItem
-										key={idx}
-										className=" relative rounded-2xl !z-9 "
-									>
-										<Link to={`/places/${item._id}`}>
-											<img
-												src={item.photos[0]}
-												className=" w-100 h-60 object-cover !z-9 rounded-2xl before:rounded-2xl after:rounded-2xl"
-												alt=""
-											/>
-											<p className="absolute bottom-5  text-white font-bold truncate w-95 left-8 text-nowrap">
-												{item.title}
-											</p>
-										</Link>
-									</CarouselItem>
-								))}
-							</CarouselContent>
-						</Carousel>
+									<div className="absolute rounded-2xl inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+									<div className="absolute bottom-2.5 flex gap-2  left-4 flex-col ">
+										<p className="  text-white font-bold truncate w-85 text-nowrap">
+											{item.title}
+										</p>
+										<strong className="w-fit rounded-full bg-primary-500 text-white px-2.5 py-1">
+											R$ {item.price}/noite
+										</strong>
+									</div>
+								</Link>
+							</div>
+						))}
 					</div>
 				</div>
 			</div>
