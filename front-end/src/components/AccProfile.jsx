@@ -30,7 +30,7 @@ import { useEffect } from "react";
 const AccProfile = () => {
 	const { user, setUser } = useUserContext();
 	const { action } = useParams();
-	const [moblie, setIsMoblie] = useState(false);
+	const [moblie, setIsMoblie] = useState(window.innerWidth <= 768);
 	const [redirect, setRedirect] = useState(false);
 	const [api, setApi] = useState(null);
 	const [current, setCurrent] = useState(0);
