@@ -12,7 +12,7 @@ import {
 	Sunrise,
 } from "lucide-react";
 import verify from "../assets/verify.png";
-
+import "./AccProfile.css";
 import Autoplay from "embla-carousel-autoplay";
 import {
 	Carousel,
@@ -30,7 +30,7 @@ import { useEffect } from "react";
 const AccProfile = () => {
 	const { user, setUser } = useUserContext();
 	const { action } = useParams();
-
+	const [moblie, setIsMoblie] = useState(false);
 	const [redirect, setRedirect] = useState(false);
 	const [api, setApi] = useState(null);
 	const [current, setCurrent] = useState(0);
@@ -64,6 +64,12 @@ const AccProfile = () => {
 		axiosGet();
 	}, [action]);
 
+	useEffect(() => {
+		const handleResize = () => setIsMoblie(window.innerWidth <= 768);
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
 	const logout = async () => {
 		try {
 			const { data } = await axios.post("/users/logout");
@@ -91,95 +97,136 @@ const AccProfile = () => {
 	if (!user) return null;
 
 	return (
-		<section className="mb-20">
+		<>
+			{/* Banner — apenas nome e pronome */}
 			<div
 				id="Perfil"
-				className=" p-8 w-full bg-primary-500 mb-15 relative h-[50svh] text-white flex justify-center items-center text-center"
+				className="w-full bg-primary-500 relative h-[40svh] text-white flex flex-col justify-end"
 			>
-				<div className="profile  lg:max-w-7xl w-full">
-					<div className="card absolute shadow-lg -bottom-20 left-20 bg-gradient-to-bl to-primary-500 from-primary-200 border-8 w-40 h-40 rounded-full flex justify-center items-center text-4xl font-bold">
-						L
-						<img
-							src={verify}
-							alt="Simbolo de Verificado"
-							className="w-10 absolute bottom-0 right-0 bg-white rounded-full"
-						/>
+				{/* Nome e pronome dentro do mesmo container centralizado */}
+				{!moblie ? (
+					<div className="mx-auto max-w-7xl w-full px-8 pb-5">
+						<h1 className="container__name ml-45 text-4xl font-bold flex justify-start items-end gap-3">
+							Leonardo Marques
+							<span className="text-lg font-normal text-gray-300">
+								Ele/Dele
+							</span>
+						</h1>
 					</div>
-					<div className="absolute left-65 bottom-5 text-4xl flex gap-2 items-end font-bold">
-						Leonardo Marques
-						<span className="flex items-center gap-2 text-lg font-normal">
-							Ele/Dele
-						</span>
-					</div>
-					<Link className="hover:bg-white/50 hover:text-primary-700 transition-all ease-in-out duration-500 absolute right-25 bottom-5 border-1 flex items-center w-fit px-5 py-2.5 rounded-md gap-4">
-						<Pen /> Editar Perfil
-					</Link>
-				</div>
+				) : (
+					<></>
+				)}
 			</div>
-			<div className="relative w-fit left-65 -top-10 text-gray-500 content__card flex items-center gap-4">
-				<span className="flex items-center gap-2">
-					<MapPin size={18} /> Sorocaba, SP{" "}
-				</span>
-				<span className="flex items-center gap-2">
-					<Mail size={18} /> leonardo@teste.com
-				</span>
-				<span className="flex items-center gap-2">
-					<Phone size={18} /> (12) 12121-1212
-				</span>
-			</div>
-			<div className="flex flex-col w-fit mb-10">
-				<div className="profile relative left-22 top-5 lg:max-w-7xl min-w-full">
-					<span className="flex gap-2 flex-col mb-4">
-						<span className="flex items-end gap-2">
-							<span className="scale-150">🪴</span> Anfitrião desde 10/04/20255
-						</span>
-					</span>
-					<h2 className="text-2xl font-medium mb-1">Sobre mim</h2>
-					<div className="text__bio max-w-xl flex flex-col gap-2 leading-relaxed">
-						<p className="w-full flex flex-col gap-2 mt-2">
-							<strong>E aí! Eu sou o Leonardo 👋</strong>
-							<p>
-								Sou estudante de Ciência da Computação e adoro transformar
-								ideias em lugares incríveis.
-							</p>
-						</p>
-						<p>
-							Curto ambientes aconchegantes, boa companhia e um café passado na
-							hora ☕. Meu objetivo é fazer você se sentir em casa, mesmo
-							estando longe dela.
-						</p>
-					</div>
-				</div>
-				<div className="profile relative left-22 top-5 lg:max-w-7xl min-w-full">
-					<h2 className="text-2xl my-5 font-medium ">
-						Meus Anúncios ({places.length})
-					</h2>
-					<div className="mx-auto grid max-w-full pr-22 grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8 lg:max-w-7xl">
-						{places.map((item, idx) => (
-							<div className="relative hover:scale-105 transition-all ease-in-out duration-500 hover:saturate-125 not-hover:grayscale-25">
-								<Link to={`/places/${item._id}`}>
-									<img
-										src={item.photos[0]}
-										className=" w-300 h-60 object-cover !z-9 rounded-2xl before:rounded-2xl after:rounded-2xl"
-										alt=""
-									/>
 
-									<div className="absolute rounded-2xl inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-									<div className="absolute bottom-2.5 flex gap-2  left-4 flex-col ">
-										<p className="  text-white font-bold truncate w-85 text-nowrap">
-											{item.title}
-										</p>
-										<strong className="w-fit rounded-full bg-primary-500 text-white px-2.5 py-1">
-											R$ {item.price}/noite
-										</strong>
-									</div>
-								</Link>
-							</div>
-						))}
+			{/* Container do conteúdo */}
+			<div className="container__profile mx-auto md:max-w-7xl px-8 relative -mt-28">
+				<div className="flex flex-col gap-5 relative">
+					{/* Header do perfil (avatar + botão) */}
+					<div className="avatar__btn flex items-center justify-between relative">
+						{/* Avatar sobreposto */}
+						<div className="icon__perfil relative w-40 h-40 rounded-full border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
+							L
+							<img
+								src={verify}
+								alt="Verificado"
+								className="w-10 absolute bottom-0 right-0 bg-white rounded-full"
+							/>
+						</div>
+
+						{/* Botão de editar */}
+						<Link
+							className={`hover:bg-white/50 ${
+								!moblie ? "mb-15" : "hidden"
+							} text-white hover:text-primary-700 transition-all ease-in-out duration-500 border border-white flex items-center px-5 py-2.5 rounded-md gap-3 mt-4`}
+						>
+							<Pen /> Editar Perfil
+						</Link>
+					</div>
+
+					{moblie ? (
+						<span className="text-3xl bg-red text-nowrap font-bold truncate flex-col flex justify-center items-center gap-3">
+							<h1>Leonardo Marques</h1>
+							<span className="text-lg font-normal text-gray-300">
+								Ele/Dele
+							</span>
+						</span>
+					) : (
+						<></>
+					)}
+
+					{/* Informações de contato */}
+					<div className="flex flex-wrap gap-4 ${} text-gray-500 mt-4">
+						<span className="flex items-center gap-2">
+							<MapPin size={18} /> Sorocaba, SP
+						</span>
+						<span className="flex items-center gap-2">
+							<Mail size={18} /> leonardo@teste.com
+						</span>
+						<span className="flex items-center gap-2">
+							<Phone size={18} /> (12) 12121-1212
+						</span>
+					</div>
+
+					{/* Sobre mim */}
+					<div className="profile mt-5">
+						<h2 className="text-2xl font-medium mb-2">Sobre mim</h2>
+						<span className="flex gap-2 flex-col text-gray-500">
+							<span className="flex items-end gap-2 font-bold">
+								Anfitrião desde 10/04/2025
+							</span>
+						</span>
+						<div className="text__bio max-w-xl flex flex-col gap-2 leading-relaxed text-gray-600 mt-4">
+							<p className="w-full flex flex-col gap-2">
+								<strong>E aí! Eu sou o Leonardo 👋</strong>
+								<span>
+									Sou estudante de Ciência da Computação e adoro transformar
+									ideias em lugares incríveis.
+								</span>
+							</p>
+							<p>
+								Curto ambientes aconchegantes, boa companhia e um café passado
+								na hora ☕. Meu objetivo é fazer você se sentir em casa, mesmo
+								estando longe dela.
+							</p>
+						</div>
+					</div>
+
+					{/* Meus anúncios */}
+					<div>
+						<h2 className="text-2xl my-5 font-medium">
+							Meus Anúncios ({places.length})
+						</h2>
+						<div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8 md:max-w-7xl mx-auto">
+							{places.map((item) => (
+								<div
+									key={item._id}
+									className="relative hover:scale-105 transition-all ease-in-out duration-500 hover:saturate-125"
+								>
+									<Link to={`/places/${item._id}`}>
+										<div className="relative">
+											<img
+												src={item.photos[0]}
+												className="w-full h-72 object-cover rounded-2xl"
+												alt={item.title}
+											/>
+											<div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/50 to-transparent"></div>
+											<div className="absolute bottom-3 left-4 flex flex-col gap-1 max-w-full">
+												<p className="text-white font-bold overflow-hidden">
+													{item.title}
+												</p>
+												<strong className="w-fit rounded-full bg-primary-500 text-white px-2.5 py-1">
+													R$ {item.price}/noite
+												</strong>
+											</div>
+										</div>
+									</Link>
+								</div>
+							))}
+						</div>
 					</div>
 				</div>
 			</div>
-		</section>
+		</>
 	);
 };
 

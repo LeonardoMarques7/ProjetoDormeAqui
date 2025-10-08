@@ -162,7 +162,9 @@ const Place = () => {
 			<div
 				className={`p-8 w-full ${
 					booking && "mb-50"
-				} bg-primary-500 relative flex flex-col justify-center items-center h-[25svh]`}
+				} bg-primary-500 relative flex flex-col justify-center items-center h-[25svh] ${
+					booking && "h-[35svh]"
+				}`}
 			>
 				{booking ? (
 					<Booking booking={booking} place={true} />

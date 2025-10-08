@@ -13,13 +13,11 @@ const Account = () => {
 	if (!user && ready) return <Navigate to="/login" />;
 
 	return (
-		<section className="">
-			<div className="flex flex-col gap-4">
-				{subpage === "profile" && <AccProfile />}
-				{subpage === "places" && <AccPlaces />}
-				{subpage === "bookings" && <AccBookings />}
-			</div>
-		</section>
+		<div className="flex flex-col gap-4">
+			{subpage === "profile" && <AccProfile />}
+			{subpage === "places" && <AccPlaces />}
+			{subpage === "bookings" && <AccBookings />}
+		</div>
 	);
 };
 
