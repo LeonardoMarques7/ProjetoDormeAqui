@@ -1,0 +1,41 @@
+@media (width <= 768px) {
+    .form__container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container__header {
+        height: 80svh;
+        justify-content: start;
+        margin-bottom: 5rem;
+    }
+
+    .titles {
+        margin-top: 5rem;
+    }
+
+    .titles h1 {
+        font-size: 2rem;
+    }
+
+    .titles p {
+        font-size: 18px;
+    }
+
+    .container__bg__form {
+        bottom: -5rem;
+        padding: 2rem;
+    }
+
+    .btn__date, input, .btn__submit {
+        width: 250px;
+    }
+
+    .group__input {
+        margin-bottom: 1rem;
+    }
+
+    .btn__submit {
+         justify-content: center;
+    }
+}

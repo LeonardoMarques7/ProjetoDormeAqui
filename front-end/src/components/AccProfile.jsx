@@ -203,18 +203,18 @@ const AccProfile = () => {
 									className="relative hover:scale-105 transition-all ease-in-out duration-500 hover:saturate-125"
 								>
 									<Link to={`/places/${item._id}`}>
-										<div className="relative">
+										<div className="relative flex flex-col gap-2">
 											<img
 												src={item.photos[0]}
-												className="w-full h-72 object-cover rounded-2xl"
+												className=" aspect-square object-cover rounded-2xl"
 												alt={item.title}
 											/>
-											<div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/50 to-transparent"></div>
-											<div className="absolute bottom-3 left-4 flex flex-col gap-1 max-w-full">
-												<p className="text-white font-bold overflow-hidden">
+
+											<div className="">
+												<p className="text-gray-700 font-normal overflow-hidden">
 													{item.title}
 												</p>
-												<strong className="w-fit rounded-full bg-primary-500 text-white px-2.5 py-1">
+												<strong className="w-fit rounded-full text-black">
 													R$ {item.price}/noite
 												</strong>
 											</div>
