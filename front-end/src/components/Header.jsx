@@ -25,7 +25,7 @@ const Header = () => {
 				scrolled ? "bg-white shadow-md" : "bg-transparent"
 			}`}
 		>
-			<div className="max-w-full flex items-center justify-between px-4 sm:px-8 py-4 lg:max-w-7xl mx-auto">
+			<div className="max-w-full flex items-center justify-between px-4 sm:px-8 py-4 sm:py-8 lg:max-w-7xl mx-auto">
 				<Link to="/" className="flex items-center transition-all">
 					<img
 						src={scrolled ? logoPrimary : logoSecondary}

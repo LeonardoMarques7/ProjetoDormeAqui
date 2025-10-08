@@ -133,3 +133,10 @@
   }
 }
 
+@media (width <= 768px ) {
+  header div {
+    margin: .5rem .5rem;
+    
+  }
+}
+

@@ -102,11 +102,11 @@ function MenuBar() {
 					initial={{ opacity: 0, y: -20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.8, delay: 0.5 }}
-					className="flex items-center gap-2"
+					className="flex items-center gap-2 "
 				>
 					<DropdownMenu>
 						<DropdownMenuTrigger
-							className={`absolute z-50 -top-6 ${
+							className={`absolute z-50  ${
 								scrolled ? "bg-transparent border-0 " : "bg-white border-2"
 							}  p-3 rounded-full hover:scale-105 transition-transform duration-200`}
 						>
