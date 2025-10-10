@@ -73,12 +73,14 @@ function MenuBar({ active }) {
 										scrolled
 											? isActive
 												? "bg-primary-500 text-white border-primary-500 border-1"
-												: ""
+												: "text-gray-700"
 											: isActive
 											? "bg-white text-primary-500 border-primary-500 border-1"
-											: "hover:bg-primary-200 text-white"
+											: active == true
+											? "text-gray-700"
+											: "text-white"
 									}
-									 ${active && "text-gray-700"}`}
+									`}
 								>
 									<motion.div
 										transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}

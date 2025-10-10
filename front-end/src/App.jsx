@@ -1,5 +1,11 @@
 import axios from "axios";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import {
+	BrowserRouter,
+	Routes,
+	Route,
+	useLocation,
+	useParams,
+} from "react-router-dom";
 
 import { UserContextProvider } from "./components/contexts/UserContext";
 import { MessageProvider } from "./components/contexts/MessageContext";
@@ -14,6 +20,9 @@ import Place from "./pages/Place";
 import "@mantine/core/styles.css";
 
 import { MantineProvider } from "@mantine/core";
+import { useState } from "react";
+import { set } from "date-fns";
+import { MoblieContextProvider } from "./components/contexts/MoblieContext";
 
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
@@ -23,25 +32,27 @@ axios.defaults.withCredentials = true;
 
 function App() {
 	const location = useLocation();
-	const isComponentActive = location.pathname === "/login" || "/register";
-
+	const isComponentActive =
+		location.pathname === "/login" || location.pathname === "/register";
 	return (
 		<MantineProvider>
-			<UserContextProvider>
-				<MessageProvider>
-					<Header active={isComponentActive} />
-					<Routes>
-						<Route path="/" element={<Home />} />
-						<Route path="/login" element={<Login />} />
-						<Route path="/register" element={<Register />} />
-						<Route
-							path="/account/:subpage/:action?/:id?"
-							element={<Account />}
-						/>
-						<Route path="/places/:id" element={<Place />} />
-					</Routes>
-				</MessageProvider>
-			</UserContextProvider>
+			<MoblieContextProvider>
+				<UserContextProvider>
+					<MessageProvider>
+						<Header active={isComponentActive} />
+						<Routes>
+							<Route path="/" element={<Home />} />
+							<Route path="/login" element={<Login />} />
+							<Route path="/register" element={<Register />} />
+							<Route
+								path="/account/:subpage/:action?/:id?/:edit?"
+								element={<Account />}
+							/>
+							<Route path="/places/:id" element={<Place />} />
+						</Routes>
+					</MessageProvider>
+				</UserContextProvider>
+			</MoblieContextProvider>
 		</MantineProvider>
 	);
 }

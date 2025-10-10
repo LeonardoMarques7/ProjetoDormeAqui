@@ -71,7 +71,7 @@ const PhotosUploader = ({
 					type="text"
 					id="photoLink"
 					placeholder="Adicione a(s) foto(s)"
-					className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
+					className="border border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400"
 					value={photolink}
 					onChange={(e) => setPhotoLink(e.target.value)}
 				/>

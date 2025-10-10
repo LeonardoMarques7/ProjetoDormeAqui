@@ -141,6 +141,12 @@ const AccProfile = () => {
 						>
 							<Pen /> Editar Perfil
 						</Link>
+						<button
+							onClick={logout}
+							className="bg-primary-400 min-w-44 cursor-pointer rounded-full px-4 py-2 text-white transition"
+						>
+							Logout
+						</button>
 					</div>
 
 					{moblie ? (

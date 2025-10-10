@@ -1,4 +1,4 @@
-import { Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import logo__secondary from "../assets/plano__fundo.png";
 import { useState } from "react";
@@ -13,6 +13,7 @@ const Login = () => {
 	const [password, setPassword] = useState("");
 	const [message, setMessage] = useState("");
 	const [redirect, setRedirect] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -66,7 +67,7 @@ const Login = () => {
 						<div className="group__input relative flex justify-center items-center">
 							<Lock className="absolute left-4 text-gray-400 size-6" />
 							<input
-								type="password"
+								type={showPassword ? "text" : "password"}
 								className="border border-gray-200 px-14 py-4 rounded-full w-full outline-primary-400"
 								placeholder="Digite sua senha"
 								value={password}
@@ -75,6 +76,13 @@ const Login = () => {
 									if (message) setMessage("");
 								}}
 							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword(!showPassword)}
+								className="cursor-pointer absolute right-5 text-gray-400 hover:text-gray-600 transition-colors z-10"
+							>
+								{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+							</button>
 						</div>
 						{message && (
 							<div className="text-red-500 text-center mt-2">{message}</div>

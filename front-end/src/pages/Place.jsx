@@ -40,8 +40,10 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
 import BookingAlert from "../components/BookingAlert";
+import { useMoblieContext } from "../components/contexts/MoblieContext";
 
 const Place = () => {
+	const { moblie } = useMoblieContext();
 	const { id } = useParams();
 	const { user } = useUserContext();
 	const { showMessage } = useMessage();
@@ -135,7 +137,7 @@ const Place = () => {
 		}
 	};
 
-	if (redirect) return <Navigate to={`accounts/bookings`} />;
+	if (redirect) return <Navigate to={`/account/bookings`} />;
 
 	const handleCheckin = (date) => {
 		setCheckin(date);
@@ -167,31 +169,50 @@ const Place = () => {
 						<BookingAlert booking={booking} />
 					</>
 				)}
-				<div className=" py-4 w-fit px-15 bg-white shadow-lg rounded-2xl max-w-full lg:max-w-7xl  mx-auto shadow-primary-500/25 absolute -bottom-12 mt-4 text-gray-500 flex flex-col justify-center items-center gap-5">
-					<div className="text-4xl font-bold text-gray-700 ">{place.title}</div>
-					<div className="flex gap-4 items-center">
+				{!moblie && (
+					<div className=" py-4 w-fit px-15 bg-white shadow-lg rounded-2xl max-w-full lg:max-w-7xl  mx-auto shadow-primary-500/25 absolute -bottom-12 mt-4 text-gray-500 flex flex-col justify-center items-center gap-5">
+						<div className="text-4xl font-bold text-gray-700 ">
+							{place.title}
+						</div>
+						<div className="flex gap-4 items-center">
+							<div className="flex gap-2">
+								<MapPin />
+								<span>{place.city}</span>
+							</div>
+							<span className="flex gap-2 border-l-1 px-5 items-center">
+								<Users size={18} />
+								{place.guests} Hóspedes
+							</span>
+							<span className="flex gap-2 items-center border-l-1  px-5">
+								<Home size={18} />2 Quartos
+							</span>
+							<span className="flex gap-2 items-center border-l-1  px-5">
+								<BedDouble size={18} />2 Camas
+							</span>
+							<span className="flex gap-2 items-center border-l-1  px-5">
+								<Bath size={18} />2 Banheiros
+							</span>
+						</div>
+					</div>
+				)}
+			</div>
+			<div className="container__infos lg:max-w-7xl mx-auto flex flex-col gap-2">
+				{moblie && (
+					<div className="max-w-dvw  mx-auto mt-4 text-gray-500 flex flex-col justify-start items-center gap-5">
+						<div className="text-2xl text-center font-bold text-gray-700 ">
+							{place.title}
+						</div>
 						<div className="flex gap-2">
 							<MapPin />
 							<span>{place.city}</span>
 						</div>
-						<span className="flex gap-2 border-l-1 px-5 items-center">
-							<Users size={18} />
-							{place.guests} Hóspedes
-						</span>
-						<span className="flex gap-2 items-center border-l-1  px-5">
-							<Home size={18} />2 Quartos
-						</span>
-						<span className="flex gap-2 items-center border-l-1  px-5">
-							<BedDouble size={18} />2 Camas
-						</span>
-						<span className="flex gap-2 items-center border-l-1  px-5">
-							<Bath size={18} />2 Banheiros
-						</span>
 					</div>
-				</div>
-			</div>
-			<div className="container__infos pb-10 max-w-7xl mx-auto flex flex-col gap-2">
-				<div className="mt-20 relative grid sm:grid-cols-[2fr_1fr] aspect-square sm:grid-rows-2 sm:aspect-[3/2] gap-5 overflow-hidden rounded-2xl hover:opacity-95 cursor-pointer">
+				)}
+				<div
+					className={`${
+						moblie ? "mt-5" : "mt-20"
+					} relative grid sm:grid-cols-[2fr_1fr] aspect-square sm:grid-rows-2 sm:aspect-[3/2] gap-5 overflow-hidden rounded-2xl hover:opacity-95 cursor-pointer`}
+				>
 					{place.photos
 						.filter((photo, index) => index < 3)
 						.map((photo, index) => (
@@ -230,6 +251,24 @@ const Place = () => {
 					showCloseIcon={true}
 					counter={true}
 				/>
+
+				{moblie && (
+					<div className="flex flex-wrap gap-2 justify-between items-center">
+						<span className="flex gap-2 items-center">
+							<Users size={18} />
+							{place.guests} Hóspedes
+						</span>
+						<span className="flex gap-2 items-center ">
+							<Home size={18} />2 Quartos
+						</span>
+						<span className="flex gap-2 items-center ">
+							<BedDouble size={18} />2 Camas
+						</span>
+						<span className="flex gap-2 items-center  ">
+							<Bath size={18} />2 Banheiros
+						</span>
+					</div>
+				)}
 
 				{/* Conteúdo da acomodação */}
 				<div className="grid grid-cols-1 md:grid-cols-2">

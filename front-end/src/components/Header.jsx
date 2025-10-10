@@ -23,12 +23,18 @@ const Header = ({ active }) => {
 		<header
 			className={`fixed z-50 top-0 w-full transition-all duration-300 ${
 				scrolled ? "bg-white shadow-md" : "bg-transparent"
-			} ${active && "bg-transparent"}`}
+			} `}
 		>
 			<div className="max-w-full flex items-center justify-between px-4 sm:px-8 py-4 lg:max-w-7xl mx-auto">
 				<Link to="/" className="flex items-center transition-all">
 					<img
-						src={scrolled || active ? logoPrimary : logoSecondary}
+						src={
+							active == true
+								? logoPrimary
+								: scrolled
+								? logoPrimary
+								: logoSecondary
+						}
 						alt="Logo DormeAqui"
 						className="h-6 md:h-10 transition-all duration-300"
 					/>

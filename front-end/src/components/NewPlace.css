@@ -1,0 +1,5 @@
+@media (width <=768px) { 
+    .container__prev__form {
+        flex-direction: column;
+    }
+}

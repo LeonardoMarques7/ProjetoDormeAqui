@@ -88,6 +88,25 @@ router.put("/:id", async (req, res) => {
         }
 });
 
+router.delete("/:id", async (req, res) => {
+    connectDb();
+
+    const { id: _id } = req.params;
+
+    try {
+        const deletedPlace = await Place.findOneAndDelete({ _id });
+
+        if (!deletedPlace) {
+            return res.status(404).json({ message: "Acomodação não encontrada." });
+        }
+
+        res.json({ message: "Acomodação deletada com sucesso!", deletedPlace });
+    } catch (error) {
+        res.status(500).json({ message: "Erro ao deletar a acomodação.", error });
+        throw error;
+    }
+});
+
 router.post("/", async (req, res) => {
     connectDb();
 

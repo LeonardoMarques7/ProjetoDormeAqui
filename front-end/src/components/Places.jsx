@@ -1,4 +1,11 @@
-import { BedDouble, CornerDownLeft, MapPin, Users } from "lucide-react";
+import {
+	BedDouble,
+	CornerDownLeft,
+	Edit,
+	Edit2,
+	MapPin,
+	Users,
+} from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import "./Places.css";
@@ -35,12 +42,21 @@ const Places = ({ places }) => {
 								<BedDouble size={18} /> 2
 							</div>
 						</div>
-						<Link
-							to={`/account/places/new/${place._id}`}
-							className="cursor-pointer bg-primary-500 text-white rounded-2xl w-full text-center py-2.5"
-						>
-							Ver mais
-						</Link>
+						<div className="flex items-center gap-2 w-full">
+							<Link
+								to={`/account/places/new/${place._id}/edit`}
+								className="cursor-pointer hover:bg-primary-600 ease-in-out duration-500 grow w-full bg-primary-500 text-white rounded-2xl flex-1 text-center py-2.5"
+							>
+								Ver mais
+							</Link>
+							<Link
+								to={`/account/places/new/${place._id}/edit`}
+								className="cursor-pointer flex items-center hover:bg-gray-600 ease-in-out duration-500  gap-4 bg-gray-500 px-10 text-white rounded-2xl w-fit text-center py-2.5"
+							>
+								<Edit2 size={18}></Edit2>
+								Editar
+							</Link>
+						</div>
 					</div>
 				</div>
 			))}

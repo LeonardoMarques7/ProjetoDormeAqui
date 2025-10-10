@@ -80,6 +80,7 @@ const Register = () => {
 	));
 
 	if (redirect) return <Navigate to="/account/profile" />;
+
 	return (
 		<section className="flex flex-row-reverse absolute top-[20svh] items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
 			<div className="w-1/2 flex h-[25svh] items-center relative justify-center ease-in-out container__image duration-500 transition-all">
@@ -128,15 +129,16 @@ const Register = () => {
 									className="border border-gray-200 px-14 py-4 rounded-full w-full outline-primary-400"
 									placeholder="Digite sua senha"
 									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									onFocus={() => setShowPasswordPopover(true)}
+									onChange={(e) =>
+										setPassword(e.target.value) || setShowPasswordPopover(true)
+									}
 									onBlur={() => setShowPasswordPopover(false)}
 								/>
 
 								<button
 									type="button"
 									onClick={() => setShowPassword(!showPassword)}
-									className="absolute right-5 text-gray-400 hover:text-gray-600 transition-colors z-10"
+									className="cursor-pointer absolute right-5 text-gray-400 hover:text-gray-600 transition-colors z-10"
 								>
 									{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
 								</button>

@@ -1,5 +1,4 @@
 @media (width <=768px) { 
-
     .bg__places {
         padding-top: 25svh;
         height: 35svh;
@@ -12,7 +11,7 @@
     }
 
     .header__places h2 {
-        font-size: 2rem;
+        font-size: 1.5rem;
     }
 
     .container__places {
