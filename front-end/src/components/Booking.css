@@ -1,4 +1,8 @@
 @media (width <=768px) { 
+    .title__booking {
+        font-size: 2rem;
+    }
+
     .section__booking {
         backdrop-filter: none;
         background-color: #fff;

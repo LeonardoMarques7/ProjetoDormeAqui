@@ -1,0 +1,36 @@
+@media (width <=768px) { 
+
+    .bg__places {
+        padding-top: 25svh;
+        height: 35svh;
+    }
+
+    .header__places {
+        flex-direction: column;
+        gap: 1rem;
+        padding-top: 0px;
+    }
+
+    .header__places h2 {
+        font-size: 2rem;
+    }
+
+    .container__places {
+        gap: 50px;
+    }
+
+    .item__place {
+        flex-direction: column;
+        border-bottom: 1px #ddd dashed;
+        padding-bottom: 50px;
+    }
+
+    .image__place {
+        position: relative;
+        height: 35svh;
+    }
+
+    .icon__place {
+        display: none;
+    }
+}

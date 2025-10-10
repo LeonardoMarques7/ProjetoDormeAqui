@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import NewPlace from "./NewPlace";
 import Places from "./Places";
+import "./Places.css";
 
 const AccPlaces = () => {
 	const { action } = useParams();
@@ -20,10 +21,10 @@ const AccPlaces = () => {
 	}, [action]);
 
 	return (
-		<div className="bg-primary-500  relative flex flex-col justify-center items-center h-[50svh] pt-[45svh]">
+		<div className="bg__places bg-primary-500  relative flex flex-col justify-center items-center h-[50svh] pt-[45svh]">
 			{action !== "new" ? (
 				<>
-					<span className="flex items-center p-0 max-w-5xl mx-auto w-full justify-between">
+					<span className="header__places flex items-center p-0 max-w-5xl mx-auto w-full justify-between">
 						<h2 className="font-bold text-4xl text-white">Meus Lugares</h2>
 						<Link
 							to="/account/places/new"
