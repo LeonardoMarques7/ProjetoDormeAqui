@@ -28,7 +28,7 @@ const BookingAll = ({ booking, place = false }) => {
 	}, []);
 
 	return (
-		<div className="section__booking backdrop-blur-2xl mx-auto lg:max-w-5xl shadow-xl shadow-primary-200/50 rounded-2xl">
+		<div className="section__booking bg-white backdrop-blur-2xl mx-auto lg:max-w-5xl shadow-xl shadow-primary-200/50 rounded-2xl">
 			<Link
 				to={`/place/${booking.place._id}`}
 				key={booking.place._id}

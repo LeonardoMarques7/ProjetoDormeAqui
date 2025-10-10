@@ -5,7 +5,7 @@ import "./Places.css";
 
 const Places = ({ places }) => {
 	return (
-		<div className="container__places mx-auto max-w-full relative top-5 max-h-full flex flex-col gap-50 p-8 lg:max-w-7xl">
+		<div className="container__places mx-auto max-w-full relative top-0 max-h-full flex flex-col gap-50 p-8 lg:max-w-7xl">
 			{places.map((place) => (
 				<div
 					key={place._id}
