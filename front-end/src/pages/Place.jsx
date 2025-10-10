@@ -37,8 +37,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, InfoIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Booking from "../components/Booking";
 import { Toaster } from "sonner";
+import { toast } from "sonner";
 import BookingAlert from "../components/BookingAlert";
 
 const Place = () => {
@@ -158,61 +158,40 @@ const Place = () => {
 	if (!place) return <></>;
 
 	return (
-		<section className="">
+		<>
 			<div
-				className={`p-8 w-full ${
-					booking && "mb-50"
-				} bg-primary-500 relative flex flex-col justify-center items-center h-[25svh] ${
-					booking && "h-[35svh]"
-				}`}
+				className={`container__place p-8 w-full bg-primary-500 relative flex flex-col justify-center items-center h-[50svh] `}
 			>
-				{booking ? (
-					<Booking booking={booking} place={true} />
-				) : (
-					<div className=" py-4 w-fit px-15 bg-white shadow-lg rounded-2xl max-w-full lg:max-w-7xl  mx-auto shadow-primary-500/25 absolute -bottom-12 mt-4 text-gray-500 flex flex-col justify-center items-center gap-5">
-						<div className="text-4xl font-bold text-gray-700 ">
-							{place.title}
-						</div>
-						<div className="flex gap-4 items-center">
-							<div className="flex gap-2">
-								<MapPin />
-								<span>{place.city}</span>
-							</div>
-							<span className="flex gap-2 border-l-1 px-5 items-center">
-								<Users size={18} />
-								{place.guests} Hóspedes
-							</span>
-							<span className="flex gap-2 items-center border-l-1  px-5">
-								<Home size={18} />2 Quartos
-							</span>
-							<span className="flex gap-2 items-center border-l-1  px-5">
-								<BedDouble size={18} />2 Camas
-							</span>
-							<span className="flex gap-2 items-center border-l-1  px-5">
-								<Bath size={18} />2 Banheiros
-							</span>
-						</div>
-					</div>
+				{booking && (
+					<>
+						<BookingAlert booking={booking} />
+					</>
 				)}
-			</div>
-			<div className="sm:px-8 pb-10 max-w-7xl mx-auto flex flex-col gap-2">
-				{/* Títulos da acomodação */}
-				{booking ? (
-					<div className="flex flex-col gap-2">
-						<div className="sm:text-2xl text-large font-bold">
-							{place.title}
-						</div>
+				<div className=" py-4 w-fit px-15 bg-white shadow-lg rounded-2xl max-w-full lg:max-w-7xl  mx-auto shadow-primary-500/25 absolute -bottom-12 mt-4 text-gray-500 flex flex-col justify-center items-center gap-5">
+					<div className="text-4xl font-bold text-gray-700 ">{place.title}</div>
+					<div className="flex gap-4 items-center">
 						<div className="flex gap-2">
 							<MapPin />
 							<span>{place.city}</span>
 						</div>
+						<span className="flex gap-2 border-l-1 px-5 items-center">
+							<Users size={18} />
+							{place.guests} Hóspedes
+						</span>
+						<span className="flex gap-2 items-center border-l-1  px-5">
+							<Home size={18} />2 Quartos
+						</span>
+						<span className="flex gap-2 items-center border-l-1  px-5">
+							<BedDouble size={18} />2 Camas
+						</span>
+						<span className="flex gap-2 items-center border-l-1  px-5">
+							<Bath size={18} />2 Banheiros
+						</span>
 					</div>
-				) : (
-					<div className="mt-20"></div>
-				)}
-
-				{/* Imagens da acomodação */}
-				<div className="relative grid sm:grid-cols-[2fr_1fr] aspect-square sm:grid-rows-2 sm:aspect-[3/2] gap-5 overflow-hidden rounded-2xl hover:opacity-95 cursor-pointer">
+				</div>
+			</div>
+			<div className="container__infos pb-10 max-w-7xl mx-auto flex flex-col gap-2">
+				<div className="mt-20 relative grid sm:grid-cols-[2fr_1fr] aspect-square sm:grid-rows-2 sm:aspect-[3/2] gap-5 overflow-hidden rounded-2xl hover:opacity-95 cursor-pointer">
 					{place.photos
 						.filter((photo, index) => index < 3)
 						.map((photo, index) => (
@@ -305,7 +284,6 @@ const Place = () => {
 					{booking ? (
 						<>
 							<BookingAlert />
-							<Toaster position="top-center" richColors />
 						</>
 					) : (
 						<form className="form__place order-1 md:order-none sm:border-0 justify-self-end self-start sticky top-4 flex flex-col gap-4 border-gray-200 border rounded-2xl px-8 sm:px-0 py-4 ">
@@ -415,7 +393,7 @@ const Place = () => {
 					)}
 				</div>
 			</div>
-		</section>
+		</>
 	);
 };
 

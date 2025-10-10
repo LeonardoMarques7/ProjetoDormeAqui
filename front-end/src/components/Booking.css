@@ -1,12 +1,18 @@
 @media (width <=768px) { 
+    .section__booking {
+        backdrop-filter: none;
+        background-color: #fff;
+        box-shadow: none;
+    }
+
     .ticket__booking {
         border: 0px #000 solid;
         border-radius: 0px;
+        padding: 16px;
         padding-bottom: 2rem;
         margin-bottom: 1rem;
-        border-bottom: 1px dashed #000;
+        box-shadow: 0px transparent;
         flex-direction: column-reverse;
-        
     }
 
     .ticket__booking div {
@@ -16,7 +22,15 @@
     .container__qrcode {
         border: none;
         margin: 0 auto;
+        background-color: transparents;
+        backdrop-filter: none;
         width: fit-content;
+    }
+
+    .container__qrcode div img {
+        background-color: #fff;
+        padding: 10px;
+        border-radius: 16px;
     }
 
     .header__ticket, .location__ticket {
@@ -54,14 +68,17 @@
     }
 
     .footer__ticket {
-        display: block;
         position: absolute;
-        bottom: -.7rem;
-        width: 100%;
+        left: 0;
+        padding: 0px;
+        border-top: 1px dashed #ccc;
+        border-bottom: 1px dashed #ccc;
+        display: block;
+        bottom: -1.5rem;  
     }
 
-    .footer__ticket strong {
+    .footer__ticket .marquee {
         background-color: #fff;
-        padding: 0px 5px;
+        padding: 0px ;
     }
 }

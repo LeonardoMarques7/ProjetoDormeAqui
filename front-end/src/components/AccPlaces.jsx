@@ -20,22 +20,25 @@ const AccPlaces = () => {
 	}, [action]);
 
 	return (
-		<>
+		<div className="bg-primary-500  relative flex flex-col justify-center items-center h-[50svh] pt-[45svh]">
 			{action !== "new" ? (
 				<>
-					<Link
-						to="/account/places/new"
-						className=" flex w-fit gap-4 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full"
-					>
-						<HousePlus /> Adicionar acomodação
-					</Link>
+					<span className="flex items-center p-0 max-w-5xl mx-auto w-full justify-between">
+						<h2 className="font-bold text-4xl text-white">Meus Lugares</h2>
+						<Link
+							to="/account/places/new"
+							className=" flex w-fit bg-white gap-2 cursor-pointer ease-in-out duration-500 text-primary-500 px-5 hover:scale-110 py-2.5 rounded-full"
+						>
+							<HousePlus /> Nova acomodação
+						</Link>
+					</span>
 
 					<Places places={places} />
 				</>
 			) : (
 				<NewPlace />
 			)}
-		</>
+		</div>
 	);
 };
 

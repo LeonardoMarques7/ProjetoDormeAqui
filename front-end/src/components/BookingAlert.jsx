@@ -1,30 +1,57 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
+import { useUserContext } from "./contexts/UserContext";
 import { toast } from "sonner";
-import { Info } from "lucide-react";
+import { format } from "date-fns";
+import {
+	CalendarArrowDown,
+	CalendarArrowUp,
+	CalendarIcon,
+	InfoIcon,
+} from "lucide-react";
 
-function BookingAlert() {
+const BookingAlert = ({ booking }) => {
+	const { user } = useUserContext();
+
 	useEffect(() => {
-		// Quando o componente é montado, exibe o alerta
-		toast("Você já possui uma reserva", {
-			description: "Verifique suas reservas no painel do usuário.",
-			icon: <Info size={18} className="text-primary-600" />,
-			duration: Infinity, // Mantém o alerta fixo até ser fechado
-			closeButton: true,
-			style: {
-				backgroundColor: "rgb(240 249 255)", // bg-primary-100
-				border: "1px solid rgb(191 219 254)", // border-primary-100
-				borderRadius: "1rem",
-				padding: "10px 16px",
-				display: "flex",
-				alignItems: "center",
-				gap: "8px",
-				color: "rgb(30 64 175)", // text-primary-600
-				fontWeight: "500",
-			},
-		});
-	}, []);
+		if (booking) {
+			toast(
+				<div className="flex flex-col gap-2 w-full">
+					<div className="flex items-center gap-2">
+						<span className="flex items-center w-full">
+							<p>
+								Olá <strong>{user.name}</strong>, você já possue reserva nessa
+								acomodação
+							</p>
+						</span>
+					</div>
+					<div className="flex flex-col gap-1 text-sm pt-2">
+						<span className="flex items-center gap-2">
+							<CalendarArrowUp size={16} />
+							Check-in: {new Date(booking.checkin).toLocaleDateString("pt-br")}
+						</span>
+						<span className="flex items-center gap-2">
+							<CalendarArrowDown size={16} />
+							Check-out:{" "}
+							{new Date(booking.checkout).toLocaleDateString("pt-br")}
+						</span>
+					</div>
+					<p className="text-sm text-gray-600">
+						Total de {booking.nights} noite{booking.nights > 1 ? "s" : ""} •
+						{booking.priceTotal?.toLocaleString("pt-BR", {
+							style: "currency",
+							currency: "BRL",
+						})}
+					</p>
+				</div>,
+				{
+					duration: Infinity,
+					position: "bottom-right",
+				}
+			);
+		}
+	}, [booking]);
 
 	return null;
-}
+};
 
 export default BookingAlert;

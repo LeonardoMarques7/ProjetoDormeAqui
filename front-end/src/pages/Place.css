@@ -1,8 +1,8 @@
 @media (width <= 768px) {
-    section  {
-        padding: 10px 15px;
+    .container__place{
+        margin-bottom: 0;
+        height: 15svh;
     }
-
 
     .form__place {
         width: 100%;
@@ -13,6 +13,10 @@
         justify-content: start;
         margin-bottom: 2rem;   
         margin-top: -20px;
+     }
+
+     .container__infos {
+        padding: 30px;
      }
 
     .column__check {

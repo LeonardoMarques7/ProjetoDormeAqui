@@ -4,6 +4,7 @@ import {
 	DollarSign,
 	MapPin,
 	Moon,
+	TicketIcon,
 	User,
 	Users,
 } from "lucide-react";
@@ -14,17 +15,26 @@ import imageDormeAqui from "../assets/logo__primary.png";
 import imageQrCode from "../assets/qrcode_leonardomdev.png";
 import "./Booking.css";
 
-const Booking = ({ booking, place = false }) => {
+import Marquee from "react-fast-marquee";
+
+const BookingAll = ({ booking, place = false }) => {
 	const { action } = useParams();
+	const [moblie, setIsMoblie] = useState(window.innerWidth <= 768);
+
+	useEffect(() => {
+		const handleResize = () => setIsMoblie(window.innerWidth <= 768);
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
 
 	return (
-		<div className="bg-white/80 backdrop-blur-sm absolute -bottom-35 w-full lg:max-w-5xl shadow-xl shadow-primary-200/50 rounded-2xl ">
+		<div className="section__booking backdrop-blur-2xl mx-auto lg:max-w-5xl shadow-xl shadow-primary-200/50 rounded-2xl">
 			<Link
 				to={`/place/${booking.place._id}`}
 				key={booking.place._id}
-				className="ticket__ooking relative cursor-pointer pointer-events-none flex rounded-2xl border border-primary-100 gap-5 "
+				className="ticket__booking bg-white/80 relative cursor-pointer pointer-events-none flex rounded-2xl border  border-primary-100 gap-5 "
 			>
-				<div className="flex flex-col items-start gap-2 w-full text-gray-500 p-5">
+				<div className="flex flex-col items-start gap-2 w-full  text-gray-500 p-5">
 					<div className="flex flex-col gap-1 w-full text-start header__ticket">
 						<h5 className="text-primary-600 font-medium uppercase">
 							Seu Ticket de Reserva
@@ -90,13 +100,13 @@ const Booking = ({ booking, place = false }) => {
 						</div>
 					</div>
 				</div>
-				<div className="container__qrcode bg-primary-100/5 backdrop-blur-lg p-4 border-l-3 min-h-full w-100 border-dashed flex items-center justify-center flex-col ">
+				<div className="container__qrcode m-2 bg-primary-100/5  backdrop-blur-lg p-4 border-3 rounded-2xl min-h-full w-100 border-dashed flex items-center justify-center flex-col">
 					<img src={imageDormeAqui} alt="Logo do DormeAqui" className="w-50" />
 					<div className="relative">
 						<img src={imageQrCode} alt="" className="w-50" />
-						<caption className="absolute -bottom-1 text-sm text-gray-500 text-center w-full left-0">
+						<div className="absolute -bottom-1 text-sm text-gray-500 text-center w-full left-0">
 							EasterEgg
-						</caption>
+						</div>
 					</div>
 					<span className="flex  items-center flex-col ">
 						<p className="text-primary-500 font-bold">Valor total </p>
@@ -106,12 +116,19 @@ const Booking = ({ booking, place = false }) => {
 						})}
 					</span>
 				</div>
-				<span className="footer__ticket hidden">
-					<strong>Fim do seu Ticket</strong>
+				<span className="footer__ticket hidden max-w-full w-fit">
+					<Marquee className="marquee" speed={50} loop={false}>
+						<strong>Fim do seu Ticket</strong>
+						<code>/</code>
+						<strong>Fim do seu Ticket </strong>
+						<code>/</code>
+						<strong>Fim do seu Ticket </strong>
+						<code>/</code>
+					</Marquee>
 				</span>
 			</Link>
 		</div>
 	);
 };
 
-export default Booking;
+export default BookingAll;
