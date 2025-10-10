@@ -1,4 +1,6 @@
 .env
-node_modules
+node_modules/
 dist
 tmp/
+
+/front-end/node_modules/

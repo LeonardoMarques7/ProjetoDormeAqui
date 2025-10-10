@@ -20,7 +20,7 @@ import { useUserContext } from "./contexts/UserContext";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
-function MenuBar() {
+function MenuBar({ active }) {
 	const { user } = useUserContext();
 	const location = useLocation();
 	const [activeSection, setActiveSection] = useState("Home");
@@ -77,7 +77,8 @@ function MenuBar() {
 											: isActive
 											? "bg-white text-primary-500 border-primary-500 border-1"
 											: "hover:bg-primary-200 text-white"
-									}`}
+									}
+									 ${active && "!text-gray-700"}`}
 								>
 									<motion.div
 										transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}

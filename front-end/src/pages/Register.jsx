@@ -38,11 +38,11 @@ const Register = () => {
 	if (redirect) return <Navigate to="/" />;
 
 	return (
-		<section className="flex flex-row-reverse items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
-			<div className="w-1/2 h-full flex items-center relative justify-center ease-in-out container__image duration-500 transition-all">
+		<section className="flex flex-row-reverse absolute top-[20svh] items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
+			<div className="w-1/2 flex h-[25svh] items-center relative justify-center ease-in-out container__image duration-500 transition-all">
 				<img
 					src={logo__secondary}
-					className="w-full object-cover image__login"
+					className="w-full  object-cover image__login"
 					alt=""
 				/>
 			</div>

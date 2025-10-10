@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 import { UserContextProvider } from "./components/contexts/UserContext";
 import { MessageProvider } from "./components/contexts/MessageContext";
@@ -18,22 +18,20 @@ axios.defaults.baseURL =
 axios.defaults.withCredentials = true;
 
 function App() {
+	const location = useLocation();
+	const isComponentActive = location.pathname === "/login" || "/register";
+
 	return (
 		<UserContextProvider>
 			<MessageProvider>
-				<BrowserRouter>
-					<Header />
-					<Routes>
-						<Route path="/" element={<Home />} />
-						<Route path="/login" element={<Login />} />
-						<Route path="/register" element={<Register />} />
-						<Route
-							path="/account/:subpage/:action?/:id?"
-							element={<Account />}
-						/>
-						<Route path="/places/:id" element={<Place />} />
-					</Routes>
-				</BrowserRouter>
+				<Header active={isComponentActive} />
+				<Routes>
+					<Route path="/" element={<Home />} />
+					<Route path="/login" element={<Login />} />
+					<Route path="/register" element={<Register />} />
+					<Route path="/account/:subpage/:action?/:id?" element={<Account />} />
+					<Route path="/places/:id" element={<Place />} />
+				</Routes>
 			</MessageProvider>
 		</UserContextProvider>
 	);
