@@ -105,7 +105,7 @@ const AccProfile = () => {
 			>
 				{/* Nome e pronome dentro do mesmo container centralizado */}
 				{!moblie ? (
-					<div className="mx-auto max-w-7xl w-full px-8 pb-5">
+					<div className="mx-auto lg:max-w-7xl w-full px-8 pb-5">
 						<h1 className="container__name ml-45 text-4xl font-bold flex justify-start items-end gap-3">
 							Leonardo Marques
 							<span className="text-lg font-normal text-gray-300">
@@ -119,7 +119,7 @@ const AccProfile = () => {
 			</div>
 
 			{/* Container do conteúdo */}
-			<div className="container__profile mx-auto md:max-w-7xl px-8 relative -mt-28">
+			<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 relative -mt-28">
 				<div className="flex flex-col gap-5 relative">
 					{/* Header do perfil (avatar + botão) */}
 					<div className="avatar__btn flex items-center justify-between relative">

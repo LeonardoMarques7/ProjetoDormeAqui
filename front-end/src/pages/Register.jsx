@@ -1,18 +1,51 @@
-import { CircleUserRound, Lock, Mail } from "lucide-react";
+import {
+	CircleUserRound,
+	Lock,
+	Mail,
+	X,
+	Check,
+	Eye,
+	EyeOff,
+} from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
-import logo__secondary from "../assets/plano__fundo.png";
 import { useState } from "react";
-import axios from "axios";
+import logo__secondary from "../assets/plano__fundo.png";
 import { useUserContext } from "../components/contexts/UserContext";
+import { useMessage } from "../components/contexts/MessageContext";
+import axios from "axios";
+
+function PasswordRequirement({ meets, label }) {
+	return (
+		<div
+			className={`flex items-center gap-2 transition-colors duration-300 ${
+				meets ? "text-primary-500" : "text-red-500"
+			}`}
+		>
+			<span className="flex items-center gap-2">
+				{meets ? <Check size={15} /> : <X size={15} />}
+				<span className="ml-2">{label}</span>
+			</span>
+		</div>
+	);
+}
+
+const requirements = [
+	{ re: /[0-9]/, label: "Pelo menos um número" },
+	{ re: /[a-z]/, label: "Uma letra minúscula" },
+	{ re: /[A-Z]/, label: "Uma letra maiúscula" },
+	{ re: /[$&+,:;=?@#|'<>.^*()%!-]/, label: "Um caractere especial" },
+];
 
 const Register = () => {
 	const { setUser } = useUserContext();
+	const { showMessage } = useMessage();
+	const [redirect, setRedirect] = useState(false);
 
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [message, setMessage] = useState("");
-	const [redirect, setRedirect] = useState(false);
+	const [showPasswordPopover, setShowPasswordPopover] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -28,15 +61,25 @@ const Register = () => {
 				setUser(userDoc);
 				setRedirect(true);
 			} catch (error) {
-				alert(`Deu um erro ao cadastrar o usuário: ${error.response.data}`);
+				showMessage(`Erro ao cadastrar: ${error}`, "error");
 			}
 		} else {
-			alert("Você precisa preencher o e-mail, o nome e a senha!");
+			showMessage(
+				"Você precisa preencher o e-mail, o nome e a senha!",
+				"warning"
+			);
 		}
 	};
 
-	if (redirect) return <Navigate to="/" />;
+	const checks = requirements.map((requirement, index) => (
+		<PasswordRequirement
+			key={index}
+			label={requirement.label}
+			meets={requirement.re.test(password)}
+		/>
+	));
 
+	if (redirect) return <Navigate to="/account/profile" />;
 	return (
 		<section className="flex flex-row-reverse absolute top-[20svh] items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
 			<div className="w-1/2 flex h-[25svh] items-center relative justify-center ease-in-out container__image duration-500 transition-all">
@@ -59,7 +102,6 @@ const Register = () => {
 							value={name}
 							onChange={(e) => {
 								setName(e.target.value);
-								if (message) setMessage("");
 							}}
 						/>
 					</div>
@@ -72,36 +114,59 @@ const Register = () => {
 							value={email}
 							onChange={(e) => {
 								setEmail(e.target.value);
-								if (message) setMessage("");
 							}}
 						/>
 					</div>
-					<div className="group__input relative flex justify-center items-center">
-						<Lock className="absolute left-4 text-gray-400 size-6" />
-						<input
-							type="password"
-							className="border border-gray-200 px-14 py-4 rounded-full w-full outline-primary-400"
-							placeholder="Digite sua senha"
-							value={password}
-							onChange={(e) => {
-								setPassword(e.target.value);
-								if (message) setMessage("");
-							}}
-						/>
+
+					<div className="relative">
+						<div className="relative flex flex-col gap-2">
+							<div className="group__input relative flex justify-center items-center">
+								<Lock className="absolute left-4 text-gray-400 size-6" />
+
+								<input
+									type={showPassword ? "text" : "password"}
+									className="border border-gray-200 px-14 py-4 rounded-full w-full outline-primary-400"
+									placeholder="Digite sua senha"
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+									onFocus={() => setShowPasswordPopover(true)}
+									onBlur={() => setShowPasswordPopover(false)}
+								/>
+
+								<button
+									type="button"
+									onClick={() => setShowPassword(!showPassword)}
+									className="absolute right-5 text-gray-400 hover:text-gray-600 transition-colors z-10"
+								>
+									{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+								</button>
+							</div>
+							{showPasswordPopover && (
+								<div className="text-sm text-center mt-2 flex justify-start flex-col items-start mx-auto">
+									<PasswordRequirement
+										label="Pelo menos 6 caracteres"
+										meets={password.length > 5}
+									/>
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 mt-4 ">
+										{checks}
+									</div>
+								</div>
+							)}
+						</div>
 					</div>
-					{message && (
-						<div className="text-red-500 text-center mt-2">{message}</div>
-					)}
-					<button className="font-bold rounded-full text-xl cursor-pointer w-full py-2 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300">
+					<button
+						type="submit"
+						className="font-bold rounded-full text-xl cursor-pointer w-full py-2 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300"
+					>
 						Entrar
 					</button>
 				</form>
 
 				<p>
-					Já possue uma conta?{" "}
+					Já possui uma conta?{" "}
 					<Link to="/login" className="underline font-semibold">
 						Logue Aqui!
-					</Link>{" "}
+					</Link>
 				</p>
 			</div>
 		</section>

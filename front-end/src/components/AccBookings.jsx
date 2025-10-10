@@ -23,9 +23,17 @@ const AccBookings = () => {
 				</h2>
 			</div>
 			<div className="flex w-full mx-auto max-w-full max-h-full lg:max-w-7xl flex-col -mt-25 gap-8 relative justify-center items-center">
-				{bookings.map((booking) => (
-					<BookingAll booking={booking} key={booking._id} />
-				))}
+				{bookings.length != 0 ? (
+					<>
+						{bookings.map((booking) => (
+							<BookingAll booking={booking} key={booking._id} />
+						))}
+					</>
+				) : (
+					<h2 className="text-xl absolute top-[25svh]">
+						Você não possue reservas
+					</h2>
+				)}
 			</div>
 		</>
 	);

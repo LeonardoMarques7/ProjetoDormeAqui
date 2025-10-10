@@ -11,6 +11,10 @@ import Register from "./pages/Register";
 import Account from "./pages/Account";
 import Place from "./pages/Place";
 
+import "@mantine/core/styles.css";
+
+import { MantineProvider } from "@mantine/core";
+
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
 		? "http://localhost:3000/api"
@@ -22,18 +26,23 @@ function App() {
 	const isComponentActive = location.pathname === "/login" || "/register";
 
 	return (
-		<UserContextProvider>
-			<MessageProvider>
-				<Header active={isComponentActive} />
-				<Routes>
-					<Route path="/" element={<Home />} />
-					<Route path="/login" element={<Login />} />
-					<Route path="/register" element={<Register />} />
-					<Route path="/account/:subpage/:action?/:id?" element={<Account />} />
-					<Route path="/places/:id" element={<Place />} />
-				</Routes>
-			</MessageProvider>
-		</UserContextProvider>
+		<MantineProvider>
+			<UserContextProvider>
+				<MessageProvider>
+					<Header active={isComponentActive} />
+					<Routes>
+						<Route path="/" element={<Home />} />
+						<Route path="/login" element={<Login />} />
+						<Route path="/register" element={<Register />} />
+						<Route
+							path="/account/:subpage/:action?/:id?"
+							element={<Account />}
+						/>
+						<Route path="/places/:id" element={<Place />} />
+					</Routes>
+				</MessageProvider>
+			</UserContextProvider>
+		</MantineProvider>
 	);
 }
 

@@ -32,14 +32,22 @@ const AccPlaces = () => {
 						<HousePlus /> Nova acomodação
 					</Link>
 				</span>
+				{places.length != 0 ? (
+					<>
+						{action !== "new" ? (
+							<>
+								<Places places={places} />
+							</>
+						) : (
+							<NewPlace />
+						)}
+					</>
+				) : (
+					<h2 className="text-xl absolute top-[50svh] justify-center w-full text-center mt-[15svh]">
+						Você não possue acomodações
+					</h2>
+				)}
 			</div>
-			{action !== "new" ? (
-				<>
-					<Places places={places} />
-				</>
-			) : (
-				<NewPlace />
-			)}
 		</>
 	);
 };
