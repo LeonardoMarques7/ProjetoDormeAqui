@@ -32,4 +32,12 @@
     .icon__place {
         display: none;
     }
+
+    .item__place__actions {
+        flex-direction: column;
+    }
+
+    .edit__btn {
+        width: 100%;
+    }
 }

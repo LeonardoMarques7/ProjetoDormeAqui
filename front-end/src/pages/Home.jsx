@@ -14,20 +14,11 @@ import {
 import "./Home.css";
 
 const Home = () => {
-	const [places, setPlaces] = useState([]);
 	const [city, setCity] = useState("");
+	const [places, setPlaces] = useState([]);
 	const [price, setPrice] = useState("");
 	const [checkin, setCheckin] = useState("");
 	const [checkout, setCheckout] = useState("");
-
-	useEffect(() => {
-		const axiosGet = async () => {
-			const { data } = await axios.get("/places");
-			setPlaces(data);
-		};
-
-		axiosGet();
-	}, []);
 
 	const handleCheckin = (date) => {
 		setCheckin(date);
@@ -47,6 +38,37 @@ const Home = () => {
 		setCheckout(date);
 	};
 
+	useEffect(() => {
+		const axiosGet = async () => {
+			const { data } = await axios.get("/places");
+			setPlaces(data);
+		};
+
+		axiosGet();
+	}, []);
+
+	// state separado para o texto digitado e para o termo que realmente pesquisa
+
+	useEffect(() => {
+		// carrega todos inicialmente
+		const fetchPlaces = async () => {
+			const { data } = await axios.get("/places");
+			setPlaces(data);
+		};
+		fetchPlaces();
+	}, []);
+
+	const handleSearch = async (e) => {
+		e.preventDefault();
+
+		try {
+			const { data } = await axios.get(`/places?city=${city}`);
+			setPlaces(data);
+		} catch (err) {
+			console.error("Erro na busca:", err);
+		}
+	};
+
 	return (
 		<>
 			<div className="container__header p-8 w-full bg-primary-500 mb-15 relative h-[50svh] flex-col text-white flex justify-center items-center text-center">
@@ -57,7 +79,7 @@ const Home = () => {
 					</p>
 				</div>
 				<div className="container__bg__form bg-white absolute -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4">
-					<form>
+					<form onSubmit={handleSearch}>
 						<div className="form__container flex items-center gap-2">
 							<div className="group__input relative flex justify-center items-center">
 								<MapPin className="absolute left-4 text-gray-400 size-6" />
@@ -67,9 +89,7 @@ const Home = () => {
 									placeholder="Cidade ou Estado"
 									className="border border-gray-200 px-14 py-4 rounded-2xl w-full text-gray-400 outline-primary-400"
 									value={city}
-									onChange={(e) => {
-										setCity(e.target.value);
-									}}
+									onChange={(e) => setCity(e.target.value)}
 								/>
 							</div>
 							{/* Checkin */}
@@ -131,6 +151,7 @@ const Home = () => {
 								</Popover>
 							</div>
 							<Button
+								type="submit"
 								variant="outline"
 								className="btn__submit justify-start text-left font-normal border bg-primary-500 hover:bg-primary-600/90 cursor-pointer hover:text-white border-gray-200 !px-14 !py-4 h-full rounded-2xl text-white outline-primary-400"
 							>
@@ -141,10 +162,12 @@ const Home = () => {
 					</form>
 				</div>
 			</div>
+
 			<h1 className="mx-auto font-medium max-w-full w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
 				Acomodações disponíveis
 			</h1>
-			<div className="mx-auto grid max-w-full grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 p-8 lg:max-w-7xl">
+
+			<div className="grid max-w-full grid-cols-[repeat(auto-fit,minmax(225px,300px))] gap-8 p-8 mx-8 lg:max-w-7xl">
 				{places.map((place) => (
 					<Item {...{ place }} key={place._id} />
 				))}
