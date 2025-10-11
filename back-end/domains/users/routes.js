@@ -97,4 +97,23 @@ router.post("/logout", (req, res) => {
     res.clearCookie("token").json("Deslogado com sucesso!")
 })
 
+router.delete("/:id", async (req, res) => {
+    connectDb();
+
+    const { id: _id } = req.params;
+
+    try {
+        const deleteAccount = await User.findOneAndDelete({ _id });
+
+        if (!deleteAccount) {
+            return res.status(404).json({ message: "Usuário não encontrada." });
+        }
+
+        res.json({ message: "Usuário deletado com sucesso!", deleteAccount });
+    } catch (error) {
+        res.status(500).json({ message: "Erro ao deletar o usuário.", error });
+        throw error;
+    }
+});
+
 export default router;

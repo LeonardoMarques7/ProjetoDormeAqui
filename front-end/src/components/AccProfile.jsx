@@ -4,28 +4,21 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
 import {
 	Globe,
+	LogOut,
 	Mail,
 	MapPin,
 	Pen,
 	Phone,
 	PhoneCall,
 	Sunrise,
+	Trash2,
 } from "lucide-react";
 import verify from "../assets/verify.png";
 import "./AccProfile.css";
 import Autoplay from "embla-carousel-autoplay";
-import {
-	Carousel,
-	CarouselContent,
-	CarouselItem,
-	CarouselNext,
-	CarouselPrevious,
-} from "@/components/ui/carousel";
-import { Progress } from "@/components/ui/progress"; // Importe o componente Progress do shadcn/ui
-import { Button } from "@/components/ui/button"; // Importe o componente Button do shadcn/ui
-import { Play, Pause } from "lucide-react"; // Importe os ícones de play e pause
 import { useRef } from "react";
 import { useEffect } from "react";
+import DeleteAccountDialog from "@/components/DeleteAccountDialog";
 
 const AccProfile = () => {
 	const { user, setUser } = useUserContext();
@@ -37,6 +30,7 @@ const AccProfile = () => {
 	const [count, setCount] = useState(0);
 	const [isPlaying, setIsPlaying] = useState(true);
 	const [places, setPlaces] = useState([]);
+	const [onDelete, setOnDelete] = useState(false);
 	const plugin = useRef(
 		Autoplay({
 			delay: 20000,
@@ -92,6 +86,16 @@ const AccProfile = () => {
 		setIsPlaying(!isPlaying);
 	};
 
+	const handleDelete = async () => {
+		try {
+			const { data } = await axios.delete(`/users/${user._id}`);
+			console.log("Conta deletada!", data);
+			setRedirect(true); // redireciona após excluir
+		} catch (error) {
+			console.error("Erro ao deletar:", error);
+		}
+	};
+
 	if (redirect) return <Navigate to="/" />;
 
 	if (!user) return null;
@@ -103,6 +107,7 @@ const AccProfile = () => {
 				id="Perfil"
 				className="w-full bg-primary-500 relative h-[40svh] text-white flex flex-col justify-end"
 			>
+				{user.name}
 				{/* Nome e pronome dentro do mesmo container centralizado */}
 				{!moblie ? (
 					<div className="mx-auto lg:max-w-7xl w-full px-8 pb-5">
@@ -134,19 +139,21 @@ const AccProfile = () => {
 						</div>
 
 						{/* Botão de editar */}
-						<Link
-							className={`hover:bg-white/50 ${
-								!moblie ? "mb-15" : "hidden"
-							} text-white hover:text-primary-700 transition-all ease-in-out duration-500 border border-white flex items-center px-5 py-2.5 rounded-md gap-3 mt-4`}
-						>
-							<Pen /> Editar Perfil
-						</Link>
-						<button
-							onClick={logout}
-							className="bg-primary-400 min-w-44 cursor-pointer rounded-full px-4 py-2 text-white transition"
-						>
-							Logout
-						</button>
+						<div className="flex gap-2">
+							<Link
+								className={`hover:bg-white/50 ${
+									!moblie ? "mb-15" : "hidden"
+								} text-white hover:text-primary-700 transition-all ease-in-out duration-500 border border-white flex items-center px-5 py-2.5 rounded-md gap-3 mt-4`}
+							>
+								<Pen /> Editar Perfil
+							</Link>
+							<button
+								onClick={logout}
+								className="cursor-pointer bg-primary-700/70 h-fit hover:bg-primary-700 text-white transition-all ease-in-out duration-500 border border-primary-700 flex items-center px-5 py-2.5 rounded-md gap-3 mt-4"
+							>
+								<LogOut /> Sair da Conta
+							</button>
+						</div>
 					</div>
 
 					{moblie ? (
@@ -202,7 +209,7 @@ const AccProfile = () => {
 						<h2 className="text-2xl my-5 font-medium">
 							Meus Anúncios ({places.length})
 						</h2>
-						<div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8 md:max-w-7xl mx-auto">
+						<div className="grid grid-cols-[repeat(auto-fit,minmax(250px,250px))] gap-8 md:max-w-7xl mx-auto">
 							{places.map((item) => (
 								<div
 									key={item._id}
@@ -230,6 +237,7 @@ const AccProfile = () => {
 							))}
 						</div>
 					</div>
+					<DeleteAccountDialog onDelete={handleDelete} />
 				</div>
 			</div>
 		</>

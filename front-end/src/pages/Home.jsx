@@ -11,11 +11,15 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
+
 import "./Home.css";
 
 const Home = () => {
+	const [searchInput, setSearchInput] = useState("");
 	const [city, setCity] = useState("");
 	const [places, setPlaces] = useState([]);
+	const [placesSearch, setPlacesSearch] = useState([]);
 	const [price, setPrice] = useState("");
 	const [checkin, setCheckin] = useState("");
 	const [checkout, setCheckout] = useState("");
@@ -38,15 +42,6 @@ const Home = () => {
 		setCheckout(date);
 	};
 
-	useEffect(() => {
-		const axiosGet = async () => {
-			const { data } = await axios.get("/places");
-			setPlaces(data);
-		};
-
-		axiosGet();
-	}, []);
-
 	// state separado para o texto digitado e para o termo que realmente pesquisa
 
 	useEffect(() => {
@@ -58,12 +53,21 @@ const Home = () => {
 		fetchPlaces();
 	}, []);
 
+	const normalize = (str) =>
+		str
+			.normalize("NFD")
+			.replace(/[\u0300-\u036f]/g, "")
+			.toLowerCase();
+
 	const handleSearch = async (e) => {
 		e.preventDefault();
+		setCity(searchInput); // só atualiza a label exibida
 
 		try {
-			const { data } = await axios.get(`/places?city=${city}`);
-			setPlaces(data);
+			const { data } = await axios.get(
+				`/places?city=${normalize(searchInput)}`
+			);
+			setPlacesSearch(data);
 		} catch (err) {
 			console.error("Erro na busca:", err);
 		}
@@ -88,8 +92,8 @@ const Home = () => {
 									type="text"
 									placeholder="Cidade ou Estado"
 									className="border border-gray-200 px-14 py-4 rounded-2xl w-full text-gray-400 outline-primary-400"
-									value={city}
-									onChange={(e) => setCity(e.target.value)}
+									value={searchInput}
+									onChange={(e) => setSearchInput(e.target.value)}
 								/>
 							</div>
 							{/* Checkin */}
@@ -162,18 +166,54 @@ const Home = () => {
 					</form>
 				</div>
 			</div>
+			{city ? (
+				placesSearch.length > 0 ? (
+					// Caso 3: pesquisou e encontrou
+					<div className="mx-auto font-medium max-w-full gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
+						Buscando por <strong className="text-primary-500">{city}</strong> e
+						foi encontrado{" "}
+						{placesSearch.length > 1
+							? `${placesSearch.length} resultados`
+							: `${placesSearch.length} resultado`}
+						.
+					</div>
+				) : (
+					// Caso 2: pesquisou mas não encontrou
+					<div className="mx-auto font-medium max-w-full gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
+						Buscando por <strong className="text-primary-500">{city}</strong> e
+						nada foi encontrado.
+					</div>
+				)
+			) : (
+				// Caso 1: sem pesquisa
+				<h1 className="mx-auto font-medium max-w-full w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
+					Acomodações disponíveis
+				</h1>
+			)}
 
-			<h1 className="mx-auto font-medium max-w-full w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
-				Acomodações disponíveis
-			</h1>
-
-			<div className="grid max-w-full grid-cols-[repeat(auto-fit,minmax(225px,300px))] gap-8 p-8 mx-8 lg:max-w-7xl">
-				{places.map((place) => (
-					<Item {...{ place }} key={place._id} />
-				))}
+			{/* GRID DE RESULTADOS */}
+			<div className="grid max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,350px))] gap-8 px-8 py-4 mx-8 lg:max-w-7xl">
+				{city &&
+					placesSearch.length > 0 &&
+					placesSearch.map((place) => <Item {...{ place }} key={place._id} />)}
 			</div>
+
+			{/* Se não tiver resultados OU não tiver pesquisa → mostrar acomodações padrão */}
+			{(!city || placesSearch.length === 0) && (
+				<div className="relative">
+					<div className="grid max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,2fr))] gap-8 px-8 mx-8 lg:max-w-7xl">
+						{places.map((place) => (
+							<Item {...{ place }} key={place._id} />
+						))}
+					</div>
+				</div>
+			)}
 		</>
 	);
 };
 
+// <span className="flex  relative top-0 mr-10 w-full text-center  justify-start items-center  tracking-widest">
+// 						<p className="z-1 bg-white px-5 text-primary-900">Fim da busca</p>
+// 						<span className="w-full h-fit border-2 border-dashed border-primary-300 absolute "></span>
+// 					</span>
 export default Home;

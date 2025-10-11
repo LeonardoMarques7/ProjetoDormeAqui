@@ -9,30 +9,21 @@ import { sendToS3, uploadImage } from "../controller.js";
 const router = Router();
 
 router.get("/", async (req, res) => {
-  connectDb();
-  const { city, checkin, checkout } = req.query;
+    connectDb();
 
-  try {
-    let query = {};
+    const { city } = req.query;
 
-    // Filtra por cidade
-    if (city) {
-      query.city = { $regex: city, $options: "i" };
+    try {
+        let query = {};
+        if (city) {
+            query.city = { $regex: city, $options: "i" }; 
+        }
+
+        const placeDocs = await Place.find(query);
+        res.json(placeDocs);
+    } catch (error) {
+        res.status(500).json({ message: "Deu erro ao buscar acomodações", error });
     }
-
-    // Filtra por datas (disponibilidade)
-    if (checkin && checkout) {
-      query.$and = [
-        { checkin: { $lte: new Date(checkin) } },    // checkin do lugar <= checkin selecionado
-        { checkout: { $gte: new Date(checkout) } },  // checkout do lugar >= checkout selecionado
-      ];
-    }
-
-    const placeDocs = await Place.find(query);
-    res.json(placeDocs);
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar acomodações", error });
-  }
 });
 
 
