@@ -4,7 +4,7 @@ import image1 from "../assets/lugares/image__1.jpg";
 const Item = ({ place }) => {
 	return (
 		<Link to={`/places/${place._id}`}>
-			<div className="flex flex-col gap-2">
+			<div className="flex flex-col gap-2 max-w-[350px]">
 				<img
 					src={place.photos[0]}
 					alt="Imagem da acomodação"

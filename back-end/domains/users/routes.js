@@ -58,6 +58,53 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+    connectDb();
+
+    const { id: _id } = req.params;
+    
+    try {
+        const userDoc = await User.findOne({_id});
+
+        res.json(userDoc);
+    } catch (error) {
+        res.status(500).json("Deu erro ao encontrar o usuário.",error);
+        throw error;
+    }
+    
+});
+
+router.put("/:id", async (req, res) => {
+  connectDb();
+
+  const { id: _id } = req.params;
+
+  const {   name,
+						email,
+						phone,
+						city,
+						photo,
+						bio } = req.body;
+
+      try {
+          const updateUserDoc = await User.findOneAndUpdate({_id}, {
+            name,
+						email,
+						phone,
+						city,
+						photo,
+						bio
+          });
+
+          res.json(updateUserDoc);
+
+      } catch (error) {
+          res.status(500).json("Deu erro ao atualizar as inforamações...",error);
+          throw error;
+      }
+});
+
+
 router.post("/login", async (req, res) => {
   connectDb();
 

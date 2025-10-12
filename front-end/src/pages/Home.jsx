@@ -192,16 +192,21 @@ const Home = () => {
 			)}
 
 			{/* GRID DE RESULTADOS */}
-			<div className="grid max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,350px))] gap-8 px-8 py-4 mx-8 lg:max-w-7xl">
-				{city &&
-					placesSearch.length > 0 &&
-					placesSearch.map((place) => <Item {...{ place }} key={place._id} />)}
+			<div className="grid max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 py-4 lg:max-w-7xl">
+				{city && placesSearch.length > 0 && (
+					<>
+						{placesSearch.map((place) => (
+							<Item {...{ place }} key={place._id} />
+						))}
+						<div className="min-w-full col-span-full columns-auto"></div>
+					</>
+				)}
 			</div>
 
 			{/* Se não tiver resultados OU não tiver pesquisa → mostrar acomodações padrão */}
 			{(!city || placesSearch.length === 0) && (
 				<div className="relative">
-					<div className="grid max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,2fr))] gap-8 px-8 mx-8 lg:max-w-7xl">
+					<div className="grid max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8 mx-8 lg:max-w-7xl">
 						{places.map((place) => (
 							<Item {...{ place }} key={place._id} />
 						))}

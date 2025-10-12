@@ -18,7 +18,9 @@ export default function AlertDialog({
 }) {
 	return (
 		<ShadAlertDialog>
-			<AlertDialogTrigger>{trigger}</AlertDialogTrigger>
+			<AlertDialogTrigger className="cursor-pointer hover:bg-red-600 transition-all bg-red-500 text-white font-bold w-fit px-5 py-2.5 rounded-md">
+				{trigger}
+			</AlertDialogTrigger>
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>{title}</AlertDialogTitle>

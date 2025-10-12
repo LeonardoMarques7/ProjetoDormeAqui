@@ -8,6 +8,7 @@ import { Calendar, House, User } from "lucide-react";
 
 const Account = () => {
 	const { subpage } = useParams();
+	const { id } = useParams();
 	const { user, ready } = useUserContext();
 
 	if (!user && ready) return <Navigate to="/login" />;

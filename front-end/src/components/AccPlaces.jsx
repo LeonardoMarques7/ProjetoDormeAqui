@@ -26,19 +26,6 @@ const AccPlaces = () => {
 		axiosGet();
 	}, [action]);
 
-	useEffect(() => {
-		const axiosDelete = async () => {
-			try {
-				const { data } = await axios.delete(`/places/${id}`);
-				setRedirect(true);
-			} catch (error) {
-				console.error("Erro ao deletar:", error);
-			}
-		};
-
-		axiosDelete();
-	}, [id]);
-
 	if (redirect) return <Navigate to="/account/places" />;
 
 	return (
