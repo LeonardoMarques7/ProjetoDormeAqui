@@ -23,6 +23,8 @@ import { MantineProvider } from "@mantine/core";
 import { useState } from "react";
 import { set } from "date-fns";
 import { MoblieContextProvider } from "./components/contexts/MoblieContext";
+import Footer from "./components/Footer";
+import Teste from "./pages/Teste";
 
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
@@ -39,17 +41,21 @@ function App() {
 			<MoblieContextProvider>
 				<UserContextProvider>
 					<MessageProvider>
-						<Header active={isComponentActive} />
-						<Routes>
-							<Route path="/" element={<Home />} />
-							<Route path="/login" element={<Login />} />
-							<Route path="/register" element={<Register />} />
-							<Route
-								path="/account/:subpage/:action?/:id?"
-								element={<Account />}
-							/>
-							<Route path="/places/:id" element={<Place />} />
-						</Routes>
+						<div className="flex flex-col gap-5">
+							<Header active={isComponentActive} />
+							<Routes>
+								<Route path="/" element={<Home />} />
+								<Route path="/teste" element={<Teste />} />
+								<Route path="/login" element={<Login />} />
+								<Route path="/register" element={<Register />} />
+								<Route
+									path="/account/:subpage/:action?/:id?"
+									element={<Account />}
+								/>
+								<Route path="/places/:id" element={<Place />} />
+							</Routes>
+							<Footer active={isComponentActive} />
+						</div>
 					</MessageProvider>
 				</UserContextProvider>
 			</MoblieContextProvider>

@@ -206,7 +206,7 @@ const Home = () => {
 			{/* Se não tiver resultados OU não tiver pesquisa → mostrar acomodações padrão */}
 			{(!city || placesSearch.length === 0) && (
 				<div className="relative">
-					<div className="grid max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8 mx-8 lg:max-w-7xl">
+					<div className="grid max-w-full mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
 						{places.map((place) => (
 							<Item {...{ place }} key={place._id} />
 						))}

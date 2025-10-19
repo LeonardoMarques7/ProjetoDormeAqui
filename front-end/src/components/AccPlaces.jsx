@@ -30,8 +30,8 @@ const AccPlaces = () => {
 
 	return (
 		<>
-			<div className="bg__places bg-primary-500  relative flex flex-col justify-end items-end h-[50svh] ">
-				<span className="header__places flex items-center max-w-dvw px-8 lg:max-w-7xl mb-10 mx-auto w-full justify-between">
+			<div className="bg-primary-500 relative flex flex-col justify-center items-center h-[50svh] ">
+				<span className="">
 					<h2 className="font-bold text-4xl text-white">
 						{edit
 							? "Editando acomodação"
@@ -61,15 +61,9 @@ const AccPlaces = () => {
 				</span>
 			</div>
 
-			<>
-				{action !== "new" ? (
-					<>
-						<Places places={places} />
-					</>
-				) : (
-					<NewPlace />
-				)}
-			</>
+			<div className="h-full">
+				{action !== "new" ? <Places places={places} /> : <NewPlace />}
+			</div>
 		</>
 	);
 };

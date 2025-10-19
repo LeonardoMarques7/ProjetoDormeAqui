@@ -9,10 +9,11 @@ import {
 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useState } from "react";
-import logo__secondary from "../assets/plano__fundo.png";
+import logo__secondary from "../assets/plano__fundo__3.png";
 import { useUserContext } from "../components/contexts/UserContext";
 import { useMessage } from "../components/contexts/MessageContext";
 import axios from "axios";
+import { motion } from "framer-motion";
 
 function PasswordRequirement({ meets, label }) {
 	return (
@@ -82,15 +83,25 @@ const Register = () => {
 	if (redirect) return <Navigate to="/account/profile" />;
 
 	return (
-		<section className="flex flex-row-reverse absolute top-[20svh] items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
-			<div className="w-1/2 flex h-[25svh] items-center relative justify-center ease-in-out container__image duration-500 transition-all">
-				<img
+		<section className="flex flex-row-reverse  w-full h-svh items-center justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
+			<div className=" flex  items-center relative justify-center ease-in-out container__image duration-500 transition-all">
+				<motion.img
 					src={logo__secondary}
-					className="w-full  object-cover image__login"
+					initial={{ opacity: 0.5 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+					transition={{ duration: 0.8, ease: "easeInOut" }}
+					className="w-[35svw] h-full object-cover image__login"
 					alt=""
 				/>
 			</div>
-			<div className="max-w-96 mx-auto gap-4 flex flex-col items-center w-full">
+			<motion.div
+				initial={{ x: "100%", opacity: 0 }}
+				animate={{ x: 0, opacity: 1 }}
+				exit={{ x: "-100%", opacity: 0 }}
+				transition={{ duration: 0.8, ease: "easeInOut" }}
+				className="max-w-96 mx-auto gap-4 flex flex-col items-center w-full"
+			>
 				<h1 className="text-3xl font-bold">Cadastre-se e descubra</h1>
 				<h3>Crie uma conta para continuar</h3>
 				<form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
@@ -170,7 +181,7 @@ const Register = () => {
 						Logue Aqui!
 					</Link>
 				</p>
-			</div>
+			</motion.div>
 		</section>
 	);
 };
