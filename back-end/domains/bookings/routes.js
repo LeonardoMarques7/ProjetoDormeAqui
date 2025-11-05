@@ -18,7 +18,7 @@ router.get("/owner", async (req, res) => {
     .populate({
         path: "place",
         populate: {
-            path: "owner",       // popula o dono do lugar
+            path: "owner",     
             select: "name email avatar"
         }
     })
