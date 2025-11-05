@@ -16,6 +16,7 @@ import imageQrCode from "../assets/qrcode_leonardomdev.png";
 import "./Booking.css";
 
 import Marquee from "react-fast-marquee";
+import Status from "./Status";
 
 const BookingAll = ({ bookingsArray }) => {
 	const [moblie, setIsMoblie] = useState(window.innerWidth <= 768);
@@ -25,7 +26,6 @@ const BookingAll = ({ bookingsArray }) => {
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
-
 	return (
 		<>
 			{bookingsArray.map((booking) => (
@@ -36,6 +36,7 @@ const BookingAll = ({ bookingsArray }) => {
 							key={booking.place._id}
 							className="ticket__booking bg-white/80 relative cursor-pointer pointer-events-none flex rounded-2xl border  border-primary-100 gap-5 "
 						>
+							<Status booking={booking} />
 							<div className="flex flex-col items-start gap-2 w-full  text-gray-500 p-5">
 								<div className="flex flex-col gap-1 w-full text-start header__ticket">
 									<h5 className="text-primary-600 font-medium uppercase">

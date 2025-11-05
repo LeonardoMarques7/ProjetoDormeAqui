@@ -52,7 +52,7 @@ const Place = () => {
 	const [redirect, setRedirect] = useState(false);
 	const [checkin, setCheckin] = useState("");
 	const [checkout, setCheckout] = useState("");
-	const [guests, setGuests] = useState("");
+	const [guests, setGuests] = useState(1);
 	const [placeHeader, setPlaceHeader] = useState("");
 	const [date, setDate] = useState({
 		from: new Date(),
@@ -71,6 +71,8 @@ const Place = () => {
 			(dateCheckout.getTime() - dateCheckin.getTime()) / (1000 * 60 * 60 * 24)
 		);
 	};
+
+	const dataAtual = new Date();
 
 	useEffect(() => {
 		if (place) {
@@ -158,6 +160,19 @@ const Place = () => {
 	};
 
 	if (!place) return <></>;
+
+	if (guests > place.guests) {
+		showMessage(
+			`Limite de convidados atingido! Nº Máximo de convidados (${place.guests} pessoas)`,
+			"error"
+		);
+		setGuests(place.guests);
+	}
+
+	if (guests <= 0) {
+		showMessage(`Atenção! Nº Mínimo de convidados (1 pessoa)`, "error");
+		setGuests(1);
+	}
 
 	return (
 		<>
@@ -325,7 +340,7 @@ const Place = () => {
 							<BookingAlert />
 						</>
 					) : (
-						<form className="form__place order-1 md:order-none sm:border-0 justify-self-end self-start sticky top-4 flex flex-col gap-4 border-gray-200 border rounded-2xl px-8 sm:px-0 py-4 ">
+						<form className="form__place order-1 md:order-none justify-self-end border-1 self-start sticky top-4 flex flex-col  gap-4 border-gray-200 rounded-2xl p-10">
 							<p className="sm:text-2xl text-xl font-medium text-center sm:text-start text-gray-600">
 								Preço:{" "}
 								<span className="font-bold text-primary-500">
@@ -335,16 +350,16 @@ const Place = () => {
 							</p>
 							{/* Checkin e Checkout */}
 							<div className="column__check flex justify-center sm:justify-start">
-								<div className="flex gap-4">
+								<div className="flex flex-col gap-4">
 									{/* Check-in */}
-									<div className="py-2">
+									<div className="">
 										<p className="font-bold mb-2">Check-in</p>
 										<Popover>
 											<PopoverTrigger asChild>
 												<Button
 													variant="outline"
 													className={cn(
-														"w-fit justify-start text-left font-normal",
+														"w-full cursor-pointer justify-start text-left max-w-xl font-normal",
 														!checkin && "text-muted-foreground"
 													)}
 												>
@@ -352,7 +367,7 @@ const Place = () => {
 													{checkin ? (
 														format(checkin, "dd/MM/yyyy")
 													) : (
-														<span>Selecione</span>
+														<span>Selecione data Check-in</span>
 													)}
 												</Button>
 											</PopoverTrigger>
@@ -375,7 +390,7 @@ const Place = () => {
 												<Button
 													variant="outline"
 													className={cn(
-														"w-fit justify-start text-left font-normal",
+														"w-fit cursor-pointer  justify-start text-left font-normal",
 														!checkout && "text-muted-foreground"
 													)}
 												>
@@ -383,7 +398,7 @@ const Place = () => {
 													{checkout ? (
 														format(checkout, "dd/MM/yyyy")
 													) : (
-														<span>Selecione</span>
+														<span>Selecione data Check-out</span>
 													)}
 												</Button>
 											</PopoverTrigger>
@@ -405,8 +420,10 @@ const Place = () => {
 								<p className="font-bold px-3 sm:px-0">Nº Convidados</p>
 								<input
 									type="number"
-									value={guests}
+									value={guests ? guests : 1}
 									placeholder="2"
+									min={1}
+									max={place.guests}
 									className="border border-primay-200 w-20 rounded-2xl px-4 py-2"
 									onChange={(e) => {
 										setGuests(e.target.value);

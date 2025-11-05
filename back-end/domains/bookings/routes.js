@@ -13,14 +13,18 @@ router.get("/owner", async (req, res) => {
     const { _id: id } = await JWTVerify(req);
 
     try {
-      const bookingDocs = await Booking.find({ user: id }).populate({
+      const bookingDocs = await Booking.find({ user: id })
+    .sort({ createdAt: -1 }) // Ordena por check-in mais recente primeiro
+    .populate({
         path: "place",
         populate: {
-        path: "owner",       // popula o dono do lugar
-        select: "name email avatar"
+            path: "owner",       // popula o dono do lugar
+            select: "name email avatar"
         }
-    }).populate("user", "name email avatar");
-      res.json(bookingDocs);
+    })
+    .populate("user", "name email avatar");
+
+res.json(bookingDocs);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Deu erro ao encontrar as reservas.." });

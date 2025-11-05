@@ -1,5 +1,5 @@
 import { BedDouble, CornerDownLeft, Edit2, MapPin, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	Pagination,
 	PaginationContent,
@@ -8,6 +8,8 @@ import {
 	PaginationNext,
 	PaginationPrevious,
 } from "@/components/ui/pagination";
+import ScrollReveal from "scrollreveal";
+import { motion } from "framer-motion";
 
 const Places = ({ places }) => {
 	const [currentPage, setCurrentPage] = useState(1);
@@ -27,17 +29,24 @@ const Places = ({ places }) => {
 		window.scrollTo({ top: 0, behavior: "smooth" });
 	};
 
+	useEffect(() => {
+		ScrollReveal().reveal(".headline", {
+			duration: 1500,
+			origin: "top",
+			distance: "100px",
+			easing: "ease-in-out",
+			reset: false,
+		});
+	}, []);
+
 	return (
 		<div className="container__places mx-auto max-w-full max-h-full h-full overflow-x-clip mt-[5svh] flex flex-col gap-50 p-8 lg:max-w-7xl">
 			{currentPlaces.map((place) => (
-				<div
-					key={place._id}
-					className="item__place flex items-center gap-5 top-[5svh] w-full lg:max-w-7xl"
-				>
+				<div className="headline item__place flex items-center gap-5 top-[5svh] w-full lg:max-w-7xl">
 					<div className="relative w-full flex items-center justify-center">
 						<img
 							src={place.photos[0]}
-							className="image__place h-100 aspect-video absolute left-0 top-0 object-cover rounded-2xl shadow-xl shadow-primary-200/80"
+							className="sr-fade-1 image__place h-100 aspect-video absolute left-0 top-0 object-cover rounded-2xl shadow-xl shadow-primary-200/80"
 							alt="Foto da acomodação"
 						/>
 					</div>
