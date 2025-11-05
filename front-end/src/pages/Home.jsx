@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Item from "../components/Item";
 import axios from "axios";
-import { CalendarIcon, MapPin, Search } from "lucide-react";
+import { CalendarIcon, Eraser, MapPin, Search, X } from "lucide-react";
 import { format, isBefore, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -71,6 +71,11 @@ const Home = () => {
 		} catch (err) {
 			console.error("Erro na busca:", err);
 		}
+	};
+
+	const limparPesquisa = (e) => {
+		e.preventDefault();
+		setCity("");
 	};
 
 	return (
@@ -169,20 +174,44 @@ const Home = () => {
 			{city ? (
 				placesSearch.length > 0 ? (
 					// Caso 3: pesquisou e encontrou
-					<div className="mx-auto font-medium max-w-full gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
-						Buscando por <strong className="text-primary-500">{city}</strong> e
-						foi encontrado{" "}
-						{placesSearch.length > 1
-							? `${placesSearch.length} resultados`
-							: `${placesSearch.length} resultado`}
-						.
+					<div className="mx-auto font-medium max-w-full gap-2 w-full flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
+						<span>
+							Buscando por <strong className="text-primary-500">{city}</strong>{" "}
+							e foi encontrado{" "}
+							{placesSearch.length > 1
+								? `${placesSearch.length} resultados`
+								: `${placesSearch.length} resultado`}
+							.
+						</span>
+						<button
+							onClick={limparPesquisa}
+							className=" flex items-center cursor-pointer border border-transparent hover:border-red-500  transition-all gap-2 !text-lg  text-red-500  p-2.5 px-5 rounded-2xl"
+						>
+							<Eraser /> Limpar pesquisa
+						</button>
 					</div>
 				) : (
 					// Caso 2: pesquisou mas não encontrou
-					<div className="mx-auto font-medium max-w-full gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
-						Buscando por <strong className="text-primary-500">{city}</strong> e
-						nada foi encontrado.
-					</div>
+					<>
+						<div className="mx-auto  max-w-full w-full gap-2 flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
+							<span>
+								Buscando por {city} e foram{" "}
+								<strong className="text-primary-500">
+									0 acomodações encontradas
+								</strong>
+								.
+							</span>
+							<button
+								onClick={limparPesquisa}
+								className=" flex items-center cursor-pointer border border-transparent hover:border-red-500  transition-all gap-2 !text-lg  text-red-500  p-2.5 px-5 rounded-2xl"
+							>
+								<Eraser /> Limpar pesquisa
+							</button>
+						</div>
+						<div className="mx-auto font-medium max-w-full gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start ">
+							Outras acomodações
+						</div>
+					</>
 				)
 			) : (
 				// Caso 1: sem pesquisa
@@ -192,16 +221,16 @@ const Home = () => {
 			)}
 
 			{/* GRID DE RESULTADOS */}
-			<div className="grid max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 py-4 lg:max-w-7xl">
-				{city && placesSearch.length > 0 && (
+			{city && placesSearch.length > 0 && (
+				<div className="grid max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 py-4 lg:max-w-7xl">
 					<>
 						{placesSearch.map((place) => (
 							<Item {...{ place }} key={place._id} />
 						))}
 						<div className="min-w-full col-span-full columns-auto"></div>
 					</>
-				)}
-			</div>
+				</div>
+			)}
 
 			{/* Se não tiver resultados OU não tiver pesquisa → mostrar acomodações padrão */}
 			{(!city || placesSearch.length === 0) && (

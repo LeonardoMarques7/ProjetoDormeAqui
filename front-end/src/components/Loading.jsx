@@ -1,54 +1,74 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import ScrollReveal from "scrollreveal";
-import { Bed, Home, MapPin, Key } from "lucide-react";
-
-export default function Loading() {
-	useEffect(() => {
-		ScrollReveal().reveal(".sr-fade-1", {
-			duration: 5000,
-			origin: "bottom",
-			distance: "600px",
-			easing: "ease-in-out",
-			interval: 500,
-		});
-		ScrollReveal().reveal(".sr-fade-2", {
-			duration: 10000,
-			origin: "bottom",
-			distance: "600px",
-			easing: "ease-in-out",
-			interval: 1500,
-		});
-		ScrollReveal().reveal(".sr-fade-3", {
-			duration: 15000,
-			origin: "bottom",
-			distance: "600px",
-			easing: "ease-in-out",
-			interval: 3000,
-		});
-	}, []);
+import {
+	Bed,
+	Home,
+	MapPin,
+	Key,
+	CornerDownLeft,
+	Edit2,
+	BedDouble,
+	Users,
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+export default function Loading({ category }) {
+	const currentPlaces = [1, 2, 3, 4];
 
 	return (
-		<div className="flex flex-col items-center gap-10 justify-center h-screen bg-primary-500 rounded-lg p-12 text-white">
-			<div className="relative mb-10">
-				<div className="w-20 h-20 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
-				<Bed className="absolute inset-0 m-auto text-white size-10" />
-			</div>
-
-			<div className="flex flex-col gap-4 text-center ">
-				<motion.p className="sr-fade-1 text-xl font-semibold flex items-center justify-center gap-2">
-					<Home className="size-6" /> Sua hospedagem, seu lar temporário.
-				</motion.p>
-
-				<motion.p className="sr-fade-2 text-lg opacity-90 flex items-center justify-center gap-2">
-					<MapPin className="size-6" /> Encontre o lugar perfeito em qualquer
-					destino.
-				</motion.p>
-
-				<motion.p className="sr-fade-3 text-lg opacity-90 flex items-center justify-center gap-2">
-					<Key className="size-6" /> Conforto e praticidade na palma da mão.
-				</motion.p>
-			</div>
-		</div>
+		category == "places" && (
+			<>
+				<div className="bg-primary-500 relative flex flex-col justify-center items-center h-[50svh] ">
+					<h2 className="font-bold text-4xl text-white">Meus lugares</h2>
+				</div>
+				<div className="container__places mx-auto max-w-full max-h-full h-full overflow-x-clip  flex flex-col gap-50 p-8 lg:max-w-7xl">
+					{currentPlaces.map((place, id) => (
+						<div
+							id={id}
+							className="headline item__place flex items-center gap-5 top-[5svh] w-full lg:max-w-7xl"
+						>
+							<div className="relative h-fit w-full flex items-center justify-center">
+								<Skeleton className="sr-fade-1 image__place h-100 aspect-video relative left-0 top-0 object-cover rounded-2xl shadow-xl shadow-primary-200/80" />
+							</div>
+							<CornerDownLeft
+								size={50}
+								className="relative top-10 icon__place"
+							/>
+							<Skeleton className="flex w-fit flex-col items-start gap-4 bg-white/80 p-5 backdrop-blur-sm shadow-xl shadow-primary-200/50 rounded-2xl">
+								<div className="flex gap-2 items-center text-gray-500">
+									<MapPin size={18} /> Cidade/Estado da acomodação
+								</div>
+								<Skeleton className="text-4xl font-bold w-full">
+									Título da acomodação
+								</Skeleton>
+								<Skeleton className="text-gray-500 text-start overflow-hidden line-clamp-4">
+									Lorem ipsum dolor sit, amet consectetur adipisicing elit.
+									Architecto blanditiis dolore laborum ipsa praesentium sequi
+									voluptas odit, eligendi iste libero. Minus repudiandae cum
+									unde quae odit? Id cum accusamus repellat.
+								</Skeleton>
+								<div className="flex items-center gap-4">
+									<div className="flex gap-2 items-center text-gray-500">
+										<Users size={18} /> 2
+									</div>
+									<div className="flex gap-2 items-center text-gray-500">
+										<BedDouble size={18} /> 2
+									</div>
+								</div>
+								<div className="item__place__actions flex items-center gap-2 w-full">
+									<a className="cursor-pointer hover:bg-primary-600 ease-in-out grow duration-500 w-full bg-primary-500 text-white rounded-2xl flex-1 text-center py-2.5">
+										Ver mais
+									</a>
+									<a className="edit__btn cursor-pointer justify-center flex items-center grow-0 px-5 hover:bg-gray-600 ease-in-out duration-500 gap-4 bg-gray-500 text-white rounded-2xl text-center py-2.5">
+										<Edit2 size={18} />
+										Editar
+									</a>
+								</div>
+							</Skeleton>
+						</div>
+					))}
+				</div>
+			</>
+		)
 	);
 }

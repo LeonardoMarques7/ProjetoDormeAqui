@@ -119,7 +119,6 @@ const AccProfile = () => {
 	}
 
 	if (!user) {
-		// O componente Account.jsx já trata do redirecionamento para /login
 		return null;
 	}
 

@@ -41,8 +41,11 @@ const Places = ({ places }) => {
 
 	return (
 		<div className="container__places mx-auto max-w-full max-h-full h-full overflow-x-clip mt-[5svh] flex flex-col gap-50 p-8 lg:max-w-7xl">
-			{currentPlaces.map((place) => (
-				<div className="headline item__place flex items-center gap-5 top-[5svh] w-full lg:max-w-7xl">
+			{currentPlaces.map((place, id) => (
+				<div
+					key={id}
+					className="headline item__place flex items-center gap-5 top-[5svh] w-full lg:max-w-7xl"
+				>
 					<div className="relative w-full flex items-center justify-center">
 						<img
 							src={place.photos[0]}

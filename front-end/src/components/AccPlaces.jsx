@@ -7,10 +7,12 @@ import NewPlace from "./NewPlace";
 import Places from "./Places";
 import "./Places.css";
 import { useMoblieContext } from "./contexts/MoblieContext";
+import Loading from "./Loading";
 
 const AccPlaces = () => {
 	const { action } = useParams();
 	const { moblie } = useMoblieContext();
+	const [ready, setReady] = useState();
 	const [places, setPlaces] = useState([]);
 	const [redirect, setRedirect] = useState(false);
 	const { id } = useParams();
@@ -20,11 +22,18 @@ const AccPlaces = () => {
 	useEffect(() => {
 		const axiosGet = async () => {
 			const { data } = await axios.get("/places/owner");
-			setPlaces(data);
+			setTimeout(() => {
+				setPlaces(data);
+				setReady(false);
+			}, 2000);
 		};
 
 		axiosGet();
 	}, [action]);
+
+	if (!ready) {
+		return <Loading category="places" />;
+	}
 
 	if (redirect) return <Navigate to="/account/places" />;
 

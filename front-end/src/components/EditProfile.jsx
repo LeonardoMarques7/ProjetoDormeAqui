@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useMessage } from "./contexts/MessageContext";
 import { MilkdownProvider } from "@milkdown/react";
 import { nord } from "@milkdown/theme-nord";
@@ -82,6 +82,10 @@ const EditProfile = ({ user }) => {
 		} else {
 			showMessage("Preencha todas as informações!", "warning");
 		}
+	};
+
+	const handlePageChange = () => {
+		setRedirect(true);
 	};
 
 	if (redirect) return <Navigate to="/account/profile" />;
@@ -202,6 +206,9 @@ const EditProfile = ({ user }) => {
 				<button className="flex w-fit gap-4 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
 					Salvar alterações
 				</button>
+				<Link to="../account/profile" onClick={handlePageChange}>
+					Voltar
+				</Link>
 			</form>
 		</div>
 	);
