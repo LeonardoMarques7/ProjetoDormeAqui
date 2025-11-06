@@ -18,6 +18,10 @@
         justify-content: center;
         flex-direction: column;
     }
+
+    .grid__anuncios {
+        grid-template-columns: repeat(auto-fit, minmax(250px, auto));
+    }
 }
 
 @media (width <=600px) {

@@ -24,7 +24,7 @@ const AccPlaces = () => {
 			const { data } = await axios.get("/places/owner");
 			setTimeout(() => {
 				setPlaces(data);
-				setReady(false);
+				setReady(true);
 			}, 2000);
 		};
 

@@ -152,7 +152,11 @@ const AccProfile = () => {
 							<div className="avatar__btn flex items-center justify-between relative">
 								{/* Avatar sobreposto */}
 								<div className="icon__perfil relative w-40 h-40 rounded-full border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
-									L
+									{user.photo ? (
+										<img src={user.photo}></img>
+									) : (
+										user.name.charAt(0)
+									)}
 									<img
 										src={verify}
 										alt="Verificado"
@@ -221,7 +225,7 @@ const AccProfile = () => {
 								<h2 className="text-2xl my-5 font-medium">
 									Meus Anúncios ({places.length})
 								</h2>
-								<div className="grid grid-cols-[repeat(auto-fit,minmax(250px,250px))] gap-8 md:max-w-7xl mx-auto">
+								<div className="grid__anuncios grid grid-cols-[repeat(auto-fit,minmax(250px,250px))] gap-8 md:max-w-7xl mx-auto">
 									{places.map((item) => (
 										<div
 											key={item._id}

@@ -4,6 +4,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { useMessage } from "./contexts/MessageContext";
 import { MilkdownProvider } from "@milkdown/react";
 import { nord } from "@milkdown/theme-nord";
+import verify from "../assets/verify.png";
 
 import "./EditProfile.css";
 
@@ -33,6 +34,7 @@ const EditProfile = ({ user }) => {
 	const [phone, setPhone] = useState(user.phone);
 	const [city, setCity] = useState(user.city);
 	const [bio, setBio] = useState(user.bio);
+	const [photo, setPhoto] = useState("");
 	const [redirect, setRedirect] = useState(false);
 
 	useEffect(() => {
@@ -46,6 +48,7 @@ const EditProfile = ({ user }) => {
 				setName(data.name);
 				setEmail(data.email);
 				setPhone(data.phone);
+				setPhoto(data.photo);
 				setCity(data.city);
 				setBio(data.bio);
 			};
@@ -53,6 +56,31 @@ const EditProfile = ({ user }) => {
 			axiosGet();
 		}
 	}, []);
+
+	const uploadPhoto = async (e) => {
+		const { files } = e.target;
+
+		const file = files[0];
+
+		if (!file) return;
+
+		const formData = new FormData();
+		formData.append("files", file);
+
+		try {
+			const { data: urlArray } = await axios.post("/users/upload", formData, {
+				headers: { "Content-Type": "multipart/form-data" },
+			});
+
+			console.log("✅ Sucesso:", urlArray);
+
+			// Apenas salva a URL da foto
+			setPhoto(urlArray[0] || urlArray);
+		} catch (error) {
+			showMessage("Erro ao enviar imagem!", "error");
+			console.error("❌ Erro:", error);
+		}
+	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -63,6 +91,7 @@ const EditProfile = ({ user }) => {
 					const modifiedUser = await axios.put(`/users/${id}`, {
 						name,
 						email,
+						photo,
 						phone,
 						city,
 						bio,
@@ -92,10 +121,39 @@ const EditProfile = ({ user }) => {
 
 	return (
 		<div className="container__prev__form flex p-10 bg-white/80  rounded-2xl backdrop-blur-xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
+			{/* Avatar sobreposto */}
+
 			<form
 				onSubmit={handleSubmit}
 				className="container__form pb-30 flex grow flex-col gap-4 w-full max-w-2xl"
 			>
+				<div className="flex flex-col items-start justify-center gap-5">
+					<div className="icon__perfil relative w-40 h-40 top-0 rounded-2xl border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
+						{photo ? (
+							<img
+								src={photo}
+								alt="Foto de perfil"
+								className="w-full h-full object-cover rounded-xl"
+							/>
+						) : (
+							name[0]
+						)}
+					</div>
+					<label
+						htmlFor="file"
+						className="aspect-square min-w-40 flex gap-2 justify-center items-center rounded-xl border-dashed border-1 border-gray-300 cursor-pointer hover:border-solid ease-in-out duration-300 hover:border-primary-300"
+					>
+						<input
+							type="file"
+							id="file"
+							className="hidden"
+							onChange={uploadPhoto}
+							accept="image/*"
+						/>
+						<ArrowUpFromLine className="opacity-80" />
+						Upload
+					</label>
+				</div>
 				<div className="label__input text-start flex flex-col gap-2 w-full">
 					<label
 						htmlFor="name"

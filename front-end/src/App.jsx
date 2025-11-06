@@ -20,6 +20,7 @@ import Place from "./pages/Place";
 import "@mantine/core/styles.css";
 
 import { MantineProvider } from "@mantine/core";
+import { useEffect } from "react";
 import { useState } from "react";
 import { set } from "date-fns";
 import { MoblieContextProvider } from "./components/contexts/MoblieContext";
@@ -32,6 +33,16 @@ axios.defaults.baseURL =
 		: "https://projetodormeaqui-production.up.railway.app/api";
 axios.defaults.withCredentials = true;
 
+function ScrollToTop() {
+	const { pathname } = useLocation();
+
+	useEffect(() => {
+		window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+	}, [pathname]);
+
+	return null;
+}
+
 function App() {
 	const location = useLocation();
 	const isComponentActive =
@@ -42,6 +53,7 @@ function App() {
 				<UserContextProvider>
 					<MessageProvider>
 						<div className="flex flex-col gap-5">
+							<ScrollToTop />
 							<Header active={isComponentActive} />
 							<Routes>
 								<Route path="/" element={<Home />} />

@@ -35,15 +35,16 @@ export const sendToS3 = async (filename, path, mimeType) => {
 export const uploadImage = () => {
     
     const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, `${__dirname}/tmp`)
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Math.round(Math.random() * 1E9);
-        const { extension } = getExtension(file.originalname);
-        cb(null,`${Date.now()}-${uniqueSuffix}.${extension}`)
-    }
+        destination: function (req, file, cb) {
+            cb(null, `${__dirname}/tmp`)
+        },
+        filename: function (req, file, cb) {
+            const uniqueSuffix = Math.round(Math.random() * 1E9);
+            const { extension } = getExtension(file.originalname);
+            cb(null, `${Date.now()}-${uniqueSuffix}.${extension}`)
+        }
     })
 
-    return multer({ storage })
+    // Retorna a instância do multer (não chame nenhum método aqui)
+    return multer({ storage });
 }

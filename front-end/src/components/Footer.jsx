@@ -6,6 +6,7 @@ import logoMail from "../assets/mail.png";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
+import "./Footer.css";
 
 const Footer = ({ active }) => {
 	const { user } = useUserContext();
@@ -19,9 +20,9 @@ const Footer = ({ active }) => {
 	];
 
 	return (
-		<footer className="bg-primary-500 relative w-full px-8 flex items-center gap-5 bottom-0 h-60">
-			<div className=" lg:max-w-7xl w-full relative justify-between px-8 flex items-center gap-5 bottom-0 h-60">
-				<div className="flex-col flex h-full justify-between py-8">
+		<footer className="footer bg-primary-500 relative w-full px-8 flex items-center gap-5 bottom-0 h-60">
+			<div className="footer__container max-w-7xl mx-auto w-full relative justify-between px-8 flex items-center gap-5 bottom-0 h-60">
+				<div className="logo__footer flex-col flex h-full justify-between py-8 ">
 					<img src={logoSecondary} className="w-70 mt-10" alt="" />
 					<span className="text-sm text-white/50">
 						@ 2025 DormeAqui. Sua plataforma de hospedagem
@@ -33,7 +34,7 @@ const Footer = ({ active }) => {
 							initial={{ opacity: 0, y: -20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.8, delay: 0.5 }}
-							className="flex items-center gap-5 text-white"
+							className="nav__footer flex items-center gap-5 text-white"
 						>
 							{/* Navegação */}
 							{navItems.map((item) => {
@@ -48,8 +49,8 @@ const Footer = ({ active }) => {
 											to={item.path}
 											className={`flex ${
 												isActive &&
-												"bg-white text-primary-500 border-primary-500 border-1"
-											} flex items-center gap-2  rounded-full px-4 justify-between py-2 transition-colors  `}
+												"active bg-white text-primary-500 border-primary-500 border-1"
+											} link__footer flex items-center gap-2  rounded-full px-4 justify-between py-2 transition-colors  `}
 										>
 											{item.label}
 										</Link>
@@ -62,7 +63,7 @@ const Footer = ({ active }) => {
 						initial={{ opacity: 0, y: -20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.8, delay: 0.5 }}
-						className="flex items-center  px-4 gap-5 text-white"
+						className="flex items-center redes__footer  px-4 gap-5 text-white"
 					>
 						<motion.button
 							whileHover={{ scale: 1.1 }}

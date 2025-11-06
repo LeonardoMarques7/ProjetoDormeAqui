@@ -5,6 +5,8 @@ import User from "./model.js";
 import { __dirname } from "../../ultis/dirname.js";
 import bcrypt from "bcrypt"
 import { JWTSign, JWTVerify } from "../../ultis/jwt.js";
+import { downloadImage } from "../../ultis/imageDownloader.js";
+import { sendToS3, uploadImage } from "../controller.js";
 
 const router = Router();
 const bcryptSalt = bcrypt.genSaltSync();
@@ -72,6 +74,29 @@ router.get("/:id", async (req, res) => {
         throw error;
     }
     
+});
+
+router.post("/upload", uploadImage().array("files", 1), async (req, res) => {
+    const { files } = req; // Com .array() usa req.files (plural)
+
+    // Verifica se há arquivo
+    if (!files || files.length === 0) {
+        return res.status(400).json({ error: "Nenhum arquivo enviado" });
+    }
+
+    // Pega apenas o primeiro arquivo
+    const file = files[0];
+    const { filename, path, mimetype } = file;
+
+    try {
+        const fileUrl = await sendToS3(filename, path, mimetype);
+        
+        // Retorna apenas a URL do arquivo
+        res.json([fileUrl]);
+    } catch (error) {
+        console.error("Erro ao subir para o S3:", error);
+        res.status(500).json({ error: "Erro ao fazer upload da imagem" });
+    }
 });
 
 router.put("/:id", async (req, res) => {
