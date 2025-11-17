@@ -1,4 +1,4 @@
-import { HousePlus, Trash2 } from "lucide-react";
+import { HousePlus, PlusCircle, Trash2 } from "lucide-react";
 import { Navigate, useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -72,6 +72,18 @@ const AccPlaces = () => {
 
 			<div className="h-full">
 				{action !== "new" ? <Places places={places} /> : <NewPlace />}
+			</div>
+			<div className="bg-primary-500 shadow-2xl shadow-gray-500 p-4 flex justify-center items-center fixed right-5 bottom-5 h-fit w-fit rounded-full">
+				<Link
+					to="/account/places/new"
+					className="group flex justify-center items-center transition-all duration-500 hover:gap-5"
+					title="Nova acomodação"
+				>
+					<HousePlus color="#fff" size={40} />
+					<p className="w-0 opacity-0 font-bold text-white uppercase overflow-hidden text-nowrap transition-all duration-500 group-hover:w-48 group-hover:opacity-100">
+						Nova acomodação
+					</p>
+				</Link>
 			</div>
 		</>
 	);

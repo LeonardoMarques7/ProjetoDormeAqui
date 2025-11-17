@@ -153,7 +153,10 @@ const AccProfile = () => {
 								{/* Avatar sobreposto */}
 								<div className="icon__perfil relative w-40 h-40 rounded-full border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
 									{user.photo ? (
-										<img src={user.photo}></img>
+										<img
+											src={user.photo}
+											className="w-full h-full object-cover rounded-full"
+										></img>
 									) : (
 										user.name.charAt(0)
 									)}

@@ -4,15 +4,20 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { useMessage } from "./contexts/MessageContext";
 import { MilkdownProvider } from "@milkdown/react";
 import { nord } from "@milkdown/theme-nord";
+import { useUserContext } from "../components/contexts/UserContext";
 import verify from "../assets/verify.png";
 
 import "./EditProfile.css";
 
 import {
+	ArrowBigLeft,
+	ArrowLeft,
+	ArrowLeftSquare,
 	ArrowUpFromLine,
 	CalendarArrowDown,
 	CalendarArrowUp,
 	Camera,
+	ChevronLeft,
 	DollarSign,
 	Home,
 	ImagePlus,
@@ -28,13 +33,14 @@ import {
 
 const EditProfile = ({ user }) => {
 	const id = user._id;
+	const { updateUser } = useUserContext();
 	const { showMessage } = useMessage();
 	const [name, setName] = useState(user.name);
 	const [email, setEmail] = useState(user.email);
 	const [phone, setPhone] = useState(user.phone);
 	const [city, setCity] = useState(user.city);
 	const [bio, setBio] = useState(user.bio);
-	const [photo, setPhoto] = useState("");
+	const [photo, setPhoto] = useState(user.photo);
 	const [redirect, setRedirect] = useState(false);
 
 	useEffect(() => {
@@ -59,7 +65,6 @@ const EditProfile = ({ user }) => {
 
 	const uploadPhoto = async (e) => {
 		const { files } = e.target;
-
 		const file = files[0];
 
 		if (!file) return;
@@ -68,14 +73,13 @@ const EditProfile = ({ user }) => {
 		formData.append("files", file);
 
 		try {
-			const { data: urlArray } = await axios.post("/users/upload", formData, {
-				headers: { "Content-Type": "multipart/form-data" },
-			});
+			const { data: photoUrl } = await axios.post("/users/upload", formData);
 
-			console.log("✅ Sucesso:", urlArray);
+			console.log("✅ Sucesso:", photoUrl);
 
-			// Apenas salva a URL da foto
-			setPhoto(urlArray[0] || urlArray);
+			// Agora photoUrl já é a string da URL
+			setPhoto(photoUrl);
+			showMessage("Foto atualizada com sucesso!", "success");
 		} catch (error) {
 			showMessage("Erro ao enviar imagem!", "error");
 			console.error("❌ Erro:", error);
@@ -96,6 +100,7 @@ const EditProfile = ({ user }) => {
 						city,
 						bio,
 					});
+					await updateUser();
 					showMessage(
 						"Suas informações foram atualizadas com sucesso!",
 						"success"
@@ -128,30 +133,29 @@ const EditProfile = ({ user }) => {
 				className="container__form pb-30 flex grow flex-col gap-4 w-full max-w-2xl"
 			>
 				<div className="flex flex-col items-start justify-center gap-5">
-					<div className="icon__perfil relative w-40 h-40 top-0 rounded-2xl border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
+					<div className="icon__perfil relative w-40 h-40 top-0 rounded-full border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
 						{photo ? (
 							<img
 								src={photo}
 								alt="Foto de perfil"
-								className="w-full h-full object-cover rounded-xl"
+								className="w-full h-full object-cover rounded-full"
 							/>
 						) : (
 							name[0]
 						)}
 					</div>
-					<label
-						htmlFor="file"
-						className="aspect-square min-w-40 flex gap-2 justify-center items-center rounded-xl border-dashed border-1 border-gray-300 cursor-pointer hover:border-solid ease-in-out duration-300 hover:border-primary-300"
-					>
-						<input
-							type="file"
-							id="file"
-							className="hidden"
-							onChange={uploadPhoto}
-							accept="image/*"
-						/>
-						<ArrowUpFromLine className="opacity-80" />
-						Upload
+					<label htmlFor="file" className="">
+						<div className="border border-dashed  hover:bg-primary-100 hover:border-solid cursor-pointer  gap-2 border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400 group__input relative flex justify-center items-center transition-all">
+							<Camera className="absolute left-4 text-gray-400 size-6" />
+							<input
+								type="file"
+								id="file"
+								className="hidden"
+								onChange={uploadPhoto}
+								accept="image/*"
+							/>
+							Enviar foto
+						</div>
 					</label>
 				</div>
 				<div className="label__input text-start flex flex-col gap-2 w-full">
@@ -264,8 +268,12 @@ const EditProfile = ({ user }) => {
 				<button className="flex w-fit gap-4 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
 					Salvar alterações
 				</button>
-				<Link to="../account/profile" onClick={handlePageChange}>
-					Voltar
+				<Link
+					to="../account/profile"
+					className="flex items-center gap-5 group hover:text-primary-500 transition-all"
+					onClick={handlePageChange}
+				>
+					<ArrowLeft size={18} className="" /> Voltar
 				</Link>
 			</form>
 		</div>

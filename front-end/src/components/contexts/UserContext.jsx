@@ -20,8 +20,18 @@ export const UserContextProvider = ({ children }) => {
 		axiosGet();
 	}, []);
 
+	// Função para atualizar o usuário
+	const updateUser = async () => {
+		try {
+			const { data } = await axios.get("/users/profile");
+			setUser(data);
+		} catch (error) {
+			console.error("Erro ao atualizar usuário:", error);
+		}
+	};
+
 	return (
-		<UserContext.Provider value={{ user, setUser, ready }}>
+		<UserContext.Provider value={{ user, setUser, ready, updateUser }}>
 			{children}
 		</UserContext.Provider>
 	);

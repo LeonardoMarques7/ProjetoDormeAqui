@@ -177,7 +177,7 @@ const NewPlace = () => {
 	};
 
 	return (
-		<div className="relative h-svh w-full ">
+		<div className="relative  w-full ">
 			<div className="container__prev__form flex p-10 bg-white/80  rounded-2xl backdrop-blur-xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
 				<form
 					onSubmit={handleSubmit}

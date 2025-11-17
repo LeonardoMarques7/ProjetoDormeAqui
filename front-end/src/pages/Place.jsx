@@ -340,7 +340,7 @@ const Place = () => {
 							<BookingAlert />
 						</>
 					) : (
-						<form className="form__place order-1 md:order-none justify-self-end border-1 self-start sticky top-4 flex flex-col  gap-4 border-gray-200 rounded-2xl p-10">
+						<form className="form__place order-1 md:order-none justify-self-end border-1 self-start sticky top-20 flex flex-col  gap-4 border-gray-200 rounded-2xl p-10">
 							<p className="sm:text-2xl text-xl font-medium text-center sm:text-start text-gray-600">
 								Preço:{" "}
 								<span className="font-bold text-primary-500">
@@ -367,7 +367,7 @@ const Place = () => {
 													{checkin ? (
 														format(checkin, "dd/MM/yyyy")
 													) : (
-														<span>Selecione data Check-in</span>
+														<span>Selecione data de Check-in</span>
 													)}
 												</Button>
 											</PopoverTrigger>
@@ -398,7 +398,7 @@ const Place = () => {
 													{checkout ? (
 														format(checkout, "dd/MM/yyyy")
 													) : (
-														<span>Selecione data Check-out</span>
+														<span>Selecione data de Check-out</span>
 													)}
 												</Button>
 											</PopoverTrigger>

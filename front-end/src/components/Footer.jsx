@@ -20,7 +20,7 @@ const Footer = ({ active }) => {
 	];
 
 	return (
-		<footer className="footer bg-primary-500 relative w-full px-8 flex items-center gap-5 bottom-0 h-60">
+		<footer className="footer bg-primary-500 w-full px-8 flex items-center gap-5 bottom-0 h-60">
 			<div className="footer__container max-w-7xl mx-auto w-full relative justify-between px-8 flex items-center gap-5 bottom-0 h-60">
 				<div className="logo__footer flex-col flex h-full justify-between py-8 ">
 					<img src={logoSecondary} className="w-70 mt-10" alt="" />

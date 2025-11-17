@@ -76,25 +76,41 @@ router.get("/:id", async (req, res) => {
     
 });
 
-router.post("/upload", uploadImage().array("files", 1), async (req, res) => {
-    const { files } = req; // Com .array() usa req.files (plural)
+router.post("/upload", uploadImage().single("files"), async (req, res) => {
+    connectDb();
+    
+    const file = req.file;
 
     // Verifica se há arquivo
-    if (!files || files.length === 0) {
+    if (!file) {
         return res.status(400).json({ error: "Nenhum arquivo enviado" });
     }
 
-    // Pega apenas o primeiro arquivo
-    const file = files[0];
     const { filename, path, mimetype } = file;
 
     try {
+        // 1. Upload para o S3
         const fileUrl = await sendToS3(filename, path, mimetype);
         
-        // Retorna apenas a URL do arquivo
-        res.json([fileUrl]);
+        // 2. Obter o ID do usuário do token JWT
+        const userInfo = await JWTVerify(req);
+        
+        if (!userInfo || !userInfo._id) {
+            return res.status(401).json({ error: "Usuário não autenticado" });
+        }
+        
+        // 3. Salvar no banco de dados (Mongoose)
+        await User.findByIdAndUpdate(
+            userInfo._id,
+            { photo: fileUrl },
+            { new: true } // Retorna o documento atualizado
+        );
+        
+        // 4. Retorna apenas a URL
+        res.json(fileUrl);
+        
     } catch (error) {
-        console.error("Erro ao subir para o S3:", error);
+        console.error("Erro ao fazer upload:", error);
         res.status(500).json({ error: "Erro ao fazer upload da imagem" });
     }
 });
