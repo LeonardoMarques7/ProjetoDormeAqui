@@ -41,6 +41,7 @@ import { Toaster } from "sonner";
 import { toast } from "sonner";
 import BookingAlert from "../components/BookingAlert";
 import { useMoblieContext } from "../components/contexts/MoblieContext";
+import MarkdownIt from "markdown-it";
 
 const Place = () => {
 	const { moblie } = useMoblieContext();
@@ -174,6 +175,12 @@ const Place = () => {
 		setGuests(1);
 	}
 
+	const md = new MarkdownIt({
+		html: false,
+		breaks: true,
+		linkify: true,
+	});
+
 	return (
 		<>
 			<div
@@ -290,7 +297,11 @@ const Place = () => {
 					<div className="order-2 md:order-none px-4 description sm:px-0">
 						<div>
 							<p className="sm:text-2xl text-large font-bold">Descrição</p>
-							<p>{place.description}</p>
+							<p
+								dangerouslySetInnerHTML={{
+									__html: md.render(place.description),
+								}}
+							></p>
 						</div>
 						<div className="my-4">
 							<p className="sm:text-2xl text-large font-bold">Diferenciais</p>

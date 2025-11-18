@@ -16,6 +16,8 @@ import ProgressSpiner from "@/components/ui/ProgressSpinner";
 export default function Loading({ category }) {
 	const currentPlaces = [1, 2, 3];
 
+	window.scrollTo({ top: 0, behavior: "smooth" });
+
 	return (
 		<>
 			{category == "places" && (

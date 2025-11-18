@@ -25,14 +25,14 @@ const AccPlaces = () => {
 			setTimeout(() => {
 				setPlaces(data);
 				setReady(true);
-			}, 2000);
+			}, 4500);
 		};
 
 		axiosGet();
 	}, [action]);
 
 	if (!ready) {
-		return <Loading category="places" />;
+		return <Loading category="bookings" />;
 	}
 
 	if (redirect) return <Navigate to="/account/places" />;

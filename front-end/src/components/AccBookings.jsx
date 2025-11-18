@@ -16,7 +16,7 @@ const AccBookings = () => {
 			setTimeout(() => {
 				setBookings(data);
 				setReady(true);
-			}, 2000000);
+			}, 4500);
 		};
 
 		axiosGet();
@@ -33,7 +33,7 @@ const AccBookings = () => {
 					Mingas Reservas
 				</h2>
 			</div>
-			<div className="flex w-full mx-auto max-w-full max-h-full lg:max-w-7xl h-full flex-col gap-8 relative justify-center items-center">
+			<div className="flex w-full mb-10 mx-auto max-w-full max-h-full lg:max-w-7xl h-full flex-col gap-8 relative justify-center items-center">
 				{bookings.length == 0 ? (
 					<h2 className="text-3xl font-bold text-white/50">
 						Seu diário de viagens está vazio.

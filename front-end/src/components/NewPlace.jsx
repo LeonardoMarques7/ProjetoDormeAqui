@@ -7,6 +7,8 @@ import { useMessage } from "./contexts/MessageContext";
 
 import { Skeleton } from "@/components/ui/skeleton";
 
+import MarkdownIt from "markdown-it";
+
 import Perks from "./Perks";
 
 import lgThumbnail from "lightgallery/plugins/thumbnail";
@@ -37,6 +39,7 @@ import {
 } from "lucide-react";
 import PhotosUploader from "./PhotosUploader";
 import { useMoblieContext } from "./contexts/MoblieContext";
+import MarkdownEditor from "./ui/MarkdownEditor";
 
 const NewPlace = () => {
 	const { user } = useUserContext();
@@ -176,6 +179,12 @@ const NewPlace = () => {
 		}
 	};
 
+	const md = new MarkdownIt({
+		html: false,
+		breaks: true,
+		linkify: true,
+	});
+
 	return (
 		<div className="relative w-full ">
 			<div className="container__prev__form flex p-10 bg-white/80  rounded-2xl backdrop-blur-xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
@@ -238,16 +247,9 @@ const NewPlace = () => {
 							Descrição
 						</label>
 						<div className="group__input relative flex justify-center items-center">
-							<NotepadTextDashed className="absolute top-4.5 left-4 text-gray-400 size-6" />
-							<textarea
-								id="description"
-								maxLength={3000}
-								placeholder="Digite a descrição do seu anúncio"
-								className="border border-gray-300 px-14 min-h-50 py-4 rounded-2xl min-w-full outline-primary-400 resize-none"
-								value={description}
-								onChange={(e) => {
-									setDescription(e.target.value);
-								}}
+							<MarkdownEditor
+								initialValue={description ? description : "Llalall"}
+								onChange={(md) => setDescription(md)}
 							/>
 						</div>
 					</div>
@@ -465,9 +467,12 @@ const NewPlace = () => {
 							counter={true}
 						/>
 						<span className="text-start">
-							<h2 className="text-xl font-bold">Descrição</h2>
+							<h2 className="text-xl font-bold text-gray-500">Descrição</h2>
 							{description ? (
-								<>{description}</>
+								<div
+									className="prose prose-lg  overflow-hidden w-fit"
+									dangerouslySetInnerHTML={{ __html: md.render(description) }}
+								/>
 							) : (
 								<>
 									<Skeleton className="h-10 w-2/3 mb-5"></Skeleton>
@@ -476,7 +481,9 @@ const NewPlace = () => {
 							)}
 						</span>
 						<span className="text-start flex flex-col">
-							<h2 className="text-xl font-bold">Horários e Restrições</h2>
+							<h2 className="text-xl font-bold text-gray-500">
+								Horários e Restrições
+							</h2>
 							<span className="flex gap-2 my-2">
 								<span className="flex gap-2 items-center">
 									<CalendarArrowUp className="text-primary-500" size={20} />
@@ -493,7 +500,7 @@ const NewPlace = () => {
 							</span>
 						</span>
 						<span className="text-start flex flex-col">
-							<h2 className="text-xl font-bold">Diferenciais</h2>
+							<h2 className="text-xl font-bold text-gray-500">Diferenciais</h2>
 							{perks.length > 0 ? (
 								perks.map((perk, index) => (
 									<span className="flex gap-2 capitalize">{perk}</span>
@@ -507,7 +514,9 @@ const NewPlace = () => {
 							)}
 						</span>
 						<span className="text-start">
-							<h2 className="text-xl font-bold">Informações Extras</h2>
+							<h2 className="text-xl font-bold text-gray-500">
+								Informações Extras
+							</h2>
 							{extras ? (
 								<>{extras}</>
 							) : (
@@ -518,7 +527,7 @@ const NewPlace = () => {
 							)}
 						</span>
 						<span className="text-start flex flex-col">
-							<h2 className="text-xl font-bold">Preço</h2>
+							<h2 className="text-xl font-bold text-gray-500">Preço</h2>
 							<span className=" w-fit mt-2 rounded-xl text-xl font-medium">
 								<span className="text-primary-500 font-bold text-2xl">
 									{price ? <>R$ {price},00</> : "R$ 0,00"}

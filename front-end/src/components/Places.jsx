@@ -11,6 +11,8 @@ import {
 import ScrollReveal from "scrollreveal";
 import { motion } from "framer-motion";
 
+import MarkdownIt from "markdown-it";
+
 const Places = ({ places }) => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 4;
@@ -39,6 +41,12 @@ const Places = ({ places }) => {
 		});
 	}, []);
 
+	const md = new MarkdownIt({
+		html: false,
+		breaks: true,
+		linkify: true,
+	});
+
 	return (
 		<div className="container__places mx-auto max-w-full max-h-full h-full overflow-x-clip mt-[5svh] flex flex-col gap-50 p-8 lg:max-w-7xl">
 			{currentPlaces.map((place, id) => (
@@ -59,9 +67,10 @@ const Places = ({ places }) => {
 							<MapPin size={18} /> {place.city}
 						</div>
 						<h2 className="text-4xl font-bold">{place.title}</h2>
-						<p className="text-gray-500 text-start overflow-hidden line-clamp-4">
-							{place.description}
-						</p>
+						<p
+							dangerouslySetInnerHTML={{ __html: md.render(place.description) }}
+							className="text-gray-500 text-start overflow-hidden line-clamp-4"
+						></p>
 						<div className="flex items-center gap-4">
 							<div className="flex gap-2 items-center text-gray-500">
 								<Users size={18} /> {place.guests}

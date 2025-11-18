@@ -174,7 +174,7 @@ const Home = () => {
 			{city ? (
 				placesSearch.length > 0 ? (
 					// Caso 3: pesquisou e encontrou
-					<div className="mx-auto font-medium max-w-full gap-2 w-full flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
+					<div className="mx-auto mb-5 font-medium max-w-full gap-2 w-full flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
 						<span>
 							Buscando por <strong className="text-primary-500">{city}</strong>{" "}
 							e foi encontrado{" "}
@@ -208,21 +208,21 @@ const Home = () => {
 								<Eraser /> Limpar pesquisa
 							</button>
 						</div>
-						<div className="mx-auto font-medium max-w-full gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start ">
+						<div className="mx-auto mb-5	 font-medium max-w-full gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start ">
 							Outras acomodações
 						</div>
 					</>
 				)
 			) : (
 				// Caso 1: sem pesquisa
-				<h1 className="mx-auto font-medium max-w-full w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
+				<h1 className="mx-auto font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
 					Acomodações disponíveis
 				</h1>
 			)}
 
 			{/* GRID DE RESULTADOS */}
 			{city && placesSearch.length > 0 && (
-				<div className="grid max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 py-4 lg:max-w-7xl">
+				<div className="grid mb-10 max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 py-4 lg:max-w-7xl">
 					<>
 						{placesSearch.map((place) => (
 							<Item {...{ place }} key={place._id} />
@@ -234,7 +234,7 @@ const Home = () => {
 
 			{/* Se não tiver resultados OU não tiver pesquisa → mostrar acomodações padrão */}
 			{(!city || placesSearch.length === 0) && (
-				<div className="relative">
+				<div className="relative mb-10">
 					<div className="grid max-w-full mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
 						{places.map((place) => (
 							<Item {...{ place }} key={place._id} />

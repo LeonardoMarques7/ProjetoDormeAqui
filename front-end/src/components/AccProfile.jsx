@@ -25,7 +25,7 @@ import { LoadingOverlay } from "@mantine/core";
 import Loading from "./Loading";
 
 const AccProfile = () => {
-	const { user, setUser, ready } = useUserContext();
+	const { user, setUser } = useUserContext();
 	const [id, setId] = useState(user ? user.id || user._id : null);
 	const { action } = useParams();
 	const [userID, setUserId] = useState([]);
@@ -36,6 +36,7 @@ const AccProfile = () => {
 	const [count, setCount] = useState(0);
 	const [isPlaying, setIsPlaying] = useState(true);
 	const [places, setPlaces] = useState([]);
+	const [ready, setReady] = useState();
 	const [onDelete, setOnDelete] = useState(false);
 	const plugin = useRef(
 		Autoplay({
@@ -49,7 +50,10 @@ const AccProfile = () => {
 		if (user?._id) {
 			const axiosGet = async () => {
 				const { data } = await axios.get(`/users/${user._id}`);
-				setUser(data);
+				setTimeout(() => {
+					setReady(true);
+					setUser(data);
+				}, 4500);
 			};
 			axiosGet();
 		}
@@ -115,7 +119,7 @@ const AccProfile = () => {
 	if (redirect) return <Navigate to="/" />;
 
 	if (!ready) {
-		return <Loading />;
+		return <Loading category="bookings" />;
 	}
 
 	if (!user) {
@@ -147,7 +151,7 @@ const AccProfile = () => {
 
 					{/* Container do conteúdo */}
 					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 relative -mt-28">
-						<div className="flex flex-col gap-5 relative">
+						<div className="flex flex-col gap-5 relative mb-10">
 							{/* Header do perfil (avatar + botão) */}
 							<div className="avatar__btn flex items-center justify-between relative">
 								{/* Avatar sobreposto */}
