@@ -10,6 +10,8 @@
     "buffer-equal-constant-time": "^1.0.1",
     "call-bind-apply-helpers": "^1.0.2",
     "call-bound": "^1.0.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "combined-stream": "^1.0.8",
     "delayed-stream": "^1.0.0",
     "dunder-proto": "^1.0.1",
@@ -38,6 +40,7 @@
     "lodash.isplainobject": "^4.0.6",
     "lodash.isstring": "^4.0.1",
     "lodash.once": "^4.1.1",
+    "lucide-react": "^0.554.0",
     "math-intrinsics": "^1.1.0",
     "mime-db": "^1.54.0",
     "mime-types": "^3.0.1",
@@ -54,9 +57,10 @@
     "side-channel-list": "^1.0.0",
     "side-channel-map": "^1.0.1",
     "side-channel-weakmap": "^1.0.2",
+    "tailwind-merge": "^3.4.0",
+    "tw-animate-css": "^1.4.0",
     "url": "^0.11.4"
   },
-  "devDependencies": {},
   "scripts": {
     "start": "npm run start --prefix back-end",
     "build": "npm install --prefix back-end && npm install --prefix front-end && npm run build --prefix front-end"

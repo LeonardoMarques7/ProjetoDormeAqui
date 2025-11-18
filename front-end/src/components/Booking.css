@@ -41,14 +41,7 @@
         text-align: center;
         margin: 5px auto;
     }
-
-    h5, p {
-        font-size: 14px;
-    }
-
-    h2 {
-        font-size: 18px;
-    }
+    
 
     .infos__ticket {
         font-size: 15px;

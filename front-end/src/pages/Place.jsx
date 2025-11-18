@@ -286,7 +286,7 @@ const Place = () => {
 				)}
 
 				{/* Conteúdo da acomodação */}
-				<div className="grid grid-cols-1 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-20 md:grid-cols-2">
 					<div className="order-2 md:order-none px-4 description sm:px-0">
 						<div>
 							<p className="sm:text-2xl text-large font-bold">Descrição</p>
@@ -341,7 +341,8 @@ const Place = () => {
 						</>
 					) : (
 						<form className="form__place order-1 md:order-none justify-self-end border-1 self-start sticky top-20 flex flex-col  gap-4 border-gray-200 rounded-2xl p-10">
-							<p className="sm:text-2xl text-xl font-medium text-center sm:text-start text-gray-600">
+							<h2 className="font-bold">Faça sua reserva</h2>
+							<p className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
 								Preço:{" "}
 								<span className="font-bold text-primary-500">
 									R$ {place.price}

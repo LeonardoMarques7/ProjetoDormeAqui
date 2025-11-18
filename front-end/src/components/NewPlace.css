@@ -2,4 +2,18 @@
     .container__prev__form {
         flex-direction: column;
     }
+
+    .group__link {
+        flex-direction: column !important;
+    }
+
+    .group__link .camera__icon {
+        top: 16px;
+    }
+
+    .group__link button {
+        margin-top: .5rem;
+        position: static;
+        width: 100%;
+    }
 }

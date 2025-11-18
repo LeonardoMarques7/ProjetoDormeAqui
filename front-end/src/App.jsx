@@ -52,7 +52,7 @@ function App() {
 			<MoblieContextProvider>
 				<UserContextProvider>
 					<MessageProvider>
-						<div className="flex flex-col gap-5">
+						<div className="flex flex-col ">
 							<ScrollToTop />
 							<Header active={isComponentActive} />
 							<Routes>

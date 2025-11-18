@@ -28,8 +28,8 @@ const Footer = ({ active }) => {
 						@ 2025 DormeAqui. Sua plataforma de hospedagem
 					</span>
 				</div>
-				<div className="flex flex-col gap-5">
-					<div className="flex-col flex h-full justify-center">
+				<div className="flex flex-col gap-5 ">
+					<div className="flex-col flex h-full footer__links justify-center">
 						<motion.nav
 							initial={{ opacity: 0, y: -20 }}
 							animate={{ opacity: 1, y: 0 }}

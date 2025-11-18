@@ -177,7 +177,7 @@ const NewPlace = () => {
 	};
 
 	return (
-		<div className="relative  w-full ">
+		<div className="relative w-full ">
 			<div className="container__prev__form flex p-10 bg-white/80  rounded-2xl backdrop-blur-xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
 				<form
 					onSubmit={handleSubmit}
@@ -190,13 +190,13 @@ const NewPlace = () => {
 						>
 							Título
 						</label>
-						<div className="group__input relative flex justify-center items-center">
+						<div className="group__input w-full relative flex justify-center items-center">
 							<Home className="absolute left-4 text-gray-400 size-6" />
 							<input
 								id="title"
 								type="text"
 								placeholder="Digite o título do seu anúncio"
-								className="border border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400"
+								className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
 								value={title}
 								onChange={(e) => {
 									setTitle(e.target.value);
@@ -217,7 +217,7 @@ const NewPlace = () => {
 								id="city"
 								type="text"
 								placeholder="Digite o cidade e país do seu anúncio"
-								className="border border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400"
+								className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
 								value={city}
 								onChange={(e) => {
 									setCity(e.target.value);
@@ -243,7 +243,7 @@ const NewPlace = () => {
 								id="description"
 								maxLength={3000}
 								placeholder="Digite a descrição do seu anúncio"
-								className="border border-gray-300 px-14 min-h-50 py-4 rounded-2xl w-full outline-primary-400 resize-none"
+								className="border border-gray-300 px-14 min-h-50 py-4 rounded-2xl min-w-full outline-primary-400 resize-none"
 								value={description}
 								onChange={(e) => {
 									setDescription(e.target.value);
@@ -277,7 +277,7 @@ const NewPlace = () => {
 								id="extras"
 								maxLength={3000}
 								placeholder="Digite a informação extras do seu anúncio"
-								className="border border-gray-300 px-14 min-h-50 py-4 rounded-2xl w-full outline-primary-400 resize-none"
+								className="border border-gray-300 px-14 min-h-50 py-4 rounded-2xl min-w-full outline-primary-400 resize-none"
 								value={extras}
 								onChange={(e) => {
 									setExtras(e.target.value);
@@ -302,7 +302,7 @@ const NewPlace = () => {
 									id="price"
 									type="number"
 									placeholder="R$ 250,00"
-									className="border border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400"
+									className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
 									value={price}
 									onChange={(e) => {
 										setPrice(e.target.value);
@@ -323,7 +323,7 @@ const NewPlace = () => {
 									id="checkin"
 									type="text"
 									placeholder="16:00"
-									className="border border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400"
+									className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
 									value={checkin}
 									onChange={(e) => {
 										setCheckin(e.target.value);
@@ -344,7 +344,7 @@ const NewPlace = () => {
 									id="checkout"
 									type="text"
 									placeholder="19:00"
-									className="border border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400"
+									className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
 									value={checkout}
 									onChange={(e) => {
 										setCheckout(e.target.value);
@@ -365,7 +365,7 @@ const NewPlace = () => {
 									id="guests"
 									type="number"
 									placeholder="4"
-									className="border border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400"
+									className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
 									value={guests}
 									onChange={(e) => {
 										setGuests(e.target.value);
@@ -381,7 +381,7 @@ const NewPlace = () => {
 				{/* Preview */}
 				<div className="mockup-browser h-fit w-full ">
 					<div className="mockup-browser-toolbar pt-4 gap-4">
-						<div className=" rounded-2xl w-full text-start px-5 flex py-2.5 items-center gap-5 text-gray-500 border-1">
+						<div className=" rounded-2xl min-w-full text-start px-5 flex py-2.5 items-center gap-5 text-gray-500 border-1">
 							<Search size={20} />
 							https://preview.com
 						</div>

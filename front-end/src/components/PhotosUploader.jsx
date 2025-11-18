@@ -65,13 +65,13 @@ const PhotosUploader = ({
 			>
 				Fotos
 			</label>
-			<div className="group__input relative flex justify-center items-center">
-				<Camera className="absolute left-4 text-gray-400 size-6" />
+			<div className="group__input   relative flex justify-center items-center group__link">
+				<Camera className="camera__icon absolute left-4 text-gray-400 size-6" />
 				<input
 					type="text"
 					id="photoLink"
 					placeholder="Adicione a(s) foto(s)"
-					className="border border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400"
+					className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
 					value={photolink}
 					onChange={(e) => setPhotoLink(e.target.value)}
 				/>

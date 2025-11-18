@@ -10,6 +10,10 @@
         justify-content: center;
     }
 
+    .footer__links {
+        display: none;
+    }
+
     .footer__container {
         flex-direction: column;
         justify-content: center;
