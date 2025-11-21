@@ -4,26 +4,28 @@ import BookingAll from "./BookingAll";
 import "./Booking.css";
 import { useParams } from "react-router-dom";
 import Loading from "./Loading";
+import { useUserContext } from "./contexts/UserContext";
 
 const AccBookings = () => {
 	const [bookings, setBookings] = useState([]);
 	const { action } = useParams();
-	const [ready, setReady] = useState();
+	const [readyBookings, setReadyBookings] = useState(false);
+	const { user, ready: userReady } = useUserContext();
 
 	useEffect(() => {
 		const axiosGet = async () => {
 			const { data } = await axios.get("/bookings/owner");
 			setTimeout(() => {
 				setBookings(data);
-				setReady(true);
+				setReadyBookings(true);
 			}, 4500);
 		};
 
 		axiosGet();
 	}, []);
 
-	if (!ready) {
-		return <Loading category="bookings" />;
+	if (!readyBookings) {
+		return <Loading />;
 	}
 
 	return (

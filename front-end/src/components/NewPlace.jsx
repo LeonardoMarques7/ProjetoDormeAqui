@@ -185,6 +185,12 @@ const NewPlace = () => {
 		linkify: true,
 	});
 
+	const md2 = new MarkdownIt({
+		html: false,
+		breaks: true,
+		linkify: true,
+	});
+
 	return (
 		<div className="relative w-full ">
 			<div className="container__prev__form flex p-10 bg-white/80  rounded-2xl backdrop-blur-xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
@@ -246,11 +252,8 @@ const NewPlace = () => {
 						>
 							Descrição
 						</label>
-						<div className="group__input relative flex justify-center items-center">
-							<MarkdownEditor
-								initialValue={description ? description : "Llalall"}
-								onChange={(md) => setDescription(md)}
-							/>
+						<div classsame="group__input relative flex justify-center items-center">
+							<MarkdownEditor onChange={(md2) => setDescription(md2)} />
 						</div>
 					</div>
 					<div className="label__input text-start flex flex-col gap-2 w-full">
@@ -274,17 +277,7 @@ const NewPlace = () => {
 							Informações Extras
 						</label>
 						<div className="group__input relative flex justify-center items-center">
-							<NotepadTextDashed className="absolute top-4.5 left-4 text-gray-400 size-6" />
-							<textarea
-								id="extras"
-								maxLength={3000}
-								placeholder="Digite a informação extras do seu anúncio"
-								className="border border-gray-300 px-14 min-h-50 py-4 rounded-2xl min-w-full outline-primary-400 resize-none"
-								value={extras}
-								onChange={(e) => {
-									setExtras(e.target.value);
-								}}
-							/>
+							<MarkdownEditor onChange={(md2) => setExtras(md2)} />
 						</div>
 					</div>
 					<h2 className="text-2xl text-start ml-2 font-medium text-gray-600">
@@ -470,7 +463,7 @@ const NewPlace = () => {
 							<h2 className="text-xl font-bold text-gray-500">Descrição</h2>
 							{description ? (
 								<div
-									className="prose prose-lg  overflow-hidden w-fit"
+									className="prose prose-lg prose-p:text-gray-700 prose-p:leading-relaxed prose-p:my-4  overflow-hidden w-fit"
 									dangerouslySetInnerHTML={{ __html: md.render(description) }}
 								/>
 							) : (
@@ -518,7 +511,9 @@ const NewPlace = () => {
 								Informações Extras
 							</h2>
 							{extras ? (
-								<>{extras}</>
+								<div
+									dangerouslySetInnerHTML={{ __html: md.render(extras) }}
+								></div>
 							) : (
 								<>
 									<Skeleton className="h-5 w-60 mb-5"></Skeleton>

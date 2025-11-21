@@ -3,8 +3,8 @@ import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
 import Link from "@tiptap/extension-link";
 import { useState, useEffect } from "react";
-import MarkdownIt from "markdown-it";
 import "./Markdown.css";
+import { Node } from "@tiptap/core";
 import {
 	Bold,
 	Italic,
@@ -21,15 +21,29 @@ import {
 	Redo2,
 } from "lucide-react";
 
-const md = new MarkdownIt({
-	html: false,
-	breaks: true,
-	linkify: true,
-});
-
 export default function MarkdownEditor({ onChange, initialValue }) {
 	const [markdown, setMarkdown] = useState("");
 
+	const CustomParagraph = Node.create({
+		name: "paragraph",
+		priority: 1000,
+
+		parseHTML() {
+			return [{ tag: "p" }];
+		},
+
+		renderHTML({ HTMLAttributes }) {
+			return ["p", HTMLAttributes, 0];
+		},
+
+		addKeyboardShortcuts() {
+			return {
+				Enter: () => {
+					return this.editor.commands.insertContent("<p><br></p>");
+				},
+			};
+		},
+	});
 	const editor = useEditor({
 		extensions: [
 			StarterKit.configure({
@@ -41,9 +55,17 @@ export default function MarkdownEditor({ onChange, initialValue }) {
 				breaks: true,
 				transformPastedText: true,
 				transformCopiedText: true,
+				tightLists: false,
+				tightListItems: false,
+				bulletListMarker: "-",
 			}),
 		],
-		content: initialValue, // <—— conteúdo inicial aqui!
+		content: initialValue,
+		editorProps: {
+			attributes: {
+				class: "focus:outline-none",
+			},
+		},
 		onUpdate: ({ editor }) => {
 			try {
 				const mdText = editor.storage.markdown.getMarkdown();
@@ -54,7 +76,6 @@ export default function MarkdownEditor({ onChange, initialValue }) {
 			}
 		},
 	});
-
 	useEffect(() => {
 		if (editor) {
 			const description = editor.storage.markdown.getMarkdown();
@@ -83,6 +104,22 @@ export default function MarkdownEditor({ onChange, initialValue }) {
 			{children}
 		</button>
 	);
+
+	useEffect(() => {
+		if (editor) {
+			const editorElement = document.querySelector(".ProseMirror");
+			if (editorElement) {
+				editorElement.addEventListener("keydown", (e) => {
+					if (e.key === " " || e.code === "Space") {
+						e.stopPropagation();
+						// Força inserir espaço manualmente
+						editor.commands.insertContent(" ");
+						e.preventDefault();
+					}
+				});
+			}
+		}
+	}, [editor]);
 
 	return (
 		<div className="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -182,17 +219,6 @@ export default function MarkdownEditor({ onChange, initialValue }) {
 						title="Inserir Link"
 					>
 						<Link2 size={18} />
-					</ToolButton>
-
-					<ToolButton
-						onClick={(e) => {
-							e.preventDefault();
-							editor.chain().focus().toggleCode().run();
-						}}
-						active={editor.isActive("code")}
-						title="Código Inline"
-					>
-						<Code2 size={18} />
 					</ToolButton>
 
 					<ToolButton

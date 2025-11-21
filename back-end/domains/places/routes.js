@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { connectDb } from "../../config/db.js";
 import Place from "./model.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 import { downloadImage } from "../../ultis/imageDownloader.js";
@@ -9,14 +8,12 @@ import { sendToS3, uploadImage } from "../controller.js";
 const router = Router();
 
 router.get("/", async (req, res) => {
-    connectDb();
-
     const { city } = req.query;
 
     try {
         let query = {};
         if (city) {
-            query.city = { $regex: city, $options: "i" }; 
+            query.city = { $regex: city, $options: "i" };
         }
 
         const placeDocs = await Place.find(query);
@@ -28,7 +25,6 @@ router.get("/", async (req, res) => {
 
 
 router.get("/owner", async (req, res) => {
-    connectDb();
     try {
         const { _id } = await JWTVerify(req);
 
@@ -44,15 +40,13 @@ router.get("/owner", async (req, res) => {
         res.status(500).json("Deu erro ao verificar o usuário.",error);
         throw error;
     }
-    
+
 });
 
 
 router.get("/:id", async (req, res) => {
-    connectDb();
-
     const { id: _id } = req.params;
-    
+
     try {
         const placeDoc = await Place.findOne({_id});
 
@@ -61,8 +55,8 @@ router.get("/:id", async (req, res) => {
         res.status(500).json("Deu erro ao encontrar a acomodação.",error);
         throw error;
     }
-    
-    
+
+
 });
 
 router.put("/:id", async (req, res) => {
@@ -95,8 +89,6 @@ router.put("/:id", async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
-    connectDb();
-
     const { id: _id } = req.params;
 
     try {
@@ -114,8 +106,6 @@ router.delete("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-    connectDb();
-
     const { title, city, photos, description, extras, perks, price, checkin, checkout, guests } = req.body;
 
         try {

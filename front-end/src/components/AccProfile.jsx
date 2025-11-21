@@ -23,9 +23,12 @@ import DeleteAccountDialog from "@/components/DeleteAccountDialog";
 import EditProfile from "./EditProfile";
 import { LoadingOverlay } from "@mantine/core";
 import Loading from "./Loading";
+import { useTimeout } from "@mantine/hooks";
+import { useLocation } from "react-router-dom";
 
 const AccProfile = () => {
 	const { user, setUser } = useUserContext();
+	const { state } = useLocation();
 	const [id, setId] = useState(user ? user.id || user._id : null);
 	const { action } = useParams();
 	const [userID, setUserId] = useState([]);
@@ -38,6 +41,8 @@ const AccProfile = () => {
 	const [places, setPlaces] = useState([]);
 	const [ready, setReady] = useState();
 	const [onDelete, setOnDelete] = useState(false);
+	const [initialValues, setInitialValues] = useState(null);
+
 	const plugin = useRef(
 		Autoplay({
 			delay: 20000,
@@ -50,14 +55,14 @@ const AccProfile = () => {
 		if (user?._id) {
 			const axiosGet = async () => {
 				const { data } = await axios.get(`/users/${user._id}`);
-				setTimeout(() => {
-					setReady(true);
-					setUser(data);
-				}, 4500);
+
+				setUser(data);
+				setReady(true);
 			};
+
 			axiosGet();
 		}
-	}, [user?._id]);
+	}, [state?.updated]);
 
 	useEffect(() => {
 		if (!api) return;
@@ -116,15 +121,8 @@ const AccProfile = () => {
 		}
 	};
 
+	if (!ready) return <Loading />;
 	if (redirect) return <Navigate to="/" />;
-
-	if (!ready) {
-		return <Loading category="bookings" />;
-	}
-
-	if (!user) {
-		return null;
-	}
 
 	return (
 		<>

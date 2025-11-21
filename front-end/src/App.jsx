@@ -7,6 +7,8 @@ import {
 	useParams,
 } from "react-router-dom";
 
+import { Toaster } from "sonner";
+
 import { UserContextProvider } from "./components/contexts/UserContext";
 import { MessageProvider } from "./components/contexts/MessageContext";
 
@@ -52,6 +54,7 @@ function App() {
 			<MoblieContextProvider>
 				<UserContextProvider>
 					<MessageProvider>
+						<Toaster position="top-right" />
 						<div className="flex flex-col ">
 							<ScrollToTop />
 							<Header active={isComponentActive} />

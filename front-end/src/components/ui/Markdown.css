@@ -12,3 +12,38 @@ li {
     margin-left: 20px;
 }
 
+.ProseMirror {
+    white-space: normal !important;
+}
+
+.ProseMirror h1 {
+    margin-top: 5em;
+    margin-bottom: 1em;
+}
+
+.ProseMirror p:first-child {
+    margin-top: 0;
+}
+
+.ProseMirror p:last-child {
+    margin-bottom: 0;
+}
+
+.prose p {
+    margin-top: 1.5em !important;
+    margin-bottom: 1.5em !important;
+}
+
+.prose p:first-child {
+    margin-top: 0 !important;
+}
+
+.prose p:last-child {
+    margin-bottom: 0 !important;
+}
+
+.ProseMirror br {
+    content: "";
+    display: block;
+    margin: 1em 0;
+}

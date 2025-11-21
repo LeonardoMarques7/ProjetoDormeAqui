@@ -17,7 +17,7 @@ export const JWTVerify = (req) => {
         });
         })
     } else {
-        return null;
+        return Promise.reject(new Error("No token provided"));
     }
 }
 

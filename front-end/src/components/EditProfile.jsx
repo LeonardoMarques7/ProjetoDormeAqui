@@ -6,6 +6,7 @@ import { MilkdownProvider } from "@milkdown/react";
 import { nord } from "@milkdown/theme-nord";
 import { useUserContext } from "../components/contexts/UserContext";
 import verify from "../assets/verify.png";
+import { withMask } from "use-mask-input";
 
 import "./EditProfile.css";
 
@@ -25,15 +26,16 @@ import {
 	MapPin,
 	NotepadTextDashed,
 	Phone,
+	SaveAllIcon,
 	Search,
 	User,
 	Users,
 	Wifi,
 } from "lucide-react";
+import Loading from "./Loading";
 
 const EditProfile = ({ user }) => {
 	const id = user._id;
-	const { updateUser } = useUserContext();
 	const { showMessage } = useMessage();
 	const [name, setName] = useState(user.name);
 	const [email, setEmail] = useState(user.email);
@@ -92,7 +94,7 @@ const EditProfile = ({ user }) => {
 		if (name && email && phone && city && bio) {
 			if (id) {
 				try {
-					const modifiedUser = await axios.put(`/users/${id}`, {
+					await axios.put(`/users/${id}`, {
 						name,
 						email,
 						photo,
@@ -100,7 +102,7 @@ const EditProfile = ({ user }) => {
 						city,
 						bio,
 					});
-					await updateUser();
+					setRedirect(true);
 					showMessage(
 						"Suas informações foram atualizadas com sucesso!",
 						"success"
@@ -111,8 +113,6 @@ const EditProfile = ({ user }) => {
 				}
 			} else {
 			}
-
-			setRedirect(true);
 		} else {
 			showMessage("Preencha todas as informações!", "warning");
 		}
@@ -122,7 +122,8 @@ const EditProfile = ({ user }) => {
 		setRedirect(true);
 	};
 
-	if (redirect) return <Navigate to="/account/profile" />;
+	if (redirect)
+		return <Navigate to="/account/profile" state={{ updated: true }} />;
 
 	return (
 		<div className="container__prev__form flex p-10 bg-white/80  rounded-2xl backdrop-blur-xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
@@ -145,8 +146,13 @@ const EditProfile = ({ user }) => {
 						)}
 					</div>
 					<label htmlFor="file" className="">
-						<div className="border border-dashed  hover:bg-primary-100 hover:border-solid cursor-pointer  gap-2 border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400 group__input relative flex justify-center items-center transition-all">
-							<Camera className="absolute left-4 text-gray-400 size-6" />
+						<label
+							htmlFor="name"
+							className="text-2xl ml-2 font-medium text-gray-600"
+						>
+							Foto
+						</label>
+						<div className="group__input relative border border-gray-300 border-dashed cursor-pointer hover:border-primary-400 hover:bg-primary-100/25 px-14 py-4 rounded-2xl w-full outline-primary-400  flex justify-center items-center">
 							<input
 								type="file"
 								id="file"
@@ -154,7 +160,10 @@ const EditProfile = ({ user }) => {
 								onChange={uploadPhoto}
 								accept="image/*"
 							/>
-							Enviar foto
+							<Camera className="absolute left-4 text-gray-400 size-6" />
+							<p className=" text-gray-500 transition-all duration-500  ">
+								Selecionar a foto
+							</p>
 						</div>
 					</label>
 				</div>
@@ -213,9 +222,10 @@ const EditProfile = ({ user }) => {
 						<input
 							id="phone"
 							type="phone"
-							placeholder="Digite seu telefone"
+							placeholder="(99) 99999-9999"
 							className="border border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400"
 							value={phone}
+							ref={withMask("(99) 99999-9999")}
 							onChange={(e) => {
 								setPhone(e.target.value);
 							}}
@@ -265,16 +275,18 @@ const EditProfile = ({ user }) => {
 						/>
 					</div>
 				</div>
-				<button className="flex w-fit gap-4 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
-					Salvar alterações
-				</button>
-				<Link
-					to="../account/profile"
-					className="flex items-center gap-5 group hover:text-primary-500 transition-all"
-					onClick={handlePageChange}
-				>
-					<ArrowLeft size={18} className="" /> Voltar
-				</Link>
+				<div className="flex items-center gap-5">
+					<Link
+						to="../account/profile"
+						className="flex items-center gap-5 group hover:text-primary-500 transition-all"
+						onClick={handlePageChange}
+					>
+						<ArrowLeft size={18} className="" /> Voltar
+					</Link>
+					<button className="flex w-fit gap-4 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
+						<SaveAllIcon /> Salvar alterações
+					</button>
+				</div>
 			</form>
 		</div>
 	);

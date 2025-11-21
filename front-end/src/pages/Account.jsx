@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import AccProfile from "../components/AccProfile";
 import AccPlaces from "../components/AccPlaces";
@@ -10,16 +10,23 @@ import Loading from "../components/Loading";
 const Account = () => {
 	const { subpage } = useParams();
 	const { id } = useParams();
-	const [ready, setReady] = useState();
-	const { user } = useUserContext();
+	const [shouldRedirect, setShouldRedirect] = useState(false);
+	const { user, ready } = useUserContext();
 
-	setTimeout(() => {
-		setReady(true);
-	}, 4500);
+	useEffect(() => {
+		if (!ready) {
+			// Após 4.5 segundos, marca para redirecionar
+			const timer = setTimeout(() => {
+				setShouldRedirect(true);
+			}, 4500);
 
-	if (!user && ready) return <Navigate to="/login" />;
+			return () => clearTimeout(timer);
+		}
+	}, [ready]);
 
-	if (!ready) return <Loading category="bookings" />;
+	if (!ready && !shouldRedirect) {
+		return <Loading />;
+	}
 
 	return (
 		<div className="flex flex-col gap-4">

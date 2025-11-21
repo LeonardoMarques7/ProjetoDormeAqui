@@ -1,20 +1,23 @@
 import { HousePlus, PlusCircle, Trash2 } from "lucide-react";
 import { Navigate, useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import axios from "axios";
 import NewPlace from "./NewPlace";
 import Places from "./Places";
 import "./Places.css";
 import { useMoblieContext } from "./contexts/MoblieContext";
 import Loading from "./Loading";
+import { useUserContext } from "./contexts/UserContext";
 
 const AccPlaces = () => {
 	const { action } = useParams();
 	const { moblie } = useMoblieContext();
-	const [ready, setReady] = useState();
+	const { user, ready } = useUserContext();
+	const [login, setLogin] = useState(false);
 	const [places, setPlaces] = useState([]);
 	const [redirect, setRedirect] = useState(false);
+	const [loadingPlaces, setLoadingPlaces] = useState(false);
 	const { id } = useParams();
 
 	const { edit } = useParams();
@@ -24,15 +27,15 @@ const AccPlaces = () => {
 			const { data } = await axios.get("/places/owner");
 			setTimeout(() => {
 				setPlaces(data);
-				setReady(true);
+				setLoadingPlaces(true);
 			}, 4500);
 		};
 
 		axiosGet();
 	}, [action]);
 
-	if (!ready) {
-		return <Loading category="bookings" />;
+	if (!loadingPlaces) {
+		return <Loading />;
 	}
 
 	if (redirect) return <Navigate to="/account/places" />;
