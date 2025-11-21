@@ -1,8 +1,18 @@
 import React, { useState } from "react";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import axios from "axios";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
 import {
+	Cog,
+	EllipsisVertical,
 	Globe,
 	Loader,
 	LogOut,
@@ -170,21 +180,37 @@ const AccProfile = () => {
 								</div>
 
 								{/* Botão de editar */}
-								<div className="flex gap-2">
-									<Link
-										to="/account/profile/edit"
-										className={`hover:bg-white/50 ${
-											!moblie ? "mb-15" : "hidden"
-										} text-white hover:text-primary-700 transition-all ease-in-out duration-500 border border-white flex items-center px-5 py-2.5 rounded-md gap-3 mt-4`}
-									>
-										<Pen /> Editar Perfil
-									</Link>
-									<button
-										onClick={logout}
-										className="cursor-pointer bg-primary-700/70 h-fit hover:bg-primary-700 text-white transition-all ease-in-out duration-500 border border-primary-700 flex items-center px-5 py-2.5 rounded-md gap-3 mt-4"
-									>
-										<LogOut /> Sair da Conta
-									</button>
+								<div>
+									<DropdownMenu>
+										<DropdownMenuTrigger
+											className={`outline-none text-white cursor-pointer hover:text-gray-100 mb-5`}
+										>
+											<EllipsisVertical />
+										</DropdownMenuTrigger>
+
+										<DropdownMenuContent
+											align="end"
+											className="p-2 mt-5 bg-white text-gray-500 ounded-xl shadow-xl flex flex-col gap-2"
+										>
+											{/* Perfil */}
+											<p className="text-sm">Configurações</p>
+
+											<DropdownMenuSeparator />
+
+											<Link
+												to="/account/profile/edit"
+												className={`flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
+											>
+												Editar Perfil
+											</Link>
+											<button
+												onClick={logout}
+												className="flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl"
+											>
+												Sair
+											</button>
+										</DropdownMenuContent>
+									</DropdownMenu>
 								</div>
 							</div>
 

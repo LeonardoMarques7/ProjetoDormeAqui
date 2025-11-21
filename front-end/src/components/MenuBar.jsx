@@ -6,7 +6,15 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, Hotel, HotelIcon, Menu, TicketCheck } from "lucide-react";
+import {
+	Calendar,
+	ChevronDown,
+	ChevronRight,
+	Hotel,
+	HotelIcon,
+	Menu,
+	TicketCheck,
+} from "lucide-react";
 import { Home, Briefcase, User, Mail, Settings } from "lucide-react";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
@@ -17,21 +25,33 @@ import ImageLinkedin from "../assets/linkedinMinimal.png";
 
 import logo__primary from "../assets/logo__primary.png";
 import { useUserContext } from "./contexts/UserContext";
-import { Link, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import axios from "axios";
 
 function MenuBar({ active }) {
-	const { user } = useUserContext();
+	const { user, setUser } = useUserContext();
 	const location = useLocation();
 	const [activeSection, setActiveSection] = useState("Home");
+	const [redirect, setRedirect] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
 	const [moblie, setIsMoblie] = useState(window.innerWidth <= 768);
 
 	const navItems = [
 		{ path: "/", icon: Home, label: "Home" },
-		{ path: "/account/profile", icon: User, label: "Perfil" },
 		{ path: "/account/bookings", icon: Calendar, label: "Reservas" },
 		{ path: "/account/places", icon: HotelIcon, label: "Acomodações" },
+	];
+
+	const navItemsPerfil = [
+		{ path: "/account/profile/edit", label: "Editar perfil" },
+		{
+			path: "/login",
+			label: "Sair",
+			function: () => {
+				logout();
+			},
+		},
 	];
 
 	useEffect(() => {
@@ -48,6 +68,19 @@ function MenuBar({ active }) {
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
+
+	const logout = async () => {
+		try {
+			const { data } = await axios.post("/users/logout");
+			console.log(data);
+			setUser(null);
+			setRedirect(true);
+		} catch (error) {
+			alert(JSON.stringify(error));
+		}
+	};
+
+	if (redirect) return <Navigate to="/login" />;
 
 	return (
 		<>
@@ -98,6 +131,70 @@ function MenuBar({ active }) {
 						>
 							Entre ou Cadastre-se
 						</Link>
+					)}
+					{user && (
+						<DropdownMenu>
+							<DropdownMenuTrigger className={`outline-none`}>
+								<div className="badge__user flex items-center gap-2 cursor-pointer hover:bg-gray-200 transition-colors bg-gray-100 pr-3 py-1.5 px-2 rounded-full">
+									<img
+										src={user.photo}
+										className="w-8 h-8 aspect-square rounded-full object-cover"
+										alt="Foto do Usuário"
+									/>
+									<ChevronDown size={18} />
+								</div>
+							</DropdownMenuTrigger>
+
+							<DropdownMenuContent className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2">
+								{/* Perfil */}
+								<Link
+									to={"/account/profile"}
+									className="flex items-center group hover:bg-gray-100 transition-all rounded-2xl cursor-pointer gap-2 px-4 py-2"
+								>
+									<img
+										src={user.photo}
+										className="w-15 h-15 aspect-square rounded-full object-cover"
+										alt="Foto do Usuário"
+									/>
+									<div className="flex flex-col text-gray-700 ">
+										<h3>{user.name}</h3>
+										<small>{user.email}</small>
+									</div>
+									<ChevronRight
+										size={15}
+										className="opacity-0 group-hover:opacity-100 text-gray-500 "
+									/>
+								</Link>
+
+								<DropdownMenuSeparator />
+
+								{/* Navegação */}
+								{navItemsPerfil.map((item) => {
+									return (
+										<Link
+											key={item.path}
+											to={item.path}
+											onClick={item.function}
+											className={`flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
+										>
+											{item.label}
+											<ChevronRight
+												size={15}
+												className="opacity-0 group-hover:opacity-100 text-gray-500"
+											/>
+										</Link>
+									);
+								})}
+								{!user && (
+									<Link
+										to={"/login"}
+										className="text-white bg-primary-500 px-5 border-1 rounded-xl py-2"
+									>
+										Entre ou Cadastre-se
+									</Link>
+								)}
+							</DropdownMenuContent>
+						</DropdownMenu>
 					)}
 				</motion.nav>
 			) : (

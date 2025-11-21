@@ -156,10 +156,10 @@ router.post("/login", async (req, res) => {
 
     if (userDoc) {
       const passwordCorrect = bcrypt.compareSync(password, userDoc.password);
-      const { name, _id } = userDoc;
+      const { name, photo, _id } = userDoc;
       
       if (passwordCorrect) {
-        const newUserObj = { name, email, _id };
+        const newUserObj = { name, email, photo, _id };
 
         try {
           const token = await JWTSign(newUserObj);
