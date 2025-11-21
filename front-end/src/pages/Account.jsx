@@ -6,6 +6,7 @@ import AccBookings from "../components/AccBookings";
 import { useUserContext } from "../components/contexts/UserContext";
 import { Calendar, House, User } from "lucide-react";
 import Loading from "../components/Loading";
+import Teste2 from "./Teste2";
 
 const Account = () => {
 	const { subpage } = useParams();

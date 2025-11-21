@@ -7,11 +7,8 @@ import icon__success from "../assets/icons/icon__success.png";
 import icon__warning from "../assets/icons/icon__warning.png";
 import icon__error from "../assets/icons/icon__error.png";
 
-const Message = ({ type, message, open, onOpenChange }) => {
+const Teste2 = ({ type, message }) => {
 	useEffect(() => {
-		// Só dispara o toast quando open for true
-		if (!open || !message) return;
-
 		const config = {
 			info: {
 				icon: icon__default,
@@ -34,6 +31,7 @@ const Message = ({ type, message, open, onOpenChange }) => {
 				className: "border-red-500",
 			},
 		};
+
 		const { icon, title, className } = config[type] || config.info;
 
 		toast.custom(
@@ -60,17 +58,10 @@ const Message = ({ type, message, open, onOpenChange }) => {
 				</div>
 			),
 			{
-				duration: 5000,
-				onDismiss: () => onOpenChange(false),
-				onAutoClose: () => onOpenChange(false),
+				duration: 5000000000,
 			}
 		);
-
-		// Reseta o estado após mostrar
-		onOpenChange(false);
-	}, [open, message, type, onOpenChange]);
-
-	return null;
+	}, []);
 };
 
-export default Message;
+export default Teste2;
