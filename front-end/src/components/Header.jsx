@@ -27,7 +27,7 @@ const Header = ({ active }) => {
 					: "bg-transparent"
 			} `}
 		>
-			<div className="max-w-full flex items-center justify-between px-4 sm:px-8 py-4 lg:max-w-7xl mx-auto">
+			<div className="max-w-full flex items-center mx-auto justify-between px-10 sm:px-8 py-4 lg:max-w-7xl ">
 				<Link to="/" className="flex items-center transition-all">
 					<img
 						src={
@@ -41,10 +41,7 @@ const Header = ({ active }) => {
 						className="h-6 md:h-10 transition-all duration-300"
 					/>
 				</Link>
-
-				<div className="relative right-10">
-					<MenuBar active={active} />
-				</div>
+				<MenuBar active={active} />
 			</div>
 		</header>
 	);

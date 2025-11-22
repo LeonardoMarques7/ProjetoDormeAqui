@@ -132,7 +132,7 @@ const AccProfile = () => {
 	};
 
 	if (!ready) return <Loading />;
-	if (redirect) return <Navigate to="/" />;
+	if (redirect) return <Navigate to="/" state={{ updated: true }} />;
 
 	return (
 		<>
@@ -181,7 +181,7 @@ const AccProfile = () => {
 
 								{/* Botão de editar */}
 								<div>
-									<DropdownMenu>
+									<DropdownMenu modal={false}>
 										<DropdownMenuTrigger
 											className={`outline-none text-white cursor-pointer hover:text-gray-100 mb-5`}
 										>
@@ -205,7 +205,7 @@ const AccProfile = () => {
 											</Link>
 											<button
 												onClick={logout}
-												className="flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl"
+												className="flex cursor-pointer group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl"
 											>
 												Sair
 											</button>

@@ -103,7 +103,7 @@ const Register = () => {
 				className="max-w-96 mx-auto gap-4 flex flex-col items-center w-full"
 			>
 				<h1 className="text-3xl font-bold">Cadastre-se e descubra</h1>
-				<h3>Crie uma conta para continuar</h3>
+				<p className="mb-4">Crie uma conta para continuar</p>
 				<form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
 					<div className="group__input relative flex justify-center items-center">
 						<CircleUserRound className="absolute left-4 text-gray-400 size-6" />

@@ -122,7 +122,7 @@ export default function MarkdownEditor({ onChange, initialValue }) {
 	}, [editor]);
 
 	return (
-		<div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+		<div className="bg-white rounded-2xl w-full shadow-lg overflow-hidden">
 			{/* Toolbar */}
 			<div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
 				<div className="flex items-center gap-1 flex-wrap">

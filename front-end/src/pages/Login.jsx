@@ -36,7 +36,7 @@ const Login = () => {
 		}
 	};
 
-	if (redirect || user) return <Navigate to="/" />;
+	if (redirect) return <Navigate to="/" />;
 
 	return (
 		<section className="flex items-center h-svh justify-between sm:px-8 py-4 max-w-7xl mx-auto ease-in-out duration-500 transition-all">
@@ -52,14 +52,14 @@ const Login = () => {
 				/>
 			</div>
 			<motion.div
-				initial={{ x: "100%", opacity: 0 }}
+				initial={{ x: "-100%", opacity: 0 }}
 				animate={{ x: 0, opacity: 1 }}
 				exit={{ x: "-100%", opacity: 0 }}
 				transition={{ duration: 1, ease: "easeInOut" }}
 				className="max-w-100 mx-auto gap-4 flex flex-col items-center w-full "
 			>
 				<h1 className="text-3xl font-bold">Bem-vindo de volta</h1>
-				<h3>Entre na sua conta para continuar</h3>
+				<p className="mb-4">Entre na sua conta para continuar</p>
 				<form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
 					<div className="group__input relative flex justify-center items-center">
 						<Mail className="absolute left-4 text-gray-400 size-6" />

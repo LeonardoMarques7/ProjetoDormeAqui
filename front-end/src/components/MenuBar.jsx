@@ -74,13 +74,10 @@ function MenuBar({ active }) {
 			const { data } = await axios.post("/users/logout");
 			console.log(data);
 			setUser(null);
-			setRedirect(true);
 		} catch (error) {
 			alert(JSON.stringify(error));
 		}
 	};
-
-	if (redirect) return <Navigate to="/login" />;
 
 	return (
 		<>
@@ -133,7 +130,7 @@ function MenuBar({ active }) {
 						</Link>
 					)}
 					{user && (
-						<DropdownMenu>
+						<DropdownMenu modal={false}>
 							<DropdownMenuTrigger className={`outline-none`}>
 								<div className="badge__user flex items-center gap-2 cursor-pointer hover:bg-gray-200 transition-colors bg-gray-100 pr-3 py-1.5 px-2 rounded-full">
 									<img
@@ -145,7 +142,10 @@ function MenuBar({ active }) {
 								</div>
 							</DropdownMenuTrigger>
 
-							<DropdownMenuContent className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2">
+							<DropdownMenuContent
+								align="end"
+								className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2"
+							>
 								{/* Perfil */}
 								<Link
 									to={"/account/profile"}
@@ -153,11 +153,11 @@ function MenuBar({ active }) {
 								>
 									<img
 										src={user.photo}
-										className="w-15 h-15 aspect-square rounded-full object-cover"
+										className="w-12 h-12 aspect-square rounded-full object-cover"
 										alt="Foto do Usuário"
 									/>
 									<div className="flex flex-col text-gray-700 ">
-										<h3>{user.name}</h3>
+										<h4>{user.name}</h4>
 										<small>{user.email}</small>
 									</div>
 									<ChevronRight

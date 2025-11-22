@@ -58,12 +58,15 @@ const PhotosUploader = ({
 	};
 
 	return (
-		<div className="label__input text-start flex flex-col gap-2 w-full">
+		<div className="label__input text-start flex flex-col gap-4 w-full">
 			<label
 				htmlFor="photos"
 				className="text-2xl ml-2 font-medium text-gray-600"
 			>
 				Fotos
+				<div className="text-sm font-normal">
+					Envie as fotos da acomodação por links ou arquivos do seu dispositivo.
+				</div>
 			</label>
 			<div className="group__input   relative flex justify-center items-center group__link">
 				<Camera className="camera__icon absolute left-4 text-gray-400 size-6" />

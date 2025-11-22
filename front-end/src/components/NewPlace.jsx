@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 
 import { useUserContext } from "./contexts/UserContext";
 import { useMessage } from "./contexts/MessageContext";
@@ -23,6 +23,7 @@ import "lightgallery/css/lg-fullscreen.css";
 import "./NewPlace.css";
 
 import {
+	ArrowLeft,
 	ArrowUpFromLine,
 	CalendarArrowDown,
 	CalendarArrowUp,
@@ -32,6 +33,7 @@ import {
 	ImagePlus,
 	MapPin,
 	NotepadTextDashed,
+	SaveAllIcon,
 	Search,
 	User,
 	Users,
@@ -191,19 +193,26 @@ const NewPlace = () => {
 		linkify: true,
 	});
 
+	const handlePageChange = () => {
+		setRedirect(true);
+	};
+
 	return (
 		<div className="relative w-full ">
 			<div className="container__prev__form flex p-10 bg-white/80  rounded-2xl backdrop-blur-xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
 				<form
 					onSubmit={handleSubmit}
-					className="container__form pb-30 flex grow flex-col gap-4 w-full"
+					className="container__form pb-30 flex grow flex-col gap-10 w-full"
 				>
-					<div className="label__input text-start flex flex-col gap-2 w-full">
+					<div className="label__input text-start flex flex-col gap-4 w-full">
 						<label
 							htmlFor="title"
 							className="text-2xl ml-2 font-medium text-gray-600"
 						>
 							Título
+							<div className="text-sm font-normal">
+								Título Informe o título da acomodação.
+							</div>
 						</label>
 						<div className="group__input w-full relative flex justify-center items-center">
 							<Home className="absolute left-4 text-gray-400 size-6" />
@@ -219,12 +228,15 @@ const NewPlace = () => {
 							/>
 						</div>
 					</div>
-					<div className="label__input text-start flex flex-col gap-2 w-full">
+					<div className="label__input text-start flex flex-col gap-4 w-full">
 						<label
 							htmlFor="city"
 							className="text-2xl ml-2 font-medium text-gray-600"
 						>
-							Cidade e País
+							Cidade e Estado
+							<div className="text-sm font-normal">
+								Informe a cidade e o estado da acomodação.
+							</div>
 						</label>
 						<div className="group__input relative flex justify-center items-center">
 							<MapPin className="absolute left-4 text-gray-400 size-6" />
@@ -245,18 +257,22 @@ const NewPlace = () => {
 						{...{ photolink, setPhotoLink, photos, setPhotos, showMessage }}
 					/>
 
-					<div className="label__input text-start flex flex-col gap-2 w-full">
+					<div className="label__input text-start flex flex-col  gap-5 w-full">
 						<label
 							htmlFor="description"
 							className="text-2xl ml-2 font-medium text-gray-600"
 						>
 							Descrição
+							<div className="text-sm font-normal">
+								Descreva o espaço de forma clara, destacando o que ele oferece e
+								o que o torna especial.
+							</div>
 						</label>
 						<div classsame="group__input relative flex justify-center items-center">
 							<MarkdownEditor onChange={(md2) => setDescription(md2)} />
 						</div>
 					</div>
-					<div className="label__input text-start flex flex-col gap-2 w-full">
+					<div className="label__input text-start flex flex-col  gap-5 w-full">
 						<label
 							htmlFor="perks"
 							className="text-2xl ml-2 font-medium text-gray-600"
@@ -269,19 +285,26 @@ const NewPlace = () => {
 
 						<Perks perks={perks} setPerks={setPerks} />
 					</div>
-					<div className="label__input text-start flex flex-col gap-2 w-full">
+					<div className="label__input text-start flex flex-col gap-5 w-full">
 						<label
 							htmlFor="extras"
 							className="text-2xl ml-2 font-medium text-gray-600"
 						>
 							Informações Extras
+							<p className="text-sm font-normal">
+								Descreva as informações extras da acomodação
+							</p>
 						</label>
-						<div className="group__input relative flex justify-center items-center">
+						<div className="group__input relative w-full flex justify-start items-center">
 							<MarkdownEditor onChange={(md2) => setExtras(md2)} />
 						</div>
 					</div>
 					<h2 className="text-2xl text-start ml-2 font-medium text-gray-600">
 						Restrições e Preço
+						<p className="text-sm font-normal">
+							Defina o preço, horários de check-in e check-out e também o número
+							máximo de convidados.
+						</p>
 					</h2>
 					<div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
 						<div className="label__input text-start flex flex-col gap-2 w-full">
@@ -369,14 +392,23 @@ const NewPlace = () => {
 							</div>
 						</div>
 					</div>
-					<button className="flex w-fit gap-4 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
-						Salvar acomodação
-					</button>
+					<div className="flex items-center gap-5">
+						<Link
+							to="../account/profile"
+							className="flex items-center gap-5 group hover:text-primary-500 transition-all"
+							onClick={handlePageChange}
+						>
+							<ArrowLeft size={18} className="" /> Cancelar
+						</Link>
+						<button className="flex w-fit gap-4 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
+							<SaveAllIcon /> Salvar acomodação
+						</button>
+					</div>
 				</form>
 				{/* Preview */}
 				<div className="mockup-browser h-fit w-full ">
 					<div className="mockup-browser-toolbar pt-4 gap-4">
-						<div className=" rounded-2xl min-w-full text-start px-5 flex py-2.5 items-center gap-5 text-gray-500 border-1">
+						<div className=" rounded-2xl w-full text-start px-5 flex py-2.5 items-center gap-5 text-gray-500 border-1">
 							<Search size={20} />
 							https://preview.com
 						</div>
