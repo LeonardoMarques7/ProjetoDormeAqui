@@ -35,6 +35,7 @@ import { LoadingOverlay } from "@mantine/core";
 import Loading from "./Loading";
 import { useTimeout } from "@mantine/hooks";
 import { useLocation } from "react-router-dom";
+import Banner from "../assets/banner.png";
 
 const AccProfile = () => {
 	const { user, setUser } = useUserContext();
@@ -139,29 +140,21 @@ const AccProfile = () => {
 			{action !== "edit" ? (
 				<>
 					<div
-						id="Perfil"
-						className="w-full bg-primary-500 relative h-[40svh] text-white flex flex-col justify-end"
+						className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
+						style={{
+							backgroundImage: `url(${Banner})`,
+							rotate: "10",
+						}}
 					>
-						{/* Nome e pronome dentro do mesmo container centralizado */}
-						{!moblie ? (
-							<div className="mx-auto lg:max-w-7xl w-full px-8 pb-5">
-								<h1 className="container__name ml-45 text-4xl font-bold flex justify-start items-end gap-3">
-									{user.name}
-									<span className="text-lg font-normal text-gray-300">
-										Ele/Dele
-									</span>
-								</h1>
-							</div>
-						) : (
-							<></>
-						)}
+						<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-700/25 to-primary-900/35"></div>
+						{/* Conteúdo */}
 					</div>
 
 					{/* Container do conteúdo */}
 					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 relative -mt-28">
 						<div className="flex flex-col gap-5 relative mb-10">
 							{/* Header do perfil (avatar + botão) */}
-							<div className="avatar__btn flex items-center justify-between relative">
+							<div className="avatar__btn flex gap-5 items-center justify-start relative">
 								{/* Avatar sobreposto */}
 								<div className="icon__perfil relative w-40 h-40 rounded-full border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
 									{user.photo ? (
@@ -172,15 +165,16 @@ const AccProfile = () => {
 									) : (
 										user.name.charAt(0)
 									)}
-									<img
-										src={verify}
-										alt="Verificado"
-										className="w-10 absolute bottom-0 right-0 bg-white rounded-full"
-									/>
 								</div>
+								<h1 className="container__name flex-1 mb-10 text-4xl font-bold text-white flex justify-start items-end gap-3">
+									{user.name}
+									<span className="text-lg font-normal text-white">
+										Ele/Dele
+									</span>
+								</h1>
 
 								{/* Botão de editar */}
-								<div className="flex items-center gap-5 mb-5 text-white">
+								<div className="flex items-center mb-10  gap-5 text-white">
 									<Link
 										to="/account/profile/edit"
 										className={`group flex cursor-pointer  justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full`}
