@@ -44,12 +44,13 @@ const Home = () => {
 
 	// state separado para o texto digitado e para o termo que realmente pesquisa
 
+	const fetchPlaces = async () => {
+		const { data } = await axios.get("/places");
+		setPlaces(data);
+	};
+
 	useEffect(() => {
 		// carrega todos inicialmente
-		const fetchPlaces = async () => {
-			const { data } = await axios.get("/places");
-			setPlaces(data);
-		};
 		fetchPlaces();
 	}, []);
 

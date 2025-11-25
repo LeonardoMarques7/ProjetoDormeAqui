@@ -1,10 +1,8 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
-import Link from "@tiptap/extension-link";
 import { useState, useEffect } from "react";
 import "./Markdown.css";
-import { Node } from "@tiptap/core";
 import {
 	Bold,
 	Italic,
@@ -21,35 +19,15 @@ import {
 	Redo2,
 } from "lucide-react";
 
-export default function MarkdownEditor({ onChange, initialValue }) {
+function BaseMarkdownEditor({ onChange, initialValue }) {
 	const [markdown, setMarkdown] = useState("");
+	const [edit, setEdit] = useState(false);
 
-	const CustomParagraph = Node.create({
-		name: "paragraph",
-		priority: 1000,
-
-		parseHTML() {
-			return [{ tag: "p" }];
-		},
-
-		renderHTML({ HTMLAttributes }) {
-			return ["p", HTMLAttributes, 0];
-		},
-
-		addKeyboardShortcuts() {
-			return {
-				Enter: () => {
-					return this.editor.commands.insertContent("<p><br></p>");
-				},
-			};
-		},
-	});
 	const editor = useEditor({
 		extensions: [
 			StarterKit.configure({
 				heading: { levels: [1, 2, 3] },
 			}),
-			Link.configure({ openOnClick: false }),
 			Markdown.configure({
 				html: false,
 				breaks: true,
@@ -66,7 +44,7 @@ export default function MarkdownEditor({ onChange, initialValue }) {
 				class: "focus:outline-none",
 			},
 		},
-		onUpdate: ({ editor }) => {
+		onBlur: ({ editor }) => {
 			try {
 				const mdText = editor.storage.markdown.getMarkdown();
 				setMarkdown(mdText);
@@ -105,26 +83,21 @@ export default function MarkdownEditor({ onChange, initialValue }) {
 		</button>
 	);
 
-	useEffect(() => {
-		if (editor) {
-			const editorElement = document.querySelector(".ProseMirror");
-			if (editorElement) {
-				editorElement.addEventListener("keydown", (e) => {
-					if (e.key === " " || e.code === "Space") {
-						e.stopPropagation();
-						// Força inserir espaço manualmente
-						editor.commands.insertContent(" ");
-						e.preventDefault();
-					}
-				});
-			}
-		}
-	}, [editor]);
-
 	return (
-		<div className="bg-white rounded-2xl w-full shadow-lg overflow-hidden">
+		<div className="bg-white rounded-2xl max-w-5xl mx-auto w-full shadow-lg overflow-hidden">
 			{/* Toolbar */}
-			<div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+			<div className="bg-gray-50 relative border-b border-gray-200 px-6 py-4">
+				<span className="absolute botto-5 right-5">
+					<button
+						className="bg-green-300 rounded-full cursor-pointer text-white hover:bg-green-600 transition-all px-4 py-2 font-bold"
+						onClick={(e) => {
+							e.preventDefault();
+							setEdit(true);
+						}}
+					>
+						Salvar
+					</button>
+				</span>
 				<div className="flex items-center gap-1 flex-wrap">
 					<ToolButton
 						onClick={(e) => {
@@ -211,18 +184,6 @@ export default function MarkdownEditor({ onChange, initialValue }) {
 
 					<ToolButton
 						onClick={(e) => {
-							const url = prompt("Insira a URL:");
-							e.preventDefault();
-							if (url) editor.chain().focus().setLink({ href: url }).run();
-						}}
-						active={editor.isActive("link")}
-						title="Inserir Link"
-					>
-						<Link2 size={18} />
-					</ToolButton>
-
-					<ToolButton
-						onClick={(e) => {
 							e.preventDefault();
 							editor.chain().focus().setHorizontalRule().run();
 						}}
@@ -230,8 +191,6 @@ export default function MarkdownEditor({ onChange, initialValue }) {
 					>
 						<Minus size={18} />
 					</ToolButton>
-
-					<div className="flex-1" />
 
 					<ToolButton
 						onClick={(e) => {
@@ -266,24 +225,7 @@ export default function MarkdownEditor({ onChange, initialValue }) {
 							Editor
 						</div>
 					</div>
-					<EditorContent
-						editor={editor}
-						className="min-h-[200px] min-w-full  prose w-full focus:outline-none
-                    prose-headings:font-bold prose-headings:text-gray-900
-                    prose-h1:text-4xl prose-h1:mt-4 prose-h1:mb-2
-                    prose-h2:text-3xl prose-h2:mt-3 prose-h2:mb-2
-                    prose-h3:text-2xl prose-h3:mt-2 prose-h3:mb-1
-                    prose-p:text-gray-700 prose-p:leading-relaxed prose-p:my-2
-                    prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-                    prose-code:text-pink-600 prose-code:bg-pink-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono
-                    prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:my-4
-                    prose-ul:list-disc prose-ul:my-2 prose-ul:pl-6
-                    prose-ol:list-decimal prose-ol:my-2 prose-ol:pl-6
-                    prose-li:text-gray-700 prose-li:mx-10
-                    prose-hr:my-6 prose-hr:border-gray-300
-                    [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[200px]
-                    [&_.ProseMirror>*]:my-2"
-					/>
+					<EditorContent editor={editor} className="min-h-[200px] min-w-full" />
 				</div>
 			</div>
 
@@ -300,4 +242,12 @@ export default function MarkdownEditor({ onChange, initialValue }) {
 			)}
 		</div>
 	);
+}
+
+export function MarkdownEditor({ onChange, initialValue }) {
+	return <BaseMarkdownEditor onChange={onChange} initialValue={initialValue} />;
+}
+
+export function MarkdownEditor2({ onChange, initialValue }) {
+	return <BaseMarkdownEditor onChange={onChange} initialValue={initialValue} />;
 }

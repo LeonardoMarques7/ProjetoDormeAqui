@@ -28,7 +28,6 @@ import { set } from "date-fns";
 import { MoblieContextProvider } from "./components/contexts/MoblieContext";
 import Footer from "./components/Footer";
 import Teste from "./pages/Teste";
-
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
 		? "http://localhost:3000/api"
@@ -47,6 +46,13 @@ function ScrollToTop() {
 
 function App() {
 	const location = useLocation();
+	const [content, setContent] = useState("");
+	const [contentPlus, setContentPlus] = useState("");
+
+	useEffect(() => {
+		setContent("Batatinha frita");
+		setContentPlus("Sorvete de ratazana");
+	}, []);
 	const isComponentActive =
 		location.pathname === "/login" || location.pathname === "/register";
 	return (

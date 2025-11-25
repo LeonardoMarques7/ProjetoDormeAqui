@@ -41,7 +41,7 @@ import {
 } from "lucide-react";
 import PhotosUploader from "./PhotosUploader";
 import { useMoblieContext } from "./contexts/MoblieContext";
-import MarkdownEditor from "./ui/MarkdownEditor";
+import { MarkdownEditor, MarkdownEditor2 } from "./ui/MarkdownEditor";
 
 const NewPlace = () => {
 	const { user } = useUserContext();
@@ -110,6 +110,7 @@ const NewPlace = () => {
 		if (
 			title &&
 			city &&
+			extras &&
 			photos.length > 0 &&
 			description &&
 			price &&
@@ -182,12 +183,6 @@ const NewPlace = () => {
 	};
 
 	const md = new MarkdownIt({
-		html: false,
-		breaks: true,
-		linkify: true,
-	});
-
-	const md2 = new MarkdownIt({
 		html: false,
 		breaks: true,
 		linkify: true,
@@ -269,7 +264,10 @@ const NewPlace = () => {
 							</div>
 						</label>
 						<div classsame="group__input relative flex justify-center items-center">
-							<MarkdownEditor onChange={(md2) => setDescription(md2)} />
+							<MarkdownEditor
+								onChange={(descriptionText) => setDescription(descriptionText)}
+								initialValue={description}
+							/>
 						</div>
 					</div>
 					<div className="label__input text-start flex flex-col  gap-5 w-full">
@@ -296,7 +294,10 @@ const NewPlace = () => {
 							</p>
 						</label>
 						<div className="group__input relative w-full flex justify-start items-center">
-							<MarkdownEditor onChange={(md2) => setExtras(md2)} />
+							<MarkdownEditor2
+								onChange={(extrasText) => setExtras(extrasText)}
+								initialValue={extras}
+							/>
 						</div>
 					</div>
 					<h2 className="text-2xl text-start ml-2 font-medium text-gray-600">
@@ -542,16 +543,10 @@ const NewPlace = () => {
 							<h2 className="text-xl font-bold text-gray-500">
 								Informações Extras
 							</h2>
-							{extras ? (
-								<div
-									dangerouslySetInnerHTML={{ __html: md.render(extras) }}
-								></div>
-							) : (
-								<>
-									<Skeleton className="h-5 w-60 mb-5"></Skeleton>
-									<Skeleton className="h-5 w-40"></Skeleton>
-								</>
-							)}
+							<div
+								className="prose prose-lg prose-p:text-gray-700 prose-p:leading-relaxed prose-p:my-4  overflow-hidden w-fit"
+								dangerouslySetInnerHTML={{ __html: md.render(extras) }}
+							/>
 						</span>
 						<span className="text-start flex flex-col">
 							<h2 className="text-xl font-bold text-gray-500">Preço</h2>

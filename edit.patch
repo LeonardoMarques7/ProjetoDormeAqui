@@ -1,0 +1,83 @@
+extensions: [
+			StarterKit.configure({
+				heading: { levels: [1, 2, 3] },
+			}),
+			Link.configure({ openOnClick: false }),
+			Markdown.configure({
+				html: false,
+				breaks: true,
+				transformPastedText: true,
+				transformCopiedText: true,
+				tightLists: false,
+				tightListItems: false,
+				bulletListMarker: "-",
+			}),
+		],
+		editorProps: {
+			attributes: {
+				class: "focus:outline-none",
+			},
+		},
+		onUpdate: ({ editor }) => {
+			try {
+				const mdText = editor.storage.markdown.getMarkdown();
+				setMarkdown(mdText);
+				if (onChange) onChange(mdText);
+			} catch (error) {
+				console.error("Erro ao gerar markdown:", error);
+			}
+		},
+	});
+=======
+	const editor = useEditor({
+		extensions: [
+			StarterKit.configure({
+				heading: { levels: [1, 2, 3] },
+			}),
+			Link.configure({ openOnClick: false }),
+			Markdown.configure({
+				html: false,
+				breaks: true,
+				transformPastedText: true,
+				transformCopiedText: true,
+				tightLists: false,
+				tightListItems: false,
+				bulletListMarker: "-",
+			}),
+		],
+		editorProps: {
+			attributes: {
+				class: "focus:outline-none",
+			},
+			handleKeyDown(view, event) {
+				if (event.key === " ") {
+					console.log("Space key pressed in editor");
+				}
+				return false;
+			},
+		},
+		onUpdate: ({ editor }) => {
+			try {
+				const mdText = editor.storage.markdown.getMarkdown();
+				setMarkdown(mdText);
+				console.log("Content updated:", mdText);
+				if (onChange) onChange(mdText);
+			} catch (error) {
+				console.error("Erro ao gerar markdown:", error);
+			}
+		},
+	});
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+	useEffect(() => {
+		if (editor && initialValue) {
+			editor.commands.setContent(initialValue);
+		}
+	}, [initialValue, editor]);
+=======
+	useEffect(() => {
+		if (editor && initialValue) {
+			editor.chain().focus().setContent(initialValue).run();
+		}
+	}, [initialValue, editor]);
