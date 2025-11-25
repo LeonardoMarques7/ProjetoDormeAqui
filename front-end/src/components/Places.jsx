@@ -145,8 +145,8 @@ const Places = ({ places }) => {
 			))}
 
 			{totalPages > 1 && (
-				<Pagination className="mt-10">
-					<PaginationContent className="mt-10">
+				<Pagination className="mt-10 ">
+					<PaginationContent className="mt-10 !list-none">
 						<PaginationItem>
 							<PaginationPrevious
 								onClick={() => handlePageChange(Math.max(1, currentPage - 1))}

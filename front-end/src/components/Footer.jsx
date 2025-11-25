@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
 import "./Footer.css";
+import Banner from "../assets/banner.png";
 
 const Footer = ({ active }) => {
 	const { user } = useUserContext();
@@ -20,7 +21,14 @@ const Footer = ({ active }) => {
 	];
 
 	return (
-		<footer className="footer bg-primary-500 w-full px-8 flex items-center gap-5 bottom-0 h-60">
+		<footer
+			className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-t-2xl bg-center h-[50svh] relative overflow-hidden"
+			style={{
+				backgroundImage: `url(${Banner})`,
+				rotate: "10",
+			}}
+		>
+			<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
 			<div className="footer__container max-w-7xl mx-auto w-full relative justify-between px-8 flex items-center gap-5 bottom-0 h-60">
 				<div className="logo__footer flex-col flex h-full justify-between py-8 ">
 					<img src={logoSecondary} className="w-70 mt-10" alt="" />

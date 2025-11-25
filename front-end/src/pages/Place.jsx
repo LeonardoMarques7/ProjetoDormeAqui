@@ -92,6 +92,12 @@ const Place = () => {
 	}, [place]);
 
 	useEffect(() => {
+		if (booking) {
+			showMessage("Você possue uma reserva nesta acomodação!", "error");
+		}
+	}, [booking]);
+
+	useEffect(() => {
 		if (id) {
 			const axiosGet = async () => {
 				const { data } = await axios.get(`/places/${id}`);
@@ -186,11 +192,6 @@ const Place = () => {
 			<div
 				className={`container__place p-8 w-full bg-primary-500 relative flex flex-col justify-center items-center h-[50svh] `}
 			>
-				{booking && (
-					<>
-						<BookingAlert booking={booking} />
-					</>
-				)}
 				{!moblie && (
 					<div className=" py-4 w-fit px-15 bg-white shadow-lg rounded-2xl max-w-full lg:max-w-7xl  mx-auto shadow-primary-500/25 absolute -bottom-12 mt-4 text-gray-500 flex flex-col justify-center items-center gap-5">
 						<div className="text-4xl font-bold text-gray-700 ">
@@ -347,9 +348,7 @@ const Place = () => {
 
 					{/* Booking */}
 					{booking ? (
-						<>
-							<BookingAlert />
-						</>
+						<></>
 					) : (
 						<form className="form__place order-1 md:order-none justify-self-end border-1 self-start sticky top-20 flex flex-col  gap-4 border-gray-200 rounded-2xl p-10">
 							<h2 className="font-bold">Faça sua reserva</h2>

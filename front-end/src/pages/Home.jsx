@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import Item from "../components/Item";
 import axios from "axios";
-import { CalendarIcon, Eraser, MapPin, Search, X } from "lucide-react";
+import {
+	CalendarIcon,
+	DeleteIcon,
+	Eraser,
+	MapPin,
+	Search,
+	Trash,
+	X,
+} from "lucide-react";
 import { format, isBefore, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import logoPrimary from "../assets/logo__primary.png";
@@ -25,6 +33,7 @@ const Home = () => {
 	const [price, setPrice] = useState("");
 	const [checkin, setCheckin] = useState("");
 	const [checkout, setCheckout] = useState("");
+	const [placeholder, setPlaceHolder] = useState([1, 2, 3, 4]);
 
 	const handleCheckin = (date) => {
 		setCheckin(date);
@@ -105,7 +114,6 @@ const Home = () => {
 				<div className="container__bg__form  bg-white absolute flex justify-center -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4">
 					<form onSubmit={handleSearch}>
 						<div className="form__container flex items-center gap-4">
-							<img src={logoPrimary} className="w-40 object-cover" alt="" />
 							<div className="group__input relative flex justify-center items-center">
 								<MapPin className="absolute left-4 text-gray-400 size-6" />
 								<input
@@ -190,7 +198,7 @@ const Home = () => {
 			{city ? (
 				placesSearch.length > 0 ? (
 					// Caso 3: pesquisou e encontrou
-					<div className="mx-auto mb-5 font-medium max-w-full gap-2 w-full flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
+					<div className="mx-auto mb-5  font-medium max-w-full gap-2 w-full flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
 						<span>
 							Buscando por <strong className="text-primary-500">{city}</strong>{" "}
 							e foi encontrado{" "}
@@ -209,22 +217,49 @@ const Home = () => {
 				) : (
 					// Caso 2: pesquisou mas não encontrou
 					<>
-						<div className="mx-auto  max-w-full w-full gap-2 flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
-							<span>
-								Buscando por {city} e foram{" "}
-								<strong className="text-primary-500">
-									0 acomodações encontradas
-								</strong>
+						<div className="mx-auto px-8 text-center max-w-full my-5 mb-8 w-full flex justify-center 	 items-center  lg:max-w-7xl text-xl  pt-5">
+							<span className="">
+								Buscando por{" "}
+								<strong className="text-primary-500">{city}</strong> e foi
+								encontrado{" "}
+								{placesSearch.length > 1
+									? `${placesSearch.length} resultados`
+									: `${placesSearch.length} resultado`}
 								.
 							</span>
 							<button
 								onClick={limparPesquisa}
-								className=" flex items-center cursor-pointer border border-transparent hover:border-red-500  transition-all gap-2 !text-lg  text-red-500  p-2.5 px-5 rounded-2xl"
+								className="edit__btn ml-auto outline-none group cursor-pointer group-hover:text-white hover:text-white flex items-center justify-center transition-all duration-300 ease-in-out hover:px-2 hover:bg-red-600 gap-0 hover:gap-3 text-red-500  rounded-md text-center py-2.5 overflow-hidden"
 							>
-								<Eraser /> Limpar pesquisa
+								<Trash
+									size={20}
+									className="transition-transform duration-300 "
+								/>
+								<p className="!text-sm max-w-0 opacity-0 group-hover:max-w-50 group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
+									Limpar pesquisa
+								</p>
 							</button>
 						</div>
-						<div className="mx-auto mb-5	 font-medium max-w-full gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start ">
+
+						<div
+							className="bg-cover mb-10 bg-primar-700 max-w-7xl mx-auto w-full rounded-2xl bg-center h-[50svh] relative overflow-hidden"
+							style={{
+								backgroundImage: `url(${Banner})`,
+								rotate: "10",
+							}}
+						>
+							<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
+							{/* Conteúdo */}
+							<div className="relative flex flex-col justify-center text-white items-center h-full gap-4">
+								<h1 className="font-bold text-5xl  drop-shadow-lg">
+									Não encontramos nada ;-;
+								</h1>
+								<p className="text-lg text-gray-50">
+									Abaixo descubra as acomodações únicas para sua próxima viagem
+								</p>
+							</div>
+						</div>
+						<div className="mx-auto mb-5 font-medium max-w-full gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start ">
 							Outras acomodações
 						</div>
 					</>
