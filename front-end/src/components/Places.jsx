@@ -18,9 +18,9 @@ import {
 } from "@/components/ui/pagination";
 import ScrollReveal from "scrollreveal";
 import { motion } from "framer-motion";
-
 import MarkdownIt from "markdown-it";
 import Perk from "./Perk";
+import ScrollPlace from "./ScrollPlace";
 
 const Places = ({ places }) => {
 	const [currentPage, setCurrentPage] = useState(1);
@@ -67,21 +67,16 @@ const Places = ({ places }) => {
 	});
 
 	return (
-		<div className="container__places mx-auto max-w-full max-h-full h-full overflow-x-clip mt-[5svh] flex flex-col gap-50 p-8 lg:max-w-7xl">
+		<div className="container__places mx-auto justify-center max-w-full max-h-full h-full overflow-x-clip mt-[5svh] flex flex-col gap-50 p-8 lg:max-w-7xl">
 			{currentPlaces.map((place, id) => (
 				<div
 					key={id}
-					className="headline item__place flex items-center gap-5 top-[5svh] w-full lg:max-w-7xl"
+					className="headline relative item__place flex items-center gap-5 top-[5svh] w-full lg:max-w-7xl"
 				>
-					<div className="relative w-full flex items-center justify-center">
-						<img
-							src={place.photos[0]}
-							className="sr-fade-1 image__place h-100 aspect-video absolute left-0 top-0 object-cover rounded-2xl shadow-xl shadow-primary-200/80"
-							alt="Foto da acomodação"
-						/>
+					<div className=" w-full flex items-center relative justify-center">
+						<ScrollPlace data={place.photos} />
 					</div>
-					<CornerDownLeft size={50} className="relative top-10 icon__place" />
-					<div className="flex w-fit flex-col items-start h-full justify-end gap-4 py-5 bg-white p-5 backdrop-blur-sm shadow-2xl shadow-primary-200/50 rounded-2xl">
+					<div className="flex w-fit h-90 flex-col relative items-start justify-center gap-4 py-5 bg-gray-50 p-5 backdrop-blur-sm shadow-2xl shadow-primary-200/50 rounded-2xl">
 						<h2 className="text-4xl font-bold text-wrap max-w-[70%]">
 							{place.title}
 						</h2>
