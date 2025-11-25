@@ -1,4 +1,12 @@
-import { BedDouble, CornerDownLeft, Edit2, MapPin, Users } from "lucide-react";
+import {
+	BedDouble,
+	CornerDownLeft,
+	Edit2,
+	ExternalLink,
+	MapPin,
+	Trash2,
+	Users,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import {
 	Pagination,
@@ -12,6 +20,7 @@ import ScrollReveal from "scrollreveal";
 import { motion } from "framer-motion";
 
 import MarkdownIt from "markdown-it";
+import Perk from "./Perk";
 
 const Places = ({ places }) => {
 	const [currentPage, setCurrentPage] = useState(1);
@@ -29,6 +38,16 @@ const Places = ({ places }) => {
 	const handlePageChange = (pageNumber) => {
 		setCurrentPage(pageNumber);
 		window.scrollTo({ top: 0, behavior: "smooth" });
+	};
+
+	const handleDelete = async () => {
+		try {
+			const { data } = await axios.delete(`/places/${place._id}`);
+			console.log("Conta deletada!", data);
+			setRedirect(true); // redireciona após excluir
+		} catch (error) {
+			console.error("Erro ao deletar:", error);
+		}
 	};
 
 	useEffect(() => {
@@ -62,37 +81,69 @@ const Places = ({ places }) => {
 						/>
 					</div>
 					<CornerDownLeft size={50} className="relative top-10 icon__place" />
-					<div className="flex w-fit flex-col items-start gap-4 bg-white/80 p-5 backdrop-blur-sm shadow-xl shadow-primary-200/50 rounded-2xl">
-						<div className="flex gap-2 items-center text-gray-500">
+					<div className="flex w-fit flex-col items-start h-full justify-end gap-4 py-5 bg-white p-5 backdrop-blur-sm shadow-2xl shadow-primary-200/50 rounded-2xl">
+						<h2 className="text-4xl font-bold text-wrap max-w-[70%]">
+							{place.title}
+						</h2>
+						<div className="flex gap-2 items-center">
 							<MapPin size={18} /> {place.city}
 						</div>
-						<h2 className="text-4xl font-bold">{place.title}</h2>
 						<p
 							dangerouslySetInnerHTML={{ __html: md.render(place.description) }}
 							className="text-gray-500 text-start overflow-hidden line-clamp-4"
 						></p>
-						<div className="flex items-center gap-4">
-							<div className="flex gap-2 items-center text-gray-500">
-								<Users size={18} /> {place.guests}
-							</div>
-							<div className="flex gap-2 items-center text-gray-500">
-								<BedDouble size={18} /> 2
-							</div>
-						</div>
 						<div className="item__place__actions flex items-center gap-2 w-full">
-							<a
-								href={`/places/${place._id}`}
-								className="cursor-pointer hover:bg-primary-600 ease-in-out grow duration-500 w-full bg-primary-500 text-white rounded-2xl flex-1 text-center py-2.5"
-							>
-								Ver mais
-							</a>
-							<a
-								href={`/account/places/new/${place._id}`}
-								className="edit__btn cursor-pointer justify-center flex items-center grow-0 px-5 hover:bg-gray-600 ease-in-out duration-500 gap-4 bg-gray-500 text-white rounded-2xl text-center py-2.5"
-							>
-								<Edit2 size={18} />
-								Editar
-							</a>
+							<p className="absolute top-0 shadow-2xl right-0 px-8 rounded-tr-full rounded-bl-full py-2 bg-primary-500 text-white ">
+								<strong>R${place.price}</strong> por noite
+							</p>
+							<div className="flex items-center gap-4 text-gray-400 flex-1">
+								{place.perks.map((perk, index) => (
+									<div
+										key={index}
+										className=" hover:scale-110 ease-in-out duration-500 transition-all"
+									>
+										<Perk perk={perk} minimal={true} />
+									</div>
+								))}
+							</div>
+							<div className="flex items-center gap-2">
+								<a
+									href={`/places/${place._id}`}
+									className="group cursor-pointer w-fit hover:bg-primary-600 hover:text-white px-5 hover:px-6 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-2xl text-center py-2.5 overflow-hidden"
+								>
+									<ExternalLink
+										size={18}
+										className="transition-transform text-primary-500 group-hover:text-white duration-300 group-hover:scale-110"
+									/>
+									<span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
+										Acessar acomodação
+									</span>
+								</a>
+								<a
+									href={`/account/places/new/${place._id}`}
+									className="edit__btn group cursor-pointer flex items-center hover:text-white justify-center transition-all duration-300 ease-in-out px-5 hover:px-6 hover:bg-gray-600 gap-0 hover:gap-3 text-gray-500 rounded-2xl text-center py-2.5 overflow-hidden"
+								>
+									<Edit2
+										size={18}
+										className="transition-transform group-hover:text-white duration-300 group-hover:scale-110"
+									/>
+									<span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
+										Editar
+									</span>
+								</a>
+								<a
+									href={`/account/places/r/${place._id}`}
+									className="edit__btn group cursor-pointer group-hover:text-white hover:text-white flex items-center justify-center transition-all duration-300 ease-in-out px-5 hover:px-6 hover:bg-red-600 gap-0 hover:gap-3 text-red-500  rounded-2xl text-center py-2.5 overflow-hidden"
+								>
+									<Trash2
+										size={18}
+										className="transition-transform duration-300 group-hover:scale-110"
+									/>
+									<span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
+										Deletar
+									</span>
+								</a>
+							</div>
 						</div>
 					</div>
 				</div>

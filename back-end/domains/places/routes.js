@@ -10,7 +10,6 @@ const router = Router();
 
 connectDb();
 
-
 router.get("/", async (req, res) => {
     const { city } = req.query;
 

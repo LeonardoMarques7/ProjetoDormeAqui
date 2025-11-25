@@ -8,42 +8,42 @@ import {
 } from "lucide-react";
 import React from "react";
 
-const Perk = ({ perk }) => {
+const Perk = ({ perk, minimal }) => {
 	const objPerk = {
 		entrance: (
 			<>
-				<ShieldCheck className="w-4 h-4" />
-				<span>Entrada privada</span>
+				<ShieldCheck className={`${minimal ? "w-5 h-5" : "w-4 h-4"}`} />
+				{!minimal && <span>Entrada privada</span>}
 			</>
 		),
 		pet: (
 			<>
-				<Dog className="w-4 h-4" />
-				<span>Pets</span>
+				<Dog className={`${minimal ? "w-5 h-5" : "w-4 h-4"}`} />
+				{!minimal && <span>Pets</span>}
 			</>
 		),
 		radio: (
 			<>
-				<BoomBox className="w-4 h-4" />
-				<span>Rádio</span>
+				<BoomBox className={`${minimal ? "w-5 h-5" : "w-4 h-4"}`} />
+				{!minimal && <span>Rádio</span>}
 			</>
 		),
 		tv: (
 			<>
-				<TvMinimal className="w-4 h-4" />
-				<span>TV</span>
+				<TvMinimal className={`${minimal ? "w-5 h-5" : "w-4 h-4"}`} />
+				{!minimal && <span>TV</span>}
 			</>
 		),
 		parking: (
 			<>
-				<CircleParking className="w-4 h-4" />
-				<span>Estacionamento gratuito</span>
+				<CircleParking className={`${minimal ? "w-5 h-5" : "w-4 h-4"}`} />
+				{!minimal && <span>Estacionamento gratuito</span>}
 			</>
 		),
 		Wifi: (
 			<>
-				<Wifi className="w-4 h-4" />
-				<span>Wi-fi</span>
+				<Wifi className={`${minimal ? "w-5 h-5" : "w-4 h-4"}`} />
+				{!minimal && <span>Wi-fi</span>}
 			</>
 		),
 	};

@@ -180,37 +180,23 @@ const AccProfile = () => {
 								</div>
 
 								{/* Botão de editar */}
-								<div>
-									<DropdownMenu modal={false}>
-										<DropdownMenuTrigger
-											className={`outline-none text-white cursor-pointer hover:text-gray-100 mb-5`}
-										>
-											<EllipsisVertical />
-										</DropdownMenuTrigger>
-
-										<DropdownMenuContent
-											align="end"
-											className="p-2 mt-5 bg-white text-gray-500 ounded-xl shadow-xl flex flex-col gap-2"
-										>
-											{/* Perfil */}
-											<p className="text-sm">Configurações</p>
-
-											<DropdownMenuSeparator />
-
-											<Link
-												to="/account/profile/edit"
-												className={`flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
-											>
-												Editar Perfil
-											</Link>
-											<button
-												onClick={logout}
-												className="flex cursor-pointer group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl"
-											>
-												Sair
-											</button>
-										</DropdownMenuContent>
-									</DropdownMenu>
+								<div className="flex items-center gap-5 mb-5 text-white">
+									<Link
+										to="/account/profile/edit"
+										className={`group flex cursor-pointer  justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full`}
+									>
+										<Pen size={18} />
+										<span className="hidden group-hover:inline pl-2">
+											Editar perfil
+										</span>
+									</Link>
+									<button
+										onClick={logout}
+										className=" group flex cursor-pointer  justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full"
+									>
+										<LogOut size={18} />
+										<span className="hidden group-hover:inline pl-2">Sair</span>
+									</button>
 								</div>
 							</div>
 
