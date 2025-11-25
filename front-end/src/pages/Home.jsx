@@ -4,6 +4,7 @@ import axios from "axios";
 import { CalendarIcon, Eraser, MapPin, Search, X } from "lucide-react";
 import { format, isBefore, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
+import logoPrimary from "../assets/logo__primary.png";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import {
@@ -12,6 +13,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import Banner from "../assets/banner.png";
 
 import "./Home.css";
 
@@ -81,16 +83,29 @@ const Home = () => {
 
 	return (
 		<>
-			<div className="container__header p-8 w-full bg-primary-500 mb-15 relative h-[50svh] flex-col text-white flex justify-center items-center text-center">
-				<div className="titles flex flex-col gap-5">
-					<h1 className="text-5xl font-bold">Encontre seu lugar perfeito</h1>
-					<p className="text-lg">
-						Descubra acomodações únicas para sua próxima viagem
-					</p>
+			<div className="relative flex justify-center mb-12">
+				<div
+					className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
+					style={{
+						backgroundImage: `url(${Banner})`,
+						rotate: "10",
+					}}
+				>
+					<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
+					{/* Conteúdo */}
+					<div className="relative flex flex-col justify-center text-white items-center h-full gap-4">
+						<h1 className="font-bold text-5xl  drop-shadow-lg">
+							Encontre seu lugar
+						</h1>
+						<p className="text-lg text-gray-50">
+							Descubra acomodações únicas para sua próxima viagem
+						</p>
+					</div>
 				</div>
-				<div className="container__bg__form bg-white absolute -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4">
+				<div className="container__bg__form  bg-white absolute flex justify-center -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4">
 					<form onSubmit={handleSearch}>
-						<div className="form__container flex items-center gap-2">
+						<div className="form__container flex items-center gap-4">
+							<img src={logoPrimary} className="w-40 object-cover" alt="" />
 							<div className="group__input relative flex justify-center items-center">
 								<MapPin className="absolute left-4 text-gray-400 size-6" />
 								<input
@@ -109,7 +124,7 @@ const Home = () => {
 										<Button
 											variant="outline"
 											className={cn(
-												"btn__date justify-start text-left font-normal relative border border-gray-200 !px-14 !py-4 h-full rounded-2xl text-gray-400 outline-primary-400 ",
+												"btn__date cursor-pointer justify-start text-left font-normal relative border border-gray-200 !px-14 !py-4 h-full rounded-2xl text-gray-400 outline-primary-400 ",
 												!checkin && "text-muted-foreground"
 											)}
 										>
@@ -138,7 +153,7 @@ const Home = () => {
 										<Button
 											variant="outline"
 											className={cn(
-												"btn__date justify-start text-left font-normal relative border border-gray-200 !px-14 !py-4 h-full rounded-2xl text-gray-400 outline-primary-400",
+												"btn__date justify-start cursor-pointer text-left font-normal relative border border-gray-200 !px-14 !py-4 h-full rounded-2xl text-gray-400 outline-primary-400",
 												!checkout && "text-muted-foreground"
 											)}
 										>
@@ -220,7 +235,6 @@ const Home = () => {
 					Acomodações disponíveis
 				</h1>
 			)}
-
 			{/* GRID DE RESULTADOS */}
 			{city && placesSearch.length > 0 && (
 				<div className="grid mb-10 max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 py-4 lg:max-w-7xl">
@@ -232,7 +246,6 @@ const Home = () => {
 					</>
 				</div>
 			)}
-
 			{/* Se não tiver resultados OU não tiver pesquisa → mostrar acomodações padrão */}
 			{(!city || placesSearch.length === 0) && (
 				<div className="relative mb-10">
