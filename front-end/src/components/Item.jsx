@@ -17,7 +17,7 @@ const Item = ({ place = null, placeHolder }) => {
 				</div>
 			) : (
 				<Link to={`/places/${place._id}`}>
-					<div className="flex flex-col gap-2 max-w-[350px]">
+					<div className="flex flex-col gap-2 hover:bg-primary-100 rounded-2xl hover:p-4 transition-all duration-700 max-w-[350px]">
 						<img
 							src={place.photos[0]}
 							alt="Imagem da acomodação"

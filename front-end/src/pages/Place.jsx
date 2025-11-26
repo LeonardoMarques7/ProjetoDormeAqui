@@ -170,14 +170,14 @@ const Place = () => {
 
 	if (guests > place.guests) {
 		showMessage(
-			`Limite de convidados atingido! Nº Máximo de convidados (${place.guests} pessoas)`,
+			`Limite de hóspedes atingido! Nº Máximo de hóspedes (${place.guests} pessoas)`,
 			"error"
 		);
 		setGuests(place.guests);
 	}
 
 	if (guests <= 0) {
-		showMessage(`Atenção! Nº Mínimo de convidados (1 pessoa)`, "error");
+		showMessage(`Atenção! Nº Mínimo de hóspedes (1 pessoa)`, "error");
 		setGuests(1);
 	}
 
@@ -333,7 +333,7 @@ const Place = () => {
 							</div>
 							<span className="flex gap-2 items-center">
 								<Users color="black" size={20} />
-								Nº máximo de convidados: {place.guests}
+								Nº máximo de hóspedes: {place.guests}
 							</span>
 						</div>
 						<div className="bg-primary-100/50 p-4 rounded-md">
@@ -426,9 +426,9 @@ const Place = () => {
 								</div>
 							</div>
 
-							{/* Convidados */}
+							{/* Hóspedes */}
 							<div className="py-2 flex flex-col gap-2 justify-center sm:mx-auto sm:w-full ">
-								<p className="font-bold px-3 sm:px-0">Nº Convidados</p>
+								<p className="font-bold px-3 sm:px-0">Nº Hóspedes</p>
 								<input
 									type="number"
 									value={guests ? guests : 1}

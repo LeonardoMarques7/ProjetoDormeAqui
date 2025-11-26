@@ -304,7 +304,7 @@ const NewPlace = () => {
 						Restrições e Preço
 						<p className="text-sm font-normal">
 							Defina o preço, horários de check-in e check-out e também o número
-							máximo de convidados.
+							máximo de hóspedes.
 						</p>
 					</h2>
 					<div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
@@ -376,7 +376,7 @@ const NewPlace = () => {
 								htmlFor="guests"
 								className="text-[1rem] ml-2  font-medium text-gray-600"
 							>
-								Nº Convidados
+								Nº Hóspedes
 							</label>
 							<div className="group__input relative flex justify-center items-center">
 								<Users className="absolute left-4 text-gray-400 size-6" />
@@ -522,7 +522,7 @@ const NewPlace = () => {
 							</span>
 							<span className="flex gap-2 items-center">
 								<Users color="gray" size={20} />
-								Nº máximo de convidados: {guests ? <>{guests}</> : "A definir"}
+								Nº máximo de hóspedes: {guests ? <>{guests}</> : "A definir"}
 							</span>
 						</span>
 						<span className="text-start flex flex-col">

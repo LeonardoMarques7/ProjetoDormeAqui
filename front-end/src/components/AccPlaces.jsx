@@ -74,7 +74,7 @@ const AccPlaces = () => {
 			<div className="h-full">
 				{action !== "new" ? <Places places={places} /> : <NewPlace />}
 			</div>
-			<div className="bg-primary-500 shadow-2xl shadow-gray-500 p-4 flex justify-center items-center fixed right-5 bottom-5 h-fit w-fit rounded-full">
+			<div className="bg-primary-500 z-100 shadow-2xl shadow-gray-500 p-4 flex justify-center items-center fixed right-5 bottom-5 h-fit w-fit rounded-full">
 				<Link
 					to="/account/places/new"
 					className="group flex justify-center items-center transition-all duration-500 hover:gap-5"

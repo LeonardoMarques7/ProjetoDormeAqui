@@ -67,7 +67,7 @@ const Places = ({ places }) => {
 	});
 
 	return (
-		<div className="container__places mx-auto justify-center max-w-full max-h-full h-full overflow-x-clip mt-[5svh] flex flex-col gap-50 p-8 lg:max-w-7xl">
+		<div className="container__places mx-auto justify-center max-w-full max-h-full h-full overflow-x-clip mt-[5svh] flex flex-col gap-10 p-8 lg:max-w-7xl">
 			{currentPlaces.map((place, id) => (
 				<div
 					key={id}
@@ -145,7 +145,7 @@ const Places = ({ places }) => {
 			))}
 
 			{totalPages > 1 && (
-				<Pagination className="mt-10 ">
+				<Pagination className="">
 					<PaginationContent className="mt-10 !list-none">
 						<PaginationItem>
 							<PaginationPrevious
