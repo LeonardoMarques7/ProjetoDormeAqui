@@ -12,6 +12,9 @@ const placeSchema = new Schema({
     checkin: String,
     checkout: String,                                         
     guests: Number,
+    rooms: Number,
+    beds: Number,
+    bathrooms: Number,
 });
 
 export default model("Place", placeSchema);

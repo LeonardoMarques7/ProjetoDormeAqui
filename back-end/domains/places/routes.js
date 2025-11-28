@@ -46,12 +46,25 @@ router.get("/owner", async (req, res) => {
 
 });
 
+router.get("/user/:userId", async (req, res) => {
+    const { userId } = req.params; 
+
+    try {
+        const placeDocs = await Place.find({ owner: userId });
+
+        res.json(placeDocs);
+    } catch (error) {
+        console.error("Erro ao buscar acomodações para o usuário:", userId, error);
+        res.status(500).json({ message: "Erro ao buscar acomodações do usuário.", error });
+    }
+});
+
 
 router.get("/:id", async (req, res) => {
     const { id: _id } = req.params;
 
     try {
-        const placeDoc = await Place.findOne({_id});
+        const placeDoc = await Place.findOne({_id}).populate('owner', '-password');
 
         res.json(placeDoc);
     } catch (error) {
@@ -80,7 +93,10 @@ router.put("/:id", async (req, res) => {
                 price,
                 checkin,
                 checkout,
-                guests
+                guests,
+                rooms,
+                beds,
+                bathrooms
             });
 
             res.json(updatePlaceDoc);
@@ -124,7 +140,10 @@ router.post("/", async (req, res) => {
                 price,
                 checkin,
                 checkout,
-                guests
+                guests,
+                rooms,
+                beds,
+                bathrooms
             });
 
             res.json(newPlaceDoc);

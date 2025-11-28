@@ -1,26 +1,10 @@
-import {
-	BedDouble,
-	CornerDownLeft,
-	Edit2,
-	ExternalLink,
-	MapPin,
-	Trash2,
-	Users,
-} from "lucide-react";
+import { Edit2, ExternalLink, MapPin, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-	Pagination,
-	PaginationContent,
-	PaginationItem,
-	PaginationLink,
-	PaginationNext,
-	PaginationPrevious,
-} from "@/components/ui/pagination";
 import ScrollReveal from "scrollreveal";
-import { motion } from "framer-motion";
 import MarkdownIt from "markdown-it";
 import Perk from "./Perk";
 import ScrollPlace from "./ScrollPlace";
+import PaginationControls from "./PaginationControls";
 
 const Places = ({ places }) => {
 	const [currentPage, setCurrentPage] = useState(1);
@@ -33,12 +17,6 @@ const Places = ({ places }) => {
 	const indexOfLastItem = currentPage * itemsPerPage;
 	const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 	const currentPlaces = places.slice(indexOfFirstItem, indexOfLastItem);
-
-	// Função para mudar de página
-	const handlePageChange = (pageNumber) => {
-		setCurrentPage(pageNumber);
-		window.scrollTo({ top: 0, behavior: "smooth" });
-	};
 
 	const handleDelete = async () => {
 		try {
@@ -144,50 +122,13 @@ const Places = ({ places }) => {
 				</div>
 			))}
 
-			{totalPages > 1 && (
-				<Pagination className="">
-					<PaginationContent className="mt-10 !list-none">
-						<PaginationItem>
-							<PaginationPrevious
-								onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-								className={
-									currentPage === 1
-										? "pointer-events-none opacity-50"
-										: "cursor-pointer"
-								}
-							/>
-						</PaginationItem>
-
-						{[...Array(totalPages)].map((_, index) => {
-							const pageNumber = index + 1;
-							return (
-								<PaginationItem key={pageNumber}>
-									<PaginationLink
-										onClick={() => handlePageChange(pageNumber)}
-										isActive={currentPage === pageNumber}
-										className="cursor-pointer"
-									>
-										{pageNumber}
-									</PaginationLink>
-								</PaginationItem>
-							);
-						})}
-
-						<PaginationItem>
-							<PaginationNext
-								onClick={() =>
-									handlePageChange(Math.min(totalPages, currentPage + 1))
-								}
-								className={
-									currentPage === totalPages
-										? "pointer-events-none opacity-50"
-										: "cursor-pointer"
-								}
-							/>
-						</PaginationItem>
-					</PaginationContent>
-				</Pagination>
-			)}
+			{/* Componente de paginação reutilizável */}
+			<PaginationControls
+				currentPage={currentPage}
+				totalPages={totalPages}
+				onPageChange={setCurrentPage}
+				scrollToTop={true}
+			/>
 		</div>
 	);
 };

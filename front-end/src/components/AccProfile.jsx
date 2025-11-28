@@ -40,9 +40,15 @@ import Banner from "../assets/banner.png";
 const AccProfile = () => {
 	const { user, setUser } = useUserContext();
 	const { state } = useLocation();
-	const [id, setId] = useState(user ? user.id || user._id : null);
-	const { action } = useParams();
-	const [userID, setUserId] = useState([]);
+	const params = useParams();
+
+	// Quando a URL é /account/profile/:id, o :id vai para params.action
+	// Quando a URL é /account/profile/edit, o "edit" vai para params.action
+	// Precisamos verificar qual é qual
+	const isEditMode = params.action === "edit";
+	const paramId = isEditMode ? params.id : params.action;
+
+	const [profileUser, setProfileUser] = useState(null);
 	const [moblie, setIsMoblie] = useState(window.innerWidth <= 768);
 	const [redirect, setRedirect] = useState(false);
 	const [api, setApi] = useState(null);
@@ -50,7 +56,7 @@ const AccProfile = () => {
 	const [count, setCount] = useState(0);
 	const [isPlaying, setIsPlaying] = useState(true);
 	const [places, setPlaces] = useState([]);
-	const [ready, setReady] = useState();
+	const [ready, setReady] = useState(false);
 	const [onDelete, setOnDelete] = useState(false);
 	const [initialValues, setInitialValues] = useState(null);
 
@@ -63,17 +69,29 @@ const AccProfile = () => {
 	);
 
 	useEffect(() => {
-		if (user?._id) {
-			const axiosGet = async () => {
-				const { data } = await axios.get(`/users/${user._id}`);
+		const fetchProfile = async () => {
+			try {
+				// Se tem paramId, usa ele. Senão, usa o ID do usuário logado
+				const userId = paramId || user?._id;
+				if (!userId) return;
 
-				setUser(data);
+				console.log("Buscando perfil para userId:", userId);
+				console.log("paramId:", paramId);
+				console.log("user._id:", user?._id);
+
+				const { data } = await axios.get(`/users/${userId}`);
+
+				console.log("Dados recebidos:", data);
+				setProfileUser(data);
 				setReady(true);
-			};
+			} catch (error) {
+				console.error("Erro ao buscar perfil:", error);
+				setReady(true);
+			}
+		};
 
-			axiosGet();
-		}
-	}, [state?.updated]);
+		fetchProfile();
+	}, [paramId, user?._id, state?.updated]);
 
 	useEffect(() => {
 		if (!api) return;
@@ -87,12 +105,33 @@ const AccProfile = () => {
 	}, [api]);
 
 	useEffect(() => {
-		const axiosGet = async () => {
-			const { data } = await axios.get("/places/owner");
-			setPlaces(data);
+		const fetchPlaces = async () => {
+			try {
+				const userId = paramId || user?._id;
+
+				if (!userId || userId === "false") {
+					return;
+				}
+
+				console.log("Buscando places para userId:", userId); // Comparação de strings para garantir que o endpoint é montado corretamente
+
+				const isOwnProfile = !paramId || String(paramId) === String(user?._id);
+				const endpoint = isOwnProfile
+					? "/places/owner"
+					: `/places/user/${userId}`; // Endpoint para o perfil de outro usuário
+
+				console.log("Endpoint usado:", endpoint);
+				const { data } = await axios.get(endpoint);
+				setPlaces(data);
+			} catch (error) {
+				console.error("Erro ao buscar anúncios:", error);
+			}
 		};
-		axiosGet();
-	}, []); // só executa uma vez no mount
+
+		if (ready && profileUser) {
+			fetchPlaces();
+		}
+	}, [paramId, user?._id, ready, profileUser]);
 
 	useEffect(() => {
 		const handleResize = () => setIsMoblie(window.innerWidth <= 768);
@@ -132,12 +171,20 @@ const AccProfile = () => {
 		}
 	};
 
+	// Precisa definir isEditMode antes dos returns condicionais
+	const isEditingProfile = params.action === "edit";
+
 	if (!ready) return <Loading />;
 	if (redirect) return <Navigate to="/" state={{ updated: true }} />;
+	if (!profileUser && !isEditingProfile) return <Loading />;
+
+	const displayUser = profileUser;
+	// Verifica se está visualizando o próprio perfil
+	const isOwnProfile = !paramId || String(paramId) === String(user?._id);
 
 	return (
 		<>
-			{action !== "edit" ? (
+			{!isEditingProfile ? (
 				<>
 					<div
 						className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
@@ -157,46 +204,51 @@ const AccProfile = () => {
 							<div className="avatar__btn flex gap-5 items-center justify-start relative">
 								{/* Avatar sobreposto */}
 								<div className="icon__perfil relative w-40 h-40 rounded-full border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
-									{user.photo ? (
+									{displayUser.photo ? (
 										<img
-											src={user.photo}
+											src={displayUser.photo}
 											className="w-full h-full object-cover rounded-full"
-										></img>
+											alt={displayUser.name}
+										/>
 									) : (
-										user.name.charAt(0)
+										displayUser.name.charAt(0)
 									)}
 								</div>
 								<h1 className="container__name flex-1 mb-10 text-4xl font-bold text-white flex justify-start items-end gap-3">
-									{user.name}
+									{displayUser.name}
 									<span className="text-lg font-normal text-white">
 										Ele/Dele
 									</span>
 								</h1>
 
-								{/* Botão de editar */}
-								<div className="flex items-center mb-10  gap-5 text-white">
-									<Link
-										to="/account/profile/edit"
-										className={`group flex cursor-pointer  justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full`}
-									>
-										<Pen size={18} />
-										<span className="hidden group-hover:inline pl-2">
-											Editar perfil
-										</span>
-									</Link>
-									<button
-										onClick={logout}
-										className=" group flex cursor-pointer  justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full"
-									>
-										<LogOut size={18} />
-										<span className="hidden group-hover:inline pl-2">Sair</span>
-									</button>
-								</div>
+								{/* Botão de editar - só mostra se for o próprio perfil */}
+								{isOwnProfile && (
+									<div className="flex items-center mb-10  gap-5 text-white">
+										<Link
+											to="/account/profile/edit"
+											className={`group flex cursor-pointer  justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full`}
+										>
+											<Pen size={18} />
+											<span className="hidden group-hover:inline pl-2">
+												Editar perfil
+											</span>
+										</Link>
+										<button
+											onClick={logout}
+											className=" group flex cursor-pointer  justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full"
+										>
+											<LogOut size={18} />
+											<span className="hidden group-hover:inline pl-2">
+												Sair
+											</span>
+										</button>
+									</div>
+								)}
 							</div>
 
 							{moblie ? (
 								<span className="text-3xl bg-red text-nowrap font-bold truncate flex-col flex justify-center items-center gap-3">
-									<h1>Leonardo Marques</h1>
+									<h1>{displayUser.name}</h1>
 									<span className="text-lg font-normal text-gray-300">
 										Ele/Dele
 									</span>
@@ -206,15 +258,15 @@ const AccProfile = () => {
 							)}
 
 							{/* Informações de contato */}
-							<div className="flex flex-wrap gap-4 ${} text-gray-500 mt-4">
+							<div className="flex flex-wrap gap-4 text-gray-500 mt-4">
 								<span className="flex items-center gap-2">
-									<MapPin size={18} /> {user.city}
+									<MapPin size={18} /> {displayUser.city}
 								</span>
 								<span className="flex items-center gap-2">
-									<Mail size={18} /> {user.email}
+									<Mail size={18} /> {displayUser.email}
 								</span>
 								<span className="flex items-center gap-2">
-									<Phone size={18} /> {user.phone}
+									<Phone size={18} /> {displayUser.phone}
 								</span>
 							</div>
 
@@ -227,14 +279,15 @@ const AccProfile = () => {
 									</span>
 								</span>
 								<div className="text__bio max-w-xl flex flex-col gap-2 leading-relaxed text-gray-600 mt-4">
-									{user.bio}
+									{displayUser.bio}
 								</div>
 							</div>
 
 							{/* Meus anúncios */}
 							<div>
 								<h2 className="text-2xl my-5 font-medium">
-									Meus Anúncios ({places.length})
+									{isOwnProfile ? "Meus Anúncios" : "Anúncios"} ({places.length}
+									)
 								</h2>
 								<div className="grid__anuncios grid grid-cols-[repeat(auto-fit,minmax(250px,250px))] gap-8 md:max-w-7xl mx-auto">
 									{places.map((item) => (
@@ -264,7 +317,7 @@ const AccProfile = () => {
 									))}
 								</div>
 							</div>
-							<DeleteAccountDialog onDelete={handleDelete} />
+							{isOwnProfile && <DeleteAccountDialog onDelete={handleDelete} />}
 						</div>
 					</div>
 				</>

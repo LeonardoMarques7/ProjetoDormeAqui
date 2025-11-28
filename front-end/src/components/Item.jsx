@@ -1,8 +1,15 @@
 import { Link } from "react-router-dom";
 import image1 from "../assets/lugares/image__1.jpg";
 import { Skeleton } from "@mantine/core";
+import MarkdownIt from "markdown-it";
 
 const Item = ({ place = null, placeHolder }) => {
+	const md = new MarkdownIt({
+		html: false,
+		breaks: true,
+		linkify: true,
+	});
+
 	return (
 		<>
 			{placeHolder ? (
@@ -22,10 +29,15 @@ const Item = ({ place = null, placeHolder }) => {
 							src={place.photos[0]}
 							alt="Imagem da acomodação"
 							className="aspect-square object-cover rounded-2xl"
-						/>
+						/>{" "}
 						<div className="">
 							<h3 className="text-xl font-semibold">{place.city}</h3>
-							<p className="line-clamp-2 text-gray-600">{place.description}</p>
+							<p
+								className="line-clamp-2 text-gray-600"
+								dangerouslySetInnerHTML={{
+									__html: md.render(place.description),
+								}}
+							></p>
 						</div>
 						<p>
 							<span className="font-semibold">{place.price}</span> por noite
