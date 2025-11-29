@@ -8,6 +8,7 @@ import {
 	CalendarArrowUpIcon,
 	ChevronRight,
 	Clock,
+	Edit2,
 	Expand,
 	ExternalLink,
 	Home,
@@ -117,7 +118,7 @@ const Place = () => {
 
 	useEffect(() => {
 		if (booking) {
-			showMessage("Você possue uma reserva nesta acomodação!", "error");
+			showMessage("Você possue uma reserva nesta acomodação!", "info");
 		}
 	}, [booking]);
 
@@ -225,64 +226,27 @@ const Place = () => {
 			>
 				<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
 				{/* Conteúdo */}
-				<div className="relative flex flex-col justify-center items-center h-full gap-4">
-					<h1 className="font-bold text-5xl text-white drop-shadow-lg">
+				<div className="relative flex justify-between items-end pb-30 px-8 h-full gap-4">
+					<div className="font-light text-4xl flex flex-col gap-2 text-white drop-shadow-lg">
 						{place.title}
-					</h1>
-					<div className=" px-0  text-center flex justify-center items-center flex-col w-full">
-						<div className="flex gap-4 items-center justify-start text-white mt-4 max-w-auto">
-							<div className="flex gap-2 rounded-2xl items-center ">
-								<div className="flex items-center gap-2">
-									<Users2 size={15} />
-									<div className="text-sm">{place.guests} Hóspedes</div>
-								</div>
-							</div>
-							<div className="w-1 rounded-full h-1 bg-gray-200"></div>
-							<div className="flex gap-2  rounded-2xl items-center ">
-								<div className="flex items-center gap-2">
-									<HomeIcon size={15} />
-									{place.rooms || rooms > 1 ? (
-										<p className="text-sm">
-											<span className="">{place.rooms}</span> Quartos
-										</p>
-									) : (
-										<p className="text-sm">
-											<span className="">{place.rooms}</span> Quarto
-										</p>
-									)}
-								</div>
-							</div>
-							<div className="w-1 rounded-full h-1 bg-gray-200"></div>
-							<div className="flex gap-2 rounded-2xl items-center ">
-								<div className="flex items-center gap-2">
-									<Bed size={15} />
-									{place.beds || beds > 1 ? (
-										<p className="text-sm">
-											<span className="">{place.beds}</span> Camas
-										</p>
-									) : (
-										<p className="text-sm">
-											<span className="">{place.beds}</span> Cama
-										</p>
-									)}
-								</div>
-							</div>
-							<div className="w-1 rounded-full h-1 bg-gray-200"></div>
-							<div className="flex gap-2 rounded-2xl items-center ">
-								<div className="flex items-center gap-2">
-									<BathIcon size={15} />
-									{place.bathrooms || bathrooms > 1 ? (
-										<p className="text-sm ">
-											<span className="mr-2">{place.bathrooms}</span> Banheiros
-										</p>
-									) : (
-										<p className="text-sm">
-											<span className="">{place.bathrooms}</span> Banheiro
-										</p>
-									)}
-								</div>
-							</div>
+						<div className="flex text-sm items-center text-gray-100 gap-2">
+							<MapPin size={15} />
+							<span>{place.city}</span>
 						</div>
+					</div>
+					<div>
+						<a
+							href={`/account/places/new/${place._id}`}
+							className="edit__btn group cursor-pointer flex items-center hover:text-primary-500 justify-center transition-all duration-300 ease-in-out px-5 hover:px-6 hover:bg-white gap-0 hover:gap-3 text-white rounded-2xl text-center py-2.5 overflow-hidden"
+						>
+							<Edit2
+								size={18}
+								className="transition-transform group-hover:text-primary-500 duration-300 group-hover:scale-110"
+							/>
+							<span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
+								Editar
+							</span>
+						</a>
 					</div>
 				</div>
 			</div>
@@ -490,7 +454,7 @@ const Place = () => {
 								</p>
 							</div>
 							{/* Checkin e Checkout */}
-							<div className="column__check flex justify-center sm:justify-start">
+							<div className="column__check flex justify-start sm:justify-start">
 								<div className="flex items-center gap-4 w-full">
 									{/* Check-in */}
 									<div className="">
@@ -498,7 +462,7 @@ const Place = () => {
 										<Calendar
 											mode="single"
 											selected={checkin} // já começa selecionado
-											onSelect={setCheckin}
+											onSelect={handleCheckin}
 											initialFocus
 										/>
 									</div>
@@ -510,7 +474,7 @@ const Place = () => {
 										<Calendar
 											mode="single"
 											selected={checkout}
-											onSelect={setCheckout}
+											onSelect={handleCheckout}
 											initialFocus
 										/>
 									</div>
@@ -519,15 +483,29 @@ const Place = () => {
 
 							{/* Hóspedes */}
 							{/* Hóspedes */}
-							<div className="py-2 flex flex-col gap-2 justify-center sm:mx-auto sm:w-full ">
-								<p className="font-bold px-3 sm:px-0">Hóspedes</p>
+							<div className="py-2 flex flex-col gap-4 justify-center sm:mx-auto sm:w-full ">
+								<div
+									className="
+								"
+								>
+									<p className="font-bold px-3 sm:px-0">Hóspedes</p>
+									{!limiteGuests ? (
+										<p className="text-sm text-gray-500 px-3 sm:px-0">
+											Hospedagem para até {place.guests} pessoas.
+										</p>
+									) : (
+										<p className="text-sm text-red-500 px-3 sm:px-0">
+											{limiteGuests}
+										</p>
+									)}
+								</div>
 								<div className="flex items-center text-center justify-center p-0 h-full w-fit border rounded-2xl">
 									<div
-										className="flex items-center pr-6 grow text-center w-full
+										className="flex items-center grow text-center w-full
 									"
 									>
 										<input
-											className="outline-1 h-11 rounded-l-2xl w-10 mr-4 px-4"
+											className="outline-1 h-11 rounded-l-2xl w-10 px-4"
 											type="number "
 											id="quantity-input"
 											placeholder="1"
@@ -535,9 +513,6 @@ const Place = () => {
 											value={guests}
 											readOnly
 										/>
-										<p className="max-w-20 w-20">
-											{guests > 1 ? <>Hóspedes</> : <>Hóspede</>}
-										</p>
 									</div>
 									<div className="flex items-center">
 										<button
@@ -574,16 +549,6 @@ const Place = () => {
 										</button>
 									</div>
 								</div>
-
-								{!limiteGuests ? (
-									<p className="text-sm text-gray-500 px-3 sm:px-0">
-										Hospedagem para até {place.guests} pessoas.
-									</p>
-								) : (
-									<p className="text-sm text-red-500 px-3 sm:px-0">
-										{limiteGuests}
-									</p>
-								)}
 							</div>
 							{user ? (
 								<button

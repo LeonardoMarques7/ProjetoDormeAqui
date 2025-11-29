@@ -11,8 +11,9 @@ import { sendToS3, uploadImage } from "../controller.js";
 const router = Router();
 const bcryptSalt = bcrypt.genSaltSync();
 
+connectDb();
+
 router.get("/", async (req, res) => {
-  connectDb();
 
   try {
     const userDoc = await User.find();
@@ -29,7 +30,6 @@ router.get("/profile", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  connectDb();
 
   const { name, email, password } = req.body;
   const encryptedPassword = bcrypt.hashSync(password, bcryptSalt);
@@ -116,7 +116,6 @@ router.post("/upload", uploadImage().single("files"), async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
-  connectDb();
 
   const { id: _id } = req.params;
 
@@ -147,7 +146,6 @@ router.put("/:id", async (req, res) => {
 
 
 router.post("/login", async (req, res) => {
-  connectDb();
 
   const { email, password } = req.body;
 

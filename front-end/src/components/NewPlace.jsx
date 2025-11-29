@@ -28,10 +28,16 @@ import {
 	CalendarArrowDown,
 	CalendarArrowUp,
 	Camera,
+	ChevronLeftIcon,
+	ChevronRight,
 	DollarSign,
+	Expand,
+	ExternalLink,
+	Eye,
 	Home,
 	ImagePlus,
 	MapPin,
+	Monitor,
 	NotepadTextDashed,
 	SaveAllIcon,
 	Search,
@@ -43,6 +49,7 @@ import PhotosUploader from "./PhotosUploader";
 import { useMoblieContext } from "./contexts/MoblieContext";
 import { MarkdownEditor, MarkdownEditor2 } from "./ui/MarkdownEditor";
 import Preview from "./Preview";
+import { PreviewToggle } from "./PreviewToggle";
 
 const NewPlace = () => {
 	const { user } = useUserContext();
@@ -194,7 +201,7 @@ const NewPlace = () => {
 
 	return (
 		<div className="relative w-full ">
-			<div className="container__prev__form flex p-10 bg-white/80  rounded-2xl backdrop-blur-xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
+			<div className="container__prev__form relative flex p-10 bg-white/80  rounded-2xl backdrop-blur-xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
 				<form
 					onSubmit={handleSubmit}
 					className="container__form pb-30 flex grow flex-col gap-10 w-full"
@@ -252,7 +259,7 @@ const NewPlace = () => {
 						{...{ photolink, setPhotoLink, photos, setPhotos, showMessage }}
 					/>
 
-					<div className="label__input text-start flex flex-col  gap-5 w-full">
+					<div className="label__input text-start justify-start flex flex-col  gap-5 w-full">
 						<label
 							htmlFor="description"
 							className="text-2xl ml-2 font-medium text-gray-600"
@@ -263,7 +270,7 @@ const NewPlace = () => {
 								o que o torna especial.
 							</div>
 						</label>
-						<div classsame="group__input relative flex justify-center items-center">
+						<div classsame="group__input">
 							<MarkdownEditor
 								onChange={(descriptionText) => setDescription(descriptionText)}
 								initialValue={description}
@@ -407,7 +414,10 @@ const NewPlace = () => {
 					</div>
 				</form>
 				{/* Preview */}
-				<Preview data={formData} />
+				{/* Toggle do preview */}
+				<PreviewToggle formData={formData} />
+
+				{/* Preview aparece somente quando showPreview for true */}
 			</div>
 		</div>
 	);

@@ -84,7 +84,7 @@ function BaseMarkdownEditor({ onChange, initialValue }) {
 	);
 
 	return (
-		<div className="bg-white rounded-2xl max-w-5xl mx-auto w-full shadow-lg overflow-hidden">
+		<div className="bg-white rounded-2xl max-w-5xl w-full shadow-lg overflow-hidden">
 			{/* Toolbar */}
 			<div className="bg-gray-50 relative border-b border-gray-200 px-6 py-4">
 				<span className="absolute botto-5 right-5">

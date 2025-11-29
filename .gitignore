@@ -5,3 +5,6 @@ dist
 tmp/
 
 /front-end/node_modules/
+/back-end/seed.js
+/back-end/seed
+seed.js
