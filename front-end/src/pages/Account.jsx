@@ -9,8 +9,7 @@ import Loading from "../components/Loading";
 import Teste2 from "./Teste2";
 
 const Account = () => {
-	const { subpage } = useParams();
-	const { id } = useParams();
+	const { subpage, id, action } = useParams();
 	const [shouldRedirect, setShouldRedirect] = useState(false);
 	const { user, ready } = useUserContext();
 
@@ -29,11 +28,13 @@ const Account = () => {
 		return <Loading />;
 	}
 
+	const bookingId = action || id;
+
 	return (
 		<div className="flex flex-col gap-4">
 			{subpage === "profile" && <AccProfile />}
 			{subpage === "places" && <AccPlaces />}
-			{subpage === "bookings" && <AccBookings />}
+			{subpage === "bookings" && <AccBookings bookingId={bookingId} />}
 		</div>
 	);
 };

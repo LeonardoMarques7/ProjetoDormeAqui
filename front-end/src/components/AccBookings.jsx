@@ -7,7 +7,7 @@ import Loading from "./Loading";
 import Banner from "../assets/banner.png";
 import { useUserContext } from "./contexts/UserContext";
 
-const AccBookings = () => {
+const AccBookings = ({ bookingId }) => {
 	const [bookings, setBookings] = useState([]);
 	const { action } = useParams();
 	const [readyBookings, setReadyBookings] = useState(false);
@@ -52,7 +52,7 @@ const AccBookings = () => {
 						Seu diário de viagens está vazio.
 					</h2>
 				) : (
-					<BookingAll bookingsArray={bookings} />
+					<BookingAll bookingsArray={bookings} bookingId={bookingId} />
 				)}
 			</div>
 		</>

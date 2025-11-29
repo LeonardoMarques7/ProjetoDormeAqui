@@ -5,6 +5,7 @@ import {
 	Bed,
 	BedDouble,
 	CalendarArrowDown,
+	CalendarArrowUp,
 	CalendarArrowUpIcon,
 	ChevronRight,
 	Clock,
@@ -225,34 +226,10 @@ const Place = () => {
 				}}
 			>
 				<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
-				{/* Conteúdo */}
-				<div className="relative flex justify-between items-end pb-30 px-8 h-full gap-4">
-					<div className="font-light text-4xl flex flex-col gap-2 text-white drop-shadow-lg">
-						{place.title}
-						<div className="flex text-sm items-center text-gray-100 gap-2">
-							<MapPin size={15} />
-							<span>{place.city}</span>
-						</div>
-					</div>
-					<div>
-						<a
-							href={`/account/places/new/${place._id}`}
-							className="edit__btn group cursor-pointer flex items-center hover:text-primary-500 justify-center transition-all duration-300 ease-in-out px-5 hover:px-6 hover:bg-white gap-0 hover:gap-3 text-white rounded-2xl text-center py-2.5 overflow-hidden"
-						>
-							<Edit2
-								size={18}
-								className="transition-transform group-hover:text-primary-500 duration-300 group-hover:scale-110"
-							/>
-							<span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
-								Editar
-							</span>
-						</a>
-					</div>
-				</div>
 			</div>
 			<div className="container__infos lg:max-w-7xl mx-auto flex flex-col gap-2">
 				<div
-					className={`-mt-20 bg-white p-2 relative grid sm:grid-cols-[2fr_1fr] mx-4  aspect-square sm:grid-rows-2 sm:aspect-[3/2] gap-5 overflow-hidden rounded-2xl hover:opacity-95 cursor-pointer`}
+					className={`-mt-50 bg-white p-2 relative grid sm:grid-cols-[2fr_1fr] mx-4  aspect-square sm:grid-rows-2 sm:aspect-[3/2] gap-5 overflow-hidden rounded-2xl hover:opacity-95 cursor-pointer`}
 				>
 					{place.photos
 						.filter((photo, index) => index < 3)
@@ -294,7 +271,7 @@ const Place = () => {
 				/>
 				{/* Conteúdo da acomodação */}
 				<div className="grid grid-cols-1 gap-20 md:grid-cols-2 mx-8">
-					<div className="order-2 leading-relaxed px-0 md:order-none description  	">
+					<div className="order-2 leading-relaxed px-0 md:order-none description ">
 						<div className=" py-4 px-0  w-full">
 							<div className="flex flex-col  gap-2">
 								<div className="text-4xl font-bold text-gray-700 ">
@@ -345,7 +322,7 @@ const Place = () => {
 								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 								<div className="flex gap-2 rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<Bed size={15} />
+										<Bath size={15} />
 										{place.bathrooms || bathrooms > 1 ? (
 											<p className="text-sm ">
 												<span className="mr-2">{place.bathrooms}</span>{" "}
@@ -441,7 +418,66 @@ const Place = () => {
 
 					{/* Booking */}
 					{booking ? (
-						<></>
+						<div className="section__booking h-fit bg-white backdrop-blur-2xl ml-auto lg:max-w-5xl shadow-xl shadow-primary-200/50 rounded-2xl">
+							<div className="ticket__booking h-fit bg-white/80 relative cursor-pointer flex rounded-2xl border  border-primary-100 gap-5 ">
+								<div className="flex flex-col items-start gap-2 w-full  text-gray-500 p-5">
+									<div className="flex flex-col gap-1 w-full text-start header__ticket">
+										<div className="text-primary-600 flex justify-between items-center text-sm font-medium uppercase">
+											Seu Ticket de Reserva
+											<Link
+												to={`../account/bookings/${booking._id}`}
+												className="group cursor-pointer -fit hover:bg-primary-600 hover:text-white px-5 hover:px-6 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-2xl text-center py-2 overflow-hidden"
+											>
+												<span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
+													Acessar reserva
+												</span>
+												<ExternalLink
+													size={18}
+													className="transition-transform text-primary-500 group-hover:text-white duration-300 group-hover:scale-110"
+												/>
+											</Link>
+										</div>
+										<h2 className="text-2xl font-bold text-black">
+											{booking.place.title}
+										</h2>
+										<p className="items-center location__ticket flex gap-2">
+											<MapPin size={18} /> {booking.place.city}
+										</p>
+										<hr className="mb-0 mt-3 w-full border-gray-200" />
+									</div>
+									<div className="grow">
+										<div className="flex gap-6 infos__ticket my-2">
+											<span className="gap-5 items-start flex">
+												<span className="item-2 flex gap-2  flex-col items-start">
+													<p className=" ">Check-in</p>
+													<p className="flex items-center gap-2 text-gray-700 font-medium">
+														<CalendarArrowUp
+															size={18}
+															className="text-primary-500"
+														/>
+														{new Date(booking.checkin).toLocaleDateString(
+															"pt-br"
+														)}
+													</p>
+												</span>
+												<span className="item-4 flex gap-2  flex-col items-start">
+													<p className=" ">Check-out</p>
+													<p className="flex items-center gap-2 text-gray-700 font-medium">
+														<CalendarArrowDown
+															size={20}
+															className="text-primary-500"
+														/>
+														{new Date(booking.checkout).toLocaleDateString(
+															"pt-br"
+														)}
+													</p>
+												</span>
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
 					) : (
 						<form className="form__place order-1 w-full md:order-none justify-self-end self-start sticky top-20 bottom-20 flex flex-col gap-4 rounded-2xl p-10">
 							<div className="border-l-2 border-primary-400 p-4">
