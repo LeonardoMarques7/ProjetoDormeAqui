@@ -7,6 +7,7 @@ import { nord } from "@milkdown/theme-nord";
 import { useUserContext } from "../components/contexts/UserContext";
 import verify from "../assets/verify.png";
 import { withMask } from "use-mask-input";
+import { Select } from "@base-ui-components/react/select";
 
 import "./EditProfile.css";
 
@@ -28,11 +29,13 @@ import {
 	Phone,
 	SaveAllIcon,
 	Search,
+	Upload,
 	User,
 	Users,
 	Wifi,
 } from "lucide-react";
 import Loading from "./Loading";
+import { MarkdownEditor } from "./ui/MarkdownEditor";
 
 const EditProfile = ({ user }) => {
 	const id = user._id;
@@ -42,6 +45,7 @@ const EditProfile = ({ user }) => {
 	const [phone, setPhone] = useState(user.phone);
 	const [city, setCity] = useState(user.city);
 	const [bio, setBio] = useState(user.bio);
+	const [pronouns, setPronouns] = useState(user.pronouns);
 	const [photo, setPhoto] = useState(user.photo);
 	const [redirect, setRedirect] = useState(false);
 
@@ -56,6 +60,7 @@ const EditProfile = ({ user }) => {
 				setName(data.name);
 				setEmail(data.email);
 				setPhone(data.phone);
+				setPronouns(data.pronouns);
 				setPhoto(data.photo);
 				setCity(data.city);
 				setBio(data.bio);
@@ -99,6 +104,7 @@ const EditProfile = ({ user }) => {
 						email,
 						photo,
 						phone,
+						pronouns,
 						city,
 						bio,
 					});
@@ -131,28 +137,40 @@ const EditProfile = ({ user }) => {
 
 			<form
 				onSubmit={handleSubmit}
-				className="container__form pb-30 flex grow flex-col gap-4 w-full max-w-2xl"
+				className="container__form pb-30 flex grow flex-col gap-5 w-full max-w-2xl"
 			>
-				<div className="flex flex-col items-start justify-center gap-5">
-					<div className="icon__perfil relative w-40 h-40 top-0 rounded-full border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
-						{photo ? (
-							<img
-								src={photo}
-								alt="Foto de perfil"
-								className="w-full h-full object-cover rounded-full"
-							/>
-						) : (
-							name[0]
-						)}
+				<div className="container__profile mx-auto w-full lg:max-w-7xl  relative -mt-40">
+					<div className="flex flex-col gap-5 relative">
+						{/* Header do perfil (avatar + botão) */}
+						<div className="avatar__btn flex gap-5 items-center justify-start relative">
+							{/* Avatar sobreposto */}
+							<div className="icon__perfil relative w-40 h-40 rounded-full border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
+								{photo ? (
+									<img
+										src={photo}
+										className="w-full h-full object-cover rounded-full"
+										alt={name}
+									/>
+								) : (
+									name.charAt(0)
+								)}
+							</div>
+						</div>
 					</div>
-					<label htmlFor="file" className="">
+				</div>
+				<div className="flex flex-col items-start justify-center w-full gap-5">
+					<label
+						htmlFor="file"
+						className="label__input text-start flex flex-col gap-2 w-full	"
+					>
 						<label
 							htmlFor="name"
 							className="text-2xl ml-2 font-medium text-gray-600"
 						>
 							Foto
+							<div className="text-sm font-normal">Selecione sua foto.</div>
 						</label>
-						<div className="group__input relative border border-gray-300 border-dashed cursor-pointer hover:border-primary-400 hover:bg-primary-100/25 px-14 py-4 rounded-2xl w-full outline-primary-400  flex justify-center items-center">
+						<div className="group__input flex-1 w-full relative border border-gray-300 cursor-pointer hover:border-primary-400 hover:bg-primary-100/25 pl-14 pr-5 py-4 rounded-2xl outline-primary-400  flex justify-center items-center">
 							<input
 								type="file"
 								id="file"
@@ -161,9 +179,12 @@ const EditProfile = ({ user }) => {
 								accept="image/*"
 							/>
 							<Camera className="absolute left-4 text-gray-400 size-6" />
-							<p className=" text-gray-500 transition-all duration-500  ">
-								Selecionar a foto
-							</p>
+							<div className="flex items-center w-full justify-start">
+								<p className=" text-gray-500 transition-all duration-500  ">
+									Selecionar a foto
+								</p>
+								<Upload className="ml-auto text-gray-400 size-6" />
+							</div>
 						</div>
 					</label>
 				</div>
@@ -173,6 +194,7 @@ const EditProfile = ({ user }) => {
 						className="text-2xl ml-2 font-medium text-gray-600"
 					>
 						Nome
+						<div className="text-sm font-normal">Preencha seu nome.</div>
 					</label>
 					<div className="group__input relative flex justify-center items-center">
 						<User className="absolute left-4 text-gray-400 size-6" />
@@ -190,10 +212,71 @@ const EditProfile = ({ user }) => {
 				</div>
 				<div className="label__input text-start flex flex-col gap-2 w-full">
 					<label
+						htmlFor="name"
+						className="text-2xl ml-2 font-medium text-gray-600"
+					>
+						Pronomes
+						<div className="text-sm font-normal">
+							Preencha seus pronomes. <strong>Campo Opcional</strong>
+						</div>
+					</label>
+					<div className="group__input relative flex justify-start items-center">
+						<div className="relative">
+							<select
+								value={pronouns}
+								onChange={(e) => {
+									setPronouns(e.target.value);
+								}}
+								className="w-full appearance-none rounded-xl border-2 border-slate-200 bg-white px-4 py-3 pr-10 text-sm font-medium text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 cursor-pointer"
+							>
+								<div className="!mt-2">
+									<option value="" disabled selected className="text-slate-400">
+										Escolha uma opção
+									</option>
+
+									<option value="Ele/Dele" className="py-2">
+										Ele/Dele
+									</option>
+									<option value="Ela/Dela" className="py-2">
+										Ela/Dela
+									</option>
+									<option value="Elu/Delu" className="py-2">
+										Elu/Delu
+									</option>
+									<option value="Outro" className="py-2">
+										Outro
+									</option>
+									<option value="Prefiro não dizer" className="py-2">
+										Prefiro não dizer
+									</option>
+								</div>
+							</select>
+
+							<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
+								<svg
+									className="h-5 w-5 text-slate-400 transition-transform duration-200"
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+								>
+									<path
+										fillRule="evenodd"
+										d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+										clipRule="evenodd"
+									/>
+								</svg>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div className="label__input text-start flex flex-col gap-2 w-full">
+					<label
 						htmlFor="email"
 						className="text-2xl ml-2 font-medium text-gray-600"
 					>
 						E-mail
+						<div className="text-sm font-normal">Preencha seu e-mail.</div>
 					</label>
 					<div className="group__input relative flex justify-center items-center">
 						<Mail className="absolute left-4 text-gray-400 size-6" />
@@ -216,9 +299,13 @@ const EditProfile = ({ user }) => {
 						className="text-2xl ml-2 font-medium text-gray-600"
 					>
 						Telefone
+						<div className="text-sm font-normal">
+							Preencha seu número de celular, com formato (XX) XXXXX-XXXX.
+						</div>
 					</label>
 					<div className="group__input relative flex justify-center items-center">
 						<Phone className="absolute left-4 text-gray-400 size-6" />
+
 						<input
 							id="phone"
 							type="phone"
@@ -237,7 +324,10 @@ const EditProfile = ({ user }) => {
 						htmlFor="city"
 						className="text-2xl ml-2 font-medium text-gray-600"
 					>
-						Cidade e País
+						Cidade e Estado
+						<div className="text-sm font-normal">
+							Preencha sua cidade, Estado, com formato Barubigança, PO.
+						</div>
 					</label>
 					<div className="group__input relative flex justify-center items-center">
 						<MapPin className="absolute left-4 text-gray-400 size-6" />
@@ -253,25 +343,21 @@ const EditProfile = ({ user }) => {
 						/>
 					</div>
 				</div>
-
-				<div className="label__input text-start flex flex-col gap-2 w-full">
+				<div className="label__input text-start justify-start flex flex-col  gap-5 w-full">
 					<label
 						htmlFor="bio"
 						className="text-2xl ml-2 font-medium text-gray-600"
 					>
 						Bio
+						<div className="text-sm font-normal">
+							Descreva-se de forma clara, destacando seus interesses em
+							acomodações/hobbis/lugares.
+						</div>
 					</label>
-					<div className="group__input relative flex justify-center items-center">
-						<NotepadTextDashed className="absolute top-4.5 left-4 text-gray-400 size-6" />
-						<textarea
-							id="bio"
-							maxLength={5000}
-							placeholder="Digite a sua bio"
-							className="border border-gray-300 px-14 min-h-50 py-4 rounded-2xl w-full outline-primary-400 resize-none"
-							value={bio}
-							onChange={(e) => {
-								setBio(e.target.value);
-							}}
+					<div classsame="group__input">
+						<MarkdownEditor
+							onChange={(BioText) => setBio(BioText)}
+							initialValue={bio}
 						/>
 					</div>
 				</div>

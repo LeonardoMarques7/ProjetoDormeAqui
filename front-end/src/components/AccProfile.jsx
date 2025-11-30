@@ -217,7 +217,7 @@ const AccProfile = () => {
 								<h1 className="container__name flex-1 mb-10 text-4xl font-bold text-white flex justify-start items-end gap-3">
 									{displayUser.name}
 									<span className="text-lg font-normal text-white">
-										Ele/Dele
+										{displayUser.pronouns}
 									</span>
 								</h1>
 
@@ -324,12 +324,14 @@ const AccProfile = () => {
 			) : (
 				<>
 					<div
-						id="Perfil"
-						className="w-full bg-primary-500 relative h-[40svh] text-white flex flex-col justify-end items-start"
+						className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
+						style={{
+							backgroundImage: `url(${Banner})`,
+							rotate: "10",
+						}}
 					>
-						<h1 className="header__places flex items-center max-w-dvw font-bold  text-4xl px-8 lg:max-w-7xl mb-10 mx-auto w-full justify-between">
-							Editando perfil
-						</h1>
+						<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-700/25 to-primary-900/35"></div>
+						{/* Conteúdo */}
 					</div>
 					<EditProfile user={user} />
 				</>

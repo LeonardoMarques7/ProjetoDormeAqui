@@ -123,6 +123,7 @@ router.put("/:id", async (req, res) => {
 						email,
 						phone,
 						city,
+            pronouns,
 						photo,
 						bio } = req.body;
 
@@ -132,6 +133,7 @@ router.put("/:id", async (req, res) => {
 						email,
 						phone,
 						city,
+            pronouns,
 						photo,
 						bio
           });
