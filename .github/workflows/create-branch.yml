@@ -1,4 +1,7 @@
-name: Create Branch from Jira (with slug)
+name: Create Branch from Jira (slug fix)
+
+permissions:
+  contents: write
 
 on:
   repository_dispatch:
@@ -18,60 +21,46 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Segurança: garantir que ISSUE_KEY existe
-          if [ -z "${ISSUE_KEY:-}" ]; then
-            echo "ERRO: ISSUE_KEY vazio"
-            exit 1
-          fi
+          echo "Raw issue summary: $ISSUE_SUMMARY"
 
-          # 1) Converter sumário em ASCII (remover acentos) com iconv
-          SUMMARY_RAW="${ISSUE_SUMMARY:-}"
-          # Se SUMMARY_RAW for vazio, slug ficará vazio
-          if [ -z "$SUMMARY_RAW" ]; then
-            SLUG=""
-          else
-            # iconv translitera acentos: "ação" -> "acao"
-            # depois: substituir qualquer coisa que não seja alfanumérico por "-"
-            # lowercase, colapsar múltiplos "-", remover - iniciais/finais
-            SLUG=$(printf "%s" "$SUMMARY_RAW" \
-              | iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null || true \
-              | sed 's/[^a-zA-Z0-9]/-/g' \
-              | tr '[:upper:]' '[:lower:]' \
-              | sed 's/-\+/-/g' \
-              | sed 's/^-//' \
-              | sed 's/-$//' )
-          fi
+          RAW="$ISSUE_SUMMARY"
 
-          # 2) Limitar tamanho do slug (por exemplo, 50 chars)
-          MAX_SLUG=50
-          if [ -n "$SLUG" ]; then
-            SLUG_TRUNC=$(printf "%s" "$SLUG" | cut -c1-$MAX_SLUG)
-            # remover traço final caso tenha sido cortado
-            SLUG_TRUNC=$(printf "%s" "$SLUG_TRUNC" | sed 's/-$//')
-          else
-            SLUG_TRUNC=""
-          fi
+          # 1 — Remover acentos usando iconv
+          ASCII=$(printf "%s" "$RAW" | iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null || true)
 
-          # 3) Montar nome da branch
-          if [ -n "$SLUG_TRUNC" ]; then
-            BRANCH_NAME="feature/${ISSUE_KEY}-${SLUG_TRUNC}"
-          else
+          # 2 — Substituir tudo que não for alfanumérico por hífen
+          CLEAN=$(printf "%s" "$ASCII" | sed 's/[^a-zA-Z0-9]/-/g')
+
+          # 3 — Lowercase
+          CLEAN=$(printf "%s" "$CLEAN" | tr '[:upper:]' '[:lower:]')
+
+          # 4 — Remover hífens duplicados
+          CLEAN=$(printf "%s" "$CLEAN" | sed 's/-\+/-/g')
+
+          # 5 — Remover hífen do início e fim
+          CLEAN=$(printf "%s" "$CLEAN" | sed 's/^-//' | sed 's/-$//')
+
+          # 6 — Limitar a 50 caracteres
+          SLUG=$(printf "%s" "$CLEAN" | cut -c1-50)
+
+          # 7 — Se slug ficar vazio, usar só o key
+          if [ -z "$SLUG" ]; then
             BRANCH_NAME="feature/${ISSUE_KEY}"
+          else
+            BRANCH_NAME="feature/${ISSUE_KEY}-${SLUG}"
           fi
 
-          echo "Branch que será criada: $BRANCH_NAME"
+          echo "Branch final: $BRANCH_NAME"
 
-          # 4) Criar a branch e dar push
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Preparar git
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
 
-          # proteger contra branch existente
+          # Evitar erro caso branch já exista
           if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
-            echo "Branch $BRANCH_NAME já existe — saindo sem erro."
+            echo "Branch $BRANCH_NAME já existe — saindo."
             exit 0
           fi
 
           git checkout -b "$BRANCH_NAME"
           git push origin "$BRANCH_NAME"
-
-          echo "::set-output name=branch::$BRANCH_NAME"
