@@ -1,0 +1,64 @@
+name: Auto Merge PR when Jira moves issue to Done
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  repository_dispatch:
+    types: [auto-merge-pr]
+
+jobs:
+  auto_merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Ensure gh CLI available
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh --version
+
+      - name: Find and merge PR linked to Jira issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_KEY: ${{ github.event.client_payload.issue_key }}
+        run: |
+          echo "Issue recebida do Jira: $ISSUE_KEY"
+          echo "Procurando um Pull Request relacionado..."
+
+          # 1 — Procura PR que contenha a issue no título
+          PR_NUMBER=$(gh pr list \
+            --state open \
+            --search "$ISSUE_KEY in:title" \
+            --json number \
+            -q '.[0].number')
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Nenhum PR encontrado pelo título. Tentando buscar no body..."
+            
+            # 2 — Procura PR que mencione a issue no corpo (mais seguro)
+            PR_NUMBER=$(gh pr list \
+              --state open \
+              --search "$ISSUE_KEY" \
+              --json number \
+              -q '.[0].number')
+          fi
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Nenhum PR relacionado à issue $ISSUE_KEY foi encontrado."
+            exit 0
+          fi
+
+          echo "PR encontrado: #$PR_NUMBER"
+          echo "Tentando fazer o merge automático..."
+
+          # 3 — Faz o merge automático
+          gh pr merge "$PR_NUMBER" --merge --admin || {
+            echo "Erro ao fazer merge do PR #$PR_NUMBER"
+            exit 1
+          }
+
+          echo "Merge do PR #$PR_NUMBER realizado com sucesso!"
