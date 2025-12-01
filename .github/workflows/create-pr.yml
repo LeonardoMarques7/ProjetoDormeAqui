@@ -9,37 +9,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Log payload
+      - name: Mostrar payload recebido
         run: |
-          echo "Branch recebida: ${{ github.event.client_payload.branch_name }}"
-          echo "Issue: ${{ github.event.client_payload.issue_key }}"
-          echo "Resumo: ${{ github.event.client_payload.issue_summary }}"
+          echo "Payload completo:"
+          echo '${{ toJson(github.event) }}'
 
-      - name: Checkout repository
+      - name: Validar branch enviada
+        run: |
+          if [ -z "${{ github.event.client_payload.branch_name }}" ]; then
+            echo "❌ O Jira não enviou branch_name"
+            exit 1
+          fi
+
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Create Pull Request
+      - name: Criar Pull Request
         uses: actions/github-script@v7
         with:
           script: |
             const branch = context.payload.client_payload.branch_name;
+            const key = context.payload.client_payload.issue_key;
+            const summary = context.payload.client_payload.issue_summary;
 
-            if (!branch) {
-              core.setFailed("Branch name not received from Jira!");
-            }
-
-            const issueKey = context.payload.client_payload.issue_key || "Sem-chave";
-            const summary = context.payload.client_payload.issue_summary || "Atualização";
-            
-            const title = `[${issueKey}] - ${summary}`;
-            const body = "Pull Request automático criado ao mover para Revisão no Jira.";
+            const title = `[${key}] - ${summary}`;
+            const body = "PR criado automaticamente pelo Jira.";
 
             const pr = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              head: branch,   // 👈 AQUI o erro era isso!
+              head: branch,
               base: "main",
               title,
               body
