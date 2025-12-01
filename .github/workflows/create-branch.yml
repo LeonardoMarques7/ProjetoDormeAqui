@@ -1,4 +1,4 @@
-name: Create Branch from Jira
+name: Create Branch from Jira (with slug)
 
 on:
   repository_dispatch:
@@ -7,27 +7,71 @@ on:
 jobs:
   create_branch:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GH_PAT }}
+        uses: actions/checkout@v4
 
-      - name: Configure Git
+      - name: Create sanitized branch name and push
+        env:
+          ISSUE_KEY: ${{ github.event.client_payload.issue_key }}
+          ISSUE_SUMMARY: ${{ github.event.client_payload.issue_summary }}
         run: |
-          git config user.name "Leonardo Automation"
-          git config user.email "action@github.com"
+          set -euo pipefail
 
-      - name: Create branch
-        run: |
-          BRANCH_NAME="${{ github.event.client_payload.branch_name }}"
-          
-          # Verifica se já existe
-          if git ls-remote --heads origin "$BRANCH_NAME" | grep "$BRANCH_NAME"; then
-            echo "Branch já existe, nada a criar."
+          # Segurança: garantir que ISSUE_KEY existe
+          if [ -z "${ISSUE_KEY:-}" ]; then
+            echo "ERRO: ISSUE_KEY vazio"
+            exit 1
+          fi
+
+          # 1) Converter sumário em ASCII (remover acentos) com iconv
+          SUMMARY_RAW="${ISSUE_SUMMARY:-}"
+          # Se SUMMARY_RAW for vazio, slug ficará vazio
+          if [ -z "$SUMMARY_RAW" ]; then
+            SLUG=""
+          else
+            # iconv translitera acentos: "ação" -> "acao"
+            # depois: substituir qualquer coisa que não seja alfanumérico por "-"
+            # lowercase, colapsar múltiplos "-", remover - iniciais/finais
+            SLUG=$(printf "%s" "$SUMMARY_RAW" \
+              | iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null || true \
+              | sed 's/[^a-zA-Z0-9]/-/g' \
+              | tr '[:upper:]' '[:lower:]' \
+              | sed 's/-\+/-/g' \
+              | sed 's/^-//' \
+              | sed 's/-$//' )
+          fi
+
+          # 2) Limitar tamanho do slug (por exemplo, 50 chars)
+          MAX_SLUG=50
+          if [ -n "$SLUG" ]; then
+            SLUG_TRUNC=$(printf "%s" "$SLUG" | cut -c1-$MAX_SLUG)
+            # remover traço final caso tenha sido cortado
+            SLUG_TRUNC=$(printf "%s" "$SLUG_TRUNC" | sed 's/-$//')
+          else
+            SLUG_TRUNC=""
+          fi
+
+          # 3) Montar nome da branch
+          if [ -n "$SLUG_TRUNC" ]; then
+            BRANCH_NAME="feature/${ISSUE_KEY}-${SLUG_TRUNC}"
+          else
+            BRANCH_NAME="feature/${ISSUE_KEY}"
+          fi
+
+          echo "Branch que será criada: $BRANCH_NAME"
+
+          # 4) Criar a branch e dar push
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # proteger contra branch existente
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            echo "Branch $BRANCH_NAME já existe — saindo sem erro."
             exit 0
           fi
 
           git checkout -b "$BRANCH_NAME"
           git push origin "$BRANCH_NAME"
+
+          echo "::set-output name=branch::$BRANCH_NAME"
