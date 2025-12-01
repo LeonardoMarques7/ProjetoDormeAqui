@@ -1,0 +1,56 @@
+name: Auto Pull Request on New Branch
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  create:
+    branches:
+      - "feature/*"
+      - "fix/*"
+      - "hotfix/*"
+
+jobs:
+  auto_pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = context.payload.ref;
+
+            // Pula se a branch for "main" ou "master"
+            if (branch === "main" || branch === "master") {
+              console.log("Branch principal — sem PR automático.");
+              return;
+            }
+
+            const issueKey = branch.split("/")[1].split("-")[0];
+            const title = `[${issueKey}] - Pull Request Automático`;
+
+            // Verifica se já existe PR
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              state: "open",
+            });
+
+            if (prs.length > 0) {
+              console.log("PR já existe. Nada a fazer.");
+              return;
+            }
+
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              head: branch,
+              base: "main",
+              body: "PR criado automaticamente quando a branch foi criada."
+            });
+
+            console.log("Pull Request criado:", pr.data.html_url);
