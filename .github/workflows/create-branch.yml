@@ -1,0 +1,21 @@
+name: Create Branch from Jira
+
+on:
+  repository_dispatch:
+    types: [create-branch]
+
+jobs:
+  create_branch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Create branch
+        run: |
+          BRANCH_NAME="${{ github.event.client_payload.branch_name }}"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
