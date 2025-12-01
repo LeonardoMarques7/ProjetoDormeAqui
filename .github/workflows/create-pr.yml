@@ -1,0 +1,57 @@
+name: Create Pull Request from Jira Transition
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  repository_dispatch:
+    types: [create-pr]
+
+jobs:
+  create_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare PR data
+        env:
+          ISSUE_KEY: ${{ github.event.client_payload.issue_key }}
+          ISSUE_SUMMARY: ${{ github.event.client_payload.issue_summary }}
+          BRANCH_NAME: ${{ github.event.client_payload.branch_name }}
+        run: |
+          echo "Issue key: $ISSUE_KEY"
+          echo "Issue summary: $ISSUE_SUMMARY"
+          echo "Branch: $BRANCH_NAME"
+
+          # PR title
+          echo "PR_TITLE=[${ISSUE_KEY}] - ${ISSUE_SUMMARY}" >> $GITHUB_ENV
+
+          # PR body
+          echo "PR_BODY=Pull Request automático criado ao mover para Revisão no Jira." >> $GITHUB_ENV
+
+      - name: Create Pull Request
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const headBranch = process.env.BRANCH_NAME;
+            const baseBranch = "main"; // altere para "develop" se usar GitFlow
+
+            console.log("HEAD:", headBranch);
+            console.log("BASE:", baseBranch);
+
+            const result = await github.rest.pulls.create({
+              owner,
+              repo,
+              head: headBranch,
+              base: baseBranch,
+              title: process.env.PR_TITLE,
+              body: process.env.PR_BODY
+            });
+
+            core.info(`PR criado: ${result.data.html_url}`);
