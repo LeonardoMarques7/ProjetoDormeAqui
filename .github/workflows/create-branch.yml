@@ -7,15 +7,27 @@ on:
 jobs:
   create_branch:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "Leonardo Automation"
+          git config user.email "action@github.com"
 
       - name: Create branch
         run: |
           BRANCH_NAME="${{ github.event.client_payload.branch_name }}"
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          
+          # Verifica se já existe
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep "$BRANCH_NAME"; then
+            echo "Branch já existe, nada a criar."
+            exit 0
+          fi
+
           git checkout -b "$BRANCH_NAME"
           git push origin "$BRANCH_NAME"
