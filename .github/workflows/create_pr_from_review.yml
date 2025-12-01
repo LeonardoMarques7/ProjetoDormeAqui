@@ -24,7 +24,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               head: branchName,
-              base: main,
+              base: "main",
               title: prTitle,
               body: "Pull Request criado automaticamente ao mover para Revisão no Jira."
             });
