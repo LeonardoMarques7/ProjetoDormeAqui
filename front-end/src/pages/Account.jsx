@@ -28,6 +28,10 @@ const Account = () => {
 		return <Loading />;
 	}
 
+	if (!user) {
+		return <Navigate to="/login" />;
+	}
+
 	const bookingId = action || id;
 
 	return (

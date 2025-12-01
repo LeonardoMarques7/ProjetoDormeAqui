@@ -187,7 +187,7 @@ const AccProfile = () => {
 			{!isEditingProfile ? (
 				<>
 					<div
-						className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
+						className="bg-cover bg-primar-700 xl:max-w-11/12 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
 						style={{
 							backgroundImage: `url(${Banner})`,
 							rotate: "10",
@@ -198,7 +198,7 @@ const AccProfile = () => {
 					</div>
 
 					{/* Container do conteúdo */}
-					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 relative -mt-28">
+					<div className="container__profile mx-auto xl:max-w-11/12 w-full lg:max-w-7xl px-8 relative -mt-28">
 						<div className="flex flex-col gap-5 relative mb-10">
 							{/* Header do perfil (avatar + botão) */}
 							<div className="avatar__btn flex gap-5 items-center justify-start relative">
@@ -289,7 +289,7 @@ const AccProfile = () => {
 									{isOwnProfile ? "Meus Anúncios" : "Anúncios"} ({places.length}
 									)
 								</h2>
-								<div className="grid__anuncios grid grid-cols-[repeat(auto-fit,minmax(250px,250px))] gap-8 md:max-w-7xl mx-auto">
+								<div className="grid__anuncios  grid grid-cols-[repeat(auto-fit,minmax(250px,250px))] gap-8 md:max-w-7xl xl:max-w-11/12 mx-auto xl:mx-0">
 									{places.map((item) => (
 										<div
 											key={item._id}

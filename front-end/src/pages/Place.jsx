@@ -219,7 +219,7 @@ const Place = () => {
 	return (
 		<>
 			<div
-				className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
+				className="bg-cover bg-primar-700 max-w-7xl xl:max-w-11/12 mx-auto w-full rounded-b-2xl bg-center h-[50svh] xl:h-[40svh]  relative overflow-hidden"
 				style={{
 					backgroundImage: `url(${Banner})`,
 					rotate: "10",
@@ -227,7 +227,7 @@ const Place = () => {
 			>
 				<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
 			</div>
-			<div className="container__infos lg:max-w-7xl mx-auto flex flex-col gap-2">
+			<div className="container__infos lg:max-w-7xl mx-auto xl:max-w-10/12 flex flex-col gap-2">
 				<div
 					className={`-mt-50 bg-white p-2 relative grid sm:grid-cols-[2fr_1fr] mx-4  aspect-square sm:grid-rows-2 sm:aspect-[3/2] gap-5 overflow-hidden rounded-2xl hover:opacity-95 cursor-pointer`}
 				>
