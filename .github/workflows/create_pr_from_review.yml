@@ -18,13 +18,14 @@ jobs:
           github-token: ${{ secrets.GH_PAT }}
           script: |
             const branchName = context.payload.client_payload.branch_name;
+            const prTitle = context.payload.client_payload.pr_title || `Revisão necessária: ${branchName}`;
 
             const { data: pr } = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               head: branchName,
               base: "develop",
-              title: `Revisão necessária: ${branchName}`,
+              title: prTitle,
               body: "Pull Request criado automaticamente ao mover para Revisão no Jira."
             });
 
