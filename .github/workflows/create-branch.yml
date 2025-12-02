@@ -11,7 +11,6 @@ on:
 jobs:
   create_branch:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -22,141 +21,38 @@ jobs:
           ISSUE_SUMMARY: ${{ github.event.client_payload.issue_summary }}
         run: |
           set -euo pipefail
-
           echo "Raw issue summary: $ISSUE_SUMMARY"
-
           RAW="$ISSUE_SUMMARY"
-
-          # 1 — remover acentos
+          # 1 — Remover acentos usando iconv
           ASCII=$(printf "%s" "$RAW" | iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null || true)
-
-          # 2 — substituir caracteres inválidos
+          # 2 — Substituir tudo que não for alfanumérico por hífen
           CLEAN=$(printf "%s" "$ASCII" | sed 's/[^a-zA-Z0-9]/-/g')
-
-          # 3 — deixar minúsculo
+          # 3 — Lowercase
           CLEAN=$(printf "%s" "$CLEAN" | tr '[:upper:]' '[:lower:]')
-
-          # 4 — remover hifens duplicados
+          # 4 — Remover hífens duplicados
           CLEAN=$(printf "%s" "$CLEAN" | sed 's/-\+/-/g')
-
-          # 5 — remover hífen extra em bordas
+          # 5 — Remover hífen do início e fim
           CLEAN=$(printf "%s" "$CLEAN" | sed 's/^-//' | sed 's/-$//')
-
-          # 6 — limitar tamanho
+          # 6 — Limitar a 50 caracteres
           SLUG=$(printf "%s" "$CLEAN" | cut -c1-50)
-
-          # 7 — fallback
+          # 7 — Se slug ficar vazio, usar só o key
           if [ -z "$SLUG" ]; then
             BRANCH_NAME="feature/${ISSUE_KEY}"
           else
             BRANCH_NAME="feature/${ISSUE_KEY}-${SLUG}"
           fi
-
           echo "Branch final: $BRANCH_NAME"
-
+          # Preparar git
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
-          # Se já existe, não cria
+          # Evitar erro caso branch já exista
           if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
-            echo "Branch $BRANCH_NAME já existe."
-          else
-            git checkout -b "$BRANCH_NAME"
-            git push origin "$BRANCH_NAME"
+            echo "Branch $BRANCH_NAME já existe — saindo (não criaremos branch novamente)."
+            # exportar variável para os próximos steps
+            echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+            exit 0
           fi
-
-          # Exportar
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
+          # exportar variável para próximos steps
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
-
-      - name: Return branch name back to Jira
-        env:
-          JIRA_WEBHOOK_URL: ${{ secrets.name: Create Branch from Jira (slug + auto PR)
-
-permissions:
-  contents: write
-  pull-requests: write
-
-on:
-  repository_dispatch:
-    types: [create-branch]
-
-jobs:
-  create_branch:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Create sanitized branch name and push
-        env:
-          ISSUE_KEY: ${{ github.event.client_payload.issue_key }}
-          ISSUE_SUMMARY: ${{ github.event.client_payload.issue_summary }}
-        run: |
-          set -euo pipefail
-
-          echo "Raw issue summary: $ISSUE_SUMMARY"
-
-          RAW="$ISSUE_SUMMARY"
-
-          # 1 — remover acentos
-          ASCII=$(printf "%s" "$RAW" | iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null || true)
-
-          # 2 — substituir caracteres inválidos
-          CLEAN=$(printf "%s" "$ASCII" | sed 's/[^a-zA-Z0-9]/-/g')
-
-          # 3 — deixar minúsculo
-          CLEAN=$(printf "%s" "$CLEAN" | tr '[:upper:]' '[:lower:]')
-
-          # 4 — remover hifens duplicados
-          CLEAN=$(printf "%s" "$CLEAN" | sed 's/-\+/-/g')
-
-          # 5 — remover hífen extra em bordas
-          CLEAN=$(printf "%s" "$CLEAN" | sed 's/^-//' | sed 's/-$//')
-
-          # 6 — limitar tamanho
-          SLUG=$(printf "%s" "$CLEAN" | cut -c1-50)
-
-          # 7 — fallback
-          if [ -z "$SLUG" ]; then
-            BRANCH_NAME="feature/${ISSUE_KEY}"
-          else
-            BRANCH_NAME="feature/${ISSUE_KEY}-${SLUG}"
-          fi
-
-          echo "Branch final: $BRANCH_NAME"
-
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
-          # Se já existe, não cria
-          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
-            echo "Branch $BRANCH_NAME já existe."
-          else
-            git checkout -b "$BRANCH_NAME"
-            git push origin "$BRANCH_NAME"
-          fi
-
-          # Exportar
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
-
-      - name: Return branch name back to Jira
-        env:
-          JIRA_WEBHOOK_URL: ${{ secrets.JIRA_WEBHOOK_URL }}
-          BRANCH_NAME: ${{ env.BRANCH_NAME }}
-          ISSUE_KEY: ${{ github.event.client_payload.issue_key }}
-        run: |
-          echo "Enviando branch $BRANCH_NAME de volta ao Jira..."
-
-          curl -X POST "$JIRA_WEBHOOK_URL" \
-            -H "Content-Type: application/json" \
-            -d "{\"issue_key\":\"$ISSUE_KEY\", \"branch_name\":\"$BRANCH_NAME\"}"
- }}
-          BRANCH_NAME: ${{ env.BRANCH_NAME }}
-          ISSUE_KEY: ${{ github.event.client_payload.issue_key }}
-        run: |
-          echo "Enviando branch $BRANCH_NAME de volta ao Jira..."
-
-          curl -X POST "$JIRA_WEBHOOK_URL" \
-            -H "Content-Type: application/json" \
-            -d "{\"issue_key\":\"$ISSUE_KEY\", \"branch_name\":\"$BRANCH_NAME\"}"
