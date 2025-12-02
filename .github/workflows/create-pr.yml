@@ -34,6 +34,6 @@ jobs:
               repo: context.repo.repo,
               head: branch.name,
               base: "main",
-              title: `[${key}] Pull Request automático`,
+              title: `[${key}] branch.name`,
               body: `PR criado automaticamente para a issue ${key}`
             });
