@@ -16,6 +16,7 @@ jobs:
         with:
           script: |
             const key = context.payload.client_payload.issue_key;
+            const summary = context.payload.client_payload.issue_summary;
             
             const branches = await github.rest.repos.listBranches({
               owner: context.repo.owner,
@@ -34,6 +35,6 @@ jobs:
               repo: context.repo.repo,
               head: branch.name,
               base: "main",
-              title: `[${key}] branch.name`,
+              title: `[${key}] ${summary}`,
               body: `PR criado automaticamente para a issue ${key}`
             });
