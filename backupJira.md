@@ -1,0 +1,40 @@
+## Backup create Pull request
+
+name: Create PR from Jira
+permissions:
+contents: write
+pull-requests: write
+on:
+repository_dispatch:
+types: [create-pr]
+jobs:
+create_pr:
+runs-on: ubuntu-latest
+steps: - uses: actions/checkout@v4
+
+      - name: Create PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const key = context.payload.client_payload.issue_key;
+
+            const branches = await github.rest.repos.listBranches({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+
+            const branch = branches.data.find(b => b.name.includes(key));
+
+            if (!branch) {
+              core.setFailed(`Nenhuma branch encontrada contendo: ${key}`);
+              return;
+            }
+
+            await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: branch.name,
+              base: "main",
+              title: `[${key}] Pull Request automático`,
+              body: `PR criado automaticamente para a issue ${key}`
+            });
