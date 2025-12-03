@@ -31,10 +31,8 @@ jobs:
             exit 1
           fi
 
-          # Monta o prefixo da branch
           PREFIX="feature/${KEY}"
 
-          # Procura branch real no repositório
           BRANCH=$(git branch -r | grep "$PREFIX" | sed 's|origin/||' | head -n 1)
 
           if [ -z "$BRANCH" ]; then
@@ -42,7 +40,10 @@ jobs:
             exit 1
           fi
 
-          echo "Branch encontrada: $BRANCH"
+          # REMOVE ESPAÇOS EXTRAS!
+          BRANCH=$(echo "$BRANCH" | xargs)
+
+          echo "Branch encontrada (limpa): '$BRANCH'"
           echo "SOURCE_BRANCH=$BRANCH" >> $GITHUB_ENV
 
       - name: Merge branch
