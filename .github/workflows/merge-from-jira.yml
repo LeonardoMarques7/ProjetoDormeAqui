@@ -1,49 +1,62 @@
-name: Merge branch from Jira
+name: Merge Branch from Jira
+
+permissions:
+  contents: write
 
 on:
   repository_dispatch:
     types: [merge-branch]
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   merge_branch:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Get branch info from payload
-        id: info
-        run: |
-          echo "SOURCE_BRANCH=${{ github.event.client_payload.sourceBranch }}" >> $GITHUB_ENV
-          echo "TARGET_BRANCH=${{ github.event.client_payload.targetBranch }}" >> $GITHUB_ENV
-
-      - name: Debug
-        run: |
-          echo "Source: $SOURCE_BRANCH"
-          echo "Target: $TARGET_BRANCH"
-
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Configure Git
+      - name: Debug Payload
+        run: |
+          echo "Payload completo:"
+          echo '${{ toJson(github.event.client_payload) }}'
+
+      - name: Reconstruir nome da branch
+        id: build
+        run: |
+          KEY="${{ github.event.client_payload.issue_key }}"
+
+          if [ -z "$KEY" ]; then
+            echo "ERRO: issue_key não enviado!"
+            exit 1
+          fi
+
+          # Monta o prefixo da branch
+          PREFIX="feature/${KEY}"
+
+          # Procura branch real no repositório
+          BRANCH=$(git branch -r | grep "$PREFIX" | sed 's|origin/||' | head -n 1)
+
+          if [ -z "$BRANCH" ]; then
+            echo "Nenhuma branch encontrada que contenha: $PREFIX"
+            exit 1
+          fi
+
+          echo "Branch encontrada: $BRANCH"
+          echo "SOURCE_BRANCH=$BRANCH" >> $GITHUB_ENV
+
+      - name: Merge branch
         run: |
           git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          git config user.email "github-actions@github.com"
 
-      - name: Fetch all branches
-        run: git fetch --all
+          git fetch origin
 
-      - name: Checkout target branch (base)
-        run: git checkout $TARGET_BRANCH
+          echo "Fazendo merge de: $SOURCE_BRANCH → main"
 
-      - name: Merge source branch into target
-        run: |
-          echo "Realizando merge da branch: $SOURCE_BRANCH"
-          git merge origin/$SOURCE_BRANCH --no-ff --no-edit
+          git checkout main
+          git pull origin main
 
-      - name: Push merge
-        run: git push origin $TARGET_BRANCH
+          git merge origin/$SOURCE_BRANCH --no-ff -m "Merge automático da issue"
+
+          git push origin main
