@@ -1,0 +1,80 @@
+name: Merge branch from Jira
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  repository_dispatch:
+    types: [create-merge]
+
+jobs:
+  merge_branch:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ---------------------
+      # 1) Checkout com todas as branches
+      # ---------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # IMPORTANTE: Baixar todas as branches remotas
+
+      # ---------------------
+      # 2) Detectar qual branch será mergeada
+      # ---------------------
+      - name: Detect branch to merge
+        id: detect
+        run: |
+          echo "Payload recebido:"
+          echo "${{ github.event.client_payload }}"
+
+          ISSUE_KEY="${{ github.event.client_payload.issue_key }}"
+          BRANCH_NAME="${{ github.event.client_payload.branch_name }}"
+
+          echo "Issue key recebida: $ISSUE_KEY"
+          echo "Branch enviada: $BRANCH_NAME"
+
+          # Garantir que as branches remotas estão atualizadas
+          git fetch --all
+
+          # Se o Jira não enviou o branch_name, procurar pelo ISSUE_KEY
+          if [ -z "$BRANCH_NAME" ]; then
+            echo "Nenhuma branch_name enviada — procurando branch contendo a issue key..."
+            BRANCH_NAME=$(git branch -r | grep "$ISSUE_KEY" | sed 's|origin/||' | head -n 1 || true)
+          fi
+
+          if [ -z "$BRANCH_NAME" ]; then
+            echo "❌ Nenhuma branch encontrada contendo: $ISSUE_KEY"
+            exit 1
+          fi
+
+          echo "Branch detectada: $BRANCH_NAME"
+
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      # ---------------------
+      # 3) Realizar merge automático
+      # ---------------------
+      - name: Merge into main
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git fetch origin main
+          git checkout main
+
+          echo "Realizando merge da branch: $BRANCH_NAME"
+          git merge origin/$BRANCH_NAME --no-ff -m "Merge automático da branch $BRANCH_NAME (Jira)"
+
+          git push origin main
+
+      # ---------------------
+      # 4) (Opcional) Deletar a branch após merge
+      # ---------------------
+      - name: Delete merged branch (optional)
+        if: always()
+        run: |
+          echo "Deletando branch remota: $BRANCH_NAME"
+          git push origin --delete "$BRANCH_NAME" || true
