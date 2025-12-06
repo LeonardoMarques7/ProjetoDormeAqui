@@ -114,9 +114,9 @@ function MenuBar({ active }) {
 								>
 									<motion.div
 										transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
-									/>
-									<item.icon className="w-5 h-5" />
-									{item.label}
+									>
+										{item.label}
+									</motion.div>
 								</Link>
 							</motion.button>
 						);
