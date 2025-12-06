@@ -36,9 +36,14 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 		return 0;
 	});
 
+	// Filtra bookings válidos (com place e user não nulos)
+	const validBookings = sortedBookings.filter(
+		(booking) => booking.place && booking.user
+	);
+
 	return (
 		<>
-			{sortedBookings.map((booking) => (
+			{validBookings.map((booking) => (
 				<div
 					key={booking._id}
 					className="section__booking bg-white backdrop-blur-2xl mx-auto lg:max-w-5xl shadow-xl shadow-primary-200/50 rounded-2xl"
