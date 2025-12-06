@@ -1,0 +1,63 @@
+name: Merge Branch from Jira
+
+permissions:
+  contents: write
+
+on:
+  repository_dispatch:
+    types: [merge-branch]
+
+jobs:
+  merge_branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Debug Payload
+        run: |
+          echo "Payload completo:"
+          echo '${{ toJson(github.event.client_payload) }}'
+
+      - name: Reconstruir nome da branch
+        id: build
+        run: |
+          KEY="${{ github.event.client_payload.issue_key }}"
+
+          if [ -z "$KEY" ]; then
+            echo "ERRO: issue_key não enviado!"
+            exit 1
+          fi
+
+          PREFIX="feature/${KEY}"
+
+          BRANCH=$(git branch -r | grep "$PREFIX" | sed 's|origin/||' | head -n 1)
+
+          if [ -z "$BRANCH" ]; then
+            echo "Nenhuma branch encontrada que contenha: $PREFIX"
+            exit 1
+          fi
+
+          # REMOVE ESPAÇOS EXTRAS!
+          BRANCH=$(echo "$BRANCH" | xargs)
+
+          echo "Branch encontrada (limpa): '$BRANCH'"
+          echo "SOURCE_BRANCH=$BRANCH" >> $GITHUB_ENV
+
+      - name: Merge branch
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git fetch origin
+
+          echo "Fazendo merge de: $SOURCE_BRANCH → main"
+
+          git checkout main
+          git pull origin main
+
+          git merge origin/$SOURCE_BRANCH --no-ff -m "Merge automático da issue"
+
+          git push origin main

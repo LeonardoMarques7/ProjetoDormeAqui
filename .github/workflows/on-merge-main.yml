@@ -1,0 +1,37 @@
+name: After Merge to Main
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  after_merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Extract issue key from branch name
+        id: extract
+        run: |
+          echo "Commit message: ${{ github.event.head_commit.message }}"
+          ISSUE_KEY=$(echo "${{ github.event.head_commit.message }}" | grep -oE '[A-Z]+-[0-9]+' | head -n 1 || true)
+
+          if [ -z "$ISSUE_KEY" ]; then
+            echo "Nenhum issue key encontrado."
+          else
+            echo "Issue key encontrada: $ISSUE_KEY"
+          fi
+
+          echo "ISSUE_KEY=$ISSUE_KEY" >> $GITHUB_ENV
+
+      - name: Trigger Jira Automation (optional)
+        if: env.ISSUE_KEY != ''
+        run: |
+          echo "Aqui você chamaria o Jira se quiser atualizar status da issue."
+          echo "Issue: $ISSUE_KEY"
