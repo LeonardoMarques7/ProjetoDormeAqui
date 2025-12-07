@@ -38,7 +38,7 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 
 	// Filtra bookings válidos (com place e user não nulos)
 	const validBookings = sortedBookings.filter(
-		(booking) => booking.place && booking.user
+		(booking) => booking && booking.place && booking.user
 	);
 
 	return (
