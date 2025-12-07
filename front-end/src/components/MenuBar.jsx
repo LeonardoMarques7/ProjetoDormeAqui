@@ -86,53 +86,89 @@ function MenuBar({ active }) {
 					initial={{ opacity: 0, y: -20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.8, delay: 0.5 }}
-					className="flex items-center gap-2"
+					className="flex items-center gap-4"
 				>
 					{/* Navegação */}
-					{navItems.map((item) => {
-						const isActive = location.pathname === item.path;
-						return (
-							<motion.button
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-								key={item.path}
-							>
-								<Link
-									to={item.path}
-									className={`flex items-center gap-2  rounded-full px-4 justify-between py-2 transition-colors  ${
-										scrolled
-											? isActive
-												? "bg-primary-500 text-white border-primary-500 border-1"
-												: "text-gray-700"
-											: isActive
-											? "bg-white text-primary-500 border-primary-500 border-1"
-											: active == true
-											? "text-gray-700"
-											: "text-white"
-									}
-									`}
-								>
-									<motion.div
-										transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
+					{!user &&
+						["Home"].map((item) => {
+							const isActive = location.pathname === item.path;
+							return (
+								<>
+									<motion.button
+										whileHover={{ scale: 1.05 }}
+										whileTap={{ scale: 0.95 }}
+										key={item.path}
 									>
-										{item.label}
-									</motion.div>
-								</Link>
-							</motion.button>
-						);
-					})}
-					{!user && (
-						<Link
-							to={"/login"}
-							className="text-white bg-primary-500 px-5 border-1 rounded-xl py-2"
-						>
-							Entre ou Cadastre-se
-						</Link>
-					)}
+										<Link
+											to={item.path}
+											className={`flex items-center gap-2  rounded-2xl px-4 justify-between py-2 transition-colors  ${
+												scrolled
+													? isActive
+														? "bg-primary-500 text-white border-primary-500 border-1"
+														: "text-gray-700"
+													: isActive
+													? "bg-white text-primary-500 border-primary-500 border-1"
+													: active == true
+													? "text-gray-700"
+													: "text-white"
+											}
+									`}
+										>
+											<motion.div
+												transition={{
+													type: "spring",
+													bounce: 0.25,
+													duration: 0.5,
+												}}
+											>
+												{item.label}
+											</motion.div>
+										</Link>
+									</motion.button>
+								</>
+							);
+						})}
+					{user &&
+						navItems.map((item) => {
+							const isActive = location.pathname === item.path;
+							return (
+								<motion.button
+									whileHover={{ scale: 1.05 }}
+									whileTap={{ scale: 0.95 }}
+									key={item.path}
+								>
+									<Link
+										to={item.path}
+										className={`flex items-center gap-2  rounded-2xl px-4 justify-between py-2 transition-colors  ${
+											scrolled
+												? isActive
+													? "bg-primary-500 text-white border-primary-500 border-1"
+													: "text-gray-700"
+												: isActive
+												? "bg-white text-primary-500 border-primary-500 border-1"
+												: active == true
+												? "text-gray-700"
+												: "text-white"
+										}
+									`}
+									>
+										<motion.div
+											transition={{
+												type: "spring",
+												bounce: 0.25,
+												duration: 0.5,
+											}}
+										>
+											{item.label}
+										</motion.div>
+									</Link>
+								</motion.button>
+							);
+						})}
 					{user && (
 						<DropdownMenu modal={false}>
 							<DropdownMenuTrigger className={`outline-none`}>
-								<div className="badge__user flex items-center gap-2 cursor-pointer hover:bg-gray-200 transition-colors bg-gray-100 pr-3 py-1.5 px-2 rounded-full">
+								<div className="badge__user flex items-center gap-2 cursor-pointer hover:bg-gray-200 transition-colors bg-white pr-3 py-1.5 px-2 rounded-2xl">
 									<img
 										src={user.photo}
 										className="w-8 h-8 aspect-square rounded-full object-cover"

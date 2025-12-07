@@ -27,7 +27,7 @@ const Header = ({ active }) => {
 					: "bg-transparent"
 			} `}
 		>
-			<div className="max-w-full flex items-center mx-auto justify-between xl:max-w-11/12 px-10 sm:px-8 py-4 lg:max-w-7xl ">
+			<div className="max-w-full flex items-center mx-auto justify-between px-10 sm:px-8 py-4 lg:max-w-7xl ">
 				<Link to="/" className="flex items-center transition-all">
 					<img
 						src={
