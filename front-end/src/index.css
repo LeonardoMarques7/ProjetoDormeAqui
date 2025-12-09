@@ -5,16 +5,16 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-primary-100: #E3E5FF;
-  --color-primary-200: #CBCFFF;
-  --color-primary-300: #B3B8FF;
-  --color-primary-400: #BABFFC;
-  --color-primary-500: #8F94E6;
-  --color-primary-600: #6C72B3;
-  --color-primary-700: #4C5180;
-  --color-primary-800: #2D3052;
-  --color-primary-900: #121525;
-  --font-dormeaqui: url('https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap');
+  --color-primary-100: #F3F4F6;
+    --color-primary-200: #E5E7EB;
+    --color-primary-300: #D1D5DB;
+    --color-primary-400: #9CA3AF;
+    --color-primary-500: #6B7280;
+    --color-primary-600: #4B5563;
+    --color-primary-700: #374151;
+    --color-primary-800: #1F2937;
+    --color-primary-900: #111827;
+  --font-dormeaqui: url('https: //fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 }
 
 @theme inline {

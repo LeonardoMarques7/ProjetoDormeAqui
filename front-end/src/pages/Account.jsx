@@ -13,21 +13,6 @@ const Account = () => {
 	const [shouldRedirect, setShouldRedirect] = useState(false);
 	const { user, ready } = useUserContext();
 
-	useEffect(() => {
-		if (!ready) {
-			// Após 4.5 segundos, marca para redirecionar
-			const timer = setTimeout(() => {
-				setShouldRedirect(true);
-			}, 4500);
-
-			return () => clearTimeout(timer);
-		}
-	}, [ready]);
-
-	if (!ready && !shouldRedirect) {
-		return <Loading />;
-	}
-
 	const bookingId = action || id;
 
 	return (
