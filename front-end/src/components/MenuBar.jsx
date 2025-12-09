@@ -165,7 +165,7 @@ function MenuBar({ active }) {
 					{user && (
 						<DropdownMenu modal={false}>
 							<DropdownMenuTrigger className={`outline-none`}>
-								<div className="badge__user flex items-center gap-2 cursor-pointer hover:bg-gray-200 transition-colors bg-white pr-3 py-1.5 px-2 rounded-2xl">
+								<div className="badge__user bg-primary-100 flex items-center gap-2 cursor-pointer hover:bg-gray-200 transition-colors  pr-3 py-1.5 px-2 rounded-2xl">
 									<img
 										src={user.photo}
 										className="w-8 h-8 aspect-square rounded-full object-cover"

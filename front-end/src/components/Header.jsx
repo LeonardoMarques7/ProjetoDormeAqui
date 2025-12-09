@@ -21,8 +21,7 @@ const Header = ({ active }) => {
 
 	return (
 		<header
-			className={`fixed z-50 top-0 w-full transition-all duration-300 text-black ${
-				scrolled ? "bg-white shadow-md shadow-white/10" : "bg-transparent"
+			className={`fixed z-50 top-0 w-full transition-all duration-300 bg-white shadow-md shadow-white/10 text-gray-700"
 			}`}
 		>
 			<div className="max-w-full flex items-center mx-auto justify-between px-10 sm:px-8 py-4 lg:max-w-7xl ">

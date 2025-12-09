@@ -8,6 +8,7 @@ import { useUserContext } from "../components/contexts/UserContext";
 import verify from "../assets/verify.png";
 import { withMask } from "use-mask-input";
 import { Select } from "@base-ui-components/react/select";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 
 import "./EditProfile.css";
 
@@ -132,7 +133,7 @@ const EditProfile = ({ user }) => {
 		return <Navigate to="/account/profile" state={{ updated: true }} />;
 
 	return (
-		<div className="container__prev__form flex p-10 bg-white/80  rounded-2xl backdrop-blur-xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
+		<div className="container__prev__form flex p-10 max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
 			{/* Avatar sobreposto */}
 
 			<form
@@ -367,11 +368,14 @@ const EditProfile = ({ user }) => {
 						className="flex items-center gap-5 group hover:text-primary-500 transition-all"
 						onClick={handlePageChange}
 					>
-						<ArrowLeft size={18} className="" /> Voltar
+						<ArrowLeft size={18} className="" /> Cancelar
 					</Link>
-					<button className="flex w-fit gap-4 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
-						<SaveAllIcon /> Salvar alterações
-					</button>
+					<InteractiveHoverButton
+						icon={<SaveAllIcon size={18} />}
+						className="w-fit flex "
+					>
+						Salvar alterações
+					</InteractiveHoverButton>
 				</div>
 			</form>
 		</div>

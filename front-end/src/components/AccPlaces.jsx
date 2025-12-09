@@ -9,7 +9,7 @@ import "./Places.css";
 import { useMoblieContext } from "./contexts/MoblieContext";
 import Loading from "./Loading";
 import { useUserContext } from "./contexts/UserContext";
-import Banner from "../assets/banner.png";
+import image from "../assets/image.png";
 
 const AccPlaces = () => {
 	const { action } = useParams();
@@ -45,13 +45,13 @@ const AccPlaces = () => {
 	return (
 		<>
 			<div
-				className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
+				className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
 				style={{
-					backgroundImage: `url(${Banner})`,
-					rotate: "10",
+					backgroundImage: `url(${image})`,
 				}}
 			>
-				<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
+				<div className="absolute inset-0 backdrop-blur-[5px]"></div>
+
 				{/* Conteúdo */}
 				<div className="relative flex flex-col justify-center items-center h-full gap-4">
 					<h1 className="font-bold text-5xl text-white drop-shadow-lg">

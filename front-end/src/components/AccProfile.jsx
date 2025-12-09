@@ -35,7 +35,7 @@ import { LoadingOverlay } from "@mantine/core";
 import Loading from "./Loading";
 import { useTimeout } from "@mantine/hooks";
 import { useLocation } from "react-router-dom";
-import Banner from "../assets/banner.png";
+import image from "../assets/image.png";
 
 const AccProfile = () => {
 	const { user, setUser } = useUserContext();
@@ -187,14 +187,12 @@ const AccProfile = () => {
 			{!isEditingProfile ? (
 				<>
 					<div
-						className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
+						className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
 						style={{
-							backgroundImage: `url(${Banner})`,
-							rotate: "10",
+							backgroundImage: `url(${image})`,
 						}}
 					>
-						<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-700/25 to-primary-900/35"></div>
-						{/* Conteúdo */}
+						<div className="absolute inset-0 backdrop-blur-[5px]"></div>
 					</div>
 
 					{/* Container do conteúdo */}
@@ -324,14 +322,12 @@ const AccProfile = () => {
 			) : (
 				<>
 					<div
-						className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
+						className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
 						style={{
-							backgroundImage: `url(${Banner})`,
-							rotate: "10",
+							backgroundImage: `url(${image})`,
 						}}
 					>
-						<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-700/25 to-primary-900/35"></div>
-						{/* Conteúdo */}
+						<div className="absolute inset-0 backdrop-blur-[5px]"></div>
 					</div>
 					<EditProfile user={user} />
 				</>

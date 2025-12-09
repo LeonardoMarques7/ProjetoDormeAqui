@@ -58,11 +58,15 @@ import MarkdownIt from "markdown-it";
 import Perks from "../components/Perks";
 import Banner from "../assets/banner.png";
 import { Timeline } from "@mantine/core";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+
+import Counter from "@/components/Counter";
 
 const Place = () => {
 	const { moblie } = useMoblieContext();
 	const { id } = useParams();
 	const { user } = useUserContext();
+	const [login, setLogin] = useState(false);
 	const { showMessage } = useMessage();
 	const [place, setPlace] = useState(null);
 	const lightGalleryRef = useRef(null);
@@ -215,6 +219,8 @@ const Place = () => {
 	let rooms = 1;
 	let beds = 2;
 	let bathrooms = 1;
+
+	if (login) return <Navigate to={`/login`} />;
 
 	return (
 		<>
@@ -563,23 +569,12 @@ const Place = () => {
 									)}
 								</div>
 								<div className="flex items-center text-center justify-center p-0 h-full w-fit border rounded-2xl">
-									<div
-										className="flex items-center grow text-center w-full
-									"
-									>
-										<input
-											className="outline-1 h-11 rounded-l-2xl w-10 px-4"
-											type="number "
-											id="quantity-input"
-											placeholder="1"
-											required
-											value={guests}
-											readOnly
-										/>
+									<div className="rounded-l-2xl px-5 flex items-center justify-center bg-white">
+										<Counter value={guests} fontSize={25} />
 									</div>
 									<div className="flex items-center">
 										<button
-											className="border-l py-2.5 hover:bg-gray-100  px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
+											className="border-l py-2.5 hover:bg-gray-100 px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
 											onClick={(e) => {
 												e.preventDefault();
 												if (guests < place.guests) {
@@ -596,7 +591,7 @@ const Place = () => {
 											<Plus />
 										</button>
 										<button
-											className={` border-l min-h-full py-2.5 hover:bg-gray-100 rounded-r-2xl px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto`}
+											className="border-l min-h-full py-2.5 hover:bg-gray-100 rounded-r-2xl px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
 											onClick={(e) => {
 												e.preventDefault();
 												if (guests > 1) {
@@ -614,19 +609,22 @@ const Place = () => {
 								</div>
 							</div>
 							{user ? (
-								<button
+								<InteractiveHoverButton
+									className="w-fit"
 									onClick={handleBooking}
-									className="text-center font-bold rounded-full text-xl cursor-pointer w-full py-2 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300"
 								>
-									Reservar
-								</button>
+									Reservar comodidade
+								</InteractiveHoverButton>
 							) : (
-								<Link
-									to={"/login"}
-									className="text-center font-bold rounded-full text-xl cursor-pointer w-full py-2 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300"
+								<InteractiveHoverButton
+									className="w-fit"
+									onClick={(e) => {
+										e.preventDefault();
+										setLogin(true);
+									}}
 								>
 									Entre para continuar
-								</Link>
+								</InteractiveHoverButton>
 							)}
 						</form>
 					)}
