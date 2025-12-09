@@ -13,6 +13,7 @@ import {
 	Hotel,
 	HotelIcon,
 	Menu,
+	MenuIcon,
 	TicketCheck,
 } from "lucide-react";
 import { Home, Briefcase, User, Mail, Settings } from "lucide-react";
@@ -98,17 +99,7 @@ function MenuBar({ active }) {
 							>
 								<Link
 									to={"/"}
-									className={`flex items-center gap-2  rounded-2xl px-4 justify-between py-2 transition-colors  ${
-										scrolled
-											? isActiveHome
-												? "bg-primary-500 text-white border-primary-500 border-1"
-												: "text-gray-700"
-											: isActiveHome
-											? "bg-white text-primary-500 border-primary-500 border-1"
-											: active == true
-											? "text-gray-700"
-											: "text-white"
-									}`}
+									className={`flex items-center gap-2  rounded-2xl px-4 justify-between py-2 text-gray-700 transition-colors`}
 								>
 									<motion.div
 										transition={{
@@ -117,21 +108,29 @@ function MenuBar({ active }) {
 											duration: 0.5,
 										}}
 									>
-										Home
+										Torne-se um anfitrião
 									</motion.div>
 								</Link>
 							</motion.button>
-							<motion.button
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-							>
-								<Link
-									to={"/login"}
-									className="bg-white text-primary-500 px-5 border-1 rounded-xl py-2"
+							<DropdownMenu modal={false}>
+								<DropdownMenuTrigger className={`outline-none`}>
+									<div className="badge__user flex items-center text-white gap-2 cursor-pointer hover:bg-gray-800 transition-colors bg-primary-900 p-4 rounded-full">
+										<MenuIcon size={18} />
+									</div>
+								</DropdownMenuTrigger>
+
+								<DropdownMenuContent
+									align="end"
+									className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2"
 								>
-									Entre ou Cadastre-se
-								</Link>
-							</motion.button>
+									<Link
+										to={"/login"}
+										className={`flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
+									>
+										Entre ou Cadastre-se
+									</Link>
+								</DropdownMenuContent>
+							</DropdownMenu>
 						</>
 					)}
 					{user &&
@@ -145,17 +144,8 @@ function MenuBar({ active }) {
 								>
 									<Link
 										to={item.path}
-										className={`flex items-center gap-2  rounded-2xl px-4 justify-between py-2 transition-colors  ${
-											scrolled
-												? isActive
-													? "bg-primary-500 text-white border-primary-500 border-1"
-													: "text-gray-700"
-												: isActive
-												? "bg-white text-primary-500 border-primary-500 border-1"
-												: active == true
-												? "text-gray-700"
-												: "text-white"
-										}
+										className={`flex items-center gap-2  rounded-2xl px-4 justify-between py-2 transition-colors 
+											
 									`}
 									>
 										<motion.div

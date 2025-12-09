@@ -231,77 +231,70 @@ const Place = () => {
 				}))}
 			/>
 
-			<div
-				className="bg-cover bg-primar-700 max-w-7xl xl:rounded-none xl:max-w-full mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
-				style={{
-					backgroundImage: `url(${Banner})`,
-					rotate: "10",
-				}}
-			>
-				<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
-			</div>
-			<div className="container__infos lg:max-w-7xl mx-auto flex flex-col gap-2">
-				<div className="-mt-70 bg-white p-2 relative mx-4 rounded-2xl  cursor-pointer">
-					{/* Container do grid principal */}
-					<div className="grid grid-cols-3 grid-rows-1 gap-2 aspect-[4/3] ">
-						{/* Foto grande no topo esquerdo - ocupa 2 colunas e 1 linha */}
-						<div className="col-span-2 row-span-1">
-							<img
-								className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150  transition-all duration-300 not-hover:grayscale-30"
-								src={place.photos[0]}
-								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(0)}
-							/>
+			<div className="container__infos mx-auto max-w-7xl flex flex-col gap-2">
+				<div className="bg-primary-900 shadow-2xl max-h-full mt-25 py-5 max-w-full mx-auto w-full object-cover bg-center rounded-4xl h-full relative overflow-hidden">
+					<div className=" bg-white p-2 relative mx-4 rounded-2xl  cursor-pointer">
+						{/* Container do grid principal */}
+						<div className="grid grid-cols-3 grid-rows-1 gap-2 aspect-[4/3] ">
+							{/* Foto grande no topo esquerdo - ocupa 2 colunas e 1 linha */}
+							<div className="col-span-2 row-span-1">
+								<img
+									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150  transition-all duration-300 not-hover:grayscale-30"
+									src={place.photos[0]}
+									alt="Imagem da acomodação"
+									onClick={() => handleImageClick(0)}
+								/>
+							</div>
+
+							{/* Primeira foto vertical direita - ocupa 1 coluna e 1 linha */}
+							<div className="col-span-1 row-span-1">
+								<img
+									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
+									src={place.photos[1]}
+									alt="Imagem da acomodação"
+									onClick={() => handleImageClick(1)}
+								/>
+							</div>
+
+							{/* Primeira foto retangular embaixo esquerda */}
+							<div className="col-span-1 row-span-1 aspect-square	">
+								<img
+									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
+									src={place.photos[2]}
+									alt="Imagem da acomodação"
+									onClick={() => handleImageClick(2)}
+								/>
+							</div>
+
+							{/* Segunda foto retangular embaixo meio */}
+							<div className="col-span-1 row-span-1 aspect-square">
+								<img
+									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
+									src={place.photos[3]}
+									alt="Imagem da acomodação"
+									onClick={() => handleImageClick(3)}
+								/>
+							</div>
+
+							{/* Segunda foto vertical direita */}
+							<div className="col-span-1 row-span-1 aspect-square">
+								<img
+									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
+									src={place.photos[4]}
+									alt="Imagem da acomodação"
+									onClick={() => handleImageClick(4)}
+								/>
+							</div>
 						</div>
 
-						{/* Primeira foto vertical direita - ocupa 1 coluna e 1 linha */}
-						<div className="col-span-1 row-span-1">
-							<img
-								className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
-								src={place.photos[1]}
-								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(1)}
-							/>
-						</div>
-
-						{/* Primeira foto retangular embaixo esquerda */}
-						<div className="col-span-1 row-span-1 aspect-square	">
-							<img
-								className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
-								src={place.photos[2]}
-								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(2)}
-							/>
-						</div>
-
-						{/* Segunda foto retangular embaixo meio */}
-						<div className="col-span-1 row-span-1 aspect-square">
-							<img
-								className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
-								src={place.photos[3]}
-								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(3)}
-							/>
-						</div>
-
-						{/* Segunda foto vertical direita */}
-						<div className="col-span-1 row-span-1 aspect-square">
-							<img
-								className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
-								src={place.photos[4]}
-								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(4)}
-							/>
-						</div>
+						{/* Botão de mostrar mais fotos */}
+						<span
+							className="absolute bottom-4 right-4 flex items-center px-3 py-2 rounded-[10px] gap-2 bg-white/70 hover:scale-105 hover:-translate-x-1 ease-in-out duration-300 hover:bg-primary-300 cursor-pointer"
+							onClick={handleShowMoreClick}
+						>
+							<Expand /> Expandir fotos
+						</span>
 					</div>
-
-					{/* Botão de mostrar mais fotos */}
-					<span
-						className="absolute bottom-4 right-4 flex items-center px-3 py-2 rounded-[10px] gap-2 bg-white/70 hover:scale-105 hover:-translate-x-1 ease-in-out duration-300 hover:bg-primary-300 cursor-pointer"
-						onClick={handleShowMoreClick}
-					>
-						<Expand /> Expandir fotos
-					</span>
 				</div>
 				{/* Conteúdo da acomodação */}
 				<div className="grid grid-cols-1 gap-20 md:grid-cols-2 mx-8">

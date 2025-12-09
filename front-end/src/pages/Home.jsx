@@ -21,7 +21,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
-import Banner from "../assets/banner.png";
+import Banner from "../assets/image.png";
 
 import "./Home.css";
 
@@ -94,13 +94,12 @@ const Home = () => {
 		<>
 			<div className="relative flex justify-center mb-12">
 				<div
-					className="bg-cover bg-primar-700 max-w-7xl xl:max-w-full mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
+					className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
 					style={{
 						backgroundImage: `url(${Banner})`,
-						rotate: "10",
 					}}
 				>
-					<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
+					<div className="absolute inset-0 backdrop-blur-[5px]"></div>
 					{/* Conteúdo */}
 					<div className="relative flex flex-col justify-center text-white items-center h-full gap-4">
 						<p className="text-3xl font-bold ">
@@ -186,7 +185,7 @@ const Home = () => {
 							<Button
 								type="submit"
 								variant="outline"
-								className="btn__submit justify-start text-left font-normal border bg-primary-500 hover:bg-primary-600/90 cursor-pointer hover:text-white border-gray-200 !px-14 !py-4 h-full rounded-2xl text-white outline-primary-400"
+								className="btn__submit justify-start text-left font-normal border bg-primary-900 hover:bg-primary-800/90 cursor-pointer hover:text-white border-gray-200 !px-14 !py-4 h-full rounded-2xl text-white outline-primary-400"
 							>
 								<Search className="mr-2 h-4 w-4" />
 								<span>Buscar</span>

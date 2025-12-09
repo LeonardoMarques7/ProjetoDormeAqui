@@ -16,10 +16,8 @@ const AccBookings = ({ bookingId }) => {
 	useEffect(() => {
 		const axiosGet = async () => {
 			const { data } = await axios.get("/bookings/owner");
-			setTimeout(() => {
-				setBookings(data);
-				setReadyBookings(true);
-			}, 4500);
+			setBookings(data);
+			setReadyBookings(true);
 		};
 
 		axiosGet();
