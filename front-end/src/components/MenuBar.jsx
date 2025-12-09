@@ -79,6 +79,8 @@ function MenuBar({ active }) {
 		}
 	};
 
+	const isActiveHome = location.pathname === "Home";
+
 	return (
 		<>
 			{!moblie ? (
@@ -88,46 +90,50 @@ function MenuBar({ active }) {
 					transition={{ duration: 0.8, delay: 0.5 }}
 					className="flex items-center gap-4"
 				>
-					{/* Navegação */}
-					{!user &&
-						["Home"].map((item) => {
-							const isActive = location.pathname === item.path;
-							return (
-								<>
-									<motion.button
-										whileHover={{ scale: 1.05 }}
-										whileTap={{ scale: 0.95 }}
-										key={item.path}
+					{!user && (
+						<>
+							<motion.button
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+							>
+								<Link
+									to={"/"}
+									className={`flex items-center gap-2  rounded-2xl px-4 justify-between py-2 transition-colors  ${
+										scrolled
+											? isActiveHome
+												? "bg-primary-500 text-white border-primary-500 border-1"
+												: "text-gray-700"
+											: isActiveHome
+											? "bg-white text-primary-500 border-primary-500 border-1"
+											: active == true
+											? "text-gray-700"
+											: "text-white"
+									}`}
+								>
+									<motion.div
+										transition={{
+											type: "spring",
+											bounce: 0.25,
+											duration: 0.5,
+										}}
 									>
-										<Link
-											to={item.path}
-											className={`flex items-center gap-2  rounded-2xl px-4 justify-between py-2 transition-colors  ${
-												scrolled
-													? isActive
-														? "bg-primary-500 text-white border-primary-500 border-1"
-														: "text-gray-700"
-													: isActive
-													? "bg-white text-primary-500 border-primary-500 border-1"
-													: active == true
-													? "text-gray-700"
-													: "text-white"
-											}
-									`}
-										>
-											<motion.div
-												transition={{
-													type: "spring",
-													bounce: 0.25,
-													duration: 0.5,
-												}}
-											>
-												{item.label}
-											</motion.div>
-										</Link>
-									</motion.button>
-								</>
-							);
-						})}
+										Home
+									</motion.div>
+								</Link>
+							</motion.button>
+							<motion.button
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+							>
+								<Link
+									to={"/login"}
+									className="bg-white text-primary-500 px-5 border-1 rounded-xl py-2"
+								>
+									Entre ou Cadastre-se
+								</Link>
+							</motion.button>
+						</>
+					)}
 					{user &&
 						navItems.map((item) => {
 							const isActive = location.pathname === item.path;
@@ -165,6 +171,7 @@ function MenuBar({ active }) {
 								</motion.button>
 							);
 						})}
+
 					{user && (
 						<DropdownMenu modal={false}>
 							<DropdownMenuTrigger className={`outline-none`}>
