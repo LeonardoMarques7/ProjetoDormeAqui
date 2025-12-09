@@ -218,8 +218,21 @@ const Place = () => {
 
 	return (
 		<>
+			<LightGallery
+				onInit={(detail) => {
+					lightGalleryRef.current = detail.instance;
+				}}
+				speed={500}
+				plugins={[lgThumbnail, lgZoom, lgFullscreen]}
+				dynamic
+				dynamicEl={place.photos.map((photo) => ({
+					src: photo,
+					thumb: photo,
+				}))}
+			/>
+
 			<div
-				className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
+				className="bg-cover bg-primar-700 max-w-7xl xl:rounded-none xl:max-w-full mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
 				style={{
 					backgroundImage: `url(${Banner})`,
 					rotate: "10",
@@ -228,47 +241,68 @@ const Place = () => {
 				<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
 			</div>
 			<div className="container__infos lg:max-w-7xl mx-auto flex flex-col gap-2">
-				<div
-					className={`-mt-50 bg-white p-2 relative grid sm:grid-cols-[2fr_1fr] mx-4  aspect-square sm:grid-rows-2 sm:aspect-[3/2] gap-5 overflow-hidden rounded-2xl hover:opacity-95 cursor-pointer`}
-				>
-					{place.photos
-						.filter((photo, index) => index < 3)
-						.map((photo, index) => (
+				<div className="-mt-70 bg-white p-2 relative mx-4 rounded-2xl  cursor-pointer">
+					{/* Container do grid principal */}
+					<div className="grid grid-cols-3 grid-rows-1 gap-2 aspect-[4/3] ">
+						{/* Foto grande no topo esquerdo - ocupa 2 colunas e 1 linha */}
+						<div className="col-span-2 row-span-1">
 							<img
-								key={index}
-								className={`${
-									index === 0 ? "row-span-2 h-full object-center " : ""
-								} aspect-square w-full rounded-2xl  object-cover cursor-pointer hover:saturate-150 transition-opacity sm:object-cover`}
-								src={photo}
+								className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150  transition-all duration-300 not-hover:grayscale-30"
+								src={place.photos[0]}
 								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(index)}
+								onClick={() => handleImageClick(0)}
 							/>
-						))}
+						</div>
+
+						{/* Primeira foto vertical direita - ocupa 1 coluna e 1 linha */}
+						<div className="col-span-1 row-span-1">
+							<img
+								className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
+								src={place.photos[1]}
+								alt="Imagem da acomodação"
+								onClick={() => handleImageClick(1)}
+							/>
+						</div>
+
+						{/* Primeira foto retangular embaixo esquerda */}
+						<div className="col-span-1 row-span-1 aspect-square	">
+							<img
+								className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
+								src={place.photos[2]}
+								alt="Imagem da acomodação"
+								onClick={() => handleImageClick(2)}
+							/>
+						</div>
+
+						{/* Segunda foto retangular embaixo meio */}
+						<div className="col-span-1 row-span-1 aspect-square">
+							<img
+								className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
+								src={place.photos[3]}
+								alt="Imagem da acomodação"
+								onClick={() => handleImageClick(3)}
+							/>
+						</div>
+
+						{/* Segunda foto vertical direita */}
+						<div className="col-span-1 row-span-1 aspect-square">
+							<img
+								className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
+								src={place.photos[4]}
+								alt="Imagem da acomodação"
+								onClick={() => handleImageClick(4)}
+							/>
+						</div>
+					</div>
+
+					{/* Botão de mostrar mais fotos */}
 					<span
-						className="absolute bottom-2 items-center right-2 flex px-2 py-2 rounded-[10px] gap-2 bg-white/70 hover:scale-105 hover:-translate-x-1 ease-in-out duration-300 hover:bg-primary-300 cursor-pointer"
+						className="absolute bottom-4 right-4 flex items-center px-3 py-2 rounded-[10px] gap-2 bg-white/70 hover:scale-105 hover:-translate-x-1 ease-in-out duration-300 hover:bg-primary-300 cursor-pointer"
 						onClick={handleShowMoreClick}
 					>
-						<ImagePlus /> Mostrar mais fotos
+						<Expand /> Expandir fotos
 					</span>
 				</div>
-
-				{/* LightGallery - invisível, usado apenas para controlar a galeria */}
-				<LightGallery
-					onInit={(detail) => {
-						lightGalleryRef.current = detail.instance;
-					}}
-					speed={500}
-					plugins={[lgThumbnail, lgZoom, lgFullscreen]}
-					dynamic={true}
-					dynamicEl={place.photos.map((photo) => ({
-						src: photo,
-						thumb: photo,
-						subHtml: `<h4>${place.title}</h4>`,
-					}))}
-					closable={true}
-					showCloseIcon={true}
-					counter={true}
-				/>
 				{/* Conteúdo da acomodação */}
 				<div className="grid grid-cols-1 gap-20 md:grid-cols-2 mx-8">
 					<div className="order-2 leading-relaxed px-0 md:order-none description ">
@@ -414,7 +448,7 @@ const Place = () => {
 						</div>
 					</div>
 
-					{console.log(booking)}
+					{console.log("Este é log: ", booking)}
 
 					{/* Booking */}
 					{booking ? (
@@ -481,13 +515,13 @@ const Place = () => {
 					) : (
 						<form className="form__place order-1 w-full md:order-none justify-self-end self-start sticky top-20 bottom-20 flex flex-col gap-4 rounded-2xl p-10">
 							<div className="border-l-2 border-primary-400 p-4">
-								<p className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
+								<div className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
 									<p className="uppercase text-sm">preço</p>
 									<span className="font-light text-5xl text-primary-500">
 										R$ {place.price}
 									</span>{" "}
 									<p className="text-sm">por noite</p>
-								</p>
+								</div>
 							</div>
 							{/* Checkin e Checkout */}
 							<div className="column__check flex justify-start sm:justify-start">

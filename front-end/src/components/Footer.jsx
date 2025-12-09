@@ -22,7 +22,7 @@ const Footer = ({ active }) => {
 
 	return (
 		<footer
-			className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-t-2xl bg-center h-[50svh] relative overflow-hidden"
+			className="bg-cover bg-primar-700 xl:max-w-full xl:rounded-none max-w-7xl mx-auto w-full rounded-t-2xl bg-center h-[50svh] relative overflow-hidden"
 			style={{
 				backgroundImage: `url(${Banner})`,
 				rotate: "10",

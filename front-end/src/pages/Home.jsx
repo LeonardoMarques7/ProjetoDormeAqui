@@ -94,7 +94,7 @@ const Home = () => {
 		<>
 			<div className="relative flex justify-center mb-12">
 				<div
-					className="bg-cover bg-primar-700 max-w-7xl mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
+					className="bg-cover bg-primar-700 max-w-7xl xl:max-w-full mx-auto w-full rounded-b-2xl bg-center h-[50svh] relative overflow-hidden"
 					style={{
 						backgroundImage: `url(${Banner})`,
 						rotate: "10",
@@ -103,9 +103,9 @@ const Home = () => {
 					<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
 					{/* Conteúdo */}
 					<div className="relative flex flex-col justify-center text-white items-center h-full gap-4">
-						<h1 className="font-bold text-5xl  drop-shadow-lg">
-							Encontre seu lugar
-						</h1>
+						<p className="text-3xl font-bold ">
+							Aqui é simples. Aqui é seguro. Aqui é DormeAqui.
+						</p>
 						<p className="text-lg text-gray-50">
 							Descubra acomodações únicas para sua próxima viagem
 						</p>
