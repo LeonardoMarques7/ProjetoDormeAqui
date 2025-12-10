@@ -14,7 +14,9 @@ import { format, isBefore, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import logoPrimary from "../assets/logo__primary.png";
 import { Calendar } from "@/components/ui/calendar";
+import RotatingText from "@/components/RotatingText";
 import { cn } from "@/lib/utils";
+import GridMotion from "@/components/GridMotion";
 import {
 	Popover,
 	PopoverContent,
@@ -93,17 +95,33 @@ const Home = () => {
 	return (
 		<>
 			<div className="relative flex justify-center mb-12">
-				<div
-					className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
-					style={{
-						backgroundImage: `url(${Banner})`,
-					}}
-				>
-					<div className="absolute inset-0 backdrop-blur-[5px]"></div>
+				<div className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden">
+					<div className="absolute inset-0 backdrop-blur-[5px] z-0">
+						<GridMotion />
+					</div>
+
 					{/* Conteúdo */}
-					<div className="relative flex flex-col justify-center text-white items-center h-full gap-4">
-						<p className="text-3xl font-bold ">
-							Aqui é simples. Aqui é seguro. Aqui é DormeAqui.
+					<div className="relative z-10 bg-transparent flex flex-col justify-center text-white items-center h-full gap-4">
+						<p className="text-3xl font-bold flex items-end transition-all">
+							<div className="mb-1">Encontre o lugar perfeito para</div>
+							<RotatingText
+								texts={[
+									"relaxar",
+									"descansar",
+									"viajar",
+									"viver momentos únicos",
+									"se sentir em casa",
+								]}
+								mainClassName="px-4 text-shadow shadow-white pb-1 items-center rounded-2xl text-primary-300 text-5xl  overflow-hidden  justify-center"
+								staggerFrom={"last"}
+								initial={{ y: "100%" }}
+								animate={{ y: 0 }}
+								exit={{ y: "-120%" }}
+								staggerDuration={0.025}
+								splitLevelClassName="overflow-hidden"
+								transition={{ type: "spring", damping: 30, stiffness: 400 }}
+								rotationInterval={2000}
+							/>
 						</p>
 						<p className="text-lg text-gray-50">
 							Descubra acomodações únicas para sua próxima viagem

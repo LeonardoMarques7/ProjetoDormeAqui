@@ -24,14 +24,16 @@ const Item = ({ place = null, placeHolder }) => {
 				</div>
 			) : (
 				<Link to={`/places/${place._id}`}>
-					<div className="flex flex-col gap-2 hover:bg-primary-100 rounded-2xl hover:p-4 transition-all duration-700 max-w-[350px]">
+					<div className="flex flex-col gap-2 group rounded-2xl hover:p-3 hover:bg-primary-100  transition-all duration-700 max-w-[350px]">
 						<img
 							src={place.photos[0]}
 							alt="Imagem da acomodação"
-							className="aspect-square object-cover rounded-2xl"
+							className="aspect-square object-cover  transition-transform rounded-2xl"
 						/>{" "}
 						<div className="">
-							<h3 className="text-xl font-semibold">{place.city}</h3>
+							<h3 className="text-xl font-semibold line-clamp-1">
+								{place.city}
+							</h3>
 							<p
 								className="line-clamp-2 text-gray-600"
 								dangerouslySetInnerHTML={{
