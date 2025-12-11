@@ -239,41 +239,6 @@ const Place = () => {
 			/>
 
 			<div className="container__infos mx-auto max-w-7xl flex flex-col gap-2">
-				<div
-					className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
-					style={{
-						backgroundImage: `url(${Banner})`,
-					}}
-				>
-					<div className="absolute inset-0 backdrop-blur-[5px]"></div>
-					{/* Conteúdo */}
-					<div className="relative flex flex-col justify-center text-white items-center h-full gap-4">
-						<p className="text-3xl font-bold flex items-start">
-							Encontre o lugar perfeito para
-							<RotatingText
-								texts={[
-									"relaxar",
-									"descansar",
-									"viajar",
-									"viver momentos únicos",
-									"se sentir em casa",
-								]}
-								mainClassName="px-4 bg-primary-900 rounded-2xl  mx-2 py-2 text-white overflow-hidden justify-center"
-								staggerFrom={"last"}
-								initial={{ y: "100%" }}
-								animate={{ y: 0 }}
-								exit={{ y: "-120%" }}
-								staggerDuration={0.025}
-								splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
-								transition={{ type: "spring", damping: 30, stiffness: 400 }}
-								rotationInterval={2000}
-							/>
-						</p>
-						<p className="text-lg text-gray-50">
-							Descubra acomodações únicas para sua próxima viagem
-						</p>
-					</div>
-				</div>
 				<div className="bg-primary-900 shadow-2xl max-h-full mt-25 py-5 max-w-full mx-auto w-full object-cover bg-center rounded-4xl h-full relative overflow-hidden">
 					<div className=" bg-white p-2 relative mx-4 rounded-2xl  cursor-pointer">
 						{/* Container do grid principal */}

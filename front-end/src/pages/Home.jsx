@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import Item from "../components/Item";
 import axios from "axios";
 import {
+	CalendarArrowDownIcon,
+	CalendarArrowUp,
 	CalendarIcon,
 	DeleteIcon,
 	Eraser,
@@ -24,6 +26,7 @@ import {
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import Banner from "../assets/image.png";
+import { ptBR } from "date-fns/locale";
 
 import "./Home.css";
 
@@ -128,7 +131,7 @@ const Home = () => {
 						</p>
 					</div>
 				</div>
-				<div className="container__bg__form  bg-white absolute flex justify-center -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4">
+				<div className="container__bg__form z-20  bg-white absolute flex justify-center -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4">
 					<form onSubmit={handleSearch}>
 						<div className="form__container flex items-center gap-4">
 							<div className="group__input relative flex justify-center items-center">
@@ -153,7 +156,7 @@ const Home = () => {
 												!checkin && "text-muted-foreground"
 											)}
 										>
-											<CalendarIcon className="absolute left-4 text-gray-400 size-6" />
+											<CalendarArrowUp className="absolute left-4 text-gray-400 size-6" />
 											{checkin ? (
 												format(checkin, "dd/MM/yyyy")
 											) : (
@@ -161,11 +164,12 @@ const Home = () => {
 											)}
 										</Button>
 									</PopoverTrigger>
-									<PopoverContent className="w-auto p-0" align="start">
+									<PopoverContent className="w-auto" align="start">
 										<Calendar
 											mode="single"
 											selected={checkin}
 											onSelect={handleCheckin}
+											locale={ptBR}
 											initialFocus
 										/>
 									</PopoverContent>
@@ -182,7 +186,7 @@ const Home = () => {
 												!checkout && "text-muted-foreground"
 											)}
 										>
-											<CalendarIcon className="absolute left-4 text-gray-400 size-6" />
+											<CalendarArrowDownIcon className="absolute left-4 text-gray-400 size-6" />
 											{checkout ? (
 												format(checkout, "dd/MM/yyyy")
 											) : (
@@ -190,11 +194,12 @@ const Home = () => {
 											)}
 										</Button>
 									</PopoverTrigger>
-									<PopoverContent className="w-auto p-0" align="start">
+									<PopoverContent className="w-auto" align="start">
 										<Calendar
 											mode="single"
 											selected={checkout}
 											onSelect={handleCheckout}
+											locale={ptBR}
 											initialFocus
 										/>
 									</PopoverContent>
@@ -226,7 +231,7 @@ const Home = () => {
 						</span>
 						<button
 							onClick={limparPesquisa}
-							className=" flex items-center cursor-pointer border border-transparent hover:border-red-500  transition-all gap-2 !text-lg  text-red-500  p-2.5 px-5 rounded-2xl"
+							className=" ml-auto flex items-center cursor-pointer border border-transparent  hover:bg-red-50 transition-all gap-2 !text-lg  text-red-500  p-2.5 px-5 rounded-2xl"
 						>
 							<Eraser /> Limpar pesquisa
 						</button>
@@ -234,50 +239,30 @@ const Home = () => {
 				) : (
 					// Caso 2: pesquisou mas não encontrou
 					<>
-						<div className="mx-auto px-8 text-center max-w-full my-5 mb-8 w-full flex justify-center 	 items-center  lg:max-w-7xl text-xl  pt-5">
-							<span className="">
-								Buscando por{" "}
-								<strong className="text-primary-500">{city}</strong> e foi
-								encontrado{" "}
-								{placesSearch.length > 1
-									? `${placesSearch.length} resultados`
-									: `${placesSearch.length} resultado`}
-								.
-							</span>
-							<button
-								onClick={limparPesquisa}
-								className="edit__btn ml-auto outline-none group cursor-pointer group-hover:text-white hover:text-white flex items-center justify-center transition-all duration-300 ease-in-out hover:px-2 hover:bg-red-600 gap-0 hover:gap-3 text-red-500  rounded-md text-center py-2.5 overflow-hidden"
-							>
-								<Trash
-									size={20}
-									className="transition-transform duration-300 "
-								/>
-								<p className="!text-sm max-w-0 opacity-0 group-hover:max-w-50 group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
-									Limpar pesquisa
-								</p>
-							</button>
-						</div>
-
-						<div
-							className="bg-cover mb-10 bg-primar-700 max-w-7xl mx-auto w-full rounded-2xl bg-center h-[50svh] relative overflow-hidden"
-							style={{
-								backgroundImage: `url(${Banner})`,
-								rotate: "10",
-							}}
-						>
-							<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
+						<div className="my-8 max-w-7xl mx-auto text-start w-full overflow-hidden">
 							{/* Conteúdo */}
-							<div className="relative flex flex-col justify-center text-white items-center h-full gap-4">
-								<h1 className="font-bold text-5xl  drop-shadow-lg">
-									Não encontramos nada ;-;
+							<div className="text-center flex-col mx-8 flex gap-2 items-start justify-start transition-all">
+								<h1>
+									<strong className="text-red-500">Ops!</strong> Não encontramos
+									acomodações que correspondam à sua busca.
 								</h1>
-								<p className="text-lg text-gray-50">
-									Abaixo descubra as acomodações únicas para sua próxima viagem
+								<p className="text-primary-700 mb-5">
+									Não encontramos acomodações que correspondam aos seus
+									critérios de busca.
 								</p>
+								<button
+									onClick={limparPesquisa}
+									className="edit__btn outline-none  cursor-pointer  flex items-center justify-center transition-all duration-300 ease-in-out hover:px-2 hover:bg-red-700 gap-2 bg-red-500 text-white px-2 rounded-md text-center py-2.5"
+								>
+									<p className="!text-sm  transition-all duration-300 ease-in-out whitespace-nowrap">
+										Limpar Todos os Filtros
+									</p>
+								</button>
 							</div>
 						</div>
-						<div className="mx-auto mb-5 font-medium max-w-full gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start ">
-							Outras acomodações
+						<div className="mx-auto mb-5 font-medium max-w-full text-gray-700 gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start ">
+							<strong>Mas não se preocupe!</strong> Confira abaixo outras opções
+							disponíveis:
 						</div>
 					</>
 				)
