@@ -6,9 +6,9 @@ const { PORT } = process.env;
 
 const startServer = async () => {
   await connectDb();
-  app.listen(PORT, () => {
-    console.log(`Servidor está rodando na porta ${PORT}`);
-  });
+  app.listen(3000, "0.0.0.0", () => {
+  console.log("Servidor rodando em http://0.0.0.0:3000");
+});
 };
 
 startServer();

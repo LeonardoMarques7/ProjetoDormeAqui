@@ -76,6 +76,22 @@ router.get("/:id", async (req, res) => {
     
 });
 
+router.get("/minimal/:id", async (req, res) => {
+    connectDb();
+
+    const { id: _id } = req.params;
+    
+    try {
+        const userDoc = await User.findOne({_id}).select('name photo');
+
+        res.json(userDoc);
+    } catch (error) {
+        res.status(500).json("Deu erro ao encontrar o usuário.",error);
+        throw error;
+    }
+    
+});
+
 router.post("/upload", uploadImage().single("files"), async (req, res) => {
     connectDb();
     
