@@ -110,7 +110,7 @@ const Item = ({ place = null, placeHolder }) => {
 					to={`/places/${place._id}`}
 					onMouseEnter={() => setIsHovered(true)}
 					onMouseLeave={() => setIsHovered(false)}
-					className="group flex flex-col gap-2 rounded-2xl w-full transition-all duration-700 hover:row-span-1 hover:h-full hover:col-span-1 hover:scale-110 hover:z-50 relative"
+					className="group flex flex-col gap-2 rounded-2xl w-full transition-all duration-700 hover:row-span-1 hover:h-full hover:col-span-1 hover:scale-110 hover:z-25 relative"
 				>
 					<div
 						className={`flex gap-4 h-full ${
@@ -182,7 +182,7 @@ const Item = ({ place = null, placeHolder }) => {
 						</div>
 
 						{/* Conteúdo expandido */}
-						<div className="hidden hover:visible bg-white shadow-2xl group-hover:flex w-full flex-1 h-fit my-auto -mx-5  rounded-2xl flex-col gap-2 p-4">
+						<div className="hidden hover:visible bg-white shadow-2xl  h-fit group-hover:flex w-full flex-1 -mx-5 aspect-square rounded-2xl flex-col gap-2 p-4">
 							<div className="flex flex-col gap-2">
 								<h3 className="text-xl font-semibold line-clamp-3">
 									{place.title}
