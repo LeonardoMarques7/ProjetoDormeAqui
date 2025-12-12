@@ -96,10 +96,11 @@ function MenuBar({ active }) {
 							<motion.button
 								whileHover={{ scale: 1.05 }}
 								whileTap={{ scale: 0.95 }}
+								className="hidden"
 							>
 								<Link
 									to={"/"}
-									className={`flex items-center gap-2  rounded-2xl px-4 justify-between py-2 text-gray-700 transition-colors`}
+									className={`flex items-center  gap-2  rounded-2xl px-4 justify-between py-2 text-gray-700 transition-colors`}
 								>
 									<motion.div
 										transition={{
@@ -113,7 +114,7 @@ function MenuBar({ active }) {
 								</Link>
 							</motion.button>
 							<DropdownMenu modal={false}>
-								<DropdownMenuTrigger className={`outline-none`}>
+								<DropdownMenuTrigger className={`outline-none `}>
 									<div className="badge__user flex items-center text-white gap-2 cursor-pointer hover:bg-gray-800 transition-colors bg-primary-900 p-4 rounded-full">
 										<MenuIcon size={18} />
 									</div>
@@ -239,7 +240,7 @@ function MenuBar({ active }) {
 				>
 					<DropdownMenu>
 						<DropdownMenuTrigger
-							className={`absolute z-50  ${
+							className={`absolute z-50 right-8  ${
 								scrolled ? "bg-transparent border-0 " : "bg-white border-2"
 							}  p-3 rounded-full hover:scale-105 transition-transform duration-200`}
 						>

@@ -98,14 +98,14 @@ const Home = () => {
 	return (
 		<>
 			<div className="relative flex justify-center mb-12">
-				<div className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden">
-					<div className="absolute inset-0 backdrop-blur-[5px] z-0">
+				<div className="banner__home  max-sm:hidden bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden">
+					<div className=" absolute inset-0 backdrop-blur-[5px] z-0">
 						<GridMotion />
 					</div>
 
 					{/* Conteúdo */}
 					<div className="relative z-10 bg-transparent flex flex-col justify-center text-white items-center h-full gap-4">
-						<p className="text-3xl font-bold flex items-end transition-all">
+						<p className="text-3xl text__banner sm:text-lg font-bold flex items-end transition-all">
 							<div className="mb-1">Encontre o lugar perfeito para</div>
 							<RotatingText
 								texts={[
@@ -115,7 +115,7 @@ const Home = () => {
 									"viver momentos únicos",
 									"se sentir em casa",
 								]}
-								mainClassName="px-4 text-shadow shadow-white pb-1 items-center rounded-2xl text-primary-300 text-5xl  overflow-hidden  justify-center"
+								mainClassName="px-4  text-shadow shadow-white pb-1 items-center rounded-2xl text-primary-300 text-5xl  overflow-hidden  justify-center"
 								staggerFrom={"last"}
 								initial={{ y: "100%" }}
 								animate={{ y: 0 }}
@@ -126,12 +126,12 @@ const Home = () => {
 								rotationInterval={2000}
 							/>
 						</p>
-						<p className="text-lg text-gray-50">
+						<p className="text__banner text-lg text-gray-50">
 							Descubra acomodações únicas para sua próxima viagem
 						</p>
 					</div>
 				</div>
-				<div className="container__bg__form z-20  bg-white absolute flex justify-center -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4">
+				<div className="container__bg__form z-20 bg-white absolute flex justify-center -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4">
 					<form onSubmit={handleSearch}>
 						<div className="form__container flex items-center gap-4">
 							<div className="group__input relative flex justify-center items-center">
@@ -268,7 +268,7 @@ const Home = () => {
 				)
 			) : (
 				// Caso 1: sem pesquisa
-				<h1 className="mx-auto font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
+				<h1 className="mx-auto text__section font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
 					Acomodações disponíveis
 				</h1>
 			)}

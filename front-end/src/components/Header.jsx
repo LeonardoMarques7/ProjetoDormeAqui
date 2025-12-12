@@ -24,7 +24,7 @@ const Header = ({ active }) => {
 			className={`fixed z-50 top-0 w-full transition-all duration-300 bg-white shadow-md shadow-white/10 text-gray-700"
 			}`}
 		>
-			<div className="max-w-full flex items-center mx-auto justify-between px-10 sm:px-8 py-4 lg:max-w-7xl ">
+			<div className="max-w-full max-sm:px-5 flex items-center mx-auto justify-between px-10 sm:px-8 py-4 lg:max-w-7xl ">
 				<Link to="/" className="flex items-center transition-all">
 					<img
 						src={logoPrimary}

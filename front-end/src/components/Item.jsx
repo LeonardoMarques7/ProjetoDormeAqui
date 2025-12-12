@@ -269,14 +269,17 @@ const Item = ({ place = null, placeHolder }) => {
 								onMouseLeave={(e) => e.stopPropagation()}
 							>
 								<InteractiveHoverButton
-									text="Reservar"
-									className="duration-1000 delay-1000"
+									className="duration-1000 z-99 delay-1000"
+									onMouseEnter={(e) => e.stopPropagation()}
+									onMouseLeave={(e) => e.stopPropagation()}
 									onClick={(e) => {
 										e.preventDefault();
 										e.stopPropagation();
 										window.location.href = `/places/${place._id}`;
 									}}
-								/>
+								>
+									Reservar
+								</InteractiveHoverButton>
 							</div>
 						</div>
 					</div>

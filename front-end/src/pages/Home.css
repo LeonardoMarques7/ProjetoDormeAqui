@@ -35,4 +35,20 @@
     .btn__submit {
          justify-content: center;
     }
+    
+    .container__bg__form {
+        display: none;
+    }
+
+    .banner__home {
+        margin: 15svh 1rem 1rem 1rem;
+        font-size: 20px;
+        height: 15svh;
+    }
+
+    .text__section {
+        text-align: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
 }
