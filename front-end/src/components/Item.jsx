@@ -24,6 +24,7 @@ import {
 	Thermometer,
 	Star,
 } from "lucide-react";
+import InteractiveHoverButton from "@/components/ui/interactive-hover-button";
 
 const DotButton = ({ selected, onClick }) => (
 	<button
@@ -96,7 +97,7 @@ const Item = ({ place = null, placeHolder }) => {
 					to={`/places/${place._id}`}
 					onMouseEnter={() => setIsHovered(true)}
 					onMouseLeave={() => setIsHovered(false)}
-					className="group flex bg-white shadow-xl rounded-2xl p-4 flex-col gap-3 w-full max-w-[350px] transition-transform duration-300"
+					className="group flex flex-col gap-3 w-full max-w-[350px] transition-all duration-300"
 				>
 					{/* Carrossel de imagens */}
 					<div className="relative">
@@ -155,23 +156,46 @@ const Item = ({ place = null, placeHolder }) => {
 
 					{/* Card info - estado normal */}
 					<div
-						className={`flex flex-col gap-2 transition-opacity  duration-300 ${
-							isHovered
-								? "opacity-0 h-0 overflow-hidden"
-								: "group-hover:opacity-100"
+						className={`flex flex-col gap-2 transition-opacity duration-300 ${
+							isHovered ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
 						}`}
 					>
 						<div>
-							<h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+							<h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
 								{place.title}
 							</h3>
-							<div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-								<MapPin size={14} />
-								<span>{place.city}</span>
+							<p className="text-sm text-gray-600">{place.city}</p>
+						</div>
+
+						{/* Amenities row */}
+						<div className="flex items-center gap-2 text-gray-600">
+							<div className="flex items-center gap-1">
+								<Users2 size={16} />
+								<span className="text-sm">{place.guests}</span>
+							</div>
+							<div className="flex items-center gap-1">
+								<Home size={16} />
+								<span className="text-sm">{place.rooms}</span>
+							</div>
+							<div className="flex items-center gap-1">
+								<Bed size={16} />
+								<span className="text-sm">{place.beds}</span>
+							</div>
+							<div className="flex items-center gap-1">
+								<Bath size={16} />
+								<span className="text-sm">{place.bathrooms}</span>
 							</div>
 						</div>
+
+						{/* Perks icons */}
+						<div className="flex items-center gap-3">
+							<Wifi size={18} className="text-blue-600" />
+							<Waves size={18} className="text-blue-600" />
+							<Thermometer size={18} className="text-blue-600" />
+						</div>
+
 						{/* Price */}
-						<div className="flex py-2 items-baseline border-t-1 flex-col">
+						<div className="flex items-baseline gap-1">
 							<span className="text-sm text-gray-500 line-through">
 								R$ {Math.round(place.price * 1.2)}
 							</span>
@@ -183,11 +207,11 @@ const Item = ({ place = null, placeHolder }) => {
 
 					{/* Card info - estado hover (expanded) */}
 					<div
-						className={`flex flex-col gap-3 transition-opacity duration-300  ${
+						className={`bg-white shadow-xl rounded-2xl p-4 flex flex-col gap-3 transition-all duration-300 ${
 							isHovered
-								? "group-hover:opacity-100 group-hover:max-h-96"
+								? "opacity-100 max-h-96"
 								: "opacity-0 max-h-0 overflow-hidden"
-						} `}
+						}`}
 					>
 						<div>
 							<h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
@@ -224,20 +248,11 @@ const Item = ({ place = null, placeHolder }) => {
 
 						{/* Perks */}
 						<div className="flex items-center gap-3">
-							<div className="flex flex-nowrap gap-3 overflow-hidden">
-								{place.perks.map(
-									(perk, index) =>
-										perk && (
-											<div
-												key={index}
-												className="flex bg-primary-100 text-primary-400 p-1 rounded-md"
-											>
-												<Perk perk={perk} minimal={true} />
-											</div>
-										)
-								)}
-							</div>
+							<Wifi size={18} className="text-blue-600" />
+							<Waves size={18} className="text-blue-600" />
+							<Thermometer size={18} className="text-blue-600" />
 						</div>
+
 						{/* Price and button */}
 						<div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-200">
 							<div className="flex flex-col">
@@ -250,12 +265,20 @@ const Item = ({ place = null, placeHolder }) => {
 									</span>
 								</div>
 							</div>
-							<Link
-								to={`/places/${place._id}`}
-								className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+							<div
+								onMouseEnter={(e) => e.stopPropagation()}
+								onMouseLeave={(e) => e.stopPropagation()}
 							>
-								Reservar
-							</Link>
+								<InteractiveHoverButton
+									text="Reservar"
+									className="duration-1000 delay-1000"
+									onClick={(e) => {
+										e.preventDefault();
+										e.stopPropagation();
+										window.location.href = `/places/${place._id}`;
+									}}
+								/>
+							</div>
 						</div>
 					</div>
 				</Link>
