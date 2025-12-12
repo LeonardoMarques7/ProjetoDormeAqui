@@ -24,8 +24,7 @@ import {
 	Thermometer,
 	Star,
 } from "lucide-react";
-import InteractiveHoverButton from "@/components/ui/interactive-hover-button";
-
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 const DotButton = ({ selected, onClick }) => (
 	<button
 		className={`w-2 h-2 rounded-full cursor-pointer transition-all duration-300 ${
