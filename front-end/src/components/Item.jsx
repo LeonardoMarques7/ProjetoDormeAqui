@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
-import image1 from "../assets/lugares/image__1.jpg";
 import { Skeleton } from "@mantine/core";
 import MarkdownIt from "markdown-it";
+import Autoplay from "embla-carousel-autoplay";
+import { useCallback, useEffect, useState, useRef } from "react";
+import axios from "axios";
 
 import {
 	Carousel,
@@ -10,13 +12,71 @@ import {
 	CarouselNext,
 	CarouselPrevious,
 } from "@/components/ui/carousel";
+import Perk from "./Perk";
+import {
+	Bath,
+	Bed,
+	Home,
+	MapPin,
+	Users2,
+	Wifi,
+	Waves,
+	Thermometer,
+	Star,
+} from "lucide-react";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+const DotButton = ({ selected, onClick }) => (
+	<button
+		className={`w-2 h-2 rounded-full cursor-pointer transition-all duration-300 ${
+			selected ? "bg-white w-6" : "bg-white/50"
+		}`}
+		type="button"
+		onClick={onClick}
+	/>
+);
 
 const Item = ({ place = null, placeHolder }) => {
+	const [owner, setOwner] = useState("");
+	const [api, setApi] = useState();
+	const [selectedIndex, setSelectedIndex] = useState(0);
+	const [scrollSnaps, setScrollSnaps] = useState([]);
+	const [isHovered, setIsHovered] = useState(false);
+	const cardRef = useRef(null);
+
 	const md = new MarkdownIt({
 		html: false,
 		breaks: true,
 		linkify: true,
 	});
+
+	const onDotButtonClick = useCallback(
+		(index) => {
+			if (!api) return;
+			api.scrollTo(index);
+		},
+		[api]
+	);
+
+	useEffect(() => {
+		if (!api) return;
+
+		setScrollSnaps(api.scrollSnapList());
+		setSelectedIndex(api.selectedScrollSnap());
+
+		api.on("select", () => {
+			setSelectedIndex(api.selectedScrollSnap());
+		});
+	}, [api]);
+
+	useEffect(() => {
+		if (place) {
+			const axiosGetOwner = async () => {
+				const { data } = await axios.get(`users/minimal/${place.owner}`);
+				setOwner(data);
+			};
+			axiosGetOwner();
+		}
+	}, [place]);
 
 	return (
 		<>
@@ -31,47 +91,194 @@ const Item = ({ place = null, placeHolder }) => {
 					<Skeleton className="h-5 w-32" />
 				</div>
 			) : (
-				<Link to={`/places/${place._id}`}>
-					<div className="flex flex-col gap-2 group rounded-2xl hover:p-3 hover:bg-primary-100 transition-all duration-700 max-w-[350px]">
+				<Link
+					ref={cardRef}
+					to={`/places/${place._id}`}
+					onMouseEnter={() => setIsHovered(true)}
+					onMouseLeave={() => setIsHovered(false)}
+					className="group flex flex-col gap-3 w-full max-w-[350px] transition-all duration-300"
+				>
+					{/* Carrossel de imagens */}
+					<div className="relative">
 						<Carousel
 							opts={{
 								loop: true,
 							}}
-							className="w-full max-w-xs z-99 relative"
+							plugins={[...(isHovered ? [Autoplay({ delay: 3000 })] : [])]}
+							className="w-full relative"
+							setApi={setApi}
 						>
 							<CarouselContent>
-								{place.photos.map((_, index) => (
-									<CarouselItem key={index}>
+								{place.photos.map((photo, index) => (
+									<CarouselItem
+										className="relative overflow-hidden !rounded-2xl"
+										key={index}
+									>
 										<img
-											src={place.photos[index]}
-											alt="Imagem da acomodação"
-											className="aspect-square object-cover transition-transform rounded-2xl"
+											src={photo}
+											alt={`Imagem da acomodação ${index + 1}`}
+											className="aspect-square w-full object-cover transition-transform rounded-2xl"
 										/>
 									</CarouselItem>
 								))}
 							</CarouselContent>
+
+							{/* Navegação do carrossel */}
 							<div onClick={(e) => e.preventDefault()}>
-								<CarouselPrevious className="absolute left-2 text-white bg-transparent hover:cursor-pointer " />
+								<CarouselPrevious className="absolute border-none left-2 text-white bg-white/30 hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
 							</div>
 							<div onClick={(e) => e.preventDefault()}>
-								<CarouselNext className="absolute right-2 bg-transparent text-white hover:cursor-pointer" />
+								<CarouselNext className="absolute right-2 border-none bg-white/30 text-white hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
+							</div>
+
+							{/* Rating badge */}
+							<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
+								<Star size={14} fill="#FFC107" stroke="#FFC107" />
+								<span className="text-sm font-semibold">4.98</span>
 							</div>
 						</Carousel>
 
-						<div className="">
-							<h3 className="text-xl font-semibold line-clamp-1">
-								{place.city}
-							</h3>
-							<p
-								className="line-clamp-2 text-gray-600"
-								dangerouslySetInnerHTML={{
-									__html: md.render(place.description),
-								}}
-							></p>
+						{/* Dot indicators */}
+						<div
+							className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"
+							onClick={(e) => e.preventDefault()}
+						>
+							{scrollSnaps.map((_, index) => (
+								<DotButton
+									key={index}
+									selected={index === selectedIndex}
+									onClick={() => onDotButtonClick(index)}
+								/>
+							))}
 						</div>
-						<p>
-							<span className="font-semibold">{place.price}</span> por noite
-						</p>
+					</div>
+
+					{/* Card info - estado normal */}
+					<div
+						className={`flex flex-col gap-2 transition-opacity duration-300 ${
+							isHovered ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
+						}`}
+					>
+						<div>
+							<h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
+								{place.title}
+							</h3>
+							<p className="text-sm text-gray-600">{place.city}</p>
+						</div>
+
+						{/* Amenities row */}
+						<div className="flex items-center gap-2 text-gray-600">
+							<div className="flex items-center gap-1">
+								<Users2 size={16} />
+								<span className="text-sm">{place.guests}</span>
+							</div>
+							<div className="flex items-center gap-1">
+								<Home size={16} />
+								<span className="text-sm">{place.rooms}</span>
+							</div>
+							<div className="flex items-center gap-1">
+								<Bed size={16} />
+								<span className="text-sm">{place.beds}</span>
+							</div>
+							<div className="flex items-center gap-1">
+								<Bath size={16} />
+								<span className="text-sm">{place.bathrooms}</span>
+							</div>
+						</div>
+
+						{/* Perks icons */}
+						<div className="flex items-center gap-3">
+							<Wifi size={18} className="text-blue-600" />
+							<Waves size={18} className="text-blue-600" />
+							<Thermometer size={18} className="text-blue-600" />
+						</div>
+
+						{/* Price */}
+						<div className="flex items-baseline gap-1">
+							<span className="text-sm text-gray-500 line-through">
+								R$ {Math.round(place.price * 1.2)}
+							</span>
+							<span className="text-xl font-bold text-gray-900">
+								R$ {place.price}
+							</span>
+						</div>
+					</div>
+
+					{/* Card info - estado hover (expanded) */}
+					<div
+						className={`bg-white shadow-xl rounded-2xl p-4 flex flex-col gap-3 transition-all duration-300 ${
+							isHovered
+								? "opacity-100 max-h-96"
+								: "opacity-0 max-h-0 overflow-hidden"
+						}`}
+					>
+						<div>
+							<h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+								{place.title}
+							</h3>
+							<div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+								<MapPin size={14} />
+								<span>{place.city}</span>
+							</div>
+						</div>
+
+						{/* Amenities grid */}
+						<div className="flex items-center gap-3 text-sm text-gray-700">
+							<div className="flex items-center gap-1.5">
+								<Users2 size={16} />
+								<span>{place.guests}</span>
+							</div>
+							<div className="w-1 h-1 rounded-full bg-gray-400"></div>
+							<div className="flex items-center gap-1.5">
+								<Home size={16} />
+								<span>{place.rooms}</span>
+							</div>
+							<div className="w-1 h-1 rounded-full bg-gray-400"></div>
+							<div className="flex items-center gap-1.5">
+								<Bed size={16} />
+								<span>{place.beds}</span>
+							</div>
+							<div className="w-1 h-1 rounded-full bg-gray-400"></div>
+							<div className="flex items-center gap-1.5">
+								<Bath size={16} />
+								<span>{place.bathrooms}</span>
+							</div>
+						</div>
+
+						{/* Perks */}
+						<div className="flex items-center gap-3">
+							<Wifi size={18} className="text-blue-600" />
+							<Waves size={18} className="text-blue-600" />
+							<Thermometer size={18} className="text-blue-600" />
+						</div>
+
+						{/* Price and button */}
+						<div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-200">
+							<div className="flex flex-col">
+								<span className="text-xs text-gray-500 line-through">
+									R$ {Math.round(place.price * 1.2)}
+								</span>
+								<div className="flex items-baseline gap-1">
+									<span className="text-xl font-bold text-gray-900">
+										R$ {place.price}
+									</span>
+								</div>
+							</div>
+							<div
+								onMouseEnter={(e) => e.stopPropagation()}
+								onMouseLeave={(e) => e.stopPropagation()}
+							>
+								<InteractiveHoverButton
+									text="Reservar"
+									className="duration-1000 delay-1000"
+									onClick={(e) => {
+										e.preventDefault();
+										e.stopPropagation();
+										window.location.href = `/places/${place._id}`;
+									}}
+								/>
+							</div>
+						</div>
 					</div>
 				</Link>
 			)}

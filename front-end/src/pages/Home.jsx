@@ -274,7 +274,7 @@ const Home = () => {
 			)}
 			{/* GRID DE RESULTADOS */}
 			{city && placesSearch.length > 0 && (
-				<div className="grid mb-10 max-w-full relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 py-4 lg:max-w-7xl">
+				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 py-4 lg:max-w-7xl">
 					<>
 						{placesSearch.map((place) => (
 							<Item {...{ place }} key={place._id} />
@@ -286,7 +286,7 @@ const Home = () => {
 			{/* Se não tiver resultados OU não tiver pesquisa → mostrar acomodações padrão */}
 			{(!city || placesSearch.length === 0) && (
 				<div className="relative mb-10">
-					<div className="grid max-w-full mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
+					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
 						{places.map((place) => (
 							<Item {...{ place }} key={place._id} />
 						))}
