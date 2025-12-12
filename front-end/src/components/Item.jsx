@@ -13,7 +13,17 @@ import {
 	CarouselPrevious,
 } from "@/components/ui/carousel";
 import Perk from "./Perk";
-import { Bath, Bed, HomeIcon, MapPin, Users2 } from "lucide-react";
+import {
+	Bath,
+	Bed,
+	Home,
+	MapPin,
+	Users2,
+	Wifi,
+	Waves,
+	Thermometer,
+	Star,
+} from "lucide-react";
 
 const DotButton = ({ selected, onClick }) => (
 	<button
@@ -31,7 +41,6 @@ const Item = ({ place = null, placeHolder }) => {
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [scrollSnaps, setScrollSnaps] = useState([]);
 	const [isHovered, setIsHovered] = useState(false);
-	const [shouldFlip, setShouldFlip] = useState(false);
 	const cardRef = useRef(null);
 
 	const md = new MarkdownIt({
@@ -69,29 +78,6 @@ const Item = ({ place = null, placeHolder }) => {
 		}
 	}, [place]);
 
-	useEffect(() => {
-		const checkPosition = () => {
-			if (cardRef.current) {
-				const rect = cardRef.current.getBoundingClientRect();
-				const spaceOnRight = window.innerWidth - rect.right;
-				setShouldFlip(spaceOnRight < 420);
-			}
-		};
-
-		checkPosition();
-
-		const handleMouseEnter = () => checkPosition();
-		const card = cardRef.current;
-		if (card) card.addEventListener("mouseenter", handleMouseEnter);
-
-		window.addEventListener("resize", checkPosition);
-
-		return () => {
-			window.removeEventListener("resize", checkPosition);
-			if (card) card.removeEventListener("mouseenter", handleMouseEnter);
-		};
-	}, []);
-
 	return (
 		<>
 			{placeHolder ? (
@@ -110,123 +96,166 @@ const Item = ({ place = null, placeHolder }) => {
 					to={`/places/${place._id}`}
 					onMouseEnter={() => setIsHovered(true)}
 					onMouseLeave={() => setIsHovered(false)}
-					className="group flex flex-col gap-2 rounded-2xl w-full transition-all duration-700 hover:row-span-1 hover:h-full hover:col-span-1 hover:scale-110 hover:z-25 relative"
+					className="group flex bg-white shadow-xl rounded-2xl p-4 flex-col gap-3 w-full max-w-[350px] transition-transform duration-300"
 				>
+					{/* Carrossel de imagens */}
+					<div className="relative">
+						<Carousel
+							opts={{
+								loop: true,
+							}}
+							plugins={[...(isHovered ? [Autoplay({ delay: 3000 })] : [])]}
+							className="w-full relative"
+							setApi={setApi}
+						>
+							<CarouselContent>
+								{place.photos.map((photo, index) => (
+									<CarouselItem
+										className="relative overflow-hidden !rounded-2xl"
+										key={index}
+									>
+										<img
+											src={photo}
+											alt={`Imagem da acomodação ${index + 1}`}
+											className="aspect-square w-full object-cover transition-transform rounded-2xl"
+										/>
+									</CarouselItem>
+								))}
+							</CarouselContent>
+
+							{/* Navegação do carrossel */}
+							<div onClick={(e) => e.preventDefault()}>
+								<CarouselPrevious className="absolute border-none left-2 text-white bg-white/30 hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
+							</div>
+							<div onClick={(e) => e.preventDefault()}>
+								<CarouselNext className="absolute right-2 border-none bg-white/30 text-white hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
+							</div>
+
+							{/* Rating badge */}
+							<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
+								<Star size={14} fill="#FFC107" stroke="#FFC107" />
+								<span className="text-sm font-semibold">4.98</span>
+							</div>
+						</Carousel>
+
+						{/* Dot indicators */}
+						<div
+							className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"
+							onClick={(e) => e.preventDefault()}
+						>
+							{scrollSnaps.map((_, index) => (
+								<DotButton
+									key={index}
+									selected={index === selectedIndex}
+									onClick={() => onDotButtonClick(index)}
+								/>
+							))}
+						</div>
+					</div>
+
+					{/* Card info - estado normal */}
 					<div
-						className={`flex gap-4 h-full ${
-							shouldFlip ? "flex-row-reverse" : ""
+						className={`flex flex-col gap-2 transition-opacity  duration-300 ${
+							isHovered
+								? "opacity-0 h-0 overflow-hidden"
+								: "group-hover:opacity-100"
 						}`}
 					>
-						{/* Seção do carrossel - mantém tamanho fixo */}
-						<div className="w-fit flex-shrink-0">
-							<div className="relative">
-								<Carousel
-									opts={{
-										loop: true,
-									}}
-									plugins={[...(isHovered ? [Autoplay({ delay: 3000 })] : [])]}
-									className="w-full relative h-full"
-									setApi={setApi}
-								>
-									<CarouselContent>
-										{place.photos.map((photo, index) => (
-											<CarouselItem
-												className="relative overflow-hidden !rounded-2xl"
+						<div>
+							<h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+								{place.title}
+							</h3>
+							<div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+								<MapPin size={14} />
+								<span>{place.city}</span>
+							</div>
+						</div>
+						{/* Price */}
+						<div className="flex py-2 items-baseline border-t-1 flex-col">
+							<span className="text-sm text-gray-500 line-through">
+								R$ {Math.round(place.price * 1.2)}
+							</span>
+							<span className="text-xl font-bold text-gray-900">
+								R$ {place.price}
+							</span>
+						</div>
+					</div>
+
+					{/* Card info - estado hover (expanded) */}
+					<div
+						className={`flex flex-col gap-3 transition-opacity duration-300  ${
+							isHovered
+								? "group-hover:opacity-100 group-hover:max-h-96"
+								: "opacity-0 max-h-0 overflow-hidden"
+						} `}
+					>
+						<div>
+							<h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+								{place.title}
+							</h3>
+							<div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+								<MapPin size={14} />
+								<span>{place.city}</span>
+							</div>
+						</div>
+
+						{/* Amenities grid */}
+						<div className="flex items-center gap-3 text-sm text-gray-700">
+							<div className="flex items-center gap-1.5">
+								<Users2 size={16} />
+								<span>{place.guests}</span>
+							</div>
+							<div className="w-1 h-1 rounded-full bg-gray-400"></div>
+							<div className="flex items-center gap-1.5">
+								<Home size={16} />
+								<span>{place.rooms}</span>
+							</div>
+							<div className="w-1 h-1 rounded-full bg-gray-400"></div>
+							<div className="flex items-center gap-1.5">
+								<Bed size={16} />
+								<span>{place.beds}</span>
+							</div>
+							<div className="w-1 h-1 rounded-full bg-gray-400"></div>
+							<div className="flex items-center gap-1.5">
+								<Bath size={16} />
+								<span>{place.bathrooms}</span>
+							</div>
+						</div>
+
+						{/* Perks */}
+						<div className="flex items-center gap-3">
+							<div className="flex flex-nowrap gap-3 overflow-hidden">
+								{place.perks.map(
+									(perk, index) =>
+										perk && (
+											<div
 												key={index}
+												className="flex bg-primary-100 text-primary-400 p-1 rounded-md"
 											>
-												<img
-													src={photo}
-													alt={`Imagem da acomodação ${index + 1}`}
-													className="aspect-square object-cover  transition-transform rounded-2xl"
-												/>
-											</CarouselItem>
-										))}
-									</CarouselContent>
-									<div onClick={(e) => e.preventDefault()}>
-										<CarouselPrevious className="absolute border-none left-2 text-white bg-white/30 hover:cursor-pointer" />
-									</div>
-									<div onClick={(e) => e.preventDefault()}>
-										<CarouselNext className="absolute right-2 border-none bg-white/30 text-white hover:cursor-pointer" />
-									</div>
-								</Carousel>
-								<div
-									className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"
-									onClick={(e) => e.preventDefault()}
-								>
-									{scrollSnaps.map((_, index) => (
-										<DotButton
-											key={index}
-											selected={index === selectedIndex}
-											onClick={() => onDotButtonClick(index)}
-										/>
-									))}
-								</div>
-							</div>
-							<div className="mt-2 group-hover:hidden transition-transform">
-								<h3 className="text-xl font-semibold line-clamp-1">
-									{place.city}
-								</h3>
-								<p
-									className="line-clamp-2 text-gray-600"
-									dangerouslySetInnerHTML={{
-										__html: md.render(place.description),
-									}}
-								></p>
+												<Perk perk={perk} minimal={true} />
+											</div>
+										)
+								)}
 							</div>
 						</div>
-
-						<div
-							className={`w-15 visible h-full flex items-center justify-center -ml-15`}
-						>
-							<div className=" w-15"></div>
-						</div>
-
-						{/* Conteúdo expandido */}
-						<div className="hidden hover:visible bg-white shadow-2xl  h-fit group-hover:flex w-full flex-1 -mx-5 aspect-square rounded-2xl flex-col gap-2 p-4">
-							<div className="flex flex-col gap-2">
-								<h3 className="text-xl font-semibold line-clamp-3">
-									{place.title}
-								</h3>
-								<div className="flex items-center text-sm text-gray-600 gap-2">
-									<MapPin size={15} />
-									<span>{place.city}</span>
-								</div>
-								<p
-									className="line-clamp-4 text-gray-600"
-									dangerouslySetInnerHTML={{
-										__html: md.render(place.description),
-									}}
-								></p>
-							</div>
-							<div className="flex gap-4 items-center justify-start max-w-auto">
-								<div className="flex gap-2 rounded-2xl items-center">
-									<div className="flex items-center gap-2">
-										<Users2 size={15} />
-										<div className="text-sm">{place.guests}</div>
-									</div>
-								</div>
-								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
-								<div className="flex gap-2 rounded-2xl items-center">
-									<div className="flex items-center gap-2">
-										<HomeIcon size={15} />
-										<span>{place.rooms}</span>
-									</div>
-								</div>
-								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
-								<div className="flex gap-2 rounded-2xl items-center">
-									<div className="flex items-center gap-2">
-										<Bed size={15} />
-										<span>{place.beds}</span>
-									</div>
-								</div>
-								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
-								<div className="flex gap-2 rounded-2xl items-center">
-									<div className="flex items-center gap-2">
-										<Bath size={15} />
-										<span className="mr-2">{place.bathrooms}</span>
-									</div>
+						{/* Price and button */}
+						<div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-200">
+							<div className="flex flex-col">
+								<span className="text-xs text-gray-500 line-through">
+									R$ {Math.round(place.price * 1.2)}
+								</span>
+								<div className="flex items-baseline gap-1">
+									<span className="text-xl font-bold text-gray-900">
+										R$ {place.price}
+									</span>
 								</div>
 							</div>
+							<Link
+								to={`/places/${place._id}`}
+								className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+							>
+								Reservar
+							</Link>
 						</div>
 					</div>
 				</Link>
