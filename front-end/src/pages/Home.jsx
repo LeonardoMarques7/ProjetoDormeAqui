@@ -105,7 +105,7 @@ const Home = () => {
 
 					{/* Conteúdo */}
 					<div className="relative z-10 bg-transparent flex flex-col justify-center text-white items-center h-full gap-4">
-						<p className="text-3xl text__banner sm:text-lg font-bold flex items-end transition-all">
+						<p className="text-3xl text__banner font-bold flex items-end transition-all">
 							<div className="mb-1">Encontre o lugar perfeito para</div>
 							<RotatingText
 								texts={[
