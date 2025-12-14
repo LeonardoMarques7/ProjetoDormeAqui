@@ -101,7 +101,7 @@ const Item = ({ place = null, placeHolder }) => {
 					onMouseEnter={() => setIsHovered(true)}
 					onMouseLeave={() => setIsHovered(false)}
 					className={`${
-						isHovered && "border-2 border-primary-200 "
+						isHovered && "border-2 border-primary-200 z-1 shadow-xl"
 					} flex bg-white shadow-md rounded-2xl  h-fit gap-4 flex-col w-full max-w-[350px] transition-all duration-300`}
 				>
 					{/* Carrossel de imagens */}
@@ -117,13 +117,13 @@ const Item = ({ place = null, placeHolder }) => {
 							<CarouselContent>
 								{place.photos.map((photo, index) => (
 									<CarouselItem
-										className="relative overflow-hidden rounded-b-none"
+										className="relative overflow-hidden rounded-b-none rounded-t-2xl"
 										key={index}
 									>
 										<img
 											src={photo}
 											alt={`Imagem da acomodação ${index + 1}`}
-											className="aspect-square w-full object-cover transition-transform rounded-t-2xl rounded-b-none"
+											className="aspect-square z-0 w-full *:rounded-2xl object-cover transition-transform rounded-t-2xl rounded-b-none"
 										/>
 									</CarouselItem>
 								))}
