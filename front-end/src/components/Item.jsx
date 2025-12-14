@@ -101,8 +101,8 @@ const Item = ({ place = null, placeHolder }) => {
 					onMouseEnter={() => setIsHovered(true)}
 					onMouseLeave={() => setIsHovered(false)}
 					className={`${
-						isHovered && "border-2 border-primary-400 "
-					} flex bg-white shadow-md rounded-2xl  h-fit pb-2 gap-4 flex-col w-full max-w-[350px] transition-all duration-300`}
+						isHovered && "border-2 border-primary-200 "
+					} flex bg-white shadow-md rounded-2xl  h-fit gap-4 flex-col w-full max-w-[350px] transition-all duration-300`}
 				>
 					{/* Carrossel de imagens */}
 					<div className="relative">
@@ -166,29 +166,29 @@ const Item = ({ place = null, placeHolder }) => {
 								De <div className="">R$ {Math.round(place.price * 1.2)}</div>
 							</span>
 							<div className="flex items-baseline gap-1">
-								<span className="text-xl font-normal text-gray-900">
+								<span className="text-xl font-medium text-gray-900">
 									Por R$ {place.price}
 								</span>
 							</div>
 						</div>
 						<div className=" leading-5">
-							<p className=" font-light text-gray-900 line-clamp-2 max-w-[60%]">
+							<p className="text-[1rem] font-light text-gray-900 line-clamp-2 overflow- max-w-[60%]">
 								{place.title}
 							</p>
-							<p className="flex items-center gap-4">
-								<div className="flex py-4 items-center flex-1 gap-1 text-xs w-full text-gray-600">
-									<MapPin size={14} />
-									<span>{place.city}</span>
-								</div>
-								{!isHovered && <ChevronDown size={15} className="mr-2" />}
-							</p>
 						</div>
+						<p className="flex items-center gap-4">
+							<div className="flex py-2 items-center flex-1 gap-1 text-xs w-full text-gray-600">
+								<MapPin size={14} />
+								<span>{place.city}</span>
+							</div>
+							{!isHovered && <ChevronDown size={15} className="mr-2" />}
+						</p>
 
 						{/* Card info - estado hover (expanded) */}
 						<div
-							className={` rounded-2xl flex flex-col gap-3 flex-1  transition-all duration-300 ${
+							className={`flex flex-col pt-3 gap-3 flex-1 border-t-1 border-primary-100 px-0 transition-all duration-300 ${
 								isHovered
-									? "opacity-100 max-h-96"
+									? "opacity-100 max-h-96 pt-4"
 									: "opacity-0 max-h-0 overflow-hidden"
 							}`}
 						>
@@ -217,41 +217,28 @@ const Item = ({ place = null, placeHolder }) => {
 
 							{/* Price and button */}
 						</div>
-						<div className="flex items-center justify-between ">
-							<div className="flex gap-4 overflow-x-auto">
-								{isHovered &&
-									place.perks.slice(0, 3).map((perk, index) => (
-										<div
-											key={index}
-											className="bg-primary-100 text-primary-500 rounded-2xl p-1.5 hover:scale-110  ease-in-out duration-500 transition-all"
-										>
-											<Perk perk={perk} minimal={true} width={10} />
-										</div>
-									))}
-							</div>
-						</div>
-						<AnimatePresence>
-							{isHovered ? (
-								<motion.div
-									className="flex items-center gap-3"
-									initial={{ opacity: 0, y: 10 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: 10 }}
-									transition={{ duration: 0.2 }}
-								>
-									<InteractiveHoverButton
-										className="w-full"
-										onClick={(e) => {
-											e.preventDefault();
-											window.location.href = `/places/${place._id}`;
-										}}
-									>
-										Reservar
-									</InteractiveHoverButton>
-								</motion.div>
-							) : null}
-						</AnimatePresence>
 					</div>
+					<AnimatePresence>
+						{isHovered ? (
+							<motion.div
+								className="flex items-center mx-2 mb-2 flex-1 gap-3"
+								initial={{ opacity: 0, y: 10 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: 10 }}
+								transition={{ duration: 0.2 }}
+							>
+								<InteractiveHoverButton
+									className="w-full rounded-xl text-center font-medium"
+									onClick={(e) => {
+										e.preventDefault();
+										window.location.href = `/places/${place._id}`;
+									}}
+								>
+									Reservar
+								</InteractiveHoverButton>
+							</motion.div>
+						) : null}
+					</AnimatePresence>
 				</Link>
 			)}
 		</>
