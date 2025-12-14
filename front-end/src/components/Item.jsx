@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Skeleton } from "@mantine/core";
 import MarkdownIt from "markdown-it";
 import Autoplay from "embla-carousel-autoplay";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
@@ -25,6 +26,7 @@ import {
 	Thermometer,
 	Star,
 	ArrowRight,
+	ChevronDown,
 } from "lucide-react";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 const DotButton = ({ selected, onClick }) => (
@@ -98,7 +100,9 @@ const Item = ({ place = null, placeHolder }) => {
 					to={`/places/${place._id}`}
 					onMouseEnter={() => setIsHovered(true)}
 					onMouseLeave={() => setIsHovered(false)}
-					className=" flex bg-white shadow-md rounded-2xl h-fit pb-2 px-4 flex-col w-full max-w-[350px] transition-all duration-300"
+					className={`${
+						isHovered && "border-2 border-primary-400 "
+					} flex bg-white shadow-md rounded-2xl p-3 h-fit pb-2 flex-col w-full max-w-[350px] transition-all duration-300`}
 				>
 					{/* Carrossel de imagens */}
 					<div className="relative">
@@ -157,31 +161,13 @@ const Item = ({ place = null, placeHolder }) => {
 
 					{/* Card info - estado normal */}
 					<div className="mt-2">
-						<div
-							className={`flex flex-col gap-2 transition-opacity duration-300 ${
-								isHovered ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
-							}`}
-						>
-							<div>
-								<h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
-									{place.title}
-								</h3>
-								<div className="flex items-center gap-1 text-sm text-gray-600">
-									<MapPin size={14} />
-									<span>{place.city}</span>
-								</div>
-							</div>
-
-							{/* Price */}
-							<div className="flex flex-col border-t-1 mt-2 py-2 gap-1">
-								<span className="text-xs text-gray-500 line-through">
-									R$ {Math.round(place.price * 1.2)}
-								</span>
-								<div className="flex items-baseline gap-1">
-									<span className="text-xl font-bold text-gray-900">
-										R$ {place.price}
-									</span>
-								</div>
+						<div>
+							<h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+								{place.title}
+							</h3>
+							<div className="flex items-center gap-1 text-sm text-gray-600">
+								<MapPin size={14} />
+								<span>{place.city}</span>
 							</div>
 						</div>
 
@@ -193,16 +179,6 @@ const Item = ({ place = null, placeHolder }) => {
 									: "opacity-0 max-h-0 overflow-hidden"
 							}`}
 						>
-							<div>
-								<h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-									{place.title}
-								</h3>
-								<div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-									<MapPin size={14} />
-									<span>{place.city}</span>
-								</div>
-							</div>
-
 							{/* Amenities grid */}
 							<div className="flex items-center gap-3 text-sm text-gray-700">
 								<div className="flex items-center gap-1.5">
@@ -226,44 +202,57 @@ const Item = ({ place = null, placeHolder }) => {
 								</div>
 							</div>
 
-							{/* Perks icons */}
-							<div className="flex items-center gap-2  text-gray-400 flex-1">
-								{place.perks.map((perk, index) => (
-									<div
-										key={index}
-										className=" hover:scale-110 bg-gray-200 rounded-md p-1 ease-in-out duration-500 transition-all"
-									>
-										<Perk perk={perk} minimal={true} />
-									</div>
-								))}
-							</div>
-
 							{/* Price and button */}
-							<div className="flex items-center justify-between mt-auto pt-2 my-4 border-t border-gray-200">
-								<div className="flex flex-col">
-									<span className="text-xs text-gray-500 line-through">
+						</div>
+						<div className="flex items-center justify-between pt-4 my-4 border-t border-gray-200">
+							<div className="flex flex-col flex-1">
+								<span className="text-xs text-gray-500 flex items-center gap-1">
+									De{" "}
+									<div className="line-through">
 										R$ {Math.round(place.price * 1.2)}
-									</span>
-									<div className="flex items-baseline gap-1">
-										<span className="text-xl font-bold text-gray-900">
-											R$ {place.price}
-										</span>
 									</div>
+								</span>
+								<div className="flex items-baseline gap-1">
+									<span className="font-bold text-sm">Por</span>
+									<span className="text-xl font-bold text-gray-900">
+										R$ {place.price}
+									</span>
 								</div>
-								<div className="flex items-center gap-3">
+							</div>
+							<div className="flex gap-4 overflow-x-auto">
+								{isHovered &&
+									place.perks.slice(0, 3).map((perk, index) => (
+										<div
+											key={index}
+											className=" hover:scale-110  ease-in-out duration-500 transition-all"
+										>
+											<Perk perk={perk} minimal={true} />
+										</div>
+									))}
+							</div>
+							{!isHovered && <ChevronDown size={15} className="mr-5" />}
+						</div>
+						<AnimatePresence>
+							{isHovered ? (
+								<motion.div
+									className="flex items-center gap-3"
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: 10 }}
+									transition={{ duration: 0.2 }}
+								>
 									<InteractiveHoverButton
-										className="w-fit"
+										className="w-full"
 										onClick={(e) => {
 											e.preventDefault();
-
 											window.location.href = `/places/${place._id}`;
 										}}
 									>
 										Reservar
 									</InteractiveHoverButton>
-								</div>
-							</div>
-						</div>
+								</motion.div>
+							) : null}
+						</AnimatePresence>
 					</div>
 				</Link>
 			)}
