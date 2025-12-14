@@ -102,7 +102,7 @@ const Item = ({ place = null, placeHolder }) => {
 					onMouseLeave={() => setIsHovered(false)}
 					className={`${
 						isHovered && "border-2 border-primary-400 "
-					} flex bg-white shadow-md rounded-2xl p-3 h-fit pb-2 flex-col w-full max-w-[350px] transition-all duration-300`}
+					} flex bg-white shadow-md rounded-2xl  h-fit pb-2 gap-4 flex-col w-full max-w-[350px] transition-all duration-300`}
 				>
 					{/* Carrossel de imagens */}
 					<div className="relative">
@@ -111,19 +111,19 @@ const Item = ({ place = null, placeHolder }) => {
 								loop: true,
 							}}
 							plugins={[...(isHovered ? [Autoplay({ delay: 3000 })] : [])]}
-							className="w-full relative"
+							className="w-full relative rounded-b-none"
 							setApi={setApi}
 						>
 							<CarouselContent>
 								{place.photos.map((photo, index) => (
 									<CarouselItem
-										className="relative overflow-hidden !rounded-2xl"
+										className="relative overflow-hidden rounded-b-none"
 										key={index}
 									>
 										<img
 											src={photo}
 											alt={`Imagem da acomodação ${index + 1}`}
-											className="aspect-square w-full object-cover transition-transform rounded-2xl"
+											className="aspect-square w-full object-cover transition-transform rounded-t-2xl rounded-b-none"
 										/>
 									</CarouselItem>
 								))}
@@ -160,27 +160,40 @@ const Item = ({ place = null, placeHolder }) => {
 					</div>
 
 					{/* Card info - estado normal */}
-					<div className="mt-2">
-						<div>
-							<h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-								{place.title}
-							</h3>
-							<div className="flex items-center gap-1 text-sm text-gray-600">
-								<MapPin size={14} />
-								<span>{place.city}</span>
+					<div className="mt-2 px-4 flex flex-col gap-1">
+						<div className="flex flex-col  flex-1">
+							<span className="text-xs text-gray-500 flex items-center gap-1 ">
+								De <div className="">R$ {Math.round(place.price * 1.2)}</div>
+							</span>
+							<div className="flex items-baseline gap-1">
+								<span className="text-xl font-normal text-gray-900">
+									Por R$ {place.price}
+								</span>
 							</div>
+						</div>
+						<div className=" leading-5">
+							<p className=" font-light text-gray-900 line-clamp-2 max-w-[60%]">
+								{place.title}
+							</p>
+							<p className="flex items-center gap-4">
+								<div className="flex py-4 items-center flex-1 gap-1 text-xs w-full text-gray-600">
+									<MapPin size={14} />
+									<span>{place.city}</span>
+								</div>
+								{!isHovered && <ChevronDown size={15} className="mr-2" />}
+							</p>
 						</div>
 
 						{/* Card info - estado hover (expanded) */}
 						<div
-							className={` rounded-2xl flex flex-col gap-3 transition-all duration-300 ${
+							className={` rounded-2xl flex flex-col gap-3 flex-1  transition-all duration-300 ${
 								isHovered
 									? "opacity-100 max-h-96"
 									: "opacity-0 max-h-0 overflow-hidden"
 							}`}
 						>
 							{/* Amenities grid */}
-							<div className="flex items-center gap-3 text-sm text-gray-700">
+							<div className="flex items-center justify-between gap-3 text-sm text-gray-700">
 								<div className="flex items-center gap-1.5">
 									<Users2 size={16} />
 									<span>{place.guests}</span>
@@ -204,33 +217,18 @@ const Item = ({ place = null, placeHolder }) => {
 
 							{/* Price and button */}
 						</div>
-						<div className="flex items-center justify-between pt-4 my-4 border-t border-gray-200">
-							<div className="flex flex-col flex-1">
-								<span className="text-xs text-gray-500 flex items-center gap-1">
-									De{" "}
-									<div className="line-through">
-										R$ {Math.round(place.price * 1.2)}
-									</div>
-								</span>
-								<div className="flex items-baseline gap-1">
-									<span className="font-bold text-sm">Por</span>
-									<span className="text-xl font-bold text-gray-900">
-										R$ {place.price}
-									</span>
-								</div>
-							</div>
+						<div className="flex items-center justify-between ">
 							<div className="flex gap-4 overflow-x-auto">
 								{isHovered &&
 									place.perks.slice(0, 3).map((perk, index) => (
 										<div
 											key={index}
-											className=" hover:scale-110  ease-in-out duration-500 transition-all"
+											className="bg-primary-100 text-primary-500 rounded-2xl p-1.5 hover:scale-110  ease-in-out duration-500 transition-all"
 										>
-											<Perk perk={perk} minimal={true} />
+											<Perk perk={perk} minimal={true} width={10} />
 										</div>
 									))}
 							</div>
-							{!isHovered && <ChevronDown size={15} className="mr-5" />}
 						</div>
 						<AnimatePresence>
 							{isHovered ? (
