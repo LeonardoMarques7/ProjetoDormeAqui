@@ -14,6 +14,13 @@ import {
 	CarouselNext,
 	CarouselPrevious,
 } from "@/components/ui/carousel";
+
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 import Perk from "./Perk";
 import {
 	Bath,
@@ -186,59 +193,35 @@ const Item = ({ place = null, placeHolder }) => {
 
 						{/* Card info - estado hover (expanded) */}
 						<div
-							className={`flex flex-col pt-3 gap-3 flex-1 border-t-1 border-primary-100 px-0 transition-all duration-300 ${
+							className={`flex flex-col gap-3 px-0 border-primary-100  transition-all duration-300 ${
 								isHovered
-									? "opacity-100 max-h-96 pt-4"
+									? "opacity-100 max-h-96 "
 									: "opacity-0 max-h-0 overflow-hidden"
 							}`}
 						>
-							{/* Amenities grid */}
-							<div className="flex items-center justify-between gap-3 text-sm text-gray-700">
-								<div className="flex items-center gap-1.5">
-									<Users2 size={16} />
-									<span>{place.guests}</span>
-								</div>
-								<div className="w-1 h-1 rounded-full bg-gray-400"></div>
-								<div className="flex items-center gap-1.5">
-									<Home size={16} />
-									<span>{place.rooms}</span>
-								</div>
-								<div className="w-1 h-1 rounded-full bg-gray-400"></div>
-								<div className="flex items-center gap-1.5">
-									<Bed size={16} />
-									<span>{place.beds}</span>
-								</div>
-								<div className="w-1 h-1 rounded-full bg-gray-400"></div>
-								<div className="flex items-center gap-1.5">
-									<Bath size={16} />
-									<span>{place.bathrooms}</span>
-								</div>
-							</div>
-
-							{/* Price and button */}
+							<AnimatePresence>
+								{isHovered ? (
+									<motion.div
+										className="flex items-center mb-2 flex-1 gap-3"
+										initial={{ opacity: 0, y: 10 }}
+										animate={{ opacity: 1, y: 0 }}
+										exit={{ opacity: 0, y: 10 }}
+										transition={{ duration: 0.2 }}
+									>
+										<InteractiveHoverButton
+											className="w-full rounded-xl text-center font-medium"
+											onClick={(e) => {
+												e.preventDefault();
+												window.location.href = `/places/${place._id}`;
+											}}
+										>
+											Reservar
+										</InteractiveHoverButton>
+									</motion.div>
+								) : null}
+							</AnimatePresence>
 						</div>
 					</div>
-					<AnimatePresence>
-						{isHovered ? (
-							<motion.div
-								className="flex items-center mx-2 mb-2 flex-1 gap-3"
-								initial={{ opacity: 0, y: 10 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: 10 }}
-								transition={{ duration: 0.2 }}
-							>
-								<InteractiveHoverButton
-									className="w-full rounded-xl text-center font-medium"
-									onClick={(e) => {
-										e.preventDefault();
-										window.location.href = `/places/${place._id}`;
-									}}
-								>
-									Reservar
-								</InteractiveHoverButton>
-							</motion.div>
-						) : null}
-					</AnimatePresence>
 				</Link>
 			)}
 		</>
