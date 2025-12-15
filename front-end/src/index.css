@@ -4,6 +4,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+[data-radix-dialog-content]>button[aria-label="Close"] {
+  display: none;
+}
+
 @theme {
   --color-primary-100: #F3F4F6;
     --color-primary-200: #E5E7EB;

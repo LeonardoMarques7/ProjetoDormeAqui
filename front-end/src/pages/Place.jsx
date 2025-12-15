@@ -41,14 +41,6 @@ import "./Place.css";
 import imageQrCode from "../assets/qrcode_leonardomdev.png";
 import imageDormeAqui from "../assets/logo__primary.png";
 import { format, isBefore, addDays } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon, InfoIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
@@ -60,8 +52,10 @@ import Banner from "../assets/image.png";
 import RotatingText from "@/components/RotatingText";
 import { Timeline } from "@mantine/core";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-
 import Counter from "@/components/Counter";
+
+// IMPORTE O NOVO COMPONENTE AQUI
+import DatePickerAirbnb from "../components/DatePickerAirbnb";
 
 const Place = () => {
 	const { moblie } = useMoblieContext();
@@ -191,22 +185,10 @@ const Place = () => {
 
 	if (redirect) return <Navigate to={`/account/bookings`} />;
 
-	const handleCheckin = (date) => {
-		setCheckin(date);
-		// Se já tinha checkout selecionado mas é antes do novo checkin → reseta checkout
-		if (checkout && isBefore(checkout, date)) {
-			setCheckout(null);
-			showMessage("Insira uma data válida!", "error");
-		} else {
-		}
-	};
-
-	const handleCheckout = (date) => {
-		if (checkin && isBefore(date, checkin)) {
-			showMessage("Insira uma data válida!", "error");
-			return;
-		}
-		setCheckout(date);
+	// Função para lidar com a seleção de datas do novo componente
+	const handleDateSelect = ({ checkin: newCheckin, checkout: newCheckout }) => {
+		setCheckin(newCheckin);
+		setCheckout(newCheckout);
 	};
 
 	if (!place) return <></>;
@@ -302,8 +284,6 @@ const Place = () => {
 								<span className="max-sm:hidden">Mostrar todas as fotos</span>
 							</button>
 						</div>
-
-						{/* Botão de mostrar mais fotos */}
 					</div>
 				</div>
 				{/* Conteúdo da acomodação */}
@@ -569,43 +549,20 @@ const Place = () => {
 									<p className="text-sm">por noite</p>
 								</div>
 							</div>
-							{/* Checkin e Checkout */}
-							<div className="column__check flex justify-start max-w-full sm:justify-start">
-								<div className="flex items-center flex-wrap gap-4 w-full">
-									{/* Check-in */}
-									<div className="">
-										<p className="font-medium text-xl mb-2">Check-in</p>
-										<Calendar
-											className="w-fit"
-											mode="single"
-											selected={checkin} // já começa selecionado
-											onSelect={handleCheckin}
-											initialFocus
-										/>
-									</div>
 
-									{/* Check-out */}
-									<div className="">
-										<p className="font-medium text-xl mb-2">Check-out</p>
-
-										<Calendar
-											className="w-fit"
-											mode="single"
-											selected={checkout}
-											onSelect={handleCheckout}
-											initialFocus
-										/>
-									</div>
-								</div>
+							{/* NOVO CALENDÁRIO AIRBNB STYLE */}
+							<div className="w-full">
+								<DatePickerAirbnb
+									onDateSelect={handleDateSelect}
+									initialCheckin={checkin}
+									initialCheckout={checkout}
+									price={place.price}
+								/>
 							</div>
 
 							{/* Hóspedes */}
-							{/* Hóspedes */}
 							<div className="py-2 flex flex-col gap-4 justify-center sm:mx-auto sm:w-full ">
-								<div
-									className="
-								"
-								>
+								<div>
 									<p className="font-bold px-3 sm:px-0">Hóspedes</p>
 									{!limiteGuests ? (
 										<p className="text-sm text-gray-500 px-3 sm:px-0">
@@ -666,7 +623,7 @@ const Place = () => {
 								</InteractiveHoverButton>
 							) : (
 								<InteractiveHoverButton
-									className="w-fit"
+									className="w-fit z-10"
 									onClick={(e) => {
 										e.preventDefault();
 										setLogin(true);
