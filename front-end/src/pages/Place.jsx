@@ -239,101 +239,95 @@ const Place = () => {
 			/>
 
 			<div className="container__infos mx-auto max-w-7xl flex flex-col gap-2">
-				<div className="bg-primary-900 shadow-2xl max-h-full mt-25 py-5 max-w-full mx-auto w-full object-cover bg-center rounded-4xl h-full relative overflow-hidden">
-					<div className=" bg-white p-2 relative mx-4 rounded-2xl  cursor-pointer">
+				<div className="bg-primary-900 shadow-2xl max-sm:p-0 max-sm:shadow-none max-h-full mt-25 max-sm:mt-15 py-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl h-full relative overflow-hidden">
+					<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:mx-0 max-sm:rounded-none rounded-2xl cursor-pointer">
 						{/* Container do grid principal */}
-						<div className="grid grid-cols-3 grid-rows-1 gap-2 aspect-[4/3] ">
-							{/* Foto grande no topo esquerdo - ocupa 2 colunas e 1 linha */}
-							<div className="col-span-2 row-span-1">
+						<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3  max-sm:p-2 gap-2  max-sm:h-full">
+							{/* Imagem principal - ocupa 2 colunas e 2 linhas */}
+							<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
 								<img
-									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150  transition-all duration-300 not-hover:grayscale-30"
+									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
 									src={place.photos[0]}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(0)}
 								/>
 							</div>
 
-							{/* Primeira foto vertical direita - ocupa 1 coluna e 1 linha */}
-							<div className="col-span-1 row-span-1">
+							{/* Imagem superior direita */}
+							<div className="col-span-1 row-span-1 max-sm:col-span-2 ">
 								<img
-									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
+									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
 									src={place.photos[1]}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(1)}
 								/>
 							</div>
 
-							{/* Primeira foto retangular embaixo esquerda */}
-							<div className="col-span-1 row-span-1 aspect-square	">
+							{/* Imagem superior direita extrema */}
+							<div className="col-span-1 row-span-1 max-sm:col-span-2">
 								<img
-									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
+									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
 									src={place.photos[2]}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(2)}
 								/>
 							</div>
+							{moblie ? null : (
+								<>
+									<div className="col-span-1 row-span-1 max-sm:col-span-4">
+										<img
+											className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
+											src={place.photos[3]}
+											alt="Imagem da acomodação"
+											onClick={() => handleImageClick(3)}
+										/>
+									</div>
 
-							{/* Segunda foto retangular embaixo meio */}
-							<div className="col-span-1 row-span-1 aspect-square">
-								<img
-									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
-									src={place.photos[3]}
-									alt="Imagem da acomodação"
-									onClick={() => handleImageClick(3)}
-								/>
-							</div>
+									<div className="col-span-1 row-span-1">
+										<img
+											className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
+											src={place.photos[4]}
+											alt="Imagem da acomodação"
+											onClick={() => handleImageClick(4)}
+										/>
+									</div>
+								</>
+							)}
 
-							{/* Segunda foto vertical direita */}
-							<div className="col-span-1 row-span-1 aspect-square">
-								<img
-									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all not-hover:grayscale-30"
-									src={place.photos[4]}
-									alt="Imagem da acomodação"
-									onClick={() => handleImageClick(4)}
-								/>
-							</div>
+							<button
+								className="absolute bottom-4 right-4 max-sm:text-sm max-sm:opacity-70 max-sm:p-2 hover:max-sm:opacity-100 flex items-center px-4 py-2 rounded-lg gap-2 bg-white border border-gray-800 hover:bg-gray-50 transition-all cursor-pointer font-medium"
+								onClick={handleShowMoreClick}
+							>
+								<Expand size={18} />
+								<span className="max-sm:hidden">Mostrar todas as fotos</span>
+							</button>
 						</div>
 
 						{/* Botão de mostrar mais fotos */}
-						<span
-							className="absolute bottom-4 right-4 flex items-center px-3 py-2 rounded-[10px] gap-2 bg-white/70 hover:scale-105 hover:-translate-x-1 ease-in-out duration-300 hover:bg-primary-300 cursor-pointer"
-							onClick={handleShowMoreClick}
-						>
-							<Expand /> Expandir fotos
-						</span>
 					</div>
 				</div>
 				{/* Conteúdo da acomodação */}
-				<div className="grid grid-cols-1 gap-20 md:grid-cols-2 mx-8">
-					<div className="order-2 leading-relaxed px-0 md:order-none description ">
-						<div className=" py-4 px-0  w-full">
-							<div className="flex flex-col  gap-2">
-								<div className="text-4xl font-bold text-gray-700 ">
-									{place.title}
-								</div>
-								<div className="flex items-center text-gray-600 gap-2">
-									<MapPin size={15} />
-									<span>{place.city}</span>
-								</div>
-							</div>
-							<div className="flex gap-4 items-center justify-start mt-4 max-w-auto">
+				<div className="grid grid-cols-1 max-sm:gap-5 gap-20 md:grid-cols-2 mt-2 max-sm:mx-2 mx-8 ">
+					<div className="leading-relaxed px-0 order-1 description ">
+						<div className="max-sm:py-0  w-full">
+							<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
 								<div className="flex gap-2 rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<Users2 size={15} />
-										<div className="text-sm">{place.guests} Hóspedes</div>
+										<Users2 size={15} className="max-sm:hidden" />
+										<div>{place.guests} hóspedes</div>
 									</div>
 								</div>
 								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 								<div className="flex gap-2  rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<HomeIcon size={15} />
+										<HomeIcon size={15} className="max-sm:hidden" />
 										{place.rooms || rooms > 1 ? (
-											<p className="text-sm">
-												<span className="">{place.rooms}</span> Quartos
+											<p>
+												<span>{place.rooms}</span> quartos
 											</p>
 										) : (
-											<p className="text-sm">
-												<span className="">{place.rooms}</span> Quarto
+											<p>
+												<span>{place.rooms}</span> quarto
 											</p>
 										)}
 									</div>
@@ -341,14 +335,14 @@ const Place = () => {
 								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 								<div className="flex gap-2 rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<Bed size={15} />
+										<Bed size={15} className="max-sm:hidden" />
 										{place.beds || beds > 1 ? (
-											<p className="text-sm">
-												<span className="">{place.beds}</span> Camas
+											<p>
+												<span className="">{place.beds}</span> camas
 											</p>
 										) : (
-											<p className="text-sm">
-												<span className="">{place.beds}</span> Cama
+											<p>
+												<span className="">{place.beds}</span> cama
 											</p>
 										)}
 									</div>
@@ -356,45 +350,105 @@ const Place = () => {
 								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 								<div className="flex gap-2 rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<Bath size={15} />
+										<Bath size={15} className="max-sm:hidden" />
 										{place.bathrooms || bathrooms > 1 ? (
-											<p className="text-sm ">
-												<span className="mr-2">{place.bathrooms}</span>{" "}
-												Banheiros
+											<p>
+												<span>{place.bathrooms}</span> banheiros
 											</p>
 										) : (
 											<p className="text-sm">
-												<span className="">{place.bathrooms}</span> Banheiro
+												<span>{place.bathrooms}</span> banheiro
+											</p>
+										)}
+									</div>
+								</div>
+							</div>
+							<div className="flex flex-col  gap-2">
+								<div className="text-[2rem] max-sm:text-[1.5rem] font-bold text-gray-700 ">
+									{place.title}
+								</div>
+								<div className="flex items-center max-sm:text-sm text-gray-600 gap-2">
+									<MapPin size={13} />
+									<span>{place.city}</span>
+								</div>
+							</div>
+							<div className="flex gap-4  !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Users2 size={15} className="max-sm:hidden" />
+										<div>{place.guests} hóspedes</div>
+									</div>
+								</div>
+								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+								<div className="flex gap-2  rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<HomeIcon size={15} className="max-sm:hidden" />
+										{place.rooms || rooms > 1 ? (
+											<p>
+												<span>{place.rooms}</span> quartos
+											</p>
+										) : (
+											<p>
+												<span>{place.rooms}</span> quarto
+											</p>
+										)}
+									</div>
+								</div>
+								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Bed size={15} className="max-sm:hidden" />
+										{place.beds || beds > 1 ? (
+											<p>
+												<span className="">{place.beds}</span> camas
+											</p>
+										) : (
+											<p>
+												<span className="">{place.beds}</span> cama
+											</p>
+										)}
+									</div>
+								</div>
+								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Bath size={15} className="max-sm:hidden" />
+										{place.bathrooms || bathrooms > 1 ? (
+											<p>
+												<span>{place.bathrooms}</span> banheiros
+											</p>
+										) : (
+											<p className="text-sm">
+												<span>{place.bathrooms}</span> banheiro
 											</p>
 										)}
 									</div>
 								</div>
 							</div>
 						</div>
-						<div className="flex gap-2 flex-col mb-5 ">
+						<div className="flex gap-2 flex-col mb-5 max-sm:mt-2  ">
 							<div className="flex items-center gap-2 w-full">
 								<Link
 									to={`/account/profile/${place.owner._id}`}
-									className="flex items-center group hover:bg-primary-100 hover:px-5 py-5 transition-all w-full ransition-all rounded-2xl cursor-pointer gap-2.5 justify-between "
+									className="flex items-center group max-sm:w-full hover:bg-primary-100 hover:px-5 py-5 transition-all w-full ransition-all rounded-2xl cursor-pointer gap-2.5 justify-between "
 								>
-									<div className="flex items-center  gap-2.5">
+									<div className="flex items-center font-normal  gap-2.5">
 										<img
 											src={place.owner.photo}
 											className="w-12 h-12  aspect-square rounded-full object-cover"
 											alt="Foto do Usuário"
 										/>
 										<div className="flex flex-col text-gray-700 ">
-											<h4>{place.owner.name}</h4>
+											<p className="font-medium">{place.owner.name}</p>
 											<small>
 												Anfitrião desde{" "}
-												<strong className="text-primary-600">10/04/2025</strong>
+												<span className="text-primary-600 font-medium">
+													10/04/2025
+												</span>
 											</small>
 										</div>
 									</div>
-									<div className="opacity-0 flex bg-white/50 p-2 px-4 rounded-2xl items-center gap-2.5 group-hover:opacity-100">
-										<ExternalLink size={15} className="  text-gray-500 " />
-										<p>Acessar perfil</p>
-									</div>
+									<ChevronRight size={15} className="text-primary-300 mr-1" />
 								</Link>
 							</div>
 						</div>
@@ -428,23 +482,15 @@ const Place = () => {
 							<p className="sm:text-2xl text-large font-medium">
 								Horário e Restrições
 							</p>
-							<div className="my-2 flex items-center gap-5">
-								<div className="flex bg-gray-50 w-fit items-center px-8 py-4 rounded-2xl gap-2.5">
-									<Clock size={15} /> Check-in: {place.checkin}
+							<div className="my-2 flex  max-sm:text-sm items-center gap-5 max-sm:gap-1">
+								<div className="flex bg-gray-50 w-fit max-sm:p-3 items-center px-8 py-4 rounded-2xl gap-2.5">
+									<Clock size={15} color="gray" /> Check-in: {place.checkin}
 								</div>
-								<div className="flex bg-gray-50 w-fit items-center px-8 py-4 rounded-2xl gap-2.5">
+								<div className="flex bg-gray-50 w-fit items-center max-sm:p-3  px-8 py-4  rounded-2xl gap-2.5">
 									<Clock size={15} color="gray" />
 									Check-out: {place.checkout}
 								</div>
 							</div>
-						</div>
-						<div className="mb-25">
-							<p
-								className="flex flex-col text-gray-700 gap-3 pt-2.5"
-								dangerouslySetInnerHTML={{
-									__html: md.render(place.extras),
-								}}
-							></p>
 						</div>
 					</div>
 
@@ -513,7 +559,7 @@ const Place = () => {
 							</div>
 						</div>
 					) : (
-						<form className="form__place order-1 w-full md:order-none justify-self-end self-start sticky top-20 bottom-20 flex flex-col gap-4 rounded-2xl p-10">
+						<form className="form__place max-sm:relative max-sm:p-0  max-sm:w-full order-2   w-full  justify-self-end self-start sticky top-20 bottom-20 flex flex-col gap-4 rounded-2xl p-10">
 							<div className="border-l-2 border-primary-400 p-4">
 								<div className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
 									<p className="uppercase text-sm">preço</p>
@@ -524,12 +570,13 @@ const Place = () => {
 								</div>
 							</div>
 							{/* Checkin e Checkout */}
-							<div className="column__check flex justify-start sm:justify-start">
-								<div className="flex items-center gap-4 w-full">
+							<div className="column__check flex justify-start max-w-full sm:justify-start">
+								<div className="flex items-center flex-wrap gap-4 w-full">
 									{/* Check-in */}
 									<div className="">
 										<p className="font-medium text-xl mb-2">Check-in</p>
 										<Calendar
+											className="w-fit"
 											mode="single"
 											selected={checkin} // já começa selecionado
 											onSelect={handleCheckin}
@@ -538,10 +585,11 @@ const Place = () => {
 									</div>
 
 									{/* Check-out */}
-									<div className="py-2">
+									<div className="">
 										<p className="font-medium text-xl mb-2">Check-out</p>
 
 										<Calendar
+											className="w-fit"
 											mode="single"
 											selected={checkout}
 											onSelect={handleCheckout}
