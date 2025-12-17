@@ -53,6 +53,7 @@ import RotatingText from "@/components/RotatingText";
 import { Timeline } from "@mantine/core";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import Counter from "@/components/Counter";
+import photoDefault from "../assets/photoDefault.png";
 
 // IMPORTE O NOVO COMPONENTE AQUI
 import DatePickerAirbnb from "../components/DatePickerAirbnb";
@@ -268,7 +269,7 @@ const Place = () => {
 									<div className="col-span-1 row-span-1">
 										<img
 											className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
-											src={place.photos[4]}
+											src={place.photos[4] || photoDefault}
 											alt="Imagem da acomodação"
 											onClick={() => handleImageClick(4)}
 										/>
