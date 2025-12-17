@@ -6,6 +6,11 @@ import {
 	Calendar,
 	Check,
 	ArrowRight,
+	ScissorsLineDashed,
+	LineSquiggle,
+	LineChart,
+	Spline,
+	Minus,
 } from "lucide-react";
 import {
 	Dialog,
@@ -13,6 +18,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 
 // Funções auxiliares para datas
 const formatDate = (date, format = "dd/MM/yyyy") => {
@@ -222,12 +228,12 @@ const DatePickerAirbnb = ({
 	const totalPrice = price && nights > 0 ? price * nights : 0;
 
 	return (
-		<div className="w-full mx-auto p-4">
+		<div className="w-full mx-auto ">
 			{/* Botão para abrir o modal */}
 			<button
 				type="button"
 				onClick={() => setIsOpen(true)}
-				className="w-full border-2 border-gray-300 rounded-2xl p-4 md:p-5 hover:border-primary-500 transition-all text-left bg-white shadow-sm hover:shadow-md"
+				className="w-full border-2 cursor-pointer border-gray-300 rounded-2xl p-4 md:p-5 hover:border-primary-500 transition-all text-left bg-white shadow-sm hover:shadow-md"
 			>
 				<div className="flex items-center justify-between">
 					<div className="flex-1">
@@ -274,7 +280,7 @@ const DatePickerAirbnb = ({
 								<button
 									type="button"
 									onClick={handleClear}
-									className="text-sm font-semibold cursor-pointer text-primary-500 hover:text-primary-700 hover:bg-primary-100 px-3 py-2 rounded-lg transition-all"
+									className="text-sm font-semibold cursor-pointer text-red-500 hover:text-red-700 hover:bg-red-100 px-3 py-2 rounded-lg transition-all"
 								>
 									Limpar
 								</button>
@@ -290,7 +296,7 @@ const DatePickerAirbnb = ({
 					</DialogHeader>
 
 					{/* Calendários */}
-					<div className="p-4 md:p-6 lg:p-8 max-h-[60vh] overflow-y-auto">
+					<div className="p-4 md:p-6 lg:p-8 max-h-[60vh] relative overflow-y-auto">
 						<button
 							type="button"
 							onClick={() => setCurrentMonth(addMonths(currentMonth, -1))}
@@ -330,7 +336,7 @@ const DatePickerAirbnb = ({
 											: "--/--/--"}
 									</p>
 								</div>
-								<ArrowRight size={15} />
+								<ArrowRight size={15} className="text-primary-500" />
 								<div className="flex-1 md:flex-initial">
 									<p className="text-xs text-primary-500 mb-1 uppercase tracking-wide">
 										Check-out
@@ -341,41 +347,29 @@ const DatePickerAirbnb = ({
 											: "--/--/--"}
 									</p>
 								</div>
-								{!nights && <div className="w-px h-12 bg-gray-300" />}
-								{nights > 0 && (
-									<div className="relative flex flex-col items-center px-4 md:px-6 border-gray-300">
-										<p className="text-2xl md:text-3xl font-bold text-primary-500">
-											{nights}
-										</p>
-										<p className="text-xs font-medium text-gray-600">
-											{nights === 1 ? "noite" : "noites"}
-										</p>
-									</div>
-								)}
 							</div>
 
 							{/* Total e botão */}
 							<div className="flex items-center gap-4 w-full md:w-auto">
 								{totalPrice > 0 && (
 									<div className="text-center md:text-right flex-1 md:flex-initial">
-										<p className="text-xs text-gray-600 font-medium mb-1">
+										<p className="text-xs text-gray-500 font-medium mb-1">
 											Total da estadia
 										</p>
-										<p className="text-xl md:text-2xl font-bold text-primary-500">
+										<p className="text-xl md:text-2xl font-bold text-primary-900">
 											R$ {totalPrice.toFixed(2).replace(".", ",")}
 										</p>
 									</div>
 								)}
-
-								<button
+								<InteractiveHoverButton
 									type="button"
+									icon={Check}
 									onClick={handleConfirm}
 									disabled={!checkinDate || !checkoutDate}
-									className="bg-primary-500 cursor-pointer text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-primary-600 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
+									className="bg-primary-900 cursor-pointer text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-primary-800 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
 								>
-									<Check size={18} />
 									Confirmar datas
-								</button>
+								</InteractiveHoverButton>
 							</div>
 						</div>
 					</div>
@@ -384,7 +378,7 @@ const DatePickerAirbnb = ({
 
 			{/* Preview das datas selecionadas */}
 			{(checkinDate || checkoutDate) && (
-				<div className="mt-4 p-4 bg-rose-50 border-2 border-primary-200 rounded-xl">
+				<div className="mt-4 p-4 border-2 border-primary-200 rounded-xl">
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="text-sm font-semibold text-primary-900 mb-1">
