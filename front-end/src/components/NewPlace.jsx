@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Link, Navigate, useParams } from "react-router-dom";
-
+import { PriceInput } from "./ui/PriceInput";
 import { useUserContext } from "./contexts/UserContext";
 import { useMessage } from "./contexts/MessageContext";
+import { GuestsInput } from "./ui/GuestsInput";
 
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -50,6 +51,7 @@ import { useMoblieContext } from "./contexts/MoblieContext";
 import { MarkdownEditor, MarkdownEditor2 } from "./ui/MarkdownEditor";
 import Preview from "./Preview";
 import { PreviewToggle } from "./PreviewToggle";
+import { TimePicker } from "./ui/TimePicker";
 
 const NewPlace = () => {
 	const { user } = useUserContext();
@@ -204,7 +206,7 @@ const NewPlace = () => {
 			<div className="container__prev__form relative flex p-10 bg-white/80  rounded-2xl backdrop-blur-xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
 				<form
 					onSubmit={handleSubmit}
-					className="container__form pb-30 flex grow flex-col gap-10 w-full"
+					className="container__form pb-30 max-w-3xl min-w-auto flex grow flex-col gap-10 w-full"
 				>
 					<div className="label__input text-start flex flex-col gap-4 w-full">
 						<label
@@ -216,13 +218,13 @@ const NewPlace = () => {
 								Título Informe o título da acomodação.
 							</div>
 						</label>
-						<div className="group__input w-full relative flex justify-center items-center">
+						<div className="group__input relative flex w-full justify-center items-center">
 							<Home className="absolute left-4 text-gray-400 size-6" />
 							<input
 								id="title"
 								type="text"
 								placeholder="Digite o título do seu anúncio"
-								className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
+								className="border border-gray-300 px-14  py-4 rounded-2xl min-w-full outline-primary-400"
 								value={title}
 								onChange={(e) => {
 									setTitle(e.target.value);
@@ -314,89 +316,66 @@ const NewPlace = () => {
 							máximo de hóspedes.
 						</p>
 					</h2>
-					<div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
-						<div className="label__input text-start flex flex-col gap-2 w-full">
-							<label
-								htmlFor="price"
-								className="text-[1rem] ml-2  font-medium text-gray-600"
-							>
-								Preço
-							</label>
-							<div className="group__input relative flex justify-center items-center">
-								<DollarSign className="absolute left-4 text-gray-400 size-6" />
-								<input
-									id="price"
-									type="number"
-									placeholder="R$ 250,00"
-									className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
-									value={price}
-									onChange={(e) => {
-										setPrice(e.target.value);
-									}}
-								/>
-							</div>
+					<div className="flex-col flex gap-4 ">
+						<PriceInput
+							id="price"
+							className="w-fit min-w-sm"
+							label="Preço por noite"
+							placeholder="130,00"
+							value={price}
+							onChange={(e) => setPrice(e.target.value)}
+						/>
+						<div className="label__input text-start w-fit flex flex-col  gap-2">
+							<GuestsInput
+								id="guests"
+								label="Número máximo de hóspedes"
+								min={1}
+								className="min-w-sm"
+								max={20}
+								value={guests}
+								onChange={(e) => {
+									setGuests(e.target.value);
+								}}
+							/>
 						</div>
-						<div className="label__input text-start flex flex-col gap-2 w-full">
-							<label
-								htmlFor="checkin"
-								className="text-[1rem] ml-2  font-medium text-gray-600"
-							>
-								Check-in
-							</label>
-							<div className="group__input relative flex justify-center items-center">
-								<CalendarArrowUp className="absolute left-4 text-gray-400 size-6" />
-								<input
-									id="checkin"
-									type="text"
-									placeholder="16:00"
-									className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
-									value={checkin}
-									onChange={(e) => {
-										setCheckin(e.target.value);
-									}}
-								/>
+						<div className="flex items-center gap-5">
+							<div className="label__input text-start flex flex-col gap-2 w-fit">
+								<label
+									htmlFor="checkin"
+									className="text-[1rem] ml-2  font-medium text-gray-600"
+								>
+									Check-in
+								</label>
+								<div className="group__input relative flex w-fit justify-center items-center">
+									<CalendarArrowUp className="absolute left-4 text-gray-400 size-5" />
+									<TimePicker
+										defaultValue="14:00"
+										className="border border-gray-300 pl-10 pr-2.5 w-full py-3 rounded-2xl outline-primary-400"
+										value={checkin}
+										onChange={(e) => {
+											setCheckin(e.target.value);
+										}}
+									/>
+								</div>
 							</div>
-						</div>
-						<div className="label__input text-start flex flex-col gap-2 w-full">
-							<label
-								htmlFor="checkout"
-								className="text-[1rem] ml-2  font-medium text-gray-600"
-							>
-								Check-out
-							</label>
-							<div className="group__input relative flex justify-center items-center">
-								<CalendarArrowDown className="absolute left-4 text-gray-400 size-6" />
-								<input
-									id="checkout"
-									type="text"
-									placeholder="19:00"
-									className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
-									value={checkout}
-									onChange={(e) => {
-										setCheckout(e.target.value);
-									}}
-								/>
-							</div>
-						</div>
-						<div className="label__input text-start flex flex-col gap-2 w-full">
-							<label
-								htmlFor="guests"
-								className="text-[1rem] ml-2  font-medium text-gray-600"
-							>
-								Nº Hóspedes
-							</label>
-							<div className="group__input relative flex justify-center items-center">
-								<Users className="absolute left-4 text-gray-400 size-6" />
-								<input
-									id="guests"
-									type="number"
-									placeholder="4"
-									className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
-									value={guests}
-									onChange={(e) => {
-										setGuests(e.target.value);
-									}}
-								/>
+							<div className="label__input text-start flex flex-col gap-2 w-fit">
+								<label
+									htmlFor="checkout"
+									className="text-[1rem] ml-2  font-medium text-gray-600"
+								>
+									Check-out
+								</label>
+								<div className="group__input relative flex w-fit justify-center items-center">
+									<CalendarArrowDown className="absolute left-4 text-gray-400 size-5" />
+									<TimePicker
+										defaultValue="14:00"
+										className="border border-gray-300 pl-10 w-full pr-2.5 py-3 rounded-2xl outline-primary-400"
+										value={checkout}
+										onChange={(e) => {
+											setCheckout(e.target.value);
+										}}
+									/>
+								</div>
 							</div>
 						</div>
 					</div>

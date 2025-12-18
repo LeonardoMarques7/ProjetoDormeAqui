@@ -9,7 +9,7 @@ import { useState } from "react";
 import Preview from "./Preview";
 
 export function PreviewToggle({ formData }) {
-	const [showPreview, setShowPreview] = useState(false);
+	const [showPreview, setShowPreview] = useState(true);
 
 	return (
 		<>
@@ -49,7 +49,7 @@ export function PreviewToggle({ formData }) {
 			</TooltipProvider>
 
 			{showPreview && (
-				<div className="p-4 transition-transform duration-500	 border rounded-lg h-fit bg-gray-50">
+				<div className="p-2 flex-1 w-full min-w-xl transition-transform duration-500	 border rounded-lg h-fit bg-gray-50">
 					<Preview data={formData} />
 				</div>
 			)}
