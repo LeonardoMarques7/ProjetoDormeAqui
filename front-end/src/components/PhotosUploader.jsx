@@ -190,7 +190,10 @@ const PhotosUploader = ({
 
 							<div className="actions__image absolute bottom-1 gap-1 flex right-1">
 								<button
-									onClick={() => promotePhoto(photo)}
+									onClick={(e) => {
+										e.preventDefault();
+										promotePhoto(photo);
+									}}
 									className="badge__action bg-white/70 rounded-[10px] p-1 cursor-pointer hover:bg-primary-200 transition-all duration-300 ease-in-out"
 									title="Definir como foto principal"
 								>
@@ -202,7 +205,10 @@ const PhotosUploader = ({
 									/>
 								</button>
 								<button
-									onClick={() => deletePhoto(photo)}
+									onClick={(e) => {
+										e.preventDefault();
+										deletePhoto(photo);
+									}}
 									className="badge__action bg-white/70 rounded-[10px] p-1 cursor-pointer hover:bg-red-200 transition-all duration-300 ease-in-out"
 									title="Remover foto"
 								>

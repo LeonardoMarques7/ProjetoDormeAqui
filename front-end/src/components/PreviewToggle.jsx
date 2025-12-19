@@ -49,7 +49,7 @@ export function PreviewToggle({ formData }) {
 			</TooltipProvider>
 
 			{showPreview && (
-				<div className="p-2 flex-1 w-full min-w-xl transition-transform duration-500	 border rounded-lg h-fit bg-gray-50">
+				<div className="p-2 py-0 pb-4  flex-1 w-full  overflow-y-auto min-w-xl transition-transform duration-500 rounded-4xl h-fit bg-white">
 					<Preview data={formData} />
 				</div>
 			)}
