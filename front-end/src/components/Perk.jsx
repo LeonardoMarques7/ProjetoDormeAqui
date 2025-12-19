@@ -10,16 +10,12 @@ const Perk = ({ perk, minimal = null, width = 20 }) => {
 			<>
 				{Icon && !Image ? (
 					<Icon
-						className={`${
-							minimal && width == 20 ? "w-5 h-5" : "w-4 h-4"
-						} w-${width}`}
+						className={`${minimal && width == 20 ? "w-5 h-5" : "w-4 h-4"} `}
 					/>
 				) : (
 					<img
 						src={perkConfig.image}
-						className={`${
-							minimal && width == 20 ? "w-5 h-5" : "w-4 h-4"
-						} w-${width}`}
+						className={`${minimal && width == 20 ? "w-5 h-5" : "w-4 h-4"}`}
 					/>
 				)}
 				{!minimal && <span>{perkConfig.label}</span>}

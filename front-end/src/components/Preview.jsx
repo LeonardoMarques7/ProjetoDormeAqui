@@ -78,7 +78,7 @@ const Preview = ({ data }) => {
 		linkify: true,
 	});
 	return (
-		<div className="container__infos mx-auto !max-w-4xl h-full px-2 overflow-y-auto">
+		<div className="container__infos  !max-w-4xl h-full px-2 overflow-y-auto">
 			<div className="bg-primary-900  max-sm:p-0 max-sm:shadow-none h-fit mt-5 max-sm:mt-15 py-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
 				<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:mx-0 max-sm:rounded-none rounded-2xl">
 					{/* Container do grid principal */}
