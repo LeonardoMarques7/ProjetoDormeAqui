@@ -94,7 +94,7 @@ export function PriceInput({
 					value={displayValue}
 					onChange={handleChange}
 					onFocus={handleFocus}
-					className="border border-gray-300 selection:bg-primary-900 pl-10 pr-4 py-3 rounded-2xl transition-colors"
+					className="border flex-1 border-gray-300 selection:bg-primary-900 pl-10 pr-4 py-3 rounded-2xl transition-colors"
 				/>
 			</div>
 			{displayValue && (

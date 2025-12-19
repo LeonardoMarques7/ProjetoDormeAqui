@@ -203,10 +203,10 @@ const NewPlace = () => {
 
 	return (
 		<div className="relative w-full ">
-			<div className="container__prev__form relative flex p-10  rounded-2xl max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
+			<div className="container__prev__form relative flex p-10  rounded-2xl max-sm:px-4 max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
 				<form
 					onSubmit={handleSubmit}
-					className="container__form pb-30 max-w-3xl min-w-auto flex grow flex-col gap-10 w-full"
+					className="container__form max-w-3xl pb-5 min-w-auto flex grow flex-col gap-10 w-full"
 				>
 					<div className="label__input text-start flex flex-col gap-4 w-full">
 						<label
@@ -309,44 +309,46 @@ const NewPlace = () => {
 							/>
 						</div>
 					</div>
-					<h2 className="text-2xl text-start ml-2 font-medium text-gray-600">
+					<h2 className="text-2xl text-start  ml-2 font-medium text-gray-600">
 						Restrições e Preço
 						<p className="text-sm font-normal">
 							Defina o preço, horários de check-in e check-out e também o número
 							máximo de hóspedes.
 						</p>
 					</h2>
-					<div className="flex-col flex gap-4 ">
-						<PriceInput
-							id="price"
-							className="w-fit min-w-sm"
-							label="Preço por noite"
-							placeholder="130,00"
-							value={price}
-							onChange={(e) => setPrice(e.target.value)}
-						/>
-						<div className="label__input text-start w-fit flex flex-col  gap-2">
-							<GuestsInput
-								id="guests"
-								label="Número máximo de hóspedes"
-								min={1}
-								className="min-w-sm"
-								max={20}
-								value={guests}
-								onChange={(e) => {
-									setGuests(e.target.value);
-								}}
+					<div className="flex-col flex gap-4">
+						<div className="flex items-center max-sm:flex-wrap  gap-4">
+							<PriceInput
+								id="price"
+								className="max-sm:w-full flex-1"
+								label="Preço por noite"
+								placeholder="130,00"
+								value={price}
+								onChange={(e) => setPrice(e.target.value)}
 							/>
+							<div className="label__input text-start w-full flex-1 flex flex-col  gap-2">
+								<GuestsInput
+									id="guests"
+									label="Número máximo de hóspedes"
+									min={1}
+									className="max-sm:w-full"
+									max={20}
+									value={guests}
+									onChange={(e) => {
+										setGuests(e.target.value);
+									}}
+								/>
+							</div>
 						</div>
-						<div className="flex items-center gap-5">
-							<div className="label__input text-start flex flex-col gap-2 w-fit">
+						<div className="flex items-center max-sm:flex-wrap gap-4">
+							<div className="label__input text-start w-full flex flex-col gap-2">
 								<label
 									htmlFor="checkin"
 									className="text-[1rem] ml-2  font-medium text-gray-600"
 								>
 									Check-in
 								</label>
-								<div className="group__input relative flex w-fit justify-center items-center">
+								<div className="group__input relative flex w-full  justify-center items-center">
 									<CalendarArrowUp className="absolute left-4 text-gray-400 size-5" />
 									<TimePicker
 										defaultValue="14:00"
@@ -358,14 +360,14 @@ const NewPlace = () => {
 									/>
 								</div>
 							</div>
-							<div className="label__input text-start flex flex-col gap-2 w-fit">
+							<div className="label__input text-start  w-full flex flex-col gap-2 ">
 								<label
 									htmlFor="checkout"
 									className="text-[1rem] ml-2  font-medium text-gray-600"
 								>
 									Check-out
 								</label>
-								<div className="group__input relative flex w-fit justify-center items-center">
+								<div className="group__input relative flex w-full justify-center items-center">
 									<CalendarArrowDown className="absolute left-4 text-gray-400 size-5" />
 									<TimePicker
 										defaultValue="14:00"
@@ -379,21 +381,22 @@ const NewPlace = () => {
 							</div>
 						</div>
 					</div>
-					<div className="flex items-center gap-5">
+					<div className="flex items-center max-sm:justify-center max-sm:text-sm gap-5">
 						<Link
 							to="../account/profile"
 							className="flex items-center gap-5 group hover:text-primary-500 transition-all"
 							onClick={handlePageChange}
 						>
-							<ArrowLeft size={18} className="" /> Cancelar
+							<ArrowLeft size={18} className="max-sm:size-4" /> Cancelar
 						</Link>
-						<button className="flex w-fit gap-4 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
-							<SaveAllIcon /> Salvar acomodação
+						<button className="flex w-fit gap-4 max-sm:py-3 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
+							<SaveAllIcon className="max-sm:hidden" /> Salvar acomodação
 						</button>
 					</div>
 				</form>
 				{/* Preview */}
 				{/* Toggle do preview */}
+				<p className="text-2xl text-center">Pré-visualização</p>
 				<PreviewToggle formData={formData} />
 
 				{/* Preview aparece somente quando showPreview for true */}

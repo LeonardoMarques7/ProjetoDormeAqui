@@ -14,7 +14,7 @@ export function PreviewToggle({ formData }) {
 	return (
 		<>
 			{showPreview && (
-				<div className="relative shadow-xl left-10 p-3 pt-1 flex-1 w-full border overflow-y-auto min-w-xl transition-transform duration-500 rounded-4xl h-fit bg-white">
+				<div className="relative max-sm:m-0 max-sm:static max-sm:p-0 shadow-xl left-10 p-3 pt-1 flex-1 w-full border overflow-y-auto max-sm:min-w-auto min-w-xl transition-transform duration-500 rounded-4xl h-fit bg-white max-sm:bg-transparent max-sm:shadow-none max-sm:border-none">
 					<Preview data={formData} />
 				</div>
 			)}

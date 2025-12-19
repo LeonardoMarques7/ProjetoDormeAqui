@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserContext } from "./contexts/UserContext";
 
+import { useMoblieContext } from "./contexts/MoblieContext";
+
 import MarkdownIt from "markdown-it";
 import Perk from "../components/Perk";
 
@@ -39,21 +41,12 @@ const Preview = ({ data }) => {
 	const lightGalleryRef = useRef(null);
 	const [loaded, setLoaded] = useState([]);
 	const { user } = useUserContext();
+	const { moblie } = useMoblieContext();
 
 	const handleImageClick = (index) => {
 		if (lightGalleryRef.current) {
 			lightGalleryRef.current.openGallery(index);
 		}
-	};
-
-	const handleShowMoreClick = () => {
-		if (lightGalleryRef.current) {
-			lightGalleryRef.current.openGallery(0);
-		}
-	};
-
-	const handleImageLoad = (index) => {
-		setLoaded((prev) => [...prev, index]);
 	};
 
 	const {
@@ -78,11 +71,11 @@ const Preview = ({ data }) => {
 		linkify: true,
 	});
 	return (
-		<div className="container__infos  !max-w-4xl h-full px-2 overflow-y-auto">
-			<div className="bg-primary-900  max-sm:p-0 max-sm:shadow-none h-fit mt-5 max-sm:mt-15 py-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
-				<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:mx-0 max-sm:rounded-none rounded-2xl">
+		<div className="container__infos  !max-w-4xl max-sm:p-0 h-full px-2 overflow-y-auto ">
+			<div className="bg-primary-900  max-sm:p-0 max-sm:shadow-none h-fit max-sm:m-0 mt-5  py-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl max-sm:rounded-2xl  relative overflow-hidden">
+				<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:m-0 max-sm:rounded-none rounded-2xl">
 					{/* Container do grid principal */}
-					<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3 h-full  max-sm:p-2 gap-2  max-sm:h-[50svh]">
+					<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3 h-full  max-sm:p-0 gap-2  max-sm:h-[50svh]">
 						{/* Imagem principal - ocupa 2 colunas e 2 linhas */}
 						<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
 							<img
@@ -112,30 +105,32 @@ const Preview = ({ data }) => {
 								onClick={() => handleImageClick(2)}
 							/>
 						</div>
-						<>
-							<div className="col-span-1 row-span-1 max-sm:col-span-4">
-								<img
-									className="w-full h-full rounded-2xl object-cover  hover:saturate-150 transition-all"
-									src={photos[3] || photoDefault}
-									alt="Imagem da acomodação"
-									onClick={() => handleImageClick(3)}
-								/>
-							</div>
+						{!moblie && (
+							<>
+								<div className="col-span-1 row-span-1 max-sm:col-span-4">
+									<img
+										className="w-full h-full rounded-2xl object-cover  hover:saturate-150 transition-all"
+										src={photos[3] || photoDefault}
+										alt="Imagem da acomodação"
+										onClick={() => handleImageClick(3)}
+									/>
+								</div>
 
-							<div className="col-span-1 row-span-1">
-								<img
-									className="w-full h-full rounded-2xl object-cover  hover:saturate-150 transition-all"
-									src={photos[4] || photoDefault}
-									alt="Imagem da acomodação"
-									onClick={() => handleImageClick(4)}
-								/>
-							</div>
-						</>
+								<div className="col-span-1 row-span-1">
+									<img
+										className="w-full h-full rounded-2xl object-cover  hover:saturate-150 transition-all"
+										src={photos[4] || photoDefault}
+										alt="Imagem da acomodação"
+										onClick={() => handleImageClick(4)}
+									/>
+								</div>
+							</>
+						)}
 					</div>
 				</div>
 			</div>
 			{/* Conteúdo da acomodação */}
-			<div className="grid grid-cols-1.5 max-sm:gap-5 gap-2 mt-2 max-sm:mx-2 mx-4 ">
+			<div className="grid grid-cols-1.5 max-sm:gap-5 gap-2 mt-2 max-sm:mx-0 mx-4 ">
 				<div className="leading-relaxed px-0 order-1 max-w-full description ">
 					<div className="max-sm:py-0  w-full">
 						<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
@@ -200,59 +195,61 @@ const Preview = ({ data }) => {
 								<span>{city}</span>
 							</div>
 						</div>
-						<div className="flex gap-4  !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
-							<div className="flex gap-2 rounded-2xl items-center ">
-								<div className="flex items-center gap-2">
-									<Users2 size={15} className="max-sm:hidden" />
-									<div>{guests} hóspedes</div>
+						{!moblie && (
+							<div className="flex gap-4  !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Users2 size={15} className="max-sm:hidden" />
+										<div>{guests} hóspedes</div>
+									</div>
+								</div>
+								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+								<div className="flex gap-2  rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<HomeIcon size={15} className="max-sm:hidden" />
+										{rooms || rooms > 1 ? (
+											<p>
+												<span>{rooms}</span> quartos
+											</p>
+										) : (
+											<p>
+												<span>{rooms}</span> quarto
+											</p>
+										)}
+									</div>
+								</div>
+								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Bed size={15} className="max-sm:hidden" />
+										{beds || beds > 1 ? (
+											<p>
+												<span className="">{beds}</span> camas
+											</p>
+										) : (
+											<p>
+												<span className="">{beds}</span> cama
+											</p>
+										)}
+									</div>
+								</div>
+								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Bath size={15} className="max-sm:hidden" />
+										{bathrooms || bathrooms > 1 ? (
+											<p>
+												<span>{bathrooms}</span> banheiros
+											</p>
+										) : (
+											<p className="text-sm">
+												<span>{bathrooms}</span> banheiro
+											</p>
+										)}
+									</div>
 								</div>
 							</div>
-							<div className="w-1 rounded-full h-1 bg-gray-500"></div>
-							<div className="flex gap-2  rounded-2xl items-center ">
-								<div className="flex items-center gap-2">
-									<HomeIcon size={15} className="max-sm:hidden" />
-									{rooms || rooms > 1 ? (
-										<p>
-											<span>{rooms}</span> quartos
-										</p>
-									) : (
-										<p>
-											<span>{rooms}</span> quarto
-										</p>
-									)}
-								</div>
-							</div>
-							<div className="w-1 rounded-full h-1 bg-gray-500"></div>
-							<div className="flex gap-2 rounded-2xl items-center ">
-								<div className="flex items-center gap-2">
-									<Bed size={15} className="max-sm:hidden" />
-									{beds || beds > 1 ? (
-										<p>
-											<span className="">{beds}</span> camas
-										</p>
-									) : (
-										<p>
-											<span className="">{beds}</span> cama
-										</p>
-									)}
-								</div>
-							</div>
-							<div className="w-1 rounded-full h-1 bg-gray-500"></div>
-							<div className="flex gap-2 rounded-2xl items-center ">
-								<div className="flex items-center gap-2">
-									<Bath size={15} className="max-sm:hidden" />
-									{bathrooms || bathrooms > 1 ? (
-										<p>
-											<span>{bathrooms}</span> banheiros
-										</p>
-									) : (
-										<p className="text-sm">
-											<span>{bathrooms}</span> banheiro
-										</p>
-									)}
-								</div>
-							</div>
-						</div>
+						)}
 					</div>
 					<div className="flex gap-2 flex-col mb-5 max-sm:mt-2  ">
 						<div className="flex items-center gap-2 w-full">
@@ -278,7 +275,7 @@ const Preview = ({ data }) => {
 							</div>
 						</div>
 					</div>
-					<div className="border   border-r-0 py-5 mb-5 border-l-0">
+					<div className="border max-sm:text-sm   border-r-0 py-5 mb-5 border-l-0">
 						<p
 							className=""
 							dangerouslySetInnerHTML={{
@@ -323,7 +320,7 @@ const Preview = ({ data }) => {
 							Informações Extras
 						</p>
 						<p
-							className=""
+							className="max-sm:text-sm"
 							dangerouslySetInnerHTML={{
 								__html: md.render(extras),
 							}}

@@ -92,7 +92,7 @@ export function GuestsInput({
 					value={numericValue > 0 ? numericValue : ""}
 					onChange={handleInputChange}
 					onFocus={handleFocus}
-					className="border border-gray-300 pl-12 pr-24 py-3 rounded-2xl outline-primary-400 text-base font-medium hover:border-gray-400 focus:border-primary-400 transition-colors text-center"
+					className="border flex-1 border-gray-300 pl-12 pr-24 py-3 rounded-2xl outline-primary-400 text-base font-medium hover:border-gray-400 focus:border-primary-400 transition-colors text-center"
 				/>
 
 				<div className="absolute right-2 flex items-center gap-1">
@@ -100,7 +100,7 @@ export function GuestsInput({
 						type="button"
 						onClick={handleDecrement}
 						disabled={numericValue <= min}
-						className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white transition-all"
+						className="w-8 h-8 cursor-pointer flex items-center justify-center rounded-full border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white transition-all"
 						aria-label="Diminuir número de hóspedes"
 					>
 						<Minus className="size-4 text-gray-600" />
@@ -110,7 +110,7 @@ export function GuestsInput({
 						type="button"
 						onClick={handleIncrement}
 						disabled={numericValue >= max}
-						className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white transition-all"
+						className="w-8 h-8 cursor-pointer flex items-center justify-center rounded-full border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white transition-all"
 						aria-label="Aumentar número de hóspedes"
 					>
 						<Plus className="size-4 text-gray-600" />
