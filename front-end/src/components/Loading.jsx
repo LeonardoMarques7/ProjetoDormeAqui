@@ -1,5 +1,5 @@
 import ProgressSpiner from "@/components/ui/ProgressSpinner";
-import Banner from "../assets/banner.png";
+import Banner from "../assets/image.png";
 
 export default function Loading() {
 	window.scrollTo({ top: 0, behavior: "smooth" });
@@ -13,7 +13,7 @@ export default function Loading() {
 					rotate: "10",
 				}}
 			>
-				<div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-b from-primary-500/70 via-primary-500/50 to-transparent"></div>
+				<div className="absolute inset-0 backdrop-blur-[5px]"></div>
 			</div>
 			<div className="absolute w-full z-100 text-white	 flex flex-col h-dvh  justify-center items-center">
 				<ProgressSpiner />

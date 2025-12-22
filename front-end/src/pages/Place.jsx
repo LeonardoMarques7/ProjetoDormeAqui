@@ -407,7 +407,7 @@ const Place = () => {
 								</div>
 							</div>
 						</div>
-						<div className="flex gap-2 flex-col mb-5 max-sm:mt-2  ">
+						<div className="flex gap-2 flex-col my-2.5 max-sm:mt-2  ">
 							<div className="flex items-center gap-2 w-full">
 								<Link
 									to={`/account/profile/${place.owner._id}`}

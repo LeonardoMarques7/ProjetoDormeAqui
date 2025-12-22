@@ -174,9 +174,7 @@ const AccProfile = () => {
 	// Precisa definir isEditMode antes dos returns condicionais
 	const isEditingProfile = params.action === "edit";
 
-	if (!ready) return <Loading />;
 	if (redirect) return <Navigate to="/" state={{ updated: true }} />;
-	if (!profileUser && !isEditingProfile) return <Loading />;
 
 	const displayUser = profileUser;
 	// Verifica se está visualizando o próprio perfil

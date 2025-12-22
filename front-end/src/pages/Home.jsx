@@ -268,9 +268,9 @@ const Home = () => {
 				)
 			) : (
 				// Caso 1: sem pesquisa
-				<h1 className="mx-auto text__section font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
+				<span className="mx-auto text__section font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
 					Acomodações disponíveis
-				</h1>
+				</span>
 			)}
 			{/* GRID DE RESULTADOS */}
 			{city && placesSearch.length > 0 && (

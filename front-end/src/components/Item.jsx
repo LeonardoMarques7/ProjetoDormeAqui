@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Skeleton } from "@mantine/core";
 import MarkdownIt from "markdown-it";
 import Autoplay from "embla-carousel-autoplay";
@@ -52,6 +52,7 @@ const Item = ({ place = null, placeHolder }) => {
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [scrollSnaps, setScrollSnaps] = useState([]);
 	const [isHovered, setIsHovered] = useState(false);
+	const [clickItem, setClickItem] = useState(false);
 	const cardRef = useRef(null);
 
 	const md = new MarkdownIt({
@@ -88,6 +89,8 @@ const Item = ({ place = null, placeHolder }) => {
 			axiosGetOwner();
 		}
 	}, [place]);
+
+	if (clickItem) return <Navigate to={`/places/${place._id}`} />;
 
 	return (
 		<>
@@ -212,7 +215,7 @@ const Item = ({ place = null, placeHolder }) => {
 											className="w-full rounded-xl text-center font-medium"
 											onClick={(e) => {
 												e.preventDefault();
-												window.location.href = `/places/${place._id}`;
+												setClickItem(true);
 											}}
 										>
 											Reservar

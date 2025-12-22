@@ -36,10 +36,6 @@ const AccPlaces = () => {
 		axiosGet();
 	}, [action]);
 
-	if (!loadingPlaces) {
-		return <Loading />;
-	}
-
 	if (redirect) return <Navigate to="/account/places" />;
 
 	return (

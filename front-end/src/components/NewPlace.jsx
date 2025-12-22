@@ -396,7 +396,7 @@ const NewPlace = () => {
 				</form>
 				{/* Preview */}
 				{/* Toggle do preview */}
-				<p className="text-2xl text-center">Pré-visualização</p>
+				
 				<PreviewToggle formData={formData} />
 
 				{/* Preview aparece somente quando showPreview for true */}
