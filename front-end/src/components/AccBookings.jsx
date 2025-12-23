@@ -31,15 +31,13 @@ const AccBookings = ({ bookingId }) => {
 			{/* Conteúdo */}
 
 			<div className="flex w-full my-10 mx-auto max-w-full max-h-full lg:max-w-7xl h-full flex-col gap-8 relative justify-start items-start px-8">
-				<div className="mt-20 border-b-1 flex justify-between items-center w-full pb-4">
+				<div className="mt-20 flex border-l-3 pl-4 justify-between items-center w-full ">
 					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
 						<span className=" text-3xl max-sm:text-xl text-black">
-							Minhas reservas
+							Minhas reservas{" "}
+							<small className="text-lg">({bookings.length} Reservas)</small>
 						</span>
 						Visualize suas reservas
-					</span>
-					<span className="px-4 py-2 h-fit border rounded-md text-sm">
-						{bookings.length} Reservas
 					</span>
 				</div>
 

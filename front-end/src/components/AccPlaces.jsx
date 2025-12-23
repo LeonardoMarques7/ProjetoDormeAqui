@@ -40,23 +40,19 @@ const AccPlaces = () => {
 
 	return (
 		<>
-			<div
-				className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
-				style={{
-					backgroundImage: `url(${image})`,
-				}}
-			>
-				<div className="absolute inset-0 backdrop-blur-[5px]"></div>
-
-				{/* Conteúdo */}
-				<div className="relative flex flex-col justify-center items-center h-full gap-4">
-					<h1 className="font-bold text-5xl text-white drop-shadow-lg">
-						{edit
-							? "Editando acomodação"
-							: action !== "new"
-							? "Meus lugares"
-							: "Adicionando acomodação"}
-					</h1>
+			<div className="flex w-full mt-10 mx-auto max-w-full max-h-full lg:max-w-7xl h-full flex-col gap-8 relative justify-start items-start px-8">
+				<div className="mt-20 flex border-l-3 pl-4 justify-between items-center w-full ">
+					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
+						<span className=" text-3xl max-sm:text-xl text-black">
+							{edit
+								? "Editando acomodação"
+								: action !== "new"
+								? "Meus lugares"
+								: "Adicionando acomodação"}{" "}
+							<small className="text-lg">({places.length} Acomodações)</small>
+						</span>
+						Visualize suas acomodações
+					</span>
 					{edit && (
 						<Link
 							to="/account/places/new"
@@ -66,21 +62,22 @@ const AccPlaces = () => {
 						</Link>
 					)}
 				</div>
-			</div>
-			<div className="h-full">
-				{action !== "new" ? <Places places={places} /> : <NewPlace />}
-			</div>
-			<div className="bg-primary-500 z-100 shadow-2xl shadow-gray-500 p-4 flex justify-center items-center fixed right-5 bottom-5 h-fit w-fit rounded-full">
-				<Link
-					to="/account/places/new"
-					className="group flex justify-center items-center transition-all duration-500 hover:gap-5"
-					title="Nova acomodação"
-				>
-					<HousePlus color="#fff" size={40} />
-					<p className="w-0 opacity-0 font-bold text-white uppercase overflow-hidden text-nowrap transition-all duration-500 group-hover:w-48 group-hover:opacity-100">
-						Nova acomodação
-					</p>
-				</Link>
+
+				<div className="h-full">
+					{action !== "new" ? <Places places={places} /> : <NewPlace />}
+				</div>
+				<div className="bg-primary-500 z-100 shadow-2xl shadow-gray-500 p-4 flex justify-center items-center fixed right-5 bottom-5 h-fit w-fit rounded-full">
+					<Link
+						to="/account/places/new"
+						className="group flex justify-center items-center transition-all duration-500 hover:gap-5"
+						title="Nova acomodação"
+					>
+						<HousePlus color="#fff" size={40} />
+						<p className="w-0 opacity-0 font-bold text-white uppercase overflow-hidden text-nowrap transition-all duration-500 group-hover:w-48 group-hover:opacity-100">
+							Nova acomodação
+						</p>
+					</Link>
+				</div>
 			</div>
 		</>
 	);

@@ -45,11 +45,11 @@ const Places = ({ places }) => {
 	});
 
 	return (
-		<div className="container__places mx-auto justify-center max-w-full max-h-full h-full overflow-x-clip mt-[5svh] flex flex-col gap-10 p-8 lg:max-w-7xl">
+		<>
 			{currentPlaces.map((place, id) => (
 				<div
 					key={id}
-					className="headline relative item__place flex items-center gap-5 top-[5svh] w-full lg:max-w-7xl"
+					className="headline relative item__place flex items-center gap-5  w-full lg:max-w-7xl"
 				>
 					<div className=" w-full flex items-center relative justify-center">
 						<ScrollPlace data={place.photos} />
@@ -129,7 +129,7 @@ const Places = ({ places }) => {
 				onPageChange={setCurrentPage}
 				scrollToTop={true}
 			/>
-		</div>
+		</>
 	);
 };
 
