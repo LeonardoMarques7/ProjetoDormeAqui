@@ -55,7 +55,7 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 			{validBookings.map((booking) => (
 				<div
 					key={booking._id}
-					className="  max-sm:flex-col bg-white/80 h-fit relative w-full flex-1 flex rounded-2xl border  border-primary-100 gap-5 "
+					className="  max-sm:flex-col bg-white/80 h-fit relative w-full flex-1 flex rounded-3xl border  border-primary-100 gap-5 "
 				>
 					<div className="w-125 h-90 max-sm:aspect-square max-sm:w-full max-sm:h-full ">
 						<img
