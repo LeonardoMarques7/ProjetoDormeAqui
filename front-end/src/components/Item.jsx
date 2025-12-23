@@ -16,13 +16,6 @@ import {
 } from "@/components/ui/carousel";
 
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-
-import Perk from "./Perk";
-import {
 	Bath,
 	Bed,
 	Home,

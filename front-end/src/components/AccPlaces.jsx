@@ -1,4 +1,4 @@
-import { HousePlus, PlusCircle, Trash2 } from "lucide-react";
+import { HousePlus, Plus, PlusCircle, PlusSquare, Trash2 } from "lucide-react";
 import { Navigate, useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { use, useEffect, useState } from "react";
@@ -40,19 +40,29 @@ const AccPlaces = () => {
 
 	return (
 		<>
-			<div className="flex w-full mt-10 mx-auto max-w-full max-h-full lg:max-w-7xl h-full flex-col gap-8 relative justify-start items-start px-8">
+			<div className="flex w-full mt-10 relative mx-auto max-w-full max-h-full lg:max-w-7xl h-full flex-col gap-8 relative justify-start items-start px-8">
 				<div className="mt-20 flex border-l-3 pl-4 justify-between items-center w-full ">
 					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
-						<span className=" text-3xl max-sm:text-xl text-black">
+						<span className=" text-3xl max-sm:text-xl flex items-end gap-3 text-black">
 							{edit
 								? "Editando acomodação"
 								: action !== "new"
 								? "Meus lugares"
 								: "Adicionando acomodação"}{" "}
-							<small className="text-lg">({places.length} Acomodações)</small>
+							<span className="text-lg flex items-center gap-3">
+								({places.length} Acomodações)
+								<Link
+									to="/account/places/new"
+									className=" text-sm underline"
+									title="Anuncie seu espaço"
+								>
+									Anuncie seu espaço
+								</Link>
+							</span>
 						</span>
 						Visualize suas acomodações
 					</span>
+
 					{edit && (
 						<Link
 							to="/account/places/new"
@@ -63,17 +73,17 @@ const AccPlaces = () => {
 					)}
 				</div>
 
-				<div className="h-full">
+				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 lg:max-w-7xl">
 					{action !== "new" ? <Places places={places} /> : <NewPlace />}
 				</div>
-				<div className="bg-primary-500 z-100 shadow-2xl shadow-gray-500 p-4 flex justify-center items-center fixed right-5 bottom-5 h-fit w-fit rounded-full">
+				<div className="bg-primary-500 z-100 shadow-2xl shadow-gray-500 p-4 flex justify-center items-center fixed right-9 bottom-5 h-fit w-fit rounded-full">
 					<Link
 						to="/account/places/new"
 						className="group flex justify-center items-center transition-all duration-500 hover:gap-5"
 						title="Nova acomodação"
 					>
-						<HousePlus color="#fff" size={40} />
-						<p className="w-0 opacity-0 font-bold text-white uppercase overflow-hidden text-nowrap transition-all duration-500 group-hover:w-48 group-hover:opacity-100">
+						<HousePlus color="#fff" fontWeight={"light"} size={40} />
+						<p className="w-0 opacity-0 font-light text-white uppercase overflow-hidden text-nowrap transition-all duration-500 group-hover:w-48 group-hover:opacity-100">
 							Nova acomodação
 						</p>
 					</Link>
