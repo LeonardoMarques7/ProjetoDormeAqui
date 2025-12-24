@@ -115,7 +115,7 @@ function MenuBar({ active }) {
 							</motion.button>
 							<DropdownMenu modal={false}>
 								<DropdownMenuTrigger className={`outline-none `}>
-									<div className="badge__user flex items-center text-white gap-2 cursor-pointer hover:bg-gray-800 transition-colors bg-primary-900 p-4 rounded-full">
+									<div className="badge__user flex items-center text-primary-800 gap-2 cursor-pointer hover:bg-gray-200 transition-colors bg-primary-100 p-4 rounded-xl">
 										<MenuIcon size={18} />
 									</div>
 								</DropdownMenuTrigger>

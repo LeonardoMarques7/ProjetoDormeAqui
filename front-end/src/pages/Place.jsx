@@ -48,7 +48,7 @@ import BookingAlert from "../components/BookingAlert";
 import { useMoblieContext } from "../components/contexts/MoblieContext";
 import MarkdownIt from "markdown-it";
 import Perks from "../components/Perks";
-import Banner from "../assets/image.png";
+import Banner from "../assets/banner2.jpg";
 import RotatingText from "@/components/RotatingText";
 import { Timeline } from "@mantine/core";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
@@ -220,7 +220,6 @@ const Place = () => {
 					thumb: photo,
 				}))}
 			/>
-
 			<div className="container__infos mx-auto max-w-7xl flex flex-col gap-2">
 				<div className="bg-primary-900 shadow-2xl max-sm:p-0 max-sm:shadow-none max-h-full mt-25 max-sm:mt-15 py-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
 					<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:mx-0 max-sm:rounded-none rounded-2xl cursor-pointer">

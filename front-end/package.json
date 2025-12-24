@@ -27,6 +27,7 @@
     "@editorjs/table": "^2.4.5",
     "@editorjs/warning": "^1.4.1",
     "@floating-ui/react": "^0.27.16",
+    "@hookform/resolvers": "^5.2.2",
     "@mantine/core": "^8.3.4",
     "@mantine/form": "^8.3.4",
     "@mantine/hooks": "^8.3.4",
@@ -77,6 +78,7 @@
     "react-day-picker": "^9.11.0",
     "react-dom": "^19.1.1",
     "react-fast-marquee": "^1.6.5",
+    "react-hook-form": "^7.69.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.8.0",
     "scrollreveal": "^4.0.9",
@@ -85,7 +87,8 @@
     "tailwindcss": "^4.1.11",
     "tiptap-markdown": "^0.9.0",
     "use-mask-input": "^3.5.2",
-    "vaul": "^1.1.2"
+    "vaul": "^1.1.2",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",

@@ -235,16 +235,18 @@ const DatePickerAirbnb = ({
 			<button
 				type="button"
 				onClick={() => setIsOpen(true)}
-				className={`w-fit  cursor-pointer ${
+				className={`w-full group cursor-pointer ${
 					!search &&
-					"border-2 shadow-sm hover:shadow-md border-gray-300 rounded-2xl md:p-5 hover:border-primary-500"
-				} transition-all text-left bg-white `}
+					"border-2 shadow-sm hover:shadow-md border-gray-300 rounded-2xl p-4 md:p-5 hover:border-primary-500"
+				} transition-all !text-left bg-white flex !justify-start`}
 			>
 				{search ? (
-					<div className="flex hover:text-primary-700 items-center text-gray-400 gap-2 justify-start">
-						<Calendar className=" left-0 size-5" />
+					<div className="flex group-hover:text-primary-700   items-center text-gray-400 gap-2 justify-center">
+						{!checkinDate && !checkoutDate && (
+							<Calendar className=" left-0 size-5" />
+						)}
 						{checkinDate ? (
-							<div className="group__input relative  flex justify-center items-center">
+							<div className="group__input relative w-full px-4 flex justify-center items-center">
 								<p className="text-sm md:text-base flex gap-2 ">
 									<span className="text-primary-700">
 										{checkinDate
@@ -258,7 +260,7 @@ const DatePickerAirbnb = ({
 							"Quando?"
 						)}
 						{checkinDate && checkoutDate && (
-							<span className="w-5 h-0.5 bg-primary-200"></span>
+							<span className="w-5 h-0.5 bg-primary-300"></span>
 						)}
 						{checkoutDate ? (
 							<div className="group__input relative px-4 flex justify-center items-center">
@@ -271,29 +273,36 @@ const DatePickerAirbnb = ({
 						) : null}
 					</div>
 				) : (
-					<div className="flex items-center justify-between">
-						<div className="flex-1 ">
-							<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
-								Check-in
-							</p>
-							<p className="text-sm md:text-base text-gray-800">
-								{checkinDate
-									? formatDate(checkinDate, "dd de MMM")
-									: "Adicionar data"}
-							</p>
-						</div>
-						<div className="flex-1">
-							<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
-								Checkout
-							</p>
-							<p className="text-sm md:text-base text-gray-800">
-								{checkoutDate
-									? formatDate(checkoutDate, "dd de MMM")
-									: "Adicionar data"}
-							</p>
+					<div className="flex items-center w-full justify-between">
+						<div className="flex items-center mx-8 md:mx-6 gap-5">
+							<Calendar className=" text-primary-500" size={24} />
 						</div>
 
-						<Calendar className="ml-4 md:ml-6 text-primary-500" size={24} />
+						<div className="flex items-center mx-6 gap">
+							<div className="flex-1">
+								<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
+									Check-in
+								</p>
+								<p className="text-sm md:text-base text-gray-800">
+									{checkinDate
+										? formatDate(checkinDate, "dd de MMM")
+										: "Adicionar data"}
+								</p>
+							</div>
+
+							<div className="w-px h-12 md:h-14 bg-gray-300 mx-4 md:mx-6" />
+
+							<div className="flex-1">
+								<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
+									Checkout
+								</p>
+								<p className="text-sm md:text-base text-gray-800">
+									{checkoutDate
+										? formatDate(checkoutDate, "dd de MMM")
+										: "Adicionar data"}
+								</p>
+							</div>
+						</div>
 					</div>
 				)}
 			</button>

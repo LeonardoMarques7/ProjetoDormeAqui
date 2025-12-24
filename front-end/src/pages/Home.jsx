@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Item from "../components/Item";
 import axios from "axios";
 import {
@@ -12,6 +14,7 @@ import {
 	Trash,
 	Users,
 	X,
+	AlertCircle,
 } from "lucide-react";
 import { format, isBefore, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -26,58 +29,53 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
-import Banner from "../assets/image.png";
+import Banner from "../assets/banner2.jpg";
 import { ptBR } from "date-fns/locale";
 
 import "./Home.css";
 import { GuestsInput } from "../components/ui/GuestsInput";
 import DatePickerAirbnb from "../components/DatePickerAirbnb";
+import { searchSchema } from "../components/schemas/searchSchema";
 
 const Home = () => {
-	const [searchInput, setSearchInput] = useState("");
-	const [searchGuests, setSearchGuests] = useState("");
 	const [city, setCity] = useState("");
 	const [places, setPlaces] = useState([]);
 	const [placesSearch, setPlacesSearch] = useState([]);
-	const [price, setPrice] = useState("");
-	const [checkin, setCheckin] = useState("");
-	const [checkout, setCheckout] = useState("");
-	const [placeholder, setPlaceHolder] = useState([1, 2, 3, 4]);
+	const [isSearching, setIsSearching] = useState(false);
 
-	const handleCheckin = (date) => {
-		setCheckin(date);
-		// Se já tinha checkout selecionado mas é antes do novo checkin → reseta checkout
-		if (checkout && isBefore(checkout, date)) {
-			setCheckout(null);
-			showMessage("Insira uma data válida!", "error");
-		} else {
-		}
-	};
-
-	const handleCheckout = (date) => {
-		if (checkin && isBefore(date, checkin)) {
-			showMessage("Insira uma data válida!", "error");
-			return;
-		}
-		setCheckout(date);
-	};
-
-	// state separado para o texto digitado e para o termo que realmente pesquisa
+	// Configuração do React Hook Form com Zod
+	const {
+		register,
+		handleSubmit,
+		control,
+		watch,
+		setValue,
+		formState: { errors },
+		reset,
+		clearErrors,
+	} = useForm({
+		resolver: zodResolver(searchSchema),
+		defaultValues: {
+			city: "",
+			checkin: null,
+			checkout: null,
+			guests: null,
+		},
+		mode: "onSubmit", // Valida apenas no submit para não quebrar o layout
+	});
 
 	const fetchPlaces = async () => {
-		const { data } = await axios.get("/places");
-		setPlaces(data);
+		try {
+			const { data } = await axios.get("/places");
+			setPlaces(data);
+		} catch (error) {
+			console.error("Erro ao carregar acomodações:", error);
+		}
 	};
 
 	useEffect(() => {
-		// carrega todos inicialmente
 		fetchPlaces();
 	}, []);
-
-	const handleDateSelect = ({ checkin: newCheckin, checkout: newCheckout }) => {
-		setCheckin(newCheckin);
-		setCheckout(newCheckout);
-	};
 
 	const normalize = (str) =>
 		str
@@ -85,81 +83,158 @@ const Home = () => {
 			.replace(/[\u0300-\u036f]/g, "")
 			.toLowerCase();
 
-	const handleSearch = async (e) => {
-		e.preventDefault();
-		setCity(searchInput); // só atualiza a label exibida
+	// Função de busca validada
+	const onSubmit = async (formData) => {
+		setIsSearching(true);
+		setCity(formData.city || "");
 
 		try {
-			const { data } = await axios.get(
-				`/places?city=${normalize(searchInput)}`
-			);
+			const params = new URLSearchParams();
+
+			if (formData.city) {
+				params.append("city", normalize(formData.city));
+			}
+
+			if (formData.checkin) {
+				params.append("checkin", format(formData.checkin, "yyyy-MM-dd"));
+			}
+
+			if (formData.checkout) {
+				params.append("checkout", format(formData.checkout, "yyyy-MM-dd"));
+			}
+
+			if (formData.guests) {
+				params.append("guests", formData.guests.toString());
+			}
+
+			const { data } = await axios.get(`/places?${params.toString()}`);
 			setPlacesSearch(data);
 		} catch (err) {
 			console.error("Erro na busca:", err);
+		} finally {
+			setIsSearching(false);
 		}
 	};
 
 	const limparPesquisa = (e) => {
 		e.preventDefault();
 		setCity("");
+		setPlacesSearch([]);
+		reset({
+			city: "",
+			checkin: null,
+			checkout: null,
+			guests: null,
+		});
+		clearErrors();
+	};
+
+	const handleDateSelect = ({ checkin: newCheckin, checkout: newCheckout }) => {
+		setValue("checkin", newCheckin);
+		setValue("checkout", newCheckout);
 	};
 
 	return (
 		<>
 			<div className="relative flex justify-center mb-12">
-				<div className="banner__home  max-sm:hidden bg-primar-700 shadow-2xl  max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden">
-					<div className=" absolute inset-0 backdrop-blur-[5px] z-0">
-						<img src={Banner} alt="" />
-					</div>
-
-					{/* Conteúdo */}
+				<div className="banner__home  max-sm:hidden h-[50svh] m-2 max-w-7xl 2xl:max-w-7xl   bg-primar-700  w-svw relative">
+					<img
+						src={Banner}
+						alt=""
+						className="object-cover pointer-events-none h-full w-full rounded-3xl shadow-2xl"
+					/>
+					<div className="absolute rounded-3xl inset-0 bg-gradient-to-b from-primary-500/20 via-primary-500/30 to-transparent"></div>
 				</div>
-				<div className="container__bg__form z-20 bg-white absolute flex justify-center -bottom-12 p-4 pl-8 px-4 shadow-xl rounded-2xl mt-4">
-					<form onSubmit={handleSearch}>
-						<div className="form__container flex items-center justify-start">
-							<div className="group__input relative px-4 border-r flex justify-center items-center">
-								<MapPin className="absolute left-0 text-gray-400 size-5" />
+				<div className="container__bg__form z-20 w-full max-w-5xl bg-white absolute flex flex-col justify-center -bottom-12 p-4 pl-8 px-4 shadow-xl rounded-2xl mt-4">
+					<form onSubmit={handleSubmit(onSubmit)}>
+						<div className=" flex items-center w-full justify-start">
+							{/* Campo Cidade */}
+							<div className="group__input relative pr-4 border-r flex w-full items-center ">
+								<MapPin className="text-gray-400 size-5 flex-shrink-0" />
 								<input
 									id="city"
 									type="text"
 									placeholder="Para onde você vai?"
-									className="ml-5 outline-none"
-									value={searchInput}
-									onChange={(e) => setSearchInput(e.target.value)}
+									className="ml-4 outline-none !bg-white w-full"
+									{...register("city")}
 								/>
 							</div>
-							{/* Checkin */}
-							<div className="w-fit h-fit  border-r px-8">
-								<DatePickerAirbnb
-									onDateSelect={handleDateSelect}
-									initialCheckin={checkin}
-									search={true}
-									initialCheckout={checkout}
+
+							{/* Campo Datas */}
+							<div className="w-90 h-fit text-nowrap border-r px-6">
+								<Controller
+									name="checkin"
+									control={control}
+									render={({ field }) => (
+										<Controller
+											name="checkout"
+											control={control}
+											render={({ field: checkoutField }) => (
+												<DatePickerAirbnb
+													onDateSelect={({ checkin, checkout }) => {
+														field.onChange(checkin);
+														checkoutField.onChange(checkout);
+													}}
+													initialCheckin={field.value}
+													initialCheckout={checkoutField.value}
+													search={true}
+												/>
+											)}
+										/>
+									)}
 								/>
 							</div>
-							<div className="group__input relative  !pl-8 w-fit pr-4 flex justify-center items-center">
-								<Users className=" left-0           text-gray-400 size-5" />
+
+							{/* Campo Hóspedes */}
+							<div className="group__input relative pl-6 pr-4 flex items-center w-90">
+								<Users className="text-gray-400 size-5 flex-shrink-0" />
 								<input
 									id="guests"
 									type="number"
-									className="ml-5 max-w-fit outline-none"
-									placeholder="Hópedes"
-									value={searchGuests}
-									onChange={(e) => setSearchGuests(e.target.value)}
+									className="ml-4 outline-none w-full"
+									placeholder="Hóspedes"
+									{...register("guests", {
+										valueAsNumber: true,
+										setValueAs: (v) => (v === "" ? null : parseInt(v)),
+									})}
+									min="1"
+									max="20"
 								/>
 							</div>
-							{/* Check-out */}
+
+							{/* Botão de Busca */}
 							<Button
 								type="submit"
 								variant="outline"
-								className="justify-center  !px-5 !py-5 font-normal border bg-primary-900 hover:bg-primary-800/90 cursor-pointer hover:text-white border-gray-200 h-full rounded-2xl text-white outline-primary-400"
+								disabled={isSearching}
+								className="justify-center ml-4 !px-5 !py-5 font-normal border bg-primary-900 hover:bg-primary-800/90 cursor-pointer hover:text-white border-gray-200 h-full rounded-2xl text-white outline-primary-400 disabled:opacity-50"
 							>
-								<Search className="h-5 w-5" />
+								{isSearching ? (
+									<div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+								) : (
+									<Search className="h-5 w-5" />
+								)}
 							</Button>
 						</div>
 					</form>
+
+					{/* Mensagem de erro - Aparece abaixo do formulário */}
+					{Object.keys(errors).length > 0 && (
+						<div className="mt-3 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
+							<div className="flex items-start gap-2">
+								<AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+								<div className="flex flex-col gap-1 text-sm text-red-600">
+									{errors.city && <span>• {errors.city.message}</span>}
+									{errors.checkin && <span>• {errors.checkin.message}</span>}
+									{errors.checkout && <span>• {errors.checkout.message}</span>}
+									{errors.guests && <span>• {errors.guests.message}</span>}
+								</div>
+							</div>
+						</div>
+					)}
 				</div>
 			</div>
+
 			{city ? (
 				placesSearch.length > 0 ? (
 					// Caso 3: pesquisou e encontrou
@@ -240,8 +315,4 @@ const Home = () => {
 	);
 };
 
-// <span className="flex  relative top-0 mr-10 w-full text-center  justify-start items-center  tracking-widest">
-// 						<p className="z-1 bg-white px-5 text-primary-900">Fim da busca</p>
-// 						<span className="w-full h-fit border-2 border-dashed border-primary-300 absolute "></span>
-// 					</span>
 export default Home;
