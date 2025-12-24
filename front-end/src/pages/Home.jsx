@@ -10,6 +10,7 @@ import {
 	MapPin,
 	Search,
 	Trash,
+	Users,
 	X,
 } from "lucide-react";
 import { format, isBefore, addDays } from "date-fns";
@@ -29,9 +30,12 @@ import Banner from "../assets/image.png";
 import { ptBR } from "date-fns/locale";
 
 import "./Home.css";
+import { GuestsInput } from "../components/ui/GuestsInput";
+import DatePickerAirbnb from "../components/DatePickerAirbnb";
 
 const Home = () => {
 	const [searchInput, setSearchInput] = useState("");
+	const [searchGuests, setSearchGuests] = useState("");
 	const [city, setCity] = useState("");
 	const [places, setPlaces] = useState([]);
 	const [placesSearch, setPlacesSearch] = useState([]);
@@ -70,6 +74,11 @@ const Home = () => {
 		fetchPlaces();
 	}, []);
 
+	const handleDateSelect = ({ checkin: newCheckin, checkout: newCheckout }) => {
+		setCheckin(newCheckin);
+		setCheckout(newCheckout);
+	};
+
 	const normalize = (str) =>
 		str
 			.normalize("NFD")
@@ -98,120 +107,54 @@ const Home = () => {
 	return (
 		<>
 			<div className="relative flex justify-center mb-12">
-				<div className="banner__home  max-sm:hidden bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden">
+				<div className="banner__home  max-sm:hidden bg-primar-700 shadow-2xl  max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden">
 					<div className=" absolute inset-0 backdrop-blur-[5px] z-0">
-						<GridMotion />
+						<img src={Banner} alt="" />
 					</div>
 
 					{/* Conteúdo */}
-					<div className="relative z-10 bg-transparent flex flex-col justify-center text-white items-center h-full gap-4">
-						<p className="text-3xl text__banner font-bold flex items-end transition-all">
-							<div className="mb-1">Encontre o lugar perfeito para</div>
-							<RotatingText
-								texts={[
-									"relaxar",
-									"descansar",
-									"viajar",
-									"viver momentos únicos",
-									"se sentir em casa",
-								]}
-								mainClassName="px-4  text-shadow shadow-white pb-1 items-center rounded-2xl text-primary-300 text-5xl  overflow-hidden  justify-center"
-								staggerFrom={"last"}
-								initial={{ y: "100%" }}
-								animate={{ y: 0 }}
-								exit={{ y: "-120%" }}
-								staggerDuration={0.025}
-								splitLevelClassName="overflow-hidden"
-								transition={{ type: "spring", damping: 30, stiffness: 400 }}
-								rotationInterval={2000}
-							/>
-						</p>
-						<p className="text__banner text-lg text-gray-50">
-							Descubra acomodações únicas para sua próxima viagem
-						</p>
-					</div>
 				</div>
-				<div className="container__bg__form z-20 bg-white absolute flex justify-center -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4">
+				<div className="container__bg__form z-20 bg-white absolute flex justify-center -bottom-12 p-4 pl-8 px-4 shadow-xl rounded-2xl mt-4">
 					<form onSubmit={handleSearch}>
-						<div className="form__container flex items-center gap-4">
-							<div className="group__input relative flex justify-center items-center">
-								<MapPin className="absolute left-4 text-gray-400 size-6" />
+						<div className="form__container flex items-center justify-start">
+							<div className="group__input relative px-4 border-r flex justify-center items-center">
+								<MapPin className="absolute left-0 text-gray-400 size-5" />
 								<input
 									id="city"
 									type="text"
-									placeholder="Cidade ou Estado"
-									className="border border-gray-200 px-14 py-4 rounded-2xl w-full text-gray-400 outline-primary-400"
+									placeholder="Para onde você vai?"
+									className="ml-5 outline-none"
 									value={searchInput}
 									onChange={(e) => setSearchInput(e.target.value)}
 								/>
 							</div>
 							{/* Checkin */}
-							<div className=" ">
-								<Popover>
-									<PopoverTrigger asChild>
-										<Button
-											variant="outline"
-											className={cn(
-												"btn__date cursor-pointer justify-start text-left font-normal relative border border-gray-200 !px-14 !py-4 h-full rounded-2xl text-gray-400 outline-primary-400 ",
-												!checkin && "text-muted-foreground"
-											)}
-										>
-											<CalendarArrowUp className="absolute left-4 text-gray-400 size-6" />
-											{checkin ? (
-												format(checkin, "dd/MM/yyyy")
-											) : (
-												<span className="text-sm">Check-in</span>
-											)}
-										</Button>
-									</PopoverTrigger>
-									<PopoverContent className="w-auto" align="start">
-										<Calendar
-											mode="single"
-											selected={checkin}
-											onSelect={handleCheckin}
-											locale={ptBR}
-											initialFocus
-										/>
-									</PopoverContent>
-								</Popover>
+							<div className="w-fit h-fit  border-r px-8">
+								<DatePickerAirbnb
+									onDateSelect={handleDateSelect}
+									initialCheckin={checkin}
+									search={true}
+									initialCheckout={checkout}
+								/>
+							</div>
+							<div className="group__input relative  !pl-8 w-fit pr-4 flex justify-center items-center">
+								<Users className=" left-0           text-gray-400 size-5" />
+								<input
+									id="guests"
+									type="number"
+									className="ml-5 max-w-fit outline-none"
+									placeholder="Hópedes"
+									value={searchGuests}
+									onChange={(e) => setSearchGuests(e.target.value)}
+								/>
 							</div>
 							{/* Check-out */}
-							<div className="py-2">
-								<Popover>
-									<PopoverTrigger asChild>
-										<Button
-											variant="outline"
-											className={cn(
-												"btn__date justify-start cursor-pointer text-left font-normal relative border border-gray-200 !px-14 !py-4 h-full rounded-2xl text-gray-400 outline-primary-400",
-												!checkout && "text-muted-foreground"
-											)}
-										>
-											<CalendarArrowDownIcon className="absolute left-4 text-gray-400 size-6" />
-											{checkout ? (
-												format(checkout, "dd/MM/yyyy")
-											) : (
-												<span>Check-out</span>
-											)}
-										</Button>
-									</PopoverTrigger>
-									<PopoverContent className="w-auto" align="start">
-										<Calendar
-											mode="single"
-											selected={checkout}
-											onSelect={handleCheckout}
-											locale={ptBR}
-											initialFocus
-										/>
-									</PopoverContent>
-								</Popover>
-							</div>
 							<Button
 								type="submit"
 								variant="outline"
-								className="btn__submit justify-start text-left font-normal border bg-primary-900 hover:bg-primary-800/90 cursor-pointer hover:text-white border-gray-200 !px-14 !py-4 h-full rounded-2xl text-white outline-primary-400"
+								className="justify-center  !px-5 !py-5 font-normal border bg-primary-900 hover:bg-primary-800/90 cursor-pointer hover:text-white border-gray-200 h-full rounded-2xl text-white outline-primary-400"
 							>
-								<Search className="mr-2 h-4 w-4" />
-								<span>Buscar</span>
+								<Search className="h-5 w-5" />
 							</Button>
 						</div>
 					</form>

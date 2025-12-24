@@ -11,6 +11,7 @@ import {
 	LineChart,
 	Spline,
 	Minus,
+	SearchCheck,
 } from "lucide-react";
 import {
 	Dialog,
@@ -100,6 +101,7 @@ const differenceInDays = (date1, date2) => {
 const DatePickerAirbnb = ({
 	onDateSelect,
 	initialCheckin,
+	search,
 	initialCheckout,
 	price = 250,
 }) => {
@@ -233,35 +235,67 @@ const DatePickerAirbnb = ({
 			<button
 				type="button"
 				onClick={() => setIsOpen(true)}
-				className="w-full border-2 cursor-pointer border-gray-300 rounded-2xl p-4 md:p-5 hover:border-primary-500 transition-all text-left bg-white shadow-sm hover:shadow-md"
+				className={`w-fit  cursor-pointer ${
+					!search &&
+					"border-2 shadow-sm hover:shadow-md border-gray-300 rounded-2xl md:p-5 hover:border-primary-500"
+				} transition-all text-left bg-white `}
 			>
-				<div className="flex items-center justify-between">
-					<div className="flex-1">
-						<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
-							Check-in
-						</p>
-						<p className="text-sm md:text-base text-gray-800">
-							{checkinDate
-								? formatDate(checkinDate, "dd de MMM")
-								: "Adicionar data"}
-						</p>
+				{search ? (
+					<div className="flex hover:text-primary-700 items-center text-gray-400 gap-2 justify-start">
+						<Calendar className=" left-0 size-5" />
+						{checkinDate ? (
+							<div className="group__input relative  flex justify-center items-center">
+								<p className="text-sm md:text-base flex gap-2 ">
+									<span className="text-primary-700">
+										{checkinDate
+											? formatDate(checkinDate, "dd de MMM")
+											: "Adicionar data"}
+										.
+									</span>
+								</p>
+							</div>
+						) : (
+							"Quando?"
+						)}
+						{checkinDate && checkoutDate && (
+							<span className="w-5 h-0.5 bg-primary-200"></span>
+						)}
+						{checkoutDate ? (
+							<div className="group__input relative px-4 flex justify-center items-center">
+								<p className="text-sm md:text-base flex gap-2">
+									<span className="text-primary-700">
+										{formatDate(checkoutDate, "dd de MMM")}.
+									</span>
+								</p>
+							</div>
+						) : null}
 					</div>
+				) : (
+					<div className="flex items-center justify-between">
+						<div className="flex-1 ">
+							<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
+								Check-in
+							</p>
+							<p className="text-sm md:text-base text-gray-800">
+								{checkinDate
+									? formatDate(checkinDate, "dd de MMM")
+									: "Adicionar data"}
+							</p>
+						</div>
+						<div className="flex-1">
+							<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
+								Checkout
+							</p>
+							<p className="text-sm md:text-base text-gray-800">
+								{checkoutDate
+									? formatDate(checkoutDate, "dd de MMM")
+									: "Adicionar data"}
+							</p>
+						</div>
 
-					<div className="w-px h-12 md:h-14 bg-gray-300 mx-4 md:mx-6" />
-
-					<div className="flex-1">
-						<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
-							Checkout
-						</p>
-						<p className="text-sm md:text-base text-gray-800">
-							{checkoutDate
-								? formatDate(checkoutDate, "dd de MMM")
-								: "Adicionar data"}
-						</p>
+						<Calendar className="ml-4 md:ml-6 text-primary-500" size={24} />
 					</div>
-
-					<Calendar className="ml-4 md:ml-6 text-primary-500" size={24} />
-				</div>
+				)}
 			</button>
 
 			{/* Modal com Calendário */}
@@ -377,7 +411,7 @@ const DatePickerAirbnb = ({
 			</Dialog>
 
 			{/* Preview das datas selecionadas */}
-			{(checkinDate || checkoutDate) && (
+			{(checkinDate || checkoutDate) && !search && (
 				<div className="mt-4 p-4 border-2 border-primary-200 rounded-xl">
 					<div className="flex items-center justify-between">
 						<div>
