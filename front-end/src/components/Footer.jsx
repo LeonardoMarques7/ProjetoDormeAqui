@@ -21,13 +21,7 @@ const Footer = ({ active }) => {
 	];
 
 	return (
-		<footer
-			className="bg-primar-700 shadow-2xl my-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
-			style={{
-				backgroundImage: `url(${image})`,
-			}}
-		>
-			<div className="absolute inset-0 backdrop-blur-[5px]"></div>
+		<footer className="bg-primary-700 shadow-2xl  my-20 max-w-7xl transition-all mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden">
 			<div className="footer__container max-w-7xl mx-auto w-full relative justify-between px-8 flex items-center gap-5 bottom-0 h-60">
 				<div className="logo__footer flex-col flex h-full justify-between py-8 ">
 					<img src={logoSecondary} className="w-70 mt-10" alt="" />

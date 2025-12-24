@@ -42,6 +42,7 @@ const Home = () => {
 	const [places, setPlaces] = useState([]);
 	const [placesSearch, setPlacesSearch] = useState([]);
 	const [isSearching, setIsSearching] = useState(false);
+	const [loading, setLoading] = useState(true);
 
 	// Configuração do React Hook Form com Zod
 	const {
@@ -67,7 +68,10 @@ const Home = () => {
 	const fetchPlaces = async () => {
 		try {
 			const { data } = await axios.get("/places");
-			setPlaces(data);
+			setTimeout(() => {
+				setPlaces(data);
+				setLoading(false);
+			}, 1000);
 		} catch (error) {
 			console.error("Erro ao carregar acomodações:", error);
 		}
@@ -234,7 +238,6 @@ const Home = () => {
 					)}
 				</div>
 			</div>
-
 			{city ? (
 				placesSearch.length > 0 ? (
 					// Caso 3: pesquisou e encontrou
@@ -302,6 +305,36 @@ const Home = () => {
 				</div>
 			)}
 			{/* Se não tiver resultados OU não tiver pesquisa → mostrar acomodações padrão */}
+			{(!city || placesSearch.length === 0) && (
+				<div className="relative mb-10">
+					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
+						{places.map((place) => (
+							<Item {...{ place }} key={place._id} />
+						))}
+					</div>
+				</div>
+			)}
+			{loading && (
+				<div className="relative ">
+					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
+						{[...Array(8)].map((_, index) => (
+							<div
+								key={index}
+								className="flex flex-col gap-2 w-full max-w-[350px]"
+							>
+								<Skeleton className="aspect-square w-full rounded-none rounded-t-2xl" />
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-1/4" />
+									<Skeleton className="h-7 w-2/4" />
+									<Skeleton className="h-4 w-3/8" />
+									<Skeleton className="h-4 w-4/6" />
+								</div>
+								<Skeleton className="h-5 w-50 mt-1" />
+							</div>
+						))}
+					</div>
+				</div>
+			)}
 			{(!city || placesSearch.length === 0) && (
 				<div className="relative mb-10">
 					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
