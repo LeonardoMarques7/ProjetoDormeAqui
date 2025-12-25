@@ -10,6 +10,7 @@ import { useMoblieContext } from "./contexts/MoblieContext";
 import Loading from "./Loading";
 import { useUserContext } from "./contexts/UserContext";
 import image from "../assets/image.png";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const AccPlaces = () => {
 	const { action } = useParams();
@@ -18,7 +19,7 @@ const AccPlaces = () => {
 	const [login, setLogin] = useState(false);
 	const [places, setPlaces] = useState([]);
 	const [redirect, setRedirect] = useState(false);
-	const [loadingPlaces, setLoadingPlaces] = useState(false);
+	const [loadingPlaces, setLoadingPlaces] = useState(true);
 	const [imagePlace, setImagePlace] = useState("");
 	const { id } = useParams();
 
@@ -29,8 +30,8 @@ const AccPlaces = () => {
 			const { data } = await axios.get("/places/owner");
 			setTimeout(() => {
 				setPlaces(data);
-				setLoadingPlaces(true);
-			}, 4500);
+				setLoadingPlaces(false);
+			}, 50);
 		};
 
 		axiosGet();
@@ -73,8 +74,33 @@ const AccPlaces = () => {
 					)}
 				</div>
 
-				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 lg:max-w-7xl">
-					{action !== "new" ? <Places places={places} /> : <NewPlace />}
+				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
+					{loadingPlaces ? (
+						<>
+							{[...Array(2)].map((_, index) => (
+								<div
+									key={index}
+									className="flex-col bg-white/80 w-[350px] h-fit relative flex-1 flex rounded-3xl gap-5"
+								>
+									<Skeleton className="aspect-square w-full rounded-none rounded-t-2xl" />
+									<div className="space-y-2">
+										<Skeleton className="h-5 w-50 mt-1" />
+										<Skeleton className="h-4 w-1/4" />
+										<div className="mt-2 flex items-center gap-2">
+											<Skeleton className="h-5 w-5" />
+											<Skeleton className="h-5 w-5" />
+											<Skeleton className="h-5 w-5" />
+											<Skeleton className="ml-auto h-5 w-15" />
+										</div>
+									</div>
+								</div>
+							))}
+						</>
+					) : action !== "new" ? (
+						<Places places={places} />
+					) : (
+						<NewPlace />
+					)}
 				</div>
 				<div className="bg-primary-500 z-100 shadow-2xl shadow-gray-500 p-4 flex justify-center items-center fixed right-9 bottom-5 h-fit w-fit rounded-full">
 					<Link

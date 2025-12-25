@@ -135,10 +135,9 @@ const Place = () => {
 				} catch (error) {
 					console.error("Erro ao buscar lugar:", error);
 				} finally {
-					// ADICIONE O TIMEOUT AQUI PARA TESTAR
 					setTimeout(() => {
 						setLoading(false);
-					}, 100); // 2 segundos de delay
+					}, 50);
 				}
 			};
 

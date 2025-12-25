@@ -172,7 +172,7 @@ function MenuBar({ active }) {
 										className="w-8 h-8 aspect-square rounded-full object-cover"
 										alt="Foto do Usuário"
 									/>
-									<ChevronDown size={18} />
+									<ChevronDown size={18} className="text-gray-500" />
 								</div>
 							</DropdownMenuTrigger>
 

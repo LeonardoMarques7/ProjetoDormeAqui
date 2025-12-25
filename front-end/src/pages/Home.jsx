@@ -71,7 +71,7 @@ const Home = () => {
 			setTimeout(() => {
 				setPlaces(data);
 				setLoading(false);
-			}, 1000);
+			}, 50);
 		} catch (error) {
 			console.error("Erro ao carregar acomodações:", error);
 		}
