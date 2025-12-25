@@ -141,13 +141,13 @@ const Home = () => {
 	return (
 		<>
 			<div className="relative flex justify-center mb-12">
-				<div className="banner__home  max-sm:hidden h-[50svh] m-2 max-w-7xl 2xl:max-w-7xl   bg-primar-700  w-svw relative">
+				<div className="banner__home  max-sm:hidden h-[50svh]   bg-primar-700  w-svw relative">
 					<img
 						src={Banner}
 						alt=""
-						className="object-cover pointer-events-none h-full w-full rounded-3xl shadow-2xl"
+						className="object-cover pointer-events-none h-full w-full  shadow-2xl"
 					/>
-					<div className="absolute rounded-3xl inset-0 bg-gradient-to-b from-primary-500/20 via-primary-500/30 to-transparent"></div>
+					<div className="absolute inset-0 bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
 				</div>
 				<div className="container__bg__form z-20 w-full max-w-5xl bg-white absolute flex flex-col justify-center -bottom-12 p-4 pl-8 px-4 shadow-xl rounded-2xl mt-4">
 					<form onSubmit={handleSubmit(onSubmit)}>
