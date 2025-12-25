@@ -49,11 +49,12 @@ import { useMoblieContext } from "../components/contexts/MoblieContext";
 import MarkdownIt from "markdown-it";
 import Perks from "../components/Perks";
 import Banner from "../assets/banner2.jpg";
+import { Skeleton } from "@/components/ui/skeleton";
 import RotatingText from "@/components/RotatingText";
 import { Timeline } from "@mantine/core";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import Counter from "@/components/Counter";
-import photoDefault from "../assets/photoDefault.png";
+import photoDefault from "../assets/loadingGif2.gif";
 
 // IMPORTE O NOVO COMPONENTE AQUI
 import DatePickerAirbnb from "../components/DatePickerAirbnb";
@@ -80,6 +81,7 @@ const Place = () => {
 		to: addDays(new Date(), 7),
 	});
 	const [booking, setBooking] = useState(null);
+	const [loading, setLoading] = useState(false);
 
 	const numberOfDays = (date1, date2) => {
 		const date1GMT = date1 + "GMT-03:00";
@@ -126,9 +128,18 @@ const Place = () => {
 	useEffect(() => {
 		if (id) {
 			const axiosGet = async () => {
-				const { data } = await axios.get(`/places/${id}`);
-
-				setPlace(data);
+				setLoading(true);
+				try {
+					const { data } = await axios.get(`/places/${id}`);
+					setPlace(data);
+				} catch (error) {
+					console.error("Erro ao buscar lugar:", error);
+				} finally {
+					// ADICIONE O TIMEOUT AQUI PARA TESTAR
+					setTimeout(() => {
+						setLoading(false);
+					}, 100); // 2 segundos de delay
+				}
 			};
 
 			axiosGet();
@@ -192,6 +203,216 @@ const Place = () => {
 		setCheckout(newCheckout);
 	};
 
+	if (loading) {
+		return (
+			<div className="container__infos mx-auto max-w-7xl flex flex-col gap-2">
+				<div className="bg-primary-900 shadow-none max-sm:p-0 max-sm:shadow-none max-h-full mt-25 max-sm:mt-15 py-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
+					<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:mx-0 max-sm:rounded-none rounded-2xl cursor-pointer">
+						{/* Container do grid principal */}
+						<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2  max-sm:h-[50svh]">
+							{/* Imagem principal - ocupa 2 colunas e 2 linhas */}
+							<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
+								<img
+									className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
+									src={photoDefault}
+									alt="Imagem da acomodação"
+									onClick={() => handleImageClick(0)}
+								/>
+							</div>
+
+							{/* Imagem superior direita */}
+							<div className="col-span-1 row-span-1 max-sm:col-span-2 ">
+								<img
+									className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
+									src={photoDefault}
+									alt="Imagem da acomodação"
+									onClick={() => handleImageClick(1)}
+								/>
+							</div>
+
+							{/* Imagem superior direita extrema */}
+							<div className="col-span-1 row-span-1 max-sm:col-span-2">
+								<img
+									className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
+									src={photoDefault}
+									alt="Imagem da acomodação"
+									onClick={() => handleImageClick(2)}
+								/>
+							</div>
+							{moblie ? null : (
+								<>
+									<div className="col-span-1 row-span-1 max-sm:col-span-4">
+										<img
+											className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
+											src={photoDefault}
+											alt="Imagem da acomodação"
+											onClick={() => handleImageClick(3)}
+										/>
+									</div>
+
+									<div className="col-span-1 row-span-1">
+										<img
+											className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
+											src={photoDefault}
+											alt="Imagem da acomodação"
+											onClick={() => handleImageClick(4)}
+										/>
+									</div>
+								</>
+							)}
+
+							<button
+								className="absolute bottom-4 right-4 max-sm:text-sm max-sm:opacity-70 max-sm:p-2 hover:max-sm:opacity-100 flex items-center px-4 py-2 rounded-lg gap-2 bg-white hover:bg-gray-50 transition-all  font-medium"
+								onClick={handleShowMoreClick}
+							>
+								<Expand size={18} className="opacity-20" />
+								<span className="max-sm:hidden opacity-20">
+									Mostrar todas as fotos
+								</span>
+							</button>
+						</div>
+					</div>
+				</div>
+				<div className="grid grid-cols-1 max-sm:gap-5 gap-20 md:grid-cols-2 mt-2 max-sm:mx-2 mx-8 ">
+					<div className="leading-relaxed px-0 order-1 description ">
+						<div className="max-sm:py-0  w-full">
+							<div className="flex gap-4 mb-5 max-sm:visible sm:hidden max-sm:text-xs! max-sm:gap-2! max-sm:w-fit justify-start max-w-auto">
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Skeleton className="max-sm:hidden w-5 h-5" />
+										<Skeleton className="w-15 h-5"></Skeleton>
+									</div>
+								</div>
+								<div className="flex gap-2  rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Skeleton className="max-sm:hidden w-5 h-5" />
+										<Skeleton className="w-15 h-5"></Skeleton>
+									</div>
+								</div>
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Skeleton className="max-sm:hidden w-5 h-5" />
+										<Skeleton className="w-15 h-5"></Skeleton>
+									</div>
+								</div>
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Skeleton className="max-sm:hidden w-5 h-5" />
+										<Skeleton className="w-15 h-5"></Skeleton>
+									</div>
+								</div>
+							</div>
+							<div className="flex flex-col sm:hidden mt-1 max-sm:visible !flex-nowrap  !text-xs gap-2 w-full justify-start max-w-auto">
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Skeleton className="max-sm:hidden w-5 h-5 " />
+										<Skeleton className="w-60 h-5"></Skeleton>
+									</div>
+								</div>
+								<div className="flex gap-2  rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Skeleton className="max-sm:hidden w-5 h-5" />
+										<Skeleton className="w-30 h-5"></Skeleton>
+									</div>
+								</div>
+							</div>
+
+							<div className="flex gap-4 max-sm:hidden  !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Skeleton className="max-sm:hidden w-5 h-5" />
+										<Skeleton className="w-30 h-5"></Skeleton>
+									</div>
+								</div>
+								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+								<div className="flex gap-2  rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Skeleton className="max-sm:hidden w-5 h-5" />
+										<Skeleton className="w-30 h-5"></Skeleton>
+									</div>
+								</div>
+								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Skeleton className="max-sm:hidden w-5 h-5" />
+										<Skeleton className="w-30 h-5"></Skeleton>
+									</div>
+								</div>
+								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+								<div className="flex gap-2 rounded-2xl items-center ">
+									<div className="flex items-center gap-2">
+										<Skeleton className="max-sm:hidden w-5 h-5" />
+										<Skeleton className="w-30 h-5"></Skeleton>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div className="flex gap-2 flex-col my-2.5 max-sm:mt-2  ">
+							<div className="flex items-center gap-2 w-full">
+								<div className="flex items-center group max-sm:w-full transition-all w-full ransition-all rounded-2xl py-5 gap-2.5 justify-between ">
+									<div className="flex items-center font-normal  gap-2.5">
+										<img
+											src={photoDefault}
+											className="w-12 h-12 border  aspect-square rounded-full object-cover"
+											alt="Foto do Usuário"
+										/>
+										<div className="flex flex-col gap-2 text-gray-700 ">
+											<Skeleton className="w-25 h-4"></Skeleton>
+											<small>
+												<Skeleton className="w-7 h-4"></Skeleton>
+											</small>
+										</div>
+									</div>
+									<Skeleton className="w-5 h-5"></Skeleton>
+								</div>
+							</div>
+						</div>
+						<div className="border  border-r-0 py-5 mb-5 border-l-0">
+							<div className="space-y-2">
+								<Skeleton className="h-5 w-3/4" />
+								<Skeleton className="h-5 w-2/4" />
+								<Skeleton className="h-5 w-3/5" />
+								<Skeleton className="h-5 w-2/4" />
+							</div>
+						</div>
+						<div className="my-4">
+							<div className="sm:text-2xl text-large font-medium">
+								<Skeleton className="h-5 w-3/4" />
+							</div>
+							<div className="flex flex-wrap gap-3 mt-8 max-w-7xl mx-auto">
+								{[...Array(8)].map((_, index) => (
+									<div
+										key={index}
+										className="flex  border border-primary-100 w-fit items-center px-4 py-2 rounded-2xl gap-2.5"
+									>
+										<Skeleton className="h-5 w-5" />
+										<Skeleton className="h-5 w-20" />
+									</div>
+								))}
+							</div>
+						</div>
+						<div className="mt-8">
+							<div className="sm:text-2xl text-large font-medium">
+								<Skeleton className="h-5 w-3/5" />
+							</div>
+							<div className="mt-8 flex  max-sm:text-sm items-center gap-5 max-sm:gap-1">
+								<div className="flex bg-gray-50 w-fit max-sm:p-3 items-center px-8 py-4 rounded-2xl gap-2.5">
+									<Skeleton className="h-5 w-5" />
+									<Skeleton className="h-5 w-25" />
+								</div>
+								<div className="flex bg-gray-50 w-fit items-center max-sm:p-3  px-8 py-4  rounded-2xl gap-2.5">
+									<Skeleton className="h-5 w-5" />
+									<Skeleton className="h-5 w-25" />
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				{/* Conteúdo da acomodação */}
+			</div>
+		);
+	}
+
 	if (!place) return <></>;
 
 	const md = new MarkdownIt({
@@ -220,6 +441,9 @@ const Place = () => {
 					thumb: photo,
 				}))}
 			/>
+
+			{/* Place */}
+
 			<div className="container__infos mx-auto max-w-7xl flex flex-col gap-2">
 				<div className="bg-primary-900 shadow-2xl max-sm:p-0 max-sm:shadow-none max-h-full mt-25 max-sm:mt-15 py-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
 					<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:mx-0 max-sm:rounded-none rounded-2xl cursor-pointer">
