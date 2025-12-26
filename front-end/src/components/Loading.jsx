@@ -1,5 +1,5 @@
 import ProgressSpiner from "@/components/ui/ProgressSpinner";
-import Banner from "../assets/image.png";
+import Banner from "../assets/banner.jpg";
 
 export default function Loading() {
 	window.scrollTo({ top: 0, behavior: "smooth" });
