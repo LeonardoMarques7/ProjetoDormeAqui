@@ -1,10 +1,208 @@
-import { Edit2, ExternalLink, MapPin, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Edit, Edit2, ExternalLink, MapPin, Star, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import ScrollReveal from "scrollreveal";
 import MarkdownIt from "markdown-it";
-import Perk from "./Perk";
-import ScrollPlace from "./ScrollPlace";
 import PaginationControls from "./PaginationControls";
+
+import {
+	Tooltip,
+	TooltipTrigger,
+	TooltipContent,
+	TooltipProvider,
+} from "@/components/ui/tooltip";
+
+import {
+	Carousel,
+	CarouselContent,
+	CarouselItem,
+	CarouselNext,
+	CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useRef } from "react";
+
+const DotButton = ({ selected, onClick }) => (
+	<button
+		className={`w-2 h-2 rounded-full cursor-pointer transition-all duration-300 ${
+			selected ? "bg-white w-6" : "bg-white/50"
+		}`}
+		type="button"
+		onClick={onClick}
+	/>
+);
+
+// NOVO COMPONENTE: PlaceCard - cada card tem seus próprios estados
+const PlaceCard = ({ place }) => {
+	const [api, setApi] = useState(null);
+	const [selectedIndex, setSelectedIndex] = useState(0);
+	const [isHovered, setIsHovered] = useState(false);
+	const [scrollSnaps, setScrollSnaps] = useState([]);
+	const cardRef = useRef(null);
+
+	const md = new MarkdownIt({
+		html: false,
+		breaks: true,
+		linkify: true,
+	});
+
+	const onDotButtonClick = useCallback(
+		(index) => {
+			if (!api) return;
+			api.scrollTo(index);
+		},
+		[api]
+	);
+
+	useEffect(() => {
+		if (!api) return;
+
+		const onSelect = () => {
+			setSelectedIndex(api.selectedScrollSnap());
+		};
+
+		setScrollSnaps(api.scrollSnapList());
+		setSelectedIndex(api.selectedScrollSnap());
+
+		api.on("select", onSelect);
+
+		return () => {
+			api.off("select", onSelect);
+		};
+	}, [api]);
+
+	return (
+		<div
+			ref={cardRef}
+			className={`flex-col bg-white/80 max-w-[350px] h-fit relative flex-1 flex rounded-3xl border border-primary-200 gap-5`}
+		>
+			{/* Carrossel de imagens */}
+			<div className="relative">
+				<Carousel
+					opts={{
+						loop: true,
+					}}
+					className="w-full relative rounded-b-none"
+					setApi={setApi}
+				>
+					<CarouselContent>
+						{place.photos.map((photo, index) => (
+							<CarouselItem
+								className="relative overflow-hidden rounded-b-none rounded-t-2xl"
+								key={index}
+							>
+								<img
+									src={photo}
+									alt={`Imagem da acomodação ${index + 1}`}
+									className="aspect-square z-0 w-full *:rounded-2xl object-cover transition-transform rounded-t-2xl rounded-b-none"
+								/>
+							</CarouselItem>
+						))}
+					</CarouselContent>
+
+					{/* Navegação do carrossel */}
+					<div onClick={(e) => e.preventDefault()}>
+						<CarouselPrevious className="absolute border-none left-2 text-white bg-white/30 hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
+					</div>
+					<div onClick={(e) => e.preventDefault()}>
+						<CarouselNext className="absolute right-2 border-none bg-white/30 text-white hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
+					</div>
+
+					{/* Rating badge */}
+					<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
+						<Star size={14} fill="#FFC107" stroke="#FFC107" />
+						<span className="text-sm font-semibold">4.98</span>
+					</div>
+				</Carousel>
+
+				{/* Dot indicators */}
+				<div
+					className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"
+					onClick={(e) => e.preventDefault()}
+				>
+					{scrollSnaps.map((_, index) => (
+						<DotButton
+							key={`${place._id}-dot-${index}`}
+							selected={index === selectedIndex}
+							onClick={() => onDotButtonClick(index)}
+						/>
+					))}
+				</div>
+			</div>
+			<div className="px-4 mr-4 max-sm:py-0 flex flex-col justify-between w-full">
+				<div className="flex flex-col gap-3">
+					<div className="flex justify-between max-sm:mb-3 leading-5">
+						<p className="text-[1.2rem] font-light text-gray-900">
+							{place.title}
+						</p>
+					</div>
+					<p className="flex items-center gap-4">
+						<div className="flex items-center flex-1 gap-1 text-xs w-full text-gray-600">
+							<MapPin size={14} />
+							<span>{place.city}</span>
+						</div>
+					</p>
+				</div>
+				<div className="flex items-center mt-4 justify-between">
+					<div className=" flex flex-col max-sm:items-start items-end py-4">
+						<div className="flex items-center gap-2">
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<a
+										href={`/places/${place._id}`}
+										className="group cursor-pointer w-fit hover:bg-primary-600 hover:text-white px-3 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-xl text-center py-2.5 overflow-hidden"
+									>
+										<ExternalLink
+											size={18}
+											className="transition-transform text-primary-500 group-hover:text-white duration-300 group-hover:scale-110"
+										/>
+									</a>
+								</TooltipTrigger>
+								<TooltipContent className="bg-primary-600">
+									<p>Acessar acomodação</p>
+								</TooltipContent>
+							</Tooltip>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<a
+										href={`/account/places/new/${place._id}`}
+										className="edit__btn group cursor-pointer flex items-center hover:text-white justify-center transition-all duration-300 ease-in-out px-3 hover:bg-blue-600 gap-0 hover:gap-3 text-blue-500 rounded-xl text-center py-2.5 overflow-hidden"
+									>
+										<Edit
+											size={18}
+											className="transition-transform group-hover:text-white duration-300 group-hover:scale-110"
+										/>
+									</a>
+								</TooltipTrigger>
+								<TooltipContent className="bg-blue-600">
+									<p>Editar acomodação</p>
+								</TooltipContent>
+							</Tooltip>
+
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<a
+										href={`/account/places/r/${place._id}`}
+										className="edit__btn group cursor-pointer group-hover:text-white hover:text-white flex items-center justify-center transition-all duration-300 ease-in-out px-3 hover:bg-red-600 gap-0 hover:gap-3 text-red-500 rounded-xl text-center py-2.5 overflow-hidden"
+									>
+										<Trash2
+											size={18}
+											className="transition-transform duration-300 group-hover:scale-110"
+										/>
+									</a>
+								</TooltipTrigger>
+								<TooltipContent className="bg-red-600">
+									<p>Excluir acomodação</p>
+								</TooltipContent>
+							</Tooltip>
+						</div>
+					</div>
+					<p className="font-medium text-primary-600 rounded-xl p-2 absolute right-4">
+						R$ {place.price}/noite
+					</p>
+				</div>
+			</div>
+		</div>
+	);
+};
 
 const Places = ({ places }) => {
 	const [currentPage, setCurrentPage] = useState(1);
@@ -22,7 +220,7 @@ const Places = ({ places }) => {
 		try {
 			const { data } = await axios.delete(`/places/${place._id}`);
 			console.log("Conta deletada!", data);
-			setRedirect(true); // redireciona após excluir
+			setRedirect(true);
 		} catch (error) {
 			console.error("Erro ao deletar:", error);
 		}
@@ -38,88 +236,10 @@ const Places = ({ places }) => {
 		});
 	}, []);
 
-	const md = new MarkdownIt({
-		html: false,
-		breaks: true,
-		linkify: true,
-	});
-
 	return (
-		<div className="container__places mx-auto justify-center max-w-full max-h-full h-full overflow-x-clip mt-[5svh] flex flex-col gap-10 p-8 lg:max-w-7xl">
-			{currentPlaces.map((place, id) => (
-				<div
-					key={id}
-					className="headline relative item__place flex items-center gap-5 top-[5svh] w-full lg:max-w-7xl"
-				>
-					<div className=" w-full flex items-center relative justify-center">
-						<ScrollPlace data={place.photos} />
-					</div>
-					<div className="flex w-fit h-90 flex-col relative items-start justify-center gap-4 py-5 bg-gray-50 p-5 backdrop-blur-sm shadow-2xl shadow-primary-200/50 rounded-2xl">
-						<h2 className="text-4xl font-bold text-wrap max-w-[70%]">
-							{place.title}
-						</h2>
-						<div className="flex gap-2 items-center">
-							<MapPin size={18} /> {place.city}
-						</div>
-						<p
-							dangerouslySetInnerHTML={{ __html: md.render(place.description) }}
-							className="text-gray-500 text-start overflow-hidden line-clamp-4"
-						></p>
-						<div className="item__place__actions flex items-center gap-2 w-full">
-							<p className="absolute top-0 shadow-2xl right-0 px-8 rounded-tr-full rounded-bl-full py-2 bg-primary-500 text-white ">
-								<strong>R${place.price}</strong> por noite
-							</p>
-							<div className="flex items-center gap-4 text-gray-400 flex-1">
-								{place.perks.map((perk, index) => (
-									<div
-										key={index}
-										className=" hover:scale-110 ease-in-out duration-500 transition-all"
-									>
-										<Perk perk={perk} minimal={true} />
-									</div>
-								))}
-							</div>
-							<div className="flex items-center gap-2">
-								<a
-									href={`/places/${place._id}`}
-									className="group cursor-pointer w-fit hover:bg-primary-600 hover:text-white px-5 hover:px-6 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-2xl text-center py-2.5 overflow-hidden"
-								>
-									<ExternalLink
-										size={18}
-										className="transition-transform text-primary-500 group-hover:text-white duration-300 group-hover:scale-110"
-									/>
-									<span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
-										Acessar acomodação
-									</span>
-								</a>
-								<a
-									href={`/account/places/new/${place._id}`}
-									className="edit__btn group cursor-pointer flex items-center hover:text-white justify-center transition-all duration-300 ease-in-out px-5 hover:px-6 hover:bg-gray-600 gap-0 hover:gap-3 text-gray-500 rounded-2xl text-center py-2.5 overflow-hidden"
-								>
-									<Edit2
-										size={18}
-										className="transition-transform group-hover:text-white duration-300 group-hover:scale-110"
-									/>
-									<span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
-										Editar
-									</span>
-								</a>
-								<a
-									href={`/account/places/r/${place._id}`}
-									className="edit__btn group cursor-pointer group-hover:text-white hover:text-white flex items-center justify-center transition-all duration-300 ease-in-out px-5 hover:px-6 hover:bg-red-600 gap-0 hover:gap-3 text-red-500  rounded-2xl text-center py-2.5 overflow-hidden"
-								>
-									<Trash2
-										size={18}
-										className="transition-transform duration-300 group-hover:scale-110"
-									/>
-									<span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
-										Deletar
-									</span>
-								</a>
-							</div>
-						</div>
-					</div>
-				</div>
+		<>
+			{currentPlaces.map((place) => (
+				<PlaceCard key={place._id} place={place} />
 			))}
 
 			{/* Componente de paginação reutilizável */}
@@ -129,7 +249,7 @@ const Places = ({ places }) => {
 				onPageChange={setCurrentPage}
 				scrollToTop={true}
 			/>
-		</div>
+		</>
 	);
 };
 

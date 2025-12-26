@@ -56,7 +56,7 @@ export default function Counter({
 	places = [1],
 	gap = 4,
 	textColor = "#1f2937",
-	fontWeight = "bold",
+	fontWeight = "light",
 }) {
 	const height = fontSize + padding;
 

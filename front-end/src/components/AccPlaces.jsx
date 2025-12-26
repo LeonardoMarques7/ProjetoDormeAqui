@@ -1,4 +1,4 @@
-import { HousePlus, PlusCircle, Trash2 } from "lucide-react";
+import { HousePlus, Plus, PlusCircle, PlusSquare, Trash2 } from "lucide-react";
 import { Navigate, useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { use, useEffect, useState } from "react";
@@ -10,6 +10,7 @@ import { useMoblieContext } from "./contexts/MoblieContext";
 import Loading from "./Loading";
 import { useUserContext } from "./contexts/UserContext";
 import image from "../assets/image.png";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const AccPlaces = () => {
 	const { action } = useParams();
@@ -18,7 +19,7 @@ const AccPlaces = () => {
 	const [login, setLogin] = useState(false);
 	const [places, setPlaces] = useState([]);
 	const [redirect, setRedirect] = useState(false);
-	const [loadingPlaces, setLoadingPlaces] = useState(false);
+	const [loadingPlaces, setLoadingPlaces] = useState(true);
 	const [imagePlace, setImagePlace] = useState("");
 	const { id } = useParams();
 
@@ -29,38 +30,40 @@ const AccPlaces = () => {
 			const { data } = await axios.get("/places/owner");
 			setTimeout(() => {
 				setPlaces(data);
-				setLoadingPlaces(true);
-			}, 4500);
+				setLoadingPlaces(false);
+			}, 50);
 		};
 
 		axiosGet();
 	}, [action]);
 
-	if (!loadingPlaces) {
-		return <Loading />;
-	}
-
 	if (redirect) return <Navigate to="/account/places" />;
 
 	return (
 		<>
-			<div
-				className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
-				style={{
-					backgroundImage: `url(${image})`,
-				}}
-			>
-				<div className="absolute inset-0 backdrop-blur-[5px]"></div>
+			<div className="flex w-full mt-10 mx-auto max-w-full max-h-full lg:max-w-7xl h-full flex-col gap-8 relative justify-start items-start px-8">
+				<div className="mt-20 flex border-l-3 pl-4 justify-between items-center w-full ">
+					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
+						<span className=" text-3xl max-sm:text-xl flex items-end gap-3 text-black">
+							{edit
+								? "Editando acomodação"
+								: action !== "new"
+								? "Meus lugares"
+								: "Adicionando acomodação"}{" "}
+							<span className="text-lg flex items-center gap-3">
+								({places.length} Acomodações)
+								<Link
+									to="/account/places/new"
+									className=" text-sm underline"
+									title="Anuncie seu espaço"
+								>
+									Anuncie seu espaço
+								</Link>
+							</span>
+						</span>
+						Visualize suas acomodações
+					</span>
 
-				{/* Conteúdo */}
-				<div className="relative flex flex-col justify-center items-center h-full gap-4">
-					<h1 className="font-bold text-5xl text-white drop-shadow-lg">
-						{edit
-							? "Editando acomodação"
-							: action !== "new"
-							? "Meus lugares"
-							: "Adicionando acomodação"}
-					</h1>
 					{edit && (
 						<Link
 							to="/account/places/new"
@@ -70,21 +73,47 @@ const AccPlaces = () => {
 						</Link>
 					)}
 				</div>
-			</div>
-			<div className="h-full">
-				{action !== "new" ? <Places places={places} /> : <NewPlace />}
-			</div>
-			<div className="bg-primary-500 z-100 shadow-2xl shadow-gray-500 p-4 flex justify-center items-center fixed right-5 bottom-5 h-fit w-fit rounded-full">
-				<Link
-					to="/account/places/new"
-					className="group flex justify-center items-center transition-all duration-500 hover:gap-5"
-					title="Nova acomodação"
-				>
-					<HousePlus color="#fff" size={40} />
-					<p className="w-0 opacity-0 font-bold text-white uppercase overflow-hidden text-nowrap transition-all duration-500 group-hover:w-48 group-hover:opacity-100">
-						Nova acomodação
-					</p>
-				</Link>
+
+				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
+					{loadingPlaces ? (
+						<>
+							{[...Array(2)].map((_, index) => (
+								<div
+									key={index}
+									className="flex-col bg-white/80 w-[350px] h-fit relative flex-1 flex rounded-3xl gap-5"
+								>
+									<Skeleton className="aspect-square w-full rounded-none rounded-t-2xl" />
+									<div className="space-y-2">
+										<Skeleton className="h-5 w-50 mt-1" />
+										<Skeleton className="h-4 w-1/4" />
+										<div className="mt-2 flex items-center gap-2">
+											<Skeleton className="h-5 w-5" />
+											<Skeleton className="h-5 w-5" />
+											<Skeleton className="h-5 w-5" />
+											<Skeleton className="ml-auto h-5 w-15" />
+										</div>
+									</div>
+								</div>
+							))}
+						</>
+					) : action !== "new" ? (
+						<Places places={places} />
+					) : (
+						<NewPlace />
+					)}
+				</div>
+				<div className="bg-primary-500 z-100 shadow-2xl shadow-gray-500 p-4 flex justify-center items-center fixed right-9 bottom-5 h-fit w-fit rounded-full">
+					<Link
+						to="/account/places/new"
+						className="group flex justify-center items-center transition-all duration-500 hover:gap-5"
+						title="Nova acomodação"
+					>
+						<HousePlus color="#fff" fontWeight={"light"} size={40} />
+						<p className="w-0 opacity-0 font-light text-white uppercase overflow-hidden text-nowrap transition-all duration-500 group-hover:w-48 group-hover:opacity-100">
+							Nova acomodação
+						</p>
+					</Link>
+				</div>
 			</div>
 		</>
 	);

@@ -62,8 +62,8 @@
     "url": "^0.11.4"
   },
   "scripts": {
-    "start": "npm run start --prefix back-end",
-    "build": "npm install --prefix back-end && npm install --prefix front-end && npm run build --prefix front-end"
+  "build": "npm install --prefix back-end && npm install --prefix front-end && npm run build --prefix front-end",
+  "start": "cd back-end && npm start"
   },
   "repository": {
     "type": "git",

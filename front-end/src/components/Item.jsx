@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Skeleton } from "@mantine/core";
 import MarkdownIt from "markdown-it";
 import Autoplay from "embla-carousel-autoplay";
@@ -16,13 +16,6 @@ import {
 } from "@/components/ui/carousel";
 
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-
-import Perk from "./Perk";
-import {
 	Bath,
 	Bed,
 	Home,
@@ -38,7 +31,7 @@ import {
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 const DotButton = ({ selected, onClick }) => (
 	<button
-		className={`w-2 h-2 rounded-full cursor-pointer transition-all duration-300 ${
+		className={`w-2 h-2 rounded-full cursor-pointer transition-all duration-700 ${
 			selected ? "bg-white w-6" : "bg-white/50"
 		}`}
 		type="button"
@@ -52,6 +45,7 @@ const Item = ({ place = null, placeHolder }) => {
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [scrollSnaps, setScrollSnaps] = useState([]);
 	const [isHovered, setIsHovered] = useState(false);
+	const [clickItem, setClickItem] = useState(false);
 	const cardRef = useRef(null);
 
 	const md = new MarkdownIt({
@@ -88,6 +82,8 @@ const Item = ({ place = null, placeHolder }) => {
 			axiosGetOwner();
 		}
 	}, [place]);
+
+	if (clickItem) return <Navigate to={`/places/${place._id}`} />;
 
 	return (
 		<>
@@ -193,7 +189,7 @@ const Item = ({ place = null, placeHolder }) => {
 
 						{/* Card info - estado hover (expanded) */}
 						<div
-							className={`flex flex-col gap-3 px-0 border-primary-100  transition-all duration-300 ${
+							className={`flex flex-col gap-3 px-0 border-primary-100  transition-all duration-700 ${
 								isHovered
 									? "opacity-100 max-h-96 "
 									: "opacity-0 max-h-0 overflow-hidden"
@@ -206,13 +202,13 @@ const Item = ({ place = null, placeHolder }) => {
 										initial={{ opacity: 0, y: 10 }}
 										animate={{ opacity: 1, y: 0 }}
 										exit={{ opacity: 0, y: 10 }}
-										transition={{ duration: 0.2 }}
+										transition={{ duration: 0.7 }}
 									>
 										<InteractiveHoverButton
 											className="w-full rounded-xl text-center font-medium"
 											onClick={(e) => {
 												e.preventDefault();
-												window.location.href = `/places/${place._id}`;
+												setClickItem(true);
 											}}
 										>
 											Reservar

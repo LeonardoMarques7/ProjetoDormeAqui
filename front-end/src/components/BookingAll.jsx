@@ -9,10 +9,13 @@ import {
 	Users,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import imageDormeAqui from "../assets/logo__primary.png";
 import imageQrCode from "../assets/qrcode_leonardomdev.png";
+
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import "./Booking.css";
 
 import Marquee from "react-fast-marquee";
@@ -20,6 +23,7 @@ import Status from "./Status";
 
 const BookingAll = ({ bookingsArray, bookingId }) => {
 	const [moblie, setIsMoblie] = useState(window.innerWidth <= 768);
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		const handleResize = () => setIsMoblie(window.innerWidth <= 768);
@@ -41,121 +45,83 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 		(booking) => booking && booking.place && booking.user
 	);
 
+	function formatarData(dataISO) {
+		const data = new Date(dataISO);
+		return data.toLocaleDateString("pt-BR");
+	}
+
 	return (
 		<>
 			{validBookings.map((booking) => (
 				<div
 					key={booking._id}
-					className="section__booking bg-white backdrop-blur-2xl mx-auto lg:max-w-5xl shadow-xl shadow-primary-200/50 rounded-2xl"
+					className="  max-sm:flex-col bg-white/80 h-fit relative w-full flex-1 flex rounded-3xl border  border-primary-100 gap-5 "
 				>
-					<Link
-						to={`/place/${booking.place._id}`}
-						className="ticket__booking bg-white/80 relative cursor-pointer pointer-events-none flex rounded-2xl border  border-primary-100 gap-5 "
-					>
-						<Status booking={booking} />
-						<div className="flex flex-col items-start gap-2 w-full  text-gray-500 p-5">
-							<div className="flex flex-col gap-1 w-full text-start header__ticket">
-								<h5 className="text-primary-600 font-medium uppercase">
-									Seu Ticket de Reserva
-								</h5>
-								<h2 className="text-2xl font-bold text-black">
+					<div className="w-125 h-90 max-sm:aspect-square max-sm:w-full max-sm:h-full ">
+						<img
+							src={booking.place.photos[0]}
+							alt={booking.place.title}
+							className="object-cover w-full h-full max-sm:rounded-3xl max-sm:rounded-b-none rounded-l-3xl"
+						/>
+					</div>
+					<div className="p-4 mr-4 max-sm:py-0 flex flex-col justify-between w-full">
+						<div className="">
+							<div className="flex justify-between max-sm:mb-3 leading-5">
+								<p className="text-[1.2rem] font-light text-gray-900">
 									{booking.place.title}
-								</h2>
-								<p className="items-center location__ticket flex gap-2">
-									<MapPin size={18} /> {booking.place.city}
 								</p>
-								<hr className="mb-0 mt-3 w-full border-gray-200" />
+								<span className="px-4 max-sm:hidden py-2 h-fit border rounded-md text-xs">
+									ID: {booking.place._id.slice(0, 8)}
+								</span>
 							</div>
-							<div className="grow">
-								<div className="flex gap-6 infos__ticket my-2">
-									<span className="flex gap-5  items-start flex-col">
-										<span className="item-3 flex gap-2 flex-col items-start">
-											<p className="uppercase ">Anfitrião</p>
-											<p className="flex items-center gap-2 text-gray-700 font-medium">
-												<User size={18} className="text-primary-500" />
-												{booking.place.owner.name}
-											</p>
-										</span>
-										<span className="item-1 flex gap-2 flex-col items-start">
-											<p className="uppercase ">Hóspede</p>
-											<p className="flex items-center gap-2 text-gray-700 font-medium">
-												<User size={18} className="text-primary-500" />
-												{booking.user.name}
-											</p>
-										</span>
+							<p className="flex items-center gap-4">
+								<div className="flex items-center flex-1 gap-1 text-xs w-full text-gray-600">
+									<MapPin size={14} />
+									<span>{booking.place.city}</span>
+								</div>
+							</p>
+							<div className="mt-5 ">
+								<div className="leading-5 flex justify-start gap-8 flex-1 w-full">
+									<span className="text-[1rem] max-sm:text-sm uppercase flex flex-col gap-1 font-light text-gray-900">
+										<small>Check-In</small> {formatarData(booking.checkin)}
 									</span>
-									<span className="flex gap-5 items-start flex-col">
-										<span className="item-2 flex gap-2  flex-col items-start">
-											<p className="uppercase ">Check-in</p>
-											<p className="flex items-center gap-2 text-gray-700 font-medium">
-												<CalendarArrowUp
-													size={18}
-													className="text-primary-500"
-												/>
-												{new Date(booking.checkin).toLocaleDateString("pt-br")}
-											</p>
-										</span>
-										<span className="item-4 flex gap-2  flex-col items-start">
-											<p className="uppercase ">Check-out</p>
-											<p className="flex items-center gap-2 text-gray-700 font-medium">
-												<CalendarArrowDown
-													size={20}
-													className="text-primary-500"
-												/>
-												{new Date(booking.checkout).toLocaleDateString("pt-br")}
-											</p>
-										</span>
+									<span className="text-[1rem]  max-sm:text-sm uppercase flex flex-col gap-1 font-light text-gray-900">
+										<small>Check-out</small> {formatarData(booking.checkout)}
 									</span>
-									<span className="flex gap-5  items-start flex-col">
-										<span className="item-5 flex gap-2 flex-col items-start">
-											<p className="uppercase ">Noites</p>
-											<p className="flex items-center gap-2 text-gray-700 font-medium">
-												<Moon size={18} className="text-primary-500" />
-												{booking.nights}
-											</p>
-										</span>
-										<span className="flex gap-2 item-6  flex-col items-start">
-											<p className="uppercase ">Nº máximo de hóspedes</p>
-											<p className="flex items-center gap-2 text-gray-700 font-medium">
-												<Users size={18} className="text-primary-500" />
-												{booking.guests}
-											</p>
-										</span>
+									<span className="text-[1rem]  max-sm:text-sm uppercase flex flex-col gap-1 font-light text-gray-900">
+										<small>Hóspedes</small> {booking.guests}
 									</span>
 								</div>
 							</div>
 						</div>
-						<div className="container__qrcode m-2 bg-primary-100/5  backdrop-blur-lg p-4 border-3 rounded-2xl min-h-full w-100 border-dashed flex items-center justify-center flex-col">
-							<img
-								src={imageDormeAqui}
-								alt="Logo do DormeAqui"
-								className="w-50"
-							/>
-							<div className="relative">
-								<img src={imageQrCode} alt="" className="w-50" />
-								<div className="absolute -bottom-1 text-sm text-gray-500 text-center w-full left-0">
-									EasterEgg
+						<div className="mt-4 border-t flex max-sm:flex-col max-sm:items-start items-center py-4">
+							<div className="flex flex-col max-sm:pb-4 flex-1">
+								<div className="flex items-baseline flex-col gap-1">
+									<span className="text-2xl font-normal text-gray-900">
+										R$ {booking.price},00
+									</span>
+									<div className="flex items-center gap-2">
+										<p className="font-light text-gray-700">
+											{booking.nights} noites
+										</p>
+										<span className="w-1 h-1 bg-primary-400 rounded-full"></span>
+										<p className="font-light text-gray-700">
+											R$ {booking.place.price}/noite
+										</p>
+									</div>
 								</div>
 							</div>
-							<span className="flex  items-center flex-col ">
-								<p className="text-primary-500 font-bold">Valor total </p>
-								{booking.priceTotal?.toLocaleString("pt-BR", {
-									style: "currency",
-									currency: "BRL",
-								})}
-							</span>
+							<InteractiveHoverButton
+								className="w-fit rounded-xl max-sm:w-full text-center font-medium"
+								onClick={(e) => {
+									e.preventDefault();
+									navigate(`/places/${booking.place._id}`);
+								}}
+							>
+								Acessar acomodação
+							</InteractiveHoverButton>
 						</div>
-						<span className="footer__ticket hidden max-w-full w-fit">
-							<Marquee className="marquee" speed={50} loop={false}>
-								<strong>Fim do seu Ticket</strong>
-								<code>/</code>
-								<strong>Fim do seu Ticket </strong>
-								<code>/</code>
-								<strong>Fim do seu Ticket </strong>
-								<code>/</code>
-							</Marquee>
-						</span>
-					</Link>
+					</div>
 				</div>
 			))}
 		</>

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Item from "../components/Item";
 import axios from "axios";
 import {
@@ -10,7 +12,9 @@ import {
 	MapPin,
 	Search,
 	Trash,
+	Users,
 	X,
+	AlertCircle,
 } from "lucide-react";
 import { format, isBefore, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -25,205 +29,238 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
-import Banner from "../assets/image.png";
+import Banner from "../assets/banner2.jpg";
 import { ptBR } from "date-fns/locale";
 
 import "./Home.css";
+import { GuestsInput } from "../components/ui/GuestsInput";
+import DatePickerAirbnb from "../components/DatePickerAirbnb";
+import { searchSchema } from "../components/schemas/searchSchema";
 
 const Home = () => {
-	const [searchInput, setSearchInput] = useState("");
 	const [city, setCity] = useState("");
 	const [places, setPlaces] = useState([]);
 	const [placesSearch, setPlacesSearch] = useState([]);
-	const [price, setPrice] = useState("");
-	const [checkin, setCheckin] = useState("");
-	const [checkout, setCheckout] = useState("");
-	const [placeholder, setPlaceHolder] = useState([1, 2, 3, 4]);
+	const [isSearching, setIsSearching] = useState(false);
+	const [loading, setLoading] = useState(true);
 
-	const handleCheckin = (date) => {
-		setCheckin(date);
-		// Se já tinha checkout selecionado mas é antes do novo checkin → reseta checkout
-		if (checkout && isBefore(checkout, date)) {
-			setCheckout(null);
-			showMessage("Insira uma data válida!", "error");
-		} else {
-		}
-	};
-
-	const handleCheckout = (date) => {
-		if (checkin && isBefore(date, checkin)) {
-			showMessage("Insira uma data válida!", "error");
-			return;
-		}
-		setCheckout(date);
-	};
-
-	// state separado para o texto digitado e para o termo que realmente pesquisa
+	// Configuração do React Hook Form com Zod
+	const {
+		register,
+		handleSubmit,
+		control,
+		watch,
+		setValue,
+		formState: { errors },
+		reset,
+		clearErrors,
+	} = useForm({
+		resolver: zodResolver(searchSchema),
+		defaultValues: {
+			city: "",
+			checkin: null,
+			checkout: null,
+			guests: null,
+		},
+		mode: "onSubmit", // Valida apenas no submit para não quebrar o layout
+	});
 
 	const fetchPlaces = async () => {
-		const { data } = await axios.get("/places");
-		setPlaces(data);
+		try {
+			const { data } = await axios.get("/places");
+			setTimeout(() => {
+				setPlaces(data);
+				setLoading(false);
+			}, 50);
+		} catch (error) {
+			console.error("Erro ao carregar acomodações:", error);
+		}
 	};
 
 	useEffect(() => {
-		// carrega todos inicialmente
 		fetchPlaces();
 	}, []);
 
 	const normalize = (str) =>
 		str
-			.normalize("NFD")
-			.replace(/[\u0300-\u036f]/g, "")
-			.toLowerCase();
+			? str
+					.normalize("NFD")
+					.replace(/[\u0300-\u036f]/g, "")
+					.toLowerCase()
+			: "";
 
-	const handleSearch = async (e) => {
-		e.preventDefault();
-		setCity(searchInput); // só atualiza a label exibida
+	const onSubmit = async (formData) => {
+		setIsSearching(true);
+		setCity(formData.city || ""); // Armazena o termo visualmente
+
+		// 1. Normaliza o termo de busca digitado pelo usuário
+		const searchTerm = normalize(formData.city);
 
 		try {
-			const { data } = await axios.get(
-				`/places?city=${normalize(searchInput)}`
-			);
-			setPlacesSearch(data);
+			// Se você já tem todos os lugares carregados no estado `places` (do fetchPlaces inicial),
+			// use-o como base. Se não, terá que buscar tudo de novo.
+
+			// Vamos assumir que 'places' contém a lista completa original
+			let filteredResults = places.filter((place) => {
+				// Normaliza os dados do local (banco de dados)
+				const normalizedCity = normalize(place.city);
+				const normalizedState = normalize(place.state); // Supondo que exista place.state ou place.uf
+				const normalizedUf = normalize(place.uf);
+
+				// Lógica da Busca Abrangente:
+				// Verifica se o termo está na cidade OU no estado OU na sigla
+				const matchLocation =
+					normalizedCity.includes(searchTerm) ||
+					normalizedState.includes(searchTerm) ||
+					normalizedUf.includes(searchTerm);
+
+				// Se não digitou cidade, considera verdadeiro (para filtrar só por data/hóspedes depois)
+				return formData.city ? matchLocation : true;
+			});
+
+			// 2. Aplica os outros filtros (Data e Hóspedes) na lista já filtrada por local
+			if (formData.guests) {
+				filteredResults = filteredResults.filter(
+					(place) => place.guests >= formData.guests
+				);
+			}
+
+			setTimeout(() => {
+				setPlacesSearch(filteredResults);
+				setIsSearching(false);
+			}, 300);
 		} catch (err) {
-			console.error("Erro na busca:", err);
+			console.error("Erro na busca local:", err);
+			setIsSearching(false);
 		}
 	};
 
 	const limparPesquisa = (e) => {
 		e.preventDefault();
 		setCity("");
+		setPlacesSearch([]);
+		reset({
+			city: "",
+			checkin: null,
+			checkout: null,
+			guests: null,
+		});
+		clearErrors();
+	};
+
+	const handleDateSelect = ({ checkin: newCheckin, checkout: newCheckout }) => {
+		setValue("checkin", newCheckin);
+		setValue("checkout", newCheckout);
 	};
 
 	return (
 		<>
 			<div className="relative flex justify-center mb-12">
-				<div className="banner__home  max-sm:hidden bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden">
-					<div className=" absolute inset-0 backdrop-blur-[5px] z-0">
-						<GridMotion />
-					</div>
-
-					{/* Conteúdo */}
-					<div className="relative z-10 bg-transparent flex flex-col justify-center text-white items-center h-full gap-4">
-						<p className="text-3xl text__banner font-bold flex items-end transition-all">
-							<div className="mb-1">Encontre o lugar perfeito para</div>
-							<RotatingText
-								texts={[
-									"relaxar",
-									"descansar",
-									"viajar",
-									"viver momentos únicos",
-									"se sentir em casa",
-								]}
-								mainClassName="px-4  text-shadow shadow-white pb-1 items-center rounded-2xl text-primary-300 text-5xl  overflow-hidden  justify-center"
-								staggerFrom={"last"}
-								initial={{ y: "100%" }}
-								animate={{ y: 0 }}
-								exit={{ y: "-120%" }}
-								staggerDuration={0.025}
-								splitLevelClassName="overflow-hidden"
-								transition={{ type: "spring", damping: 30, stiffness: 400 }}
-								rotationInterval={2000}
-							/>
-						</p>
-						<p className="text__banner text-lg text-gray-50">
-							Descubra acomodações únicas para sua próxima viagem
-						</p>
-					</div>
+				<div className="banner__home  max-sm:hidden h-[50svh]   bg-primar-700  w-svw relative">
+					<img
+						src={Banner}
+						alt=""
+						className="object-cover pointer-events-none h-full w-full  shadow-2xl"
+					/>
+					<div className="absolute inset-0 bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
 				</div>
-				<div className="container__bg__form z-20 bg-white absolute flex justify-center -bottom-12 p-4 px-8 shadow-xl rounded-2xl mt-4">
-					<form onSubmit={handleSearch}>
-						<div className="form__container flex items-center gap-4">
-							<div className="group__input relative flex justify-center items-center">
-								<MapPin className="absolute left-4 text-gray-400 size-6" />
+				<div className="container__bg__form z-20 w-full max-w-5xl bg-white absolute flex flex-col justify-center -bottom-12 p-4 pl-8 px-4 shadow-xl rounded-2xl mt-4">
+					<form onSubmit={handleSubmit(onSubmit)}>
+						<div className=" flex items-center w-full justify-start">
+							{/* Campo Cidade */}
+							<div className="group__input relative pr-4 border-r flex w-full items-center ">
+								<MapPin className="text-gray-400 size-5 flex-shrink-0" />
 								<input
 									id="city"
 									type="text"
-									placeholder="Cidade ou Estado"
-									className="border border-gray-200 px-14 py-4 rounded-2xl w-full text-gray-400 outline-primary-400"
-									value={searchInput}
-									onChange={(e) => setSearchInput(e.target.value)}
+									placeholder="Para onde você vai?"
+									className="ml-4 outline-none !bg-white w-full"
+									{...register("city")}
 								/>
 							</div>
-							{/* Checkin */}
-							<div className=" ">
-								<Popover>
-									<PopoverTrigger asChild>
-										<Button
-											variant="outline"
-											className={cn(
-												"btn__date cursor-pointer justify-start text-left font-normal relative border border-gray-200 !px-14 !py-4 h-full rounded-2xl text-gray-400 outline-primary-400 ",
-												!checkin && "text-muted-foreground"
+
+							{/* Campo Datas */}
+							<div className="w-90 h-fit text-nowrap border-r px-6">
+								<Controller
+									name="checkin"
+									control={control}
+									render={({ field }) => (
+										<Controller
+											name="checkout"
+											control={control}
+											render={({ field: checkoutField }) => (
+												<DatePickerAirbnb
+													onDateSelect={({ checkin, checkout }) => {
+														field.onChange(checkin);
+														checkoutField.onChange(checkout);
+													}}
+													initialCheckin={field.value}
+													initialCheckout={checkoutField.value}
+													search={true}
+												/>
 											)}
-										>
-											<CalendarArrowUp className="absolute left-4 text-gray-400 size-6" />
-											{checkin ? (
-												format(checkin, "dd/MM/yyyy")
-											) : (
-												<span className="text-sm">Check-in</span>
-											)}
-										</Button>
-									</PopoverTrigger>
-									<PopoverContent className="w-auto" align="start">
-										<Calendar
-											mode="single"
-											selected={checkin}
-											onSelect={handleCheckin}
-											locale={ptBR}
-											initialFocus
 										/>
-									</PopoverContent>
-								</Popover>
+									)}
+								/>
 							</div>
-							{/* Check-out */}
-							<div className="py-2">
-								<Popover>
-									<PopoverTrigger asChild>
-										<Button
-											variant="outline"
-											className={cn(
-												"btn__date justify-start cursor-pointer text-left font-normal relative border border-gray-200 !px-14 !py-4 h-full rounded-2xl text-gray-400 outline-primary-400",
-												!checkout && "text-muted-foreground"
-											)}
-										>
-											<CalendarArrowDownIcon className="absolute left-4 text-gray-400 size-6" />
-											{checkout ? (
-												format(checkout, "dd/MM/yyyy")
-											) : (
-												<span>Check-out</span>
-											)}
-										</Button>
-									</PopoverTrigger>
-									<PopoverContent className="w-auto" align="start">
-										<Calendar
-											mode="single"
-											selected={checkout}
-											onSelect={handleCheckout}
-											locale={ptBR}
-											initialFocus
-										/>
-									</PopoverContent>
-								</Popover>
+
+							{/* Campo Hóspedes */}
+							<div className="group__input relative pl-6 pr-4 flex items-center w-90">
+								<Users className="text-gray-400 size-5 flex-shrink-0" />
+								<input
+									id="guests"
+									type="number"
+									className="ml-4 outline-none w-full"
+									placeholder="Hóspedes"
+									{...register("guests", {
+										valueAsNumber: true,
+										setValueAs: (v) => (v === "" ? null : parseInt(v)),
+									})}
+									min="1"
+									max="20"
+								/>
 							</div>
+
+							{/* Botão de Busca */}
 							<Button
 								type="submit"
 								variant="outline"
-								className="btn__submit justify-start text-left font-normal border bg-primary-900 hover:bg-primary-800/90 cursor-pointer hover:text-white border-gray-200 !px-14 !py-4 h-full rounded-2xl text-white outline-primary-400"
+								disabled={isSearching}
+								className="justify-center ml-4 !px-5 !py-5 font-normal border bg-primary-900 hover:bg-primary-800/90 cursor-pointer hover:text-white border-gray-200 h-full rounded-2xl text-white outline-primary-400 disabled:opacity-50"
 							>
-								<Search className="mr-2 h-4 w-4" />
-								<span>Buscar</span>
+								{isSearching ? (
+									<div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+								) : (
+									<Search className="h-5 w-5" />
+								)}
 							</Button>
 						</div>
 					</form>
+
+					{/* Mensagem de erro - Aparece abaixo do formulário */}
+					{Object.keys(errors).length > 0 && (
+						<div className="mt-3 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
+							<div className="flex items-start gap-2">
+								<AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+								<div className="flex flex-col gap-1 text-sm text-red-600">
+									{errors.city && <span>• {errors.city.message}</span>}
+									{errors.checkin && <span>• {errors.checkin.message}</span>}
+									{errors.checkout && <span>• {errors.checkout.message}</span>}
+									{errors.guests && <span>• {errors.guests.message}</span>}
+								</div>
+							</div>
+						</div>
+					)}
 				</div>
 			</div>
 			{city ? (
 				placesSearch.length > 0 ? (
 					// Caso 3: pesquisou e encontrou
-					<div className="mx-auto mb-5  font-medium max-w-full gap-2 w-full flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
+					<div className="mx-auto mb-5 text-primary-500  max-w-full gap-2 w-full flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
 						<span>
-							Buscando por <strong className="text-primary-500">{city}</strong>{" "}
-							e foi encontrado{" "}
+							Buscando por{" "}
+							<span className="font-medium text-primary-900">{city}</span> e foi
+							encontrado{" "}
 							{placesSearch.length > 1
 								? `${placesSearch.length} resultados`
 								: `${placesSearch.length} resultado`}
@@ -268,9 +305,30 @@ const Home = () => {
 				)
 			) : (
 				// Caso 1: sem pesquisa
-				<h1 className="mx-auto text__section font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
+				<span className="mx-auto text__section font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
 					Acomodações disponíveis
-				</h1>
+				</span>
+			)}
+			{loading && (
+				<div className="relative ">
+					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
+						{[...Array(8)].map((_, index) => (
+							<div
+								key={index}
+								className="flex flex-col gap-2 w-full max-w-[350px]"
+							>
+								<Skeleton className="aspect-square w-full rounded-none rounded-t-2xl" />
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-1/4" />
+									<Skeleton className="h-7 w-2/4" />
+									<Skeleton className="h-4 w-3/8" />
+									<Skeleton className="h-4 w-4/6" />
+								</div>
+								<Skeleton className="h-5 w-50 mt-1" />
+							</div>
+						))}
+					</div>
+				</div>
 			)}
 			{/* GRID DE RESULTADOS */}
 			{city && placesSearch.length > 0 && (
@@ -283,7 +341,6 @@ const Home = () => {
 					</>
 				</div>
 			)}
-			{/* Se não tiver resultados OU não tiver pesquisa → mostrar acomodações padrão */}
 			{(!city || placesSearch.length === 0) && (
 				<div className="relative mb-10">
 					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
@@ -297,8 +354,4 @@ const Home = () => {
 	);
 };
 
-// <span className="flex  relative top-0 mr-10 w-full text-center  justify-start items-center  tracking-widest">
-// 						<p className="z-1 bg-white px-5 text-primary-900">Fim da busca</p>
-// 						<span className="w-full h-fit border-2 border-dashed border-primary-300 absolute "></span>
-// 					</span>
 export default Home;

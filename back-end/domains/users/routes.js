@@ -13,24 +13,43 @@ const bcryptSalt = bcrypt.genSaltSync();
 
 connectDb();
 
-router.get("/", async (req, res) => {
+// Middleware opcional de autenticação - não bloqueia se não tiver token
+const optionalAuth = async (req, res, next) => {
+  try {
+    const userInfo = await JWTVerify(req);
+    req.user = userInfo; // Adiciona o usuário ao request se autenticado
+  } catch (error) {
+    req.user = null; // Não há usuário autenticado
+  }
+  next();
+};
 
+// Middleware obrigatório de autenticação - bloqueia se não tiver token
+const requireAuth = async (req, res, next) => {
+  try {
+    const userInfo = await JWTVerify(req);
+    req.user = userInfo;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: "Autenticação necessária" });
+  }
+};
+
+router.get("/", async (req, res) => {
   try {
     const userDoc = await User.find();
-
     res.json(userDoc);
   } catch (error) {
     res.status(500).json(error);
   }
 });
 
-router.get("/profile", async (req, res) => {
-  const userInfo = await JWTVerify(req);
-  res.json(userInfo);
+// Rota de perfil - requer autenticação
+router.get("/profile", requireAuth, async (req, res) => {
+  res.json(req.user);
 });
 
 router.post("/", async (req, res) => {
-
   const { name, email, password } = req.body;
   const encryptedPassword = bcrypt.hashSync(password, bcryptSalt);
 
@@ -41,130 +60,122 @@ router.post("/", async (req, res) => {
       password: encryptedPassword,
     });
 
-  const { _id } = newUserDoc;
-  const newUserObj = { name, email, _id };
+    const { _id } = newUserDoc;
+    const newUserObj = { name, email, _id };
 
-  try {
-    const token = await JWTSign(newUserObj);
-    res.cookie("token", token).json(newUserObj);
-  } 
-  catch (error) {
-    res.status(500).json("Erro ao assinar com o JWT", error);
-  }d
-  
-
-
+    try {
+      const token = await JWTSign(newUserObj);
+      res.cookie("token", token).json(newUserObj);
+    } 
+    catch (error) {
+      res.status(500).json("Erro ao assinar com o JWT", error);
+    }
   } catch (error) {
     res.status(500).json(error);
     throw error;
   }
 });
 
+// Rota pública - qualquer um pode ver o perfil de outro usuário
 router.get("/:id", async (req, res) => {
-    connectDb();
+  const { id: _id } = req.params;
+  
+  try {
+    // Não retorna informações sensíveis como senha
+    const userDoc = await User.findOne({_id}).select('-password');
 
-    const { id: _id } = req.params;
-    
-    try {
-        const userDoc = await User.findOne({_id});
-
-        res.json(userDoc);
-    } catch (error) {
-        res.status(500).json("Deu erro ao encontrar o usuário.",error);
-        throw error;
+    if (!userDoc) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
     }
-    
+
+    res.json(userDoc);
+  } catch (error) {
+    res.status(500).json("Deu erro ao encontrar o usuário.", error);
+    throw error;
+  }
 });
 
+// Rota pública minimalista
 router.get("/minimal/:id", async (req, res) => {
-    connectDb();
-
-    const { id: _id } = req.params;
-    
-    try {
-        const userDoc = await User.findOne({_id}).select('name photo');
-
-        res.json(userDoc);
-    } catch (error) {
-        res.status(500).json("Deu erro ao encontrar o usuário.",error);
-        throw error;
-    }
-    
-});
-
-router.post("/upload", uploadImage().single("files"), async (req, res) => {
-    connectDb();
-    
-    const file = req.file;
-
-    // Verifica se há arquivo
-    if (!file) {
-        return res.status(400).json({ error: "Nenhum arquivo enviado" });
-    }
-
-    const { filename, path, mimetype } = file;
-
-    try {
-        // 1. Upload para o S3
-        const fileUrl = await sendToS3(filename, path, mimetype);
-        
-        // 2. Obter o ID do usuário do token JWT
-        const userInfo = await JWTVerify(req);
-        
-        if (!userInfo || !userInfo._id) {
-            return res.status(401).json({ error: "Usuário não autenticado" });
-        }
-        
-        // 3. Salvar no banco de dados (Mongoose)
-        await User.findByIdAndUpdate(
-            userInfo._id,
-            { photo: fileUrl },
-            { new: true } // Retorna o documento atualizado
-        );
-        
-        // 4. Retorna apenas a URL
-        res.json(fileUrl);
-        
-    } catch (error) {
-        console.error("Erro ao fazer upload:", error);
-        res.status(500).json({ error: "Erro ao fazer upload da imagem" });
-    }
-});
-
-router.put("/:id", async (req, res) => {
 
   const { id: _id } = req.params;
+  
+  try {
+    const userDoc = await User.findOne({_id}).select('name photo');
 
-  const {   name,
-						email,
-						phone,
-						city,
-            pronouns,
-						photo,
-						bio } = req.body;
+    if (!userDoc) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
 
-      try {
-          const updateUserDoc = await User.findOneAndUpdate({_id}, {
-            name,
-						email,
-						phone,
-						city,
-            pronouns,
-						photo,
-						bio
-          });
-
-          res.json(updateUserDoc);
-
-      } catch (error) {
-          res.status(500).json("Deu erro ao atualizar as inforamações...",error);
-          throw error;
-      }
+    res.json(userDoc);
+  } catch (error) {
+    res.status(500).json("Deu erro ao encontrar o usuário.", error);
+    throw error;
+  }
 });
 
+// Upload de foto - requer autenticação
+router.post("/upload", requireAuth, uploadImage().single("files"), async (req, res) => {
+  
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ error: "Nenhum arquivo enviado" });
+  }
+
+  const { filename, path, mimetype } = file;
+
+  try {
+    // 1. Upload para o S3
+    const fileUrl = await sendToS3(filename, path, mimetype);
+    
+    // 2. Usar o ID do usuário do middleware
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ error: "Usuário não autenticado" });
+    }
+    
+    // 3. Salvar no banco de dados
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { photo: fileUrl },
+      { new: true }
+    );
+    
+    // 4. Retorna apenas a URL
+    res.json(fileUrl);
+    
+  } catch (error) {
+    console.error("Erro ao fazer upload:", error);
+    res.status(500).json({ error: "Erro ao fazer upload da imagem" });
+  }
+});
+
+// Atualizar perfil - requer autenticação e só pode atualizar o próprio perfil
+router.put("/:id", requireAuth, async (req, res) => {
+  const { id: _id } = req.params;
+
+  // Verifica se o usuário está tentando atualizar o próprio perfil
+  if (req.user._id !== _id) {
+    return res.status(403).json({ error: "Você só pode editar seu próprio perfil" });
+  }
+
+  const { name, email, phone, city, pronouns, photo, bio } = req.body;
+
+  try {
+    const updateUserDoc = await User.findOneAndUpdate(
+      {_id}, 
+      { name, email, phone, city, pronouns, photo, bio },
+      { new: true } // Retorna o documento atualizado
+    ).select('-password');
+
+    res.json(updateUserDoc);
+  } catch (error) {
+    res.status(500).json("Deu erro ao atualizar as informações...", error);
+    throw error;
+  }
+});
 
 router.post("/login", async (req, res) => {
-
   const { email, password } = req.body;
 
   try {
@@ -179,7 +190,6 @@ router.post("/login", async (req, res) => {
 
         try {
           const token = await JWTSign(newUserObj);
-
           res.cookie("token", token).json(newUserObj);
         }
         catch (error) {
@@ -198,26 +208,31 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/logout", (req, res) => {
-    res.clearCookie("token").json("Deslogado com sucesso!")
-})
+  res.clearCookie("token").json("Deslogado com sucesso!")
+});
 
-router.delete("/:id", async (req, res) => {
-    connectDb();
+// Deletar conta - requer autenticação e só pode deletar a própria conta
+router.delete("/:id", requireAuth, async (req, res) => {
 
-    const { id: _id } = req.params;
+  const { id: _id } = req.params;
 
-    try {
-        const deleteAccount = await User.findOneAndDelete({ _id });
+  // Verifica se o usuário está tentando deletar a própria conta
+  if (req.user._id !== _id) {
+    return res.status(403).json({ error: "Você só pode deletar sua própria conta" });
+  }
 
-        if (!deleteAccount) {
-            return res.status(404).json({ message: "Usuário não encontrada." });
-        }
+  try {
+    const deleteAccount = await User.findOneAndDelete({ _id });
 
-        res.json({ message: "Usuário deletado com sucesso!", deleteAccount });
-    } catch (error) {
-        res.status(500).json({ message: "Erro ao deletar o usuário.", error });
-        throw error;
+    if (!deleteAccount) {
+      return res.status(404).json({ message: "Usuário não encontrada." });
     }
+
+    res.clearCookie("token").json({ message: "Usuário deletado com sucesso!", deleteAccount });
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao deletar o usuário.", error });
+    throw error;
+  }
 });
 
 export default router;

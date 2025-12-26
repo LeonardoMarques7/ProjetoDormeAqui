@@ -76,7 +76,6 @@ router.get("/:id", async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
-    connectDb();
 
     const { id: _id } = req.params;
 
