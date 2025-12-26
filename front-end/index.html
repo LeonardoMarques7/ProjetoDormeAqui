@@ -9,17 +9,14 @@
 		/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>DormeAqui</title>
-		<meta
-			http-equiv="Content-Security-Policy"
-			content="
-      default-src 'self'; 
-      connect-src 'self' https://projetodormeaqui-backend.onrender.com https://projetodormeaqui.onrender.com; 
-      font-src 'self' https://fonts.gstatic.com data:; 
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
-      img-src 'self' data: https:; 
-      script-src 'self' 'unsafe-inline' 'unsafe-eval';
-    "
-		/>
+    <meta http-equiv="Content-Security-Policy" content="
+          default-src 'self'; 
+          connect-src 'self' http://localhost:3000 http://localhost:5173 https://projetodormeaqui.onrender.com; 
+          font-src 'self' https://fonts.gstatic.com data:; 
+          style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
+          img-src 'self' data: https:; 
+          script-src 'self' 'unsafe-inline' 'unsafe-eval';
+        ">
 	</head>
 	<body>
 		<div id="root" class="text-gray-800 min-h-svh font-dormeaqui"></div>

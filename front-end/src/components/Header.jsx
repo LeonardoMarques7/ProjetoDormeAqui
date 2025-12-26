@@ -63,13 +63,13 @@ const Header = ({ active }) => {
 
 	return (
 		<header
-			className={`fixed z-50 top-3 w-full transition-all duration-500 delay-0 ${
+			className={`fixed z-50  top-3 w-full transition-all duration-500 delay-0 ${
 				scrolled
 					? "bg-white  duration-75 !text-gray-900 !top-0 backdrop-blur-2xl shadow-md shadow-white/10"
 					: "bg-transparent"
 			} ${getTextColor()}`}
 		>
-			<div className="max-w-full flex items-center mx-auto justify-between px-10 sm:px-8 py-4 lg:max-w-7xl">
+			<div className="max-w-full flex max-sm:px-5 items-center mx-auto justify-between px-10 sm:px-8 py-4 lg:max-w-7xl">
 				<Link to="/" className="flex items-center transition-all">
 					<img
 						src={getLogoSrc()}

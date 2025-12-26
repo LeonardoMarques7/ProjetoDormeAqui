@@ -7,6 +7,13 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/ui/sheet";
+import {
 	Calendar,
 	ChevronDown,
 	ChevronRight,
@@ -14,6 +21,7 @@ import {
 	HotelIcon,
 	Menu,
 	MenuIcon,
+	Sidebar,
 	TicketCheck,
 } from "lucide-react";
 import { Home, Briefcase, User, Mail, Settings } from "lucide-react";
@@ -37,6 +45,7 @@ function MenuBar({ active }) {
 	const [redirect, setRedirect] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
 	const [moblie, setIsMoblie] = useState(window.innerWidth <= 768);
+	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const navItems = [
 		{ path: "/", icon: Home, label: "Home" },
@@ -75,9 +84,14 @@ function MenuBar({ active }) {
 			const { data } = await axios.post("/users/logout");
 			console.log(data);
 			setUser(null);
+			setSidebarOpen(false);
 		} catch (error) {
 			alert(JSON.stringify(error));
 		}
+	};
+
+	const handleNavClick = () => {
+		setSidebarOpen(false);
 	};
 
 	const isActiveHome = location.pathname === "Home";
@@ -238,55 +252,149 @@ function MenuBar({ active }) {
 					transition={{ duration: 0.8, delay: 0.5 }}
 					className="flex items-center gap-2 "
 				>
-					<DropdownMenu>
-						<DropdownMenuTrigger
-							className={`absolute z-50 right-8  ${
-								scrolled ? "bg-transparent border-0 " : "bg-white border-2"
-							}  p-3 rounded-full hover:scale-105 transition-transform duration-200`}
-						>
-							<Menu className="w-5 h-5" />
-						</DropdownMenuTrigger>
+					<Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+						<SheetTrigger className={`absolute z-50 right-8`}>
+							<Sidebar className="w-5 h-5" />
+						</SheetTrigger>
 
-						<DropdownMenuContent className="mx-4 p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2">
-							{/* Perfil */}
-							<div className="flex flex-col items-center gap-2 px-4 py-2">
-								<img
-									src={logo__primary}
-									alt="Logo do DormeAqui"
-									className="w-40"
-								/>
+						<SheetContent className="w-80 p-0">
+							<SheetHeader className="p-6 pb-0">
+								<SheetTitle className="text-left">
+									{user ? (
+										<div className="flex items-center gap-3 py-4">
+											<img
+												src={user.photo}
+												className="w-16 h-16 aspect-square rounded-full object-cover border-4 border-primary-200"
+												alt="Foto do Usuário"
+											/>
+											<div className="flex flex-col">
+												<span className="font-semibold text-lg text-gray-800 line-clamp-1 overflow-ellipsis">
+													{user.name}
+												</span>
+												<span className="text-sm text-gray-500 font-normal">
+													{user.email}
+												</span>
+											</div>
+										</div>
+									) : (
+										<div className="flex flex-col items-center gap-2 py-4">
+											<img
+												src={logo__primary}
+												alt="Logo do DormeAqui"
+												className="w-40"
+											/>
+										</div>
+									)}
+								</SheetTitle>
+							</SheetHeader>
+
+							<div className="px-4 py-6 flex flex-col gap-1">
+								{/* Navegação Principal */}
+								{user && (
+									<div className="mb-2">
+										<p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
+											Navegação
+										</p>
+										{navItems.map((item) => {
+											const isActive = location.pathname === item.path;
+											return (
+												<Link
+													key={item.path}
+													to={item.path}
+													onClick={handleNavClick}
+													className={`flex items-center  gap-3 px-4 py-3 rounded-xl transition-all ${
+														isActive
+															? "bg-primary-500 text-white shadow-lg shadow-primary-200"
+															: "hover:bg-primary-50 text-gray-700"
+													} hover:bg-gray-100!`}
+												>
+													<item.icon className="w-5 h-5" />
+													<span className="font-medium">{item.label}</span>
+													{isActive && (
+														<ChevronRight className="w-4 h-4 ml-auto" />
+													)}
+												</Link>
+											);
+										})}
+									</div>
+								)}
+
+								{/* Perfil e Configurações */}
+								{user && (
+									<>
+										<DropdownMenuSeparator className="my-4" />
+										<div>
+											<p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
+												Conta
+											</p>
+											{navItemsPerfil.map((item) => {
+												return (
+													<Link
+														key={item.path}
+														to={item.path}
+														onClick={() => {
+															if (item.function) item.function();
+															handleNavClick();
+														}}
+														className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-700 transition-all group"
+													>
+														<span className="font-medium">{item.label}</span>
+														<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+													</Link>
+												);
+											})}
+										</div>
+									</>
+								)}
+
+								{/* Botão de Login (sem usuário) */}
+								{!user && (
+									<div className="mt-4">
+										<Link
+											to={"/login"}
+											onClick={handleNavClick}
+											className="flex items-center justify-center text-white bg-primary-500 hover:bg-primary-600 px-6 py-3 rounded-xl font-semibold transition-all shadow-lg shadow-primary-200"
+										>
+											Entre ou Cadastre-se
+										</Link>
+										<Link
+											to={"/"}
+											onClick={handleNavClick}
+											className="flex items-center justify-center text-gray-600 hover:text-gray-800 px-6 py-3 rounded-xl font-medium transition-all mt-2"
+										>
+											Torne-se um anfitrião
+										</Link>
+									</div>
+								)}
 							</div>
 
-							<DropdownMenuSeparator />
-
-							{/* Navegação */}
-							{navItems.map((item) => {
-								const isActive = location.pathname === item.path;
-								return (
+							{/* Footer da Sidebar */}
+							{user && (
+								<div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-gray-50">
 									<Link
-										key={item.path}
-										to={item.path}
-										className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-											isActive
-												? "bg-primary-300 text-white"
-												: "hover:bg-primary-200"
-										}`}
+										to={"/account/profile"}
+										onClick={handleNavClick}
+										className="flex items-center gap-3 p-3 rounded-xl hover:bg-white transition-all group"
 									>
-										<item.icon className="w-5 h-5" />
-										{item.label}
+										<img
+											src={user.photo}
+											className="w-10 h-10 aspect-square rounded-full object-cover"
+											alt="Foto do Usuário"
+										/>
+										<div className="flex flex-col flex-1">
+											<span className="text-sm font-semibold text-gray-800">
+												Ver perfil completo
+											</span>
+											<span className="text-xs text-gray-500">
+												Editar suas informações
+											</span>
+										</div>
+										<ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
 									</Link>
-								);
-							})}
-							{!user && (
-								<Link
-									to={"/login"}
-									className="text-white bg-primary-500 px-5 border-1 rounded-xl py-2"
-								>
-									Entre ou Cadastre-se
-								</Link>
+								</div>
 							)}
-						</DropdownMenuContent>
-					</DropdownMenu>
+						</SheetContent>
+					</Sheet>
 				</motion.nav>
 			)}
 		</>

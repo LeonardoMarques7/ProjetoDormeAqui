@@ -12,6 +12,7 @@ import {
 	Spline,
 	Minus,
 	SearchCheck,
+	Trash,
 } from "lucide-react";
 import {
 	Dialog,
@@ -315,18 +316,21 @@ const DatePickerAirbnb = ({
 				>
 					<DialogHeader className="border-b border-gray-200 px-4 md:px-6 py-4 bg-gradient-to-r from-gray-50 to-white">
 						<div className="flex items-center justify-between">
-							<DialogTitle className="text-lg md:text-xl font-bold text-gray-900">
+							<DialogTitle className="text-lg md:text-xl max-sm:text-md! !font-medium text-gray-900">
 								Selecione as datas
 							</DialogTitle>
 
+							{!search && totalPrice > 0 && (
+								<div className="text-center ml-auto md:text-right flex-1 md:flex-end mx-5">
+									<p className="text-xs text-gray-500 font-medium mb-1">
+										Total da estadia
+									</p>
+									<p className="text-xl md:text-2xl font-bold text-primary-900">
+										R$ {totalPrice.toFixed(2).replace(".", ",")}
+									</p>
+								</div>
+							)}
 							<div className="flex items-center gap-2">
-								<button
-									type="button"
-									onClick={handleClear}
-									className="text-sm font-semibold cursor-pointer text-red-500 hover:text-red-700 hover:bg-red-100 px-3 py-2 rounded-lg transition-all"
-								>
-									Limpar
-								</button>
 								<button
 									type="button"
 									onClick={() => setIsOpen(false)}
@@ -365,11 +369,11 @@ const DatePickerAirbnb = ({
 					</div>
 
 					{/* Footer do Modal */}
-					<div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white px-4 md:px-6 py-4 md:py-5">
-						<div className="flex flex-col md:flex-row items-center justify-between gap-4">
+					<div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white px- md:px-6 py-4 md:py-5">
+						<div className="flex flex-col md:flex-row max-sm:px-5 items-center justify-between gap-4">
 							{/* Info das datas */}
-							<div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
-								<div className="flex-1 md:flex-initial">
+							<div className="flex items-center max-sm:justify-between gap-4 md:gap-6 max-sm:gap-2 w-full md:w-auto">
+								<div className="">
 									<p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">
 										Check-in
 									</p>
@@ -380,11 +384,11 @@ const DatePickerAirbnb = ({
 									</p>
 								</div>
 								<ArrowRight size={15} className="text-primary-500" />
-								<div className="flex-1 md:flex-initial">
+								<div className="flex flex-col items-end">
 									<p className="text-xs text-primary-500 mb-1 uppercase tracking-wide">
 										Check-out
 									</p>
-									<p className="text-md xl:text-xl text-gray-900">
+									<p className="text-md xl:text-xl  text-gray-900">
 										{checkoutDate
 											? formatDate(checkoutDate, "dd/MM/YYYY")
 											: "--/--/--"}
@@ -394,25 +398,25 @@ const DatePickerAirbnb = ({
 
 							{/* Total e botão */}
 							<div className="flex items-center gap-4 w-full md:w-auto">
-								{totalPrice > 0 && (
-									<div className="text-center md:text-right flex-1 md:flex-initial">
-										<p className="text-xs text-gray-500 font-medium mb-1">
-											Total da estadia
-										</p>
-										<p className="text-xl md:text-2xl font-bold text-primary-900">
-											R$ {totalPrice.toFixed(2).replace(".", ",")}
-										</p>
-									</div>
-								)}
 								<InteractiveHoverButton
 									type="button"
 									icon={Check}
 									onClick={handleConfirm}
 									disabled={!checkinDate || !checkoutDate}
-									className="bg-primary-900 cursor-pointer text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-primary-800 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
+									className={`${
+										search && "w-full flex-1"
+									} bg-primary-900 cursor-pointer flex-1 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-primary-800 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none`}
 								>
 									Confirmar datas
 								</InteractiveHoverButton>
+								<button
+									type="button"
+									disabled={!checkinDate || !checkoutDate}
+									onClick={handleClear}
+									className="bg-red-500 cursor-pointer text-white p-3 rounded-xl text-sm font-bold hover:bg-red-700 transition-all disabled:bg-red-100 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
+								>
+									<Trash />
+								</button>
 							</div>
 						</div>
 					</div>
