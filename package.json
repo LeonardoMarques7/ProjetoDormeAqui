@@ -2,6 +2,9 @@
   "name": "projetodormeaqui",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+  "node": "18.x"
+},
   "main": "index.js",
   "dependencies": {
     "asynckit": "^0.4.0",
