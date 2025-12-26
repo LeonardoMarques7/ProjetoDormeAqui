@@ -31,7 +31,7 @@ import Teste from "./pages/Teste";
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
 		? "http://localhost:3000/api"
-		: "https://projetodormeaqui.onrender.com";
+		: "https://projetodormeaqui.onrender.com/api";
 axios.defaults.withCredentials = true;
 
 function ScrollToTop() {
