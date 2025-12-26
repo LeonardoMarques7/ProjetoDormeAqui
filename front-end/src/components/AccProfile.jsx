@@ -42,9 +42,6 @@ const AccProfile = () => {
 	const { state } = useLocation();
 	const params = useParams();
 
-	// Quando a URL é /account/profile/:id, o :id vai para params.action
-	// Quando a URL é /account/profile/edit, o "edit" vai para params.action
-	// Precisamos verificar qual é qual
 	const isEditMode = params.action === "edit";
 	const paramId = isEditMode ? params.id : params.action;
 
@@ -71,15 +68,27 @@ const AccProfile = () => {
 	useEffect(() => {
 		const fetchProfile = async () => {
 			try {
-				// Se tem paramId, usa ele. Senão, usa o ID do usuário logado
-				const userId = paramId || user?._id;
-				if (!userId) return;
+				// Se tem paramId, busca o perfil público desse usuário
+				// Senão, busca o perfil do usuário logado
+				let userId;
+				let endpoint;
+
+				if (paramId) {
+					// Perfil público de outro usuário
+					userId = paramId;
+					endpoint = `/users/${userId}`;
+				} else if (user?._id) {
+					// Perfil do próprio usuário logado
+					userId = user._id;
+					endpoint = `/users/${userId}`;
+				} else {
+					// Não tem ID e não está logado - não pode ver perfil
+					setReady(true);
+					return;
+				}
 
 				console.log("Buscando perfil para userId:", userId);
-				console.log("paramId:", paramId);
-				console.log("user._id:", user?._id);
-
-				const { data } = await axios.get(`/users/${userId}`);
+				const { data } = await axios.get(endpoint);
 
 				console.log("Dados recebidos:", data);
 				setProfileUser(data);
@@ -113,18 +122,28 @@ const AccProfile = () => {
 					return;
 				}
 
-				console.log("Buscando places para userId:", userId); // Comparação de strings para garantir que o endpoint é montado corretamente
+				console.log("Buscando places para userId:", userId);
 
-				const isOwnProfile = !paramId || String(paramId) === String(user?._id);
+				// Verifica se é o próprio perfil do usuário logado
+				const isOwnProfile = user && String(user._id) === String(userId);
+
 				const endpoint = isOwnProfile
-					? "/places/owner"
-					: `/places/user/${userId}`; // Endpoint para o perfil de outro usuário
+					? "/places/owner" // Rota protegida - meus anúncios
+					: `/places/user/${userId}`; // Rota pública - anúncios de outro usuário
 
 				console.log("Endpoint usado:", endpoint);
 				const { data } = await axios.get(endpoint);
 				setPlaces(data);
 			} catch (error) {
 				console.error("Erro ao buscar anúncios:", error);
+				// Se der erro 401, pode ser que a rota requer autenticação
+				// mas o usuário não está logado - não é um problema fatal
+				if (error.response?.status === 401) {
+					console.log(
+						"Não autenticado - mostrando perfil público sem anúncios privados"
+					);
+					setPlaces([]);
+				}
 			}
 		};
 
@@ -165,20 +184,26 @@ const AccProfile = () => {
 		try {
 			const { data } = await axios.delete(`/users/${user._id}`);
 			console.log("Conta deletada!", data);
-			setRedirect(true); // redireciona após excluir
+			setRedirect(true);
 		} catch (error) {
 			console.error("Erro ao deletar:", error);
 		}
 	};
 
-	// Precisa definir isEditMode antes dos returns condicionais
 	const isEditingProfile = params.action === "edit";
 
 	if (redirect) return <Navigate to="/" state={{ updated: true }} />;
 
+	// Se não carregou ainda
+	if (!ready || !profileUser) {
+		return <Loading />; // ou seu componente de loading
+	}
+
 	const displayUser = profileUser;
 	// Verifica se está visualizando o próprio perfil
-	const isOwnProfile = !paramId || String(paramId) === String(user?._id);
+	// Só é próprio perfil se o usuário está logado E o ID bate
+	const isOwnProfile =
+		user && (!paramId || String(paramId) === String(user._id));
 
 	return (
 		<>
@@ -212,17 +237,19 @@ const AccProfile = () => {
 								</div>
 								<h1 className="container__name flex-1 mb-10 text-4xl font-bold text-white flex justify-start items-end gap-3">
 									{displayUser.name}
-									<span className="text-lg font-normal text-white">
-										{displayUser.pronouns}
-									</span>
+									{displayUser.pronouns && (
+										<span className="text-lg font-normal text-white">
+											{displayUser.pronouns}
+										</span>
+									)}
 								</h1>
 
-								{/* Botão de editar - só mostra se for o próprio perfil */}
+								{/* Botão de editar - só mostra se for o próprio perfil E estiver logado */}
 								{isOwnProfile && (
-									<div className="flex items-center mb-10  gap-5 text-white">
+									<div className="flex items-center mb-10 gap-5 text-white">
 										<Link
 											to="/account/profile/edit"
-											className={`group flex cursor-pointer  justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full`}
+											className={`group flex cursor-pointer justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full`}
 										>
 											<Pen size={18} />
 											<span className="hidden group-hover:inline pl-2">
@@ -231,7 +258,7 @@ const AccProfile = () => {
 										</Link>
 										<button
 											onClick={logout}
-											className=" group flex cursor-pointer  justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full"
+											className="group flex cursor-pointer justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full"
 										>
 											<LogOut size={18} />
 											<span className="hidden group-hover:inline pl-2">
@@ -245,9 +272,11 @@ const AccProfile = () => {
 							{moblie ? (
 								<span className="text-3xl bg-red text-nowrap font-bold truncate flex-col flex justify-center items-center gap-3">
 									<h1>{displayUser.name}</h1>
-									<span className="text-lg font-normal text-gray-300">
-										Ele/Dele
-									</span>
+									{displayUser.pronouns && (
+										<span className="text-lg font-normal text-gray-300">
+											{displayUser.pronouns}
+										</span>
+									)}
 								</span>
 							) : (
 								<></>
@@ -255,15 +284,21 @@ const AccProfile = () => {
 
 							{/* Informações de contato */}
 							<div className="flex flex-wrap gap-4 text-gray-500 mt-4">
-								<span className="flex items-center gap-2">
-									<MapPin size={18} /> {displayUser.city}
-								</span>
-								<span className="flex items-center gap-2">
-									<Mail size={18} /> {displayUser.email}
-								</span>
-								<span className="flex items-center gap-2">
-									<Phone size={18} /> {displayUser.phone}
-								</span>
+								{displayUser.city && (
+									<span className="flex items-center gap-2">
+										<MapPin size={18} /> {displayUser.city}
+									</span>
+								)}
+								{displayUser.email && (
+									<span className="flex items-center gap-2">
+										<Mail size={18} /> {displayUser.email}
+									</span>
+								)}
+								{displayUser.phone && (
+									<span className="flex items-center gap-2">
+										<Phone size={18} /> {displayUser.phone}
+									</span>
+								)}
 							</div>
 
 							{/* Sobre mim */}
@@ -274,9 +309,11 @@ const AccProfile = () => {
 										Anfitrião desde 10/04/2025
 									</span>
 								</span>
-								<div className="text__bio max-w-xl flex flex-col gap-2 leading-relaxed text-gray-600 mt-4">
-									{displayUser.bio}
-								</div>
+								{displayUser.bio && (
+									<div className="text__bio max-w-xl flex flex-col gap-2 leading-relaxed text-gray-600 mt-4">
+										{displayUser.bio}
+									</div>
+								)}
 							</div>
 
 							{/* Meus anúncios */}
@@ -286,31 +323,38 @@ const AccProfile = () => {
 									)
 								</h2>
 								<div className="grid__anuncios grid grid-cols-[repeat(auto-fit,minmax(250px,250px))] gap-8 md:max-w-7xl mx-auto">
-									{places.map((item) => (
-										<div
-											key={item._id}
-											className="relative hover:scale-105 transition-all ease-in-out duration-500 hover:saturate-125"
-										>
-											<Link to={`/places/${item._id}`}>
-												<div className="relative flex flex-col gap-2">
-													<img
-														src={item.photos[0]}
-														className=" aspect-square object-cover rounded-2xl"
-														alt={item.title}
-													/>
-
-													<div className="">
-														<p className="text-gray-700 font-normal overflow-hidden">
-															{item.title}
-														</p>
-														<strong className="w-fit rounded-full text-black">
-															R$ {item.price}/noite
-														</strong>
+									{places.length > 0 ? (
+										places.map((item) => (
+											<div
+												key={item._id}
+												className="relative hover:scale-105 transition-all ease-in-out duration-500 hover:saturate-125"
+											>
+												<Link to={`/places/${item._id}`}>
+													<div className="relative flex flex-col gap-2">
+														<img
+															src={item.photos[0]}
+															className="aspect-square object-cover rounded-2xl"
+															alt={item.title}
+														/>
+														<div className="">
+															<p className="text-gray-700 font-normal overflow-hidden">
+																{item.title}
+															</p>
+															<strong className="w-fit rounded-full text-black">
+																R$ {item.price}/noite
+															</strong>
+														</div>
 													</div>
-												</div>
-											</Link>
-										</div>
-									))}
+												</Link>
+											</div>
+										))
+									) : (
+										<p className="text-gray-500">
+											{isOwnProfile
+												? "Você ainda não tem anúncios"
+												: "Este usuário não tem anúncios públicos"}
+										</p>
+									)}
 								</div>
 							</div>
 							{isOwnProfile && <DeleteAccountDialog onDelete={handleDelete} />}
@@ -319,15 +363,22 @@ const AccProfile = () => {
 				</>
 			) : (
 				<>
-					<div
-						className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
-						style={{
-							backgroundImage: `url(${image})`,
-						}}
-					>
-						<div className="absolute inset-0 backdrop-blur-[5px]"></div>
-					</div>
-					<EditProfile user={user} />
+					{/* Só permite editar se for o próprio perfil */}
+					{isOwnProfile ? (
+						<>
+							<div
+								className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
+								style={{
+									backgroundImage: `url(${image})`,
+								}}
+							>
+								<div className="absolute inset-0 backdrop-blur-[5px]"></div>
+							</div>
+							<EditProfile user={user} />
+						</>
+					) : (
+						<Navigate to={`/account/profile/${paramId}`} />
+					)}
 				</>
 			)}
 		</>
