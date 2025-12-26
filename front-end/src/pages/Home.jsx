@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Item from "../components/Item";
@@ -29,8 +29,11 @@ import "./Home.css";
 import DatePickerAirbnb from "../components/DatePickerAirbnb";
 import searchSchema from "@/components/schemas/searchSchema.jsx";
 import { useMoblieContext } from "../components/contexts/MoblieContext";
+import { useLocation } from "react-router";
 
 const Home = () => {
+	const location = useLocation();
+	const searchInputRef = useRef(null);
 	const [city, setCity] = useState("");
 	const { moblie } = useMoblieContext();
 	const [places, setPlaces] = useState([]);
@@ -76,6 +79,12 @@ const Home = () => {
 	useEffect(() => {
 		fetchPlaces();
 	}, []);
+
+	useEffect(() => {
+		if (location.state?.focusSearch) {
+			searchInputRef.current?.focus();
+		}
+	}, [location.state]);
 
 	const normalize = (str) =>
 		str
@@ -337,6 +346,7 @@ const Home = () => {
 								<div className="group__input relative pr-4 border-r flex w-full items-center ">
 									<MapPin className="text-gray-400 size-5 flex-shrink-0" />
 									<input
+										ref={searchInputRef}
 										id="city"
 										type="text"
 										placeholder="Para onde você vai?"

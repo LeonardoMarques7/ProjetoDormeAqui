@@ -63,9 +63,9 @@ const Header = ({ active }) => {
 
 	return (
 		<header
-			className={`fixed z-50  top-3 w-full transition-all duration-500 delay-0 ${
+			className={`fixed z-50  top-3 w-full mb-3 transition-all duration-500 delay-0 ${
 				scrolled
-					? "bg-white  duration-75 !text-gray-900 !top-0 backdrop-blur-2xl shadow-md shadow-white/10"
+					? "bg-white  duration-75 !text-gray-900  backdrop-blur-2xl shadow-md shadow-white/10"
 					: "bg-transparent"
 			} ${getTextColor()}`}
 		>
