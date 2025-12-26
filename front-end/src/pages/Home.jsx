@@ -35,7 +35,7 @@ import { ptBR } from "date-fns/locale";
 import "./Home.css";
 import { GuestsInput } from "../components/ui/GuestsInput";
 import DatePickerAirbnb from "../components/DatePickerAirbnb";
-import { searchSchema } from "../components/schemas/searchSchema";
+import searchSchema from "../components/schemas/searchSchema";
 
 const Home = () => {
 	const [city, setCity] = useState("");
