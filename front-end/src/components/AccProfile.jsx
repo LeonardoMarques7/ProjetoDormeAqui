@@ -36,6 +36,7 @@ import Loading from "./Loading";
 import { useTimeout } from "@mantine/hooks";
 import { useLocation } from "react-router-dom";
 import image from "../assets/image.png";
+import Banner from "../assets/Banner.png";
 
 const AccProfile = () => {
 	const { user, setUser } = useUserContext();
@@ -209,13 +210,13 @@ const AccProfile = () => {
 		<>
 			{!isEditingProfile ? (
 				<>
-					<div
-						className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
-						style={{
-							backgroundImage: `url(${image})`,
-						}}
-					>
-						<div className="absolute inset-0 backdrop-blur-[5px]"></div>
+					<div className="banner__home  max-sm:hidden h-[50svh]  bg-primar-700  w-full relative">
+						<img
+							src={Banner}
+							alt=""
+							className="object-cover pointer-events-none h-full w-full  shadow-2xl"
+						/>
+						<div className="absolute inset-0 bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
 					</div>
 
 					{/* Container do conteúdo */}
