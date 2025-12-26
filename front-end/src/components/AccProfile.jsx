@@ -36,7 +36,7 @@ import Loading from "./Loading";
 import { useTimeout } from "@mantine/hooks";
 import { useLocation } from "react-router-dom";
 import image from "../assets/image.png";
-import Banner from "../assets/Banner.png";
+import Banner from "../assets/banner.jpg";
 
 const AccProfile = () => {
 	const { user, setUser } = useUserContext();
