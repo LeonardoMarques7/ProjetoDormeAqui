@@ -4,8 +4,6 @@ import BookingAll from "./BookingAll";
 import { Skeleton } from "@/components/ui/skeleton";
 import "./Booking.css";
 import { useParams } from "react-router-dom";
-import Loading from "./Loading";
-import Banner from "../assets/image.png";
 import { useUserContext } from "./contexts/UserContext";
 
 const AccBookings = ({ bookingId }) => {
