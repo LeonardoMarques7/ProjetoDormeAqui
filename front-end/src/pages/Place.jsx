@@ -516,7 +516,7 @@ const Place = () => {
 					</div>
 				</div>
 				{/* Conteúdo da acomodação */}
-				<div className="grid grid-cols-1 max-sm:gap-5 gap-20 md:grid-cols-2 mt-2 max-sm:mx-2 mx-8 ">
+				<div className="grid grid-cols-1 max-sm:gap-5 gap-20 md:grid-cols-2 mt-2 max-sm:mx-2 max-sm:mt-0 mx-8 ">
 					<div className="leading-relaxed px-0 order-1 description ">
 						<div className="max-sm:py-0  w-full">
 							<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
@@ -573,7 +573,7 @@ const Place = () => {
 								</div>
 							</div>
 							<div className="flex flex-col  gap-2">
-								<div className="text-[2rem] max-sm:text-[1.5rem] font-bold text-gray-700 ">
+								<div className="text-[2rem] max-sm:text-[1.5rem] font-medium text-gray-700 ">
 									{place.title}
 								</div>
 								<div className="flex items-center max-sm:text-sm text-gray-600 gap-2">
@@ -581,59 +581,61 @@ const Place = () => {
 									<span>{place.city}</span>
 								</div>
 							</div>
-							<div className="flex gap-4  !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
-								<div className="flex gap-2 rounded-2xl items-center ">
-									<div className="flex items-center gap-2">
-										<Users2 size={15} className="max-sm:hidden" />
-										<div>{place.guests} hóspedes</div>
+							{!moblie && (
+								<div className="flex gap-4  !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
+									<div className="flex gap-2 rounded-2xl items-center ">
+										<div className="flex items-center gap-2">
+											<Users2 size={15} className="max-sm:hidden" />
+											<div>{place.guests} hóspedes</div>
+										</div>
+									</div>
+									<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+									<div className="flex gap-2  rounded-2xl items-center ">
+										<div className="flex items-center gap-2">
+											<HomeIcon size={15} className="max-sm:hidden" />
+											{place.rooms || rooms > 1 ? (
+												<p>
+													<span>{place.rooms}</span> quartos
+												</p>
+											) : (
+												<p>
+													<span>{place.rooms}</span> quarto
+												</p>
+											)}
+										</div>
+									</div>
+									<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+									<div className="flex gap-2 rounded-2xl items-center ">
+										<div className="flex items-center gap-2">
+											<Bed size={15} className="max-sm:hidden" />
+											{place.beds || beds > 1 ? (
+												<p>
+													<span className="">{place.beds}</span> camas
+												</p>
+											) : (
+												<p>
+													<span className="">{place.beds}</span> cama
+												</p>
+											)}
+										</div>
+									</div>
+									<div className="w-1 rounded-full h-1 bg-gray-500"></div>
+									<div className="flex gap-2 rounded-2xl items-center ">
+										<div className="flex items-center gap-2">
+											<Bath size={15} className="max-sm:hidden" />
+											{place.bathrooms || bathrooms > 1 ? (
+												<p>
+													<span>{place.bathrooms}</span> banheiros
+												</p>
+											) : (
+												<p className="text-sm">
+													<span>{place.bathrooms}</span> banheiro
+												</p>
+											)}
+										</div>
 									</div>
 								</div>
-								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
-								<div className="flex gap-2  rounded-2xl items-center ">
-									<div className="flex items-center gap-2">
-										<HomeIcon size={15} className="max-sm:hidden" />
-										{place.rooms || rooms > 1 ? (
-											<p>
-												<span>{place.rooms}</span> quartos
-											</p>
-										) : (
-											<p>
-												<span>{place.rooms}</span> quarto
-											</p>
-										)}
-									</div>
-								</div>
-								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
-								<div className="flex gap-2 rounded-2xl items-center ">
-									<div className="flex items-center gap-2">
-										<Bed size={15} className="max-sm:hidden" />
-										{place.beds || beds > 1 ? (
-											<p>
-												<span className="">{place.beds}</span> camas
-											</p>
-										) : (
-											<p>
-												<span className="">{place.beds}</span> cama
-											</p>
-										)}
-									</div>
-								</div>
-								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
-								<div className="flex gap-2 rounded-2xl items-center ">
-									<div className="flex items-center gap-2">
-										<Bath size={15} className="max-sm:hidden" />
-										{place.bathrooms || bathrooms > 1 ? (
-											<p>
-												<span>{place.bathrooms}</span> banheiros
-											</p>
-										) : (
-											<p className="text-sm">
-												<span>{place.bathrooms}</span> banheiro
-											</p>
-										)}
-									</div>
-								</div>
-							</div>
+							)}
 						</div>
 						<div className="flex gap-2 flex-col my-2.5 max-sm:mt-2  ">
 							<div className="flex items-center gap-2 w-full">

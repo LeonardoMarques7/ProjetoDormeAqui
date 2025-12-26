@@ -21,6 +21,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { useMoblieContext } from "./contexts/MoblieContext";
 
 // Funções auxiliares para datas
 const formatDate = (date, format = "dd/MM/yyyy") => {
@@ -111,6 +112,7 @@ const DatePickerAirbnb = ({
 	const [checkinDate, setCheckinDate] = useState(initialCheckin || null);
 	const [checkoutDate, setCheckoutDate] = useState(initialCheckout || null);
 	const [selectingCheckout, setSelectingCheckout] = useState(false);
+	const { moblie } = useMoblieContext();
 
 	const year = currentMonth.getFullYear();
 	const month = currentMonth.getMonth();
@@ -150,7 +152,7 @@ const DatePickerAirbnb = ({
 
 	const getDayClassName = (date) => {
 		let classes =
-			"h-10 w-10 md:h-12 md:w-12 text-sm md:text-base flex items-center justify-center rounded-full cursor-pointer transition-all font-medium ";
+			"h-10 w-10 text-sm md:text-base flex items-center justify-center rounded-full cursor-pointer transition-all font-medium ";
 
 		if (isDisabled(date)) {
 			classes += "text-gray-300 cursor-not-allowed line-through";
@@ -164,7 +166,7 @@ const DatePickerAirbnb = ({
 			classes += "bg-primary-100 text-primary-900 hover:bg-primary-100";
 		} else {
 			classes +=
-				"text-primary-700 hover:bg-primary-100 border-2 border-transparent hover:border-primary-300";
+				"text-primary-700 hover:bg-primary-100 border-2 border-transparent hover:border-primary-100";
 		}
 
 		return classes;
@@ -242,12 +244,12 @@ const DatePickerAirbnb = ({
 				} transition-all !text-left bg-white flex !justify-start`}
 			>
 				{search ? (
-					<div className="flex group-hover:text-primary-700   items-center text-gray-400 gap-2 justify-center">
+					<div className="flex group-hover:text-primary-700 max-sm:justify-evenly max-sm:flex-1 items-center text-gray-400 gap-2 justify-center">
 						{!checkinDate && !checkoutDate && (
 							<Calendar className=" left-0 size-5" />
 						)}
 						{checkinDate ? (
-							<div className="group__input relative w-full px-4 flex justify-center items-center">
+							<div className="group__input relative w-full max-sm:flex-1 max-sm:w-fit px-4 flex justify-center items-center">
 								<p className="text-sm md:text-base flex gap-2 ">
 									<span className="text-primary-700">
 										{checkinDate
@@ -264,7 +266,7 @@ const DatePickerAirbnb = ({
 							<span className="w-5 h-0.5 bg-primary-300"></span>
 						)}
 						{checkoutDate ? (
-							<div className="group__input relative px-4 flex justify-center items-center">
+							<div className="group__input relative px-4 max-sm:flex-1 flex justify-center items-center">
 								<p className="text-sm md:text-base flex gap-2">
 									<span className="text-primary-700">
 										{formatDate(checkoutDate, "dd de MMM")}.
@@ -275,12 +277,12 @@ const DatePickerAirbnb = ({
 					</div>
 				) : (
 					<div className="flex items-center w-full justify-between">
-						<div className="flex items-center mx-8 md:mx-6 gap-5">
-							<Calendar className=" text-primary-500" size={24} />
+						<div className="flex items-center max-sm:hidden mx-8 md:mx-6 gap-5">
+							<Calendar className=" text-primary-500 " size={24} />
 						</div>
 
-						<div className="flex items-center mx-6 gap">
-							<div className="flex-1">
+						<div className="flex items-center max-sm:w-full max-sm:justify-center mx-6 gap-2">
+							<div className="flex-1 ">
 								<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
 									Check-in
 								</p>
@@ -320,7 +322,7 @@ const DatePickerAirbnb = ({
 								Selecione as datas
 							</DialogTitle>
 
-							{!search && totalPrice > 0 && (
+							{!moblie && !search && totalPrice > 0 && (
 								<div className="text-center ml-auto md:text-right flex-1 md:flex-end mx-5">
 									<p className="text-xs text-gray-500 font-medium mb-1">
 										Total da estadia
@@ -395,6 +397,27 @@ const DatePickerAirbnb = ({
 									</p>
 								</div>
 							</div>
+							{moblie && !search && totalPrice > 0 && (
+								<div className="flex items-center w-full flex-1 justify-between">
+									<div className="text-start">
+										<p className="text-xs text-gray-500 font-medium mb-1">
+											Total de noites
+										</p>
+										<p className="text-xl md:text-2xl font-bold text-primary-900">
+											{nights} {nights === 1 ? "noite" : "noites"}
+										</p>
+									</div>
+
+									<div className="text-end">
+										<p className="text-xs text-gray-500 font-medium mb-1">
+											Total da estadia
+										</p>
+										<p className="text-xl md:text-2xl font-bold text-primary-900">
+											R$ {totalPrice.toFixed(2).replace(".", ",")}
+										</p>
+									</div>
+								</div>
+							)}
 
 							{/* Total e botão */}
 							<div className="flex items-center gap-4 w-full md:w-auto">

@@ -444,10 +444,10 @@ const Home = () => {
 				) : (
 					// Caso 2: pesquisou mas não encontrou
 					<>
-						<div className="my-8 max-w-7xl mx-auto text-start w-full overflow-hidden">
+						<div className="my-8 max-sm:my-4 max-w-7xl mx-auto text-start w-full overflow-hidden">
 							{/* Conteúdo */}
-							<div className="text-center flex-col mx-8 flex gap-2 items-start justify-start transition-all">
-								<h1>
+							<div className="text-center flex-col mx-8 flex gap-2 items-start max-sm:text-start justify-start transition-all">
+								<h1 className="max-sm:text-xl!">
 									<strong className="text-red-500">Ops!</strong> Não encontramos
 									acomodações que correspondam à sua busca.
 								</h1>
@@ -465,9 +465,11 @@ const Home = () => {
 								</button>
 							</div>
 						</div>
-						<div className="mx-auto mb-5 font-medium max-w-full text-gray-700 gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start ">
-							<strong>Mas não se preocupe!</strong> Confira abaixo outras opções
-							disponíveis:
+						<div className="mx-auto mb-5 font-medium max-sm:flex-col max-sm:gap-1 max-sm:text-lg! max-w-full text-gray-700 gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start ">
+							<strong>Mas não se preocupe!</strong>{" "}
+							<span className="max-sm:text-sm font-normal">
+								Confira abaixo outras opções disponíveis.
+							</span>
 						</div>
 					</>
 				)
