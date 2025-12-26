@@ -10,7 +10,7 @@ import Banner from "../assets/banner2.jpg";
 
 import "./Home.css";
 import DatePickerAirbnb from "../components/DatePickerAirbnb";
-import searchSchema from "../components/schemas/searchSchema";
+import searchSchema from "@/components/schemas/searchSchema";
 
 const Home = () => {
 	const [city, setCity] = useState("");
