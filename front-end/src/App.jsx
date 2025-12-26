@@ -31,7 +31,7 @@ import Teste from "./pages/Teste";
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
 		? "http://localhost:3000/api"
-		: "https://projetodormeaqui-production.up.railway.app/api";
+		: "https://projetodormeaqui.onrender.com";
 axios.defaults.withCredentials = true;
 
 function ScrollToTop() {
