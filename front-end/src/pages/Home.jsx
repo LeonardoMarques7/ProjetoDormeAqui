@@ -3,39 +3,14 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Item from "../components/Item";
 import axios from "axios";
-import {
-	CalendarArrowDownIcon,
-	CalendarArrowUp,
-	CalendarIcon,
-	DeleteIcon,
-	Eraser,
-	MapPin,
-	Search,
-	Trash,
-	Users,
-	X,
-	AlertCircle,
-} from "lucide-react";
-import { format, isBefore, addDays } from "date-fns";
+import { Eraser, MapPin, Search, Users, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logoPrimary from "../assets/logo__primary.png";
-import { Calendar } from "@/components/ui/calendar";
-import RotatingText from "@/components/RotatingText";
-import { cn } from "@/lib/utils";
-import GridMotion from "@/components/GridMotion";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import Banner from "../assets/banner2.jpg";
-import { ptBR } from "date-fns/locale";
 
 import "./Home.css";
-import { GuestsInput } from "../components/ui/GuestsInput";
 import DatePickerAirbnb from "../components/DatePickerAirbnb";
-import { searchSchema } from "../components/schemas/searchSchema";
+import searchSchema from "@/components/schemas/searchSchema.jsx";
 
 const Home = () => {
 	const [city, setCity] = useState("");

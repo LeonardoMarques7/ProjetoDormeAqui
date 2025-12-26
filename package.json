@@ -2,6 +2,9 @@
   "name": "projetodormeaqui",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+  "node": "18.x"
+},
   "main": "index.js",
   "dependencies": {
     "asynckit": "^0.4.0",
@@ -72,7 +75,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/LeonardoMarques7/ProjetoDormeAqui/issues"
   },
