@@ -12,13 +12,6 @@ export const __dirname = dirname(__filename);
 
 app.use(express.json());
 app.use(cookieParser());
-app.use((req, res, next) => {
-  res.setHeader(
-    "Content-Security-Policy",
-    "default-src 'self'; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
-  );
-  next();
-});
 
 app.use(
   cors({
