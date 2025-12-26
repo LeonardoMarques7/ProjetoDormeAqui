@@ -38,6 +38,7 @@ const Home = () => {
 	const [isSearching, setIsSearching] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [sheetOpen, setSheetOpen] = useState(false);
+	const [datePickerKey, setDatePickerKey] = useState(0);
 
 	// Configuração do React Hook Form com Zod
 	const {
@@ -142,6 +143,7 @@ const Home = () => {
 			guests: null,
 		});
 		clearErrors();
+		setDatePickerKey((prev) => prev + 1); // Força re-render do DatePicker
 	};
 
 	const handleDateSelect = ({ checkin: newCheckin, checkout: newCheckout }) => {
@@ -354,6 +356,7 @@ const Home = () => {
 												control={control}
 												render={({ field: checkoutField }) => (
 													<DatePickerAirbnb
+														key={datePickerKey}
 														onDateSelect={({ checkin, checkout }) => {
 															field.onChange(checkin);
 															checkoutField.onChange(checkout);
@@ -465,8 +468,8 @@ const Home = () => {
 								</button>
 							</div>
 						</div>
-						<div className="mx-auto mb-5 font-medium max-sm:flex-col max-sm:gap-1 max-sm:text-lg! max-w-full text-gray-700 gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start ">
-							<strong>Mas não se preocupe!</strong>{" "}
+						<div className="mx-auto mb-5 font-medium max-sm:flex-col max-sm:gap-1 max-sm:text-lg! max-w-full text-gray-700 gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-xl text-start ">
+							<span>Mas não se preocupe!</span>{" "}
 							<span className="max-sm:text-sm font-normal">
 								Confira abaixo outras opções disponíveis.
 							</span>
