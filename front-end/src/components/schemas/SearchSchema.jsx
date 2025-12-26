@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { isBefore, isAfter, startOfDay } from "date-fns";
 
-export default searchSchema = z
+const searchSchema = z
 	.object({
 		city: z
 			.string()
@@ -75,3 +75,5 @@ export default searchSchema = z
 			path: ["checkin"],
 		}
 	);
+
+export default searchSchema;
