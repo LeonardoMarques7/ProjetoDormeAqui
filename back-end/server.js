@@ -14,7 +14,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173",
+      "https://unexpected-zia-leonardomarques-23a75f11.koyeb.app"
+    ],
     credentials: true,
   })
 );
