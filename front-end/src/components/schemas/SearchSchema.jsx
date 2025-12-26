@@ -5,7 +5,6 @@ export const searchSchema = z
 	.object({
 		city: z
 			.string()
-			.min(2, "A cidade deve ter pelo menos 2 caracteres")
 			.max(100, "A cidade deve ter no máximo 100 caracteres")
 			.optional()
 			.or(z.literal("")),

@@ -4,11 +4,13 @@ import Booking from "./model.js";
 import { connectDb } from "../../config/db.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 
+connectDb();
+
 const router = Router();
 
-router.get("/owner", async (req, res) => {
-  connectDb();
 
+router.get("/owner", async (req, res) => {
+  
   try {
     const { _id: id } = await JWTVerify(req);
 
@@ -38,7 +40,6 @@ res.json(bookingDocs);
 
 
 router.post("/", async (req, res) => {
-    connectDb();
 
     const {place, user, price, priceTotal, checkin, checkout, guests, nights} = req.body;
 

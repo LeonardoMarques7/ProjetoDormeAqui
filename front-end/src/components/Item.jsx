@@ -31,7 +31,7 @@ import {
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 const DotButton = ({ selected, onClick }) => (
 	<button
-		className={`w-2 h-2 rounded-full cursor-pointer transition-all duration-300 ${
+		className={`w-2 h-2 rounded-full cursor-pointer transition-all duration-700 ${
 			selected ? "bg-white w-6" : "bg-white/50"
 		}`}
 		type="button"
@@ -189,7 +189,7 @@ const Item = ({ place = null, placeHolder }) => {
 
 						{/* Card info - estado hover (expanded) */}
 						<div
-							className={`flex flex-col gap-3 px-0 border-primary-100  transition-all duration-300 ${
+							className={`flex flex-col gap-3 px-0 border-primary-100  transition-all duration-700 ${
 								isHovered
 									? "opacity-100 max-h-96 "
 									: "opacity-0 max-h-0 overflow-hidden"
@@ -202,7 +202,7 @@ const Item = ({ place = null, placeHolder }) => {
 										initial={{ opacity: 0, y: 10 }}
 										animate={{ opacity: 1, y: 0 }}
 										exit={{ opacity: 0, y: 10 }}
-										transition={{ duration: 0.2 }}
+										transition={{ duration: 0.7 }}
 									>
 										<InteractiveHoverButton
 											className="w-full rounded-xl text-center font-medium"

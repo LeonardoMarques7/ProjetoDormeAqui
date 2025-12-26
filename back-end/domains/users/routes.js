@@ -78,8 +78,6 @@ router.post("/", async (req, res) => {
 
 // Rota pública - qualquer um pode ver o perfil de outro usuário
 router.get("/:id", async (req, res) => {
-  connectDb();
-
   const { id: _id } = req.params;
   
   try {
@@ -99,7 +97,6 @@ router.get("/:id", async (req, res) => {
 
 // Rota pública minimalista
 router.get("/minimal/:id", async (req, res) => {
-  connectDb();
 
   const { id: _id } = req.params;
   
@@ -119,7 +116,6 @@ router.get("/minimal/:id", async (req, res) => {
 
 // Upload de foto - requer autenticação
 router.post("/upload", requireAuth, uploadImage().single("files"), async (req, res) => {
-  connectDb();
   
   const file = req.file;
 
@@ -217,7 +213,6 @@ router.post("/logout", (req, res) => {
 
 // Deletar conta - requer autenticação e só pode deletar a própria conta
 router.delete("/:id", requireAuth, async (req, res) => {
-  connectDb();
 
   const { id: _id } = req.params;
 

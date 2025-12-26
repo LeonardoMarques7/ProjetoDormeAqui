@@ -28,6 +28,7 @@ import {
 	MapPin,
 	NotepadTextDashed,
 	Phone,
+	SaveAll,
 	SaveAllIcon,
 	Search,
 	Upload,
@@ -370,10 +371,7 @@ const EditProfile = ({ user }) => {
 					>
 						<ArrowLeft size={18} className="" /> Cancelar
 					</Link>
-					<InteractiveHoverButton
-						icon={<SaveAllIcon size={18} />}
-						className="w-fit flex "
-					>
+					<InteractiveHoverButton className="w-fit flex ">
 						Salvar alterações
 					</InteractiveHoverButton>
 				</div>

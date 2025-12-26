@@ -83,39 +83,54 @@ const Home = () => {
 
 	const normalize = (str) =>
 		str
-			.normalize("NFD")
-			.replace(/[\u0300-\u036f]/g, "")
-			.toLowerCase();
+			? str
+					.normalize("NFD")
+					.replace(/[\u0300-\u036f]/g, "")
+					.toLowerCase()
+			: "";
 
-	// Função de busca validada
 	const onSubmit = async (formData) => {
 		setIsSearching(true);
-		setCity(formData.city || "");
+		setCity(formData.city || ""); // Armazena o termo visualmente
+
+		// 1. Normaliza o termo de busca digitado pelo usuário
+		const searchTerm = normalize(formData.city);
 
 		try {
-			const params = new URLSearchParams();
+			// Se você já tem todos os lugares carregados no estado `places` (do fetchPlaces inicial),
+			// use-o como base. Se não, terá que buscar tudo de novo.
 
-			if (formData.city) {
-				params.append("city", normalize(formData.city));
-			}
+			// Vamos assumir que 'places' contém a lista completa original
+			let filteredResults = places.filter((place) => {
+				// Normaliza os dados do local (banco de dados)
+				const normalizedCity = normalize(place.city);
+				const normalizedState = normalize(place.state); // Supondo que exista place.state ou place.uf
+				const normalizedUf = normalize(place.uf);
 
-			if (formData.checkin) {
-				params.append("checkin", format(formData.checkin, "yyyy-MM-dd"));
-			}
+				// Lógica da Busca Abrangente:
+				// Verifica se o termo está na cidade OU no estado OU na sigla
+				const matchLocation =
+					normalizedCity.includes(searchTerm) ||
+					normalizedState.includes(searchTerm) ||
+					normalizedUf.includes(searchTerm);
 
-			if (formData.checkout) {
-				params.append("checkout", format(formData.checkout, "yyyy-MM-dd"));
-			}
+				// Se não digitou cidade, considera verdadeiro (para filtrar só por data/hóspedes depois)
+				return formData.city ? matchLocation : true;
+			});
 
+			// 2. Aplica os outros filtros (Data e Hóspedes) na lista já filtrada por local
 			if (formData.guests) {
-				params.append("guests", formData.guests.toString());
+				filteredResults = filteredResults.filter(
+					(place) => place.guests >= formData.guests
+				);
 			}
 
-			const { data } = await axios.get(`/places?${params.toString()}`);
-			setPlacesSearch(data);
+			setTimeout(() => {
+				setPlacesSearch(filteredResults);
+				setIsSearching(false);
+			}, 300);
 		} catch (err) {
-			console.error("Erro na busca:", err);
-		} finally {
+			console.error("Erro na busca local:", err);
 			setIsSearching(false);
 		}
 	};
@@ -241,10 +256,11 @@ const Home = () => {
 			{city ? (
 				placesSearch.length > 0 ? (
 					// Caso 3: pesquisou e encontrou
-					<div className="mx-auto mb-5  font-medium max-w-full gap-2 w-full flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
+					<div className="mx-auto mb-5 text-primary-500  max-w-full gap-2 w-full flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
 						<span>
-							Buscando por <strong className="text-primary-500">{city}</strong>{" "}
-							e foi encontrado{" "}
+							Buscando por{" "}
+							<span className="font-medium text-primary-900">{city}</span> e foi
+							encontrado{" "}
 							{placesSearch.length > 1
 								? `${placesSearch.length} resultados`
 								: `${placesSearch.length} resultado`}
@@ -293,27 +309,6 @@ const Home = () => {
 					Acomodações disponíveis
 				</span>
 			)}
-			{/* GRID DE RESULTADOS */}
-			{city && placesSearch.length > 0 && (
-				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 py-4 lg:max-w-7xl">
-					<>
-						{placesSearch.map((place) => (
-							<Item {...{ place }} key={place._id} />
-						))}
-						<div className="min-w-full col-span-full columns-auto"></div>
-					</>
-				</div>
-			)}
-			{/* Se não tiver resultados OU não tiver pesquisa → mostrar acomodações padrão */}
-			{(!city || placesSearch.length === 0) && (
-				<div className="relative mb-10">
-					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
-						{places.map((place) => (
-							<Item {...{ place }} key={place._id} />
-						))}
-					</div>
-				</div>
-			)}
 			{loading && (
 				<div className="relative ">
 					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
@@ -333,6 +328,17 @@ const Home = () => {
 							</div>
 						))}
 					</div>
+				</div>
+			)}
+			{/* GRID DE RESULTADOS */}
+			{city && placesSearch.length > 0 && (
+				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 py-4 lg:max-w-7xl">
+					<>
+						{placesSearch.map((place) => (
+							<Item {...{ place }} key={place._id} />
+						))}
+						<div className="min-w-full col-span-full columns-auto"></div>
+					</>
 				</div>
 			)}
 			{(!city || placesSearch.length === 0) && (

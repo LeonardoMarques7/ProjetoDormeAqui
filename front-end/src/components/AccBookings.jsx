@@ -17,10 +17,10 @@ const AccBookings = ({ bookingId }) => {
 	useEffect(() => {
 		const axiosGet = async () => {
 			const { data } = await axios.get("/bookings/owner");
-			setBookings(data);
 			setTimeout(() => {
+				setBookings(data);
 				setReadyBookings(true);
-			}, 1000);
+			}, 100);
 		};
 
 		axiosGet();

@@ -56,8 +56,14 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 import Counter from "@/components/Counter";
 import photoDefault from "../assets/loadingGif2.gif";
 
-// IMPORTE O NOVO COMPONENTE AQUI
 import DatePickerAirbnb from "../components/DatePickerAirbnb";
+
+import {
+	Tooltip,
+	TooltipTrigger,
+	TooltipContent,
+	TooltipProvider,
+} from "@/components/ui/tooltip";
 
 const Place = () => {
 	const { moblie } = useMoblieContext();
@@ -701,25 +707,30 @@ const Place = () => {
 
 					{/* Booking */}
 					{booking ? (
-						<div className="section__booking h-fit bg-white backdrop-blur-2xl ml-auto lg:max-w-5xl shadow-xl shadow-primary-200/50 rounded-2xl">
-							<div className="ticket__booking h-fit bg-white/80 relative cursor-pointer flex rounded-2xl border  border-primary-100 gap-5 ">
+						<div className="section__booking h-fit order-2 w-full border-dashed border bg-white backdrop-blur-2xl ml-auto lg:max-w-5xl shadow-2xl shadow-primary-200/50 rounded-2xl">
+							<div className="ticket__booking h-fit bg-white/80 relative flex rounded-2xl border  border-primary-100 gap-5 ">
 								<div className="flex flex-col items-start gap-2 w-full  text-gray-500 p-5">
 									<div className="flex flex-col gap-1 w-full text-start header__ticket">
 										<div className="text-primary-600 flex justify-between items-center text-sm font-medium uppercase">
 											Seu Ticket de Reserva
-											<Link
-												to={`../account/bookings/${booking._id}`}
-												className="group cursor-pointer -fit hover:bg-primary-600 hover:text-white px-5 hover:px-6 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-2xl text-center py-2 overflow-hidden"
-											>
-												<span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
-													Acessar reserva
-												</span>
-												<ExternalLink
-													size={18}
-													className="transition-transform text-primary-500 group-hover:text-white duration-300 group-hover:scale-110"
-												/>
-											</Link>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<Link
+														to={`../account/bookings/${booking._id}`}
+														className="group cursor-pointer w-fit hover:bg-primary-600 hover:text-white px-3 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-xl text-center py-2.5 overflow-hidden"
+													>
+														<ExternalLink
+															size={18}
+															className="transition-transform text-primary-500 group-hover:text-white duration-300 group-hover:scale-110"
+														/>
+													</Link>
+												</TooltipTrigger>
+												<TooltipContent className="bg-primary-600">
+													<p>Acessar reserva</p>
+												</TooltipContent>
+											</Tooltip>
 										</div>
+
 										<h2 className="text-2xl font-bold text-black">
 											{booking.place.title}
 										</h2>
