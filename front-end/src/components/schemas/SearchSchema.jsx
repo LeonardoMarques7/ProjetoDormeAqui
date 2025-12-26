@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { isBefore, isAfter, startOfDay } from "date-fns";
 
-export const searchSchema = z
+export default searchSchema = z
 	.object({
 		city: z
 			.string()
