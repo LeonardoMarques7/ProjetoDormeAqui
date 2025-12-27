@@ -15,9 +15,9 @@ connectDb();
 
 // 🔥 ADICIONE ESTA FUNÇÃO HELPER NO TOPO
 const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  httpOnly: true,  // Segurança - JS não acessa
+  secure: true,    // OBRIGATÓRIO em HTTPS
+  sameSite: 'none', // OBRIGATÓRIO para cross-origin
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
   path: '/'
 };
