@@ -13,18 +13,42 @@ const bcryptSalt = bcrypt.genSaltSync();
 
 connectDb();
 
-// 🔥 ADICIONE ESTA FUNÇÃO HELPER NO TOPO
-const cookieOptions = {
-  httpOnly: true,  // Segurança - JS não acessa
-  secure: true,    // OBRIGATÓRIO em HTTPS
-  sameSite: 'none', // OBRIGATÓRIO para cross-origin
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
-  path: '/'
+// Middleware opcional de autenticação - não bloqueia se não tiver token
+const optionalAuth = async (req, res, next) => {
+  try {
+    const userInfo = await JWTVerify(req);
+    req.user = userInfo; // Adiciona o usuário ao request se autenticado
+  } catch (error) {
+    req.user = null; // Não há usuário autenticado
+  }
+  next();
 };
 
-// ... seus middlewares permanecem iguais ...
+// Middleware obrigatório de autenticação - bloqueia se não tiver token
+const requireAuth = async (req, res, next) => {
+  try {
+    const userInfo = await JWTVerify(req);
+    req.user = userInfo;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: "Autenticação necessária" });
+  }
+};
 
-// 1️⃣ ATUALIZE A ROTA DE REGISTRO
+router.get("/", async (req, res) => {
+  try {
+    const userDoc = await User.find();
+    res.json(userDoc);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+// Rota de perfil - requer autenticação
+router.get("/profile", requireAuth, async (req, res) => {
+  res.json(req.user);
+});
+
 router.post("/", async (req, res) => {
   const { name, email, password } = req.body;
   const encryptedPassword = bcrypt.hashSync(password, bcryptSalt);
@@ -41,8 +65,7 @@ router.post("/", async (req, res) => {
 
     try {
       const token = await JWTSign(newUserObj);
-      // 🔥 MUDANÇA AQUI:
-      res.cookie("token", token, cookieOptions).json(newUserObj);
+      res.cookie("token", token).json(newUserObj);
     } 
     catch (error) {
       res.status(500).json("Erro ao assinar com o JWT", error);
@@ -53,7 +76,105 @@ router.post("/", async (req, res) => {
   }
 });
 
-// 2️⃣ ATUALIZE A ROTA DE LOGIN
+// Rota pública - qualquer um pode ver o perfil de outro usuário
+router.get("/:id", async (req, res) => {
+  const { id: _id } = req.params;
+  
+  try {
+    // Não retorna informações sensíveis como senha
+    const userDoc = await User.findOne({_id}).select('-password');
+
+    if (!userDoc) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+
+    res.json(userDoc);
+  } catch (error) {
+    res.status(500).json("Deu erro ao encontrar o usuário.", error);
+    throw error;
+  }
+});
+
+// Rota pública minimalista
+router.get("/minimal/:id", async (req, res) => {
+
+  const { id: _id } = req.params;
+  
+  try {
+    const userDoc = await User.findOne({_id}).select('name photo');
+
+    if (!userDoc) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+
+    res.json(userDoc);
+  } catch (error) {
+    res.status(500).json("Deu erro ao encontrar o usuário.", error);
+    throw error;
+  }
+});
+
+// Upload de foto - requer autenticação
+router.post("/upload", requireAuth, uploadImage().single("files"), async (req, res) => {
+  
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ error: "Nenhum arquivo enviado" });
+  }
+
+  const { filename, path, mimetype } = file;
+
+  try {
+    // 1. Upload para o S3
+    const fileUrl = await sendToS3(filename, path, mimetype);
+    
+    // 2. Usar o ID do usuário do middleware
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ error: "Usuário não autenticado" });
+    }
+    
+    // 3. Salvar no banco de dados
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { photo: fileUrl },
+      { new: true }
+    );
+    
+    // 4. Retorna apenas a URL
+    res.json(fileUrl);
+    
+  } catch (error) {
+    console.error("Erro ao fazer upload:", error);
+    res.status(500).json({ error: "Erro ao fazer upload da imagem" });
+  }
+});
+
+// Atualizar perfil - requer autenticação e só pode atualizar o próprio perfil
+router.put("/:id", requireAuth, async (req, res) => {
+  const { id: _id } = req.params;
+
+  // Verifica se o usuário está tentando atualizar o próprio perfil
+  if (req.user._id !== _id) {
+    return res.status(403).json({ error: "Você só pode editar seu próprio perfil" });
+  }
+
+  const { name, email, phone, city, pronouns, photo, bio } = req.body;
+
+  try {
+    const updateUserDoc = await User.findOneAndUpdate(
+      {_id}, 
+      { name, email, phone, city, pronouns, photo, bio },
+      { new: true } // Retorna o documento atualizado
+    ).select('-password');
+
+    res.json(updateUserDoc);
+  } catch (error) {
+    res.status(500).json("Deu erro ao atualizar as informações...", error);
+    throw error;
+  }
+});
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -69,8 +190,7 @@ router.post("/login", async (req, res) => {
 
         try {
           const token = await JWTSign(newUserObj);
-          // 🔥 MUDANÇA AQUI:
-          res.cookie("token", token, cookieOptions).json(newUserObj);
+          res.cookie("token", token).json(newUserObj);
         }
         catch (error) {
           res.status(500).json("Erro ao assinar com o JWT", error);
@@ -87,10 +207,8 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// 3️⃣ ATUALIZE A ROTA DE LOGOUT
 router.post("/logout", (req, res) => {
-  // 🔥 MUDANÇA AQUI:
-  res.clearCookie("token", cookieOptions).json("Deslogado com sucesso!")
+  res.clearCookie("token").json("Deslogado com sucesso!")
 });
 
 // Deletar conta - requer autenticação e só pode deletar a própria conta
@@ -116,7 +234,5 @@ router.delete("/:id", requireAuth, async (req, res) => {
     throw error;
   }
 });
-
-
 
 export default router;

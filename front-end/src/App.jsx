@@ -32,7 +32,7 @@ axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
 		? "http://localhost:3000/api"
 		: "https://projetodormeaqui.onrender.com/api";
-withCredentials: true;
+axios.defaults.withCredentials = true;
 
 function ScrollToTop() {
 	const { pathname } = useLocation();
