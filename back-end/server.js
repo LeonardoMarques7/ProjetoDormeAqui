@@ -10,8 +10,8 @@ export const app = express();
 export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = dirname(__filename);
 
+app.use(cookieParser()); // ANTES das rotas!
 app.use(express.json());
-app.use(cookieParser());
 
 app.use(
   cors({
