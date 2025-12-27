@@ -88,7 +88,7 @@ const Item = ({ place = null, placeHolder }) => {
 	return (
 		<>
 			{placeHolder ? (
-				<div className="flex flex-col gap-2 max-w-[350px]">
+				<div className="flex flex-col gap-2 sm:max-w-[350px]">
 					<Skeleton className="aspect-square w-full rounded-2xl" />
 					<div className="space-y-2">
 						<Skeleton className="h-7 w-3/4" />
@@ -105,7 +105,7 @@ const Item = ({ place = null, placeHolder }) => {
 					onMouseLeave={() => setIsHovered(false)}
 					className={`${
 						isHovered && "border-2 border-primary-200 z-1 shadow-xl"
-					} flex bg-white shadow-md rounded-2xl  h-fit gap-4 flex-col w-full max-w-[350px] transition-all duration-300`}
+					} flex bg-white shadow-md rounded-2xl  h-fit gap-4 flex-col w-full sm:max-w-[350px] transition-all duration-300`}
 				>
 					{/* Carrossel de imagens */}
 					<div className="relative">

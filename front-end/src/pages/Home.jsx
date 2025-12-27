@@ -165,8 +165,8 @@ const Home = () => {
 		watchedValues.city || watchedValues.checkin || watchedValues.guests;
 
 	return (
-		<>
-			<div className="relative flex justify-center mb-12">
+		<div>
+			<div className="relative flex justify-center mb-12 ">
 				<div className="sm:banner__home max-sm:h-[25svh] h-[50svh] max-sm:top-0   w-svw relative">
 					<img
 						src={Banner}
@@ -440,7 +440,7 @@ const Home = () => {
 			{city ? (
 				placesSearch.length > 0 ? (
 					// Caso 3: pesquisou e encontrou
-					<div className="mx-auto mb-5 text-primary-500  max-w-full gap-2 w-full flex justify-between items-center px-8 lg:max-w-7xl text-2xl text-start pt-5">
+					<div className="mx-auto mb-5 text-primary-500  max-w-full gap-2 w-full flex justify-between items-center px-8  lg:max-w-7xl text-2xl text-start pt-5">
 						<span>
 							Buscando por{" "}
 							<span className="font-medium text-primary-900">{city}</span> e foi
@@ -460,9 +460,9 @@ const Home = () => {
 				) : (
 					// Caso 2: pesquisou mas não encontrou
 					<>
-						<div className="my-8 max-sm:my-4 max-w-7xl mx-auto text-start w-full overflow-hidden">
+						<div className="my-8 max-sm:my-4 max-w-7xl mx-auto  text-start w-full overflow-hidden">
 							{/* Conteúdo */}
-							<div className="text-center flex-col mx-8 flex gap-2 items-start max-sm:text-start justify-start transition-all">
+							<div className="text-center flex-col mx-8 max-sm:mx-3.5 flex gap-2 items-start max-sm:text-start justify-start transition-all">
 								<h1 className="max-sm:text-xl!">
 									<strong className="text-red-500">Ops!</strong> Não encontramos
 									acomodações que correspondam à sua busca.
@@ -481,7 +481,7 @@ const Home = () => {
 								</button>
 							</div>
 						</div>
-						<div className="mx-auto mb-5 font-medium max-sm:flex-col max-sm:gap-1 max-sm:text-lg! max-w-full text-gray-700 gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-xl text-start ">
+						<div className="mx-auto mb-5 font-medium max-sm:flex-col max-sm:px-3.5 max-sm:gap-1 max-sm:text-lg! max-w-full text-gray-700 gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-xl text-start ">
 							<span>Mas não se preocupe!</span>{" "}
 							<span className="max-sm:text-sm font-normal">
 								Confira abaixo outras opções disponíveis.
@@ -491,7 +491,7 @@ const Home = () => {
 				)
 			) : (
 				// Caso 1: sem pesquisa
-				<span className="mx-auto text__section font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 lg:max-w-7xl text-2xl text-start pt-5">
+				<span className="mx-auto text__section font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 max-sm:px-3.5 lg:max-w-7xl text-2xl text-start pt-5">
 					Acomodações disponíveis
 				</span>
 			)}
@@ -518,7 +518,7 @@ const Home = () => {
 			)}
 			{/* GRID DE RESULTADOS */}
 			{city && placesSearch.length > 0 && (
-				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 py-4 lg:max-w-7xl">
+				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 max-sm:px-3.5 py-4 lg:max-w-7xl">
 					<>
 						{placesSearch.map((place) => (
 							<Item {...{ place }} key={place._id} />
@@ -529,14 +529,14 @@ const Home = () => {
 			)}
 			{(!city || placesSearch.length === 0) && (
 				<div className="relative mb-10">
-					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
+					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8 max-sm:px-3.5 lg:max-w-7xl">
 						{places.map((place) => (
 							<Item {...{ place }} key={place._id} />
 						))}
 					</div>
 				</div>
 			)}
-		</>
+		</div>
 	);
 };
 
