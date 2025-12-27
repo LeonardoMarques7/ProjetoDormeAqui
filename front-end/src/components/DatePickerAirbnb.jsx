@@ -281,7 +281,7 @@ const DatePickerAirbnb = ({
 							<Calendar className=" text-primary-500 " size={24} />
 						</div>
 
-						<div className="flex items-center max-sm:w-full max-sm:justify-center mx-6 gap-2">
+						<div className="flex items-center w-full max-sm:justify-center mx-6 gap-2">
 							<div className="flex-1 ">
 								<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
 									Check-in

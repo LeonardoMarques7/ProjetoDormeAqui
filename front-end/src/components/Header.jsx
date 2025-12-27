@@ -7,7 +7,6 @@ import { useUserContext } from "./contexts/UserContext";
 import MenuBar from "./MenuBar";
 
 const Header = ({ active }) => {
-	const { user } = useUserContext();
 	const [scrolled, setScrolled] = useState(false);
 	const location = useLocation();
 	const secondaryLogoRoutes = [
@@ -63,13 +62,13 @@ const Header = ({ active }) => {
 
 	return (
 		<header
-			className={`fixed z-50  top-3 w-full mb-3 transition-all duration-500 delay-0 ${
+			className={`fixed z-50 w-full mb-3 transition-all duration-500 delay-0 ${
 				scrolled
 					? "bg-white  duration-75 !text-gray-900  backdrop-blur-2xl shadow-md shadow-white/10"
 					: "bg-transparent"
 			} ${getTextColor()}`}
 		>
-			<div className="max-w-full flex max-sm:px-5 items-center mx-auto justify-between px-10 sm:px-8 py-4 lg:max-w-7xl">
+			<div className="max-w-full flex max-sm:px-3.5 items-center mx-auto justify-between px-10 sm:px-8 py-5 lg:max-w-7xl">
 				<Link to="/" className="flex items-center transition-all">
 					<img
 						src={getLogoSrc()}

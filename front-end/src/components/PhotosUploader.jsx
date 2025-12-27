@@ -1,5 +1,5 @@
 import axios from "axios";
-import photoDefault from "../assets/photoDefault.png";
+import photoDefault from "../assets/photoDefault.jpg";
 import { ArrowUpFromLine, Camera, Star, Trash } from "lucide-react";
 
 const PhotosUploader = ({

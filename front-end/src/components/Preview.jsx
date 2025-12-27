@@ -18,7 +18,7 @@ import "lightgallery/css/lg-fullscreen.css";
 
 import { Button } from "@/components/ui/button";
 
-import photoDefault from "../assets/photoDefault.png";
+import photoDefault from "../assets/photoDefault.jpg";
 
 import {
 	AlarmClockCheck,

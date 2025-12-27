@@ -54,7 +54,8 @@ import RotatingText from "@/components/RotatingText";
 import { Timeline } from "@mantine/core";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import Counter from "@/components/Counter";
-import photoDefault from "../assets/loadingGif2.gif";
+import photoDefaultLoading from "../assets/loadingGif2.gif";
+import photoDefault from "../assets/photoDefault.jpg";
 
 import DatePickerAirbnb from "../components/DatePickerAirbnb";
 
@@ -200,6 +201,18 @@ const Place = () => {
 		}
 	};
 
+	const [imageErrors, setImageErrors] = useState({});
+
+	const handleImageError = (index) => {
+		setImageErrors((prev) => ({ ...prev, [index]: true }));
+	};
+
+	const getImageSrc = (index) => {
+		return imageErrors[index]
+			? photoDefault
+			: place.photos[index] || photoDefault;
+	};
+
 	if (redirect) return <Navigate to={`/account/bookings`} />;
 
 	// Função para lidar com a seleção de datas do novo componente
@@ -219,7 +232,7 @@ const Place = () => {
 							<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
 								<img
 									className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
-									src={photoDefault}
+									src={photoDefaultLoading}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(0)}
 								/>
@@ -229,7 +242,7 @@ const Place = () => {
 							<div className="col-span-1 row-span-1 max-sm:col-span-2 ">
 								<img
 									className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
-									src={photoDefault}
+									src={photoDefaultLoading}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(1)}
 								/>
@@ -239,7 +252,7 @@ const Place = () => {
 							<div className="col-span-1 row-span-1 max-sm:col-span-2">
 								<img
 									className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
-									src={photoDefault}
+									src={photoDefaultLoading}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(2)}
 								/>
@@ -249,7 +262,7 @@ const Place = () => {
 									<div className="col-span-1 row-span-1 max-sm:col-span-4">
 										<img
 											className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
-											src={photoDefault}
+											src={photoDefaultLoading}
 											alt="Imagem da acomodação"
 											onClick={() => handleImageClick(3)}
 										/>
@@ -258,7 +271,7 @@ const Place = () => {
 									<div className="col-span-1 row-span-1">
 										<img
 											className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
-											src={photoDefault}
+											src={photoDefaultLoading}
 											alt="Imagem da acomodação"
 											onClick={() => handleImageClick(4)}
 										/>
@@ -357,7 +370,7 @@ const Place = () => {
 								<div className="flex items-center group max-sm:w-full transition-all w-full ransition-all rounded-2xl py-5 gap-2.5 justify-between ">
 									<div className="flex items-center font-normal  gap-2.5">
 										<img
-											src={photoDefault}
+											src={photoDefaultLoading}
 											className="w-12 h-12 border  aspect-square rounded-full object-cover"
 											alt="Foto do Usuário"
 										/>
@@ -441,9 +454,9 @@ const Place = () => {
 				speed={500}
 				plugins={[lgThumbnail, lgZoom, lgFullscreen]}
 				dynamic
-				dynamicEl={place.photos.map((photo) => ({
-					src: photo,
-					thumb: photo,
+				dynamicEl={place.photos.map((photo, id) => ({
+					src: getImageSrc(id),
+					thumb: getImageSrc(id),
 				}))}
 			/>
 
@@ -458,7 +471,8 @@ const Place = () => {
 							<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
 								<img
 									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
-									src={place.photos[0]}
+									src={getImageSrc(0)}
+									onError={() => handleImageError(0)}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(0)}
 								/>
@@ -468,7 +482,8 @@ const Place = () => {
 							<div className="col-span-1 row-span-1 max-sm:col-span-2 ">
 								<img
 									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
-									src={place.photos[1]}
+									src={getImageSrc(1)}
+									onError={() => handleImageError(1)}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(1)}
 								/>
@@ -478,17 +493,20 @@ const Place = () => {
 							<div className="col-span-1 row-span-1 max-sm:col-span-2">
 								<img
 									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
-									src={place.photos[2]}
+									src={getImageSrc(2)}
+									onError={() => handleImageError(2)}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(2)}
 								/>
 							</div>
+
 							{moblie ? null : (
 								<>
 									<div className="col-span-1 row-span-1 max-sm:col-span-4">
 										<img
 											className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
-											src={place.photos[3]}
+											src={getImageSrc(3)}
+											onError={() => handleImageError(3)}
 											alt="Imagem da acomodação"
 											onClick={() => handleImageClick(3)}
 										/>
@@ -497,7 +515,8 @@ const Place = () => {
 									<div className="col-span-1 row-span-1">
 										<img
 											className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
-											src={place.photos[4] || photoDefault}
+											src={getImageSrc(4)}
+											onError={() => handleImageError(4)}
 											alt="Imagem da acomodação"
 											onClick={() => handleImageClick(4)}
 										/>
@@ -641,7 +660,7 @@ const Place = () => {
 							<div className="flex items-center gap-2 w-full">
 								<Link
 									to={`/account/profile/${place.owner._id}`}
-									className="flex items-center group max-sm:w-full hover:bg-primary-100 hover:px-5 py-5 transition-all w-full ransition-all rounded-2xl cursor-pointer gap-2.5 justify-between "
+									className="flex items-center group max-sm:w-full hover:bg-primary-100  hover:px-5 py-5 max-sm:hover:bg-transparent max-sm:rounded-none max-sm:hover:px-0 transition-all w-full ransition-all rounded-2xl cursor-pointer gap-2.5 justify-between "
 								>
 									<div className="flex items-center font-normal  gap-2.5">
 										<img
@@ -659,7 +678,10 @@ const Place = () => {
 											</small>
 										</div>
 									</div>
-									<ChevronRight size={15} className="text-primary-300 mr-1" />
+									<ChevronRight
+										size={15}
+										className="group-hover:text-primary-900 group-hover:scale-150 text-primary-300 mr-1"
+									/>
 								</Link>
 							</div>
 						</div>
