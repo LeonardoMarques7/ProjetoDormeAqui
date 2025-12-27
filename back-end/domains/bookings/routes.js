@@ -4,10 +4,9 @@ import Booking from "./model.js";
 import { connectDb } from "../../config/db.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 
-connectDb();
-
 const router = Router();
 
+connectDb();
 
 router.get("/owner", async (req, res) => {
   
