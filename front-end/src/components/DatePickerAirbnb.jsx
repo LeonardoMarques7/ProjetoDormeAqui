@@ -244,9 +244,9 @@ const DatePickerAirbnb = ({
 				} transition-all !text-left bg-white flex !justify-start`}
 			>
 				{search ? (
-					<div className="flex group-hover:text-primary-700 max-sm:justify-evenly max-sm:flex-1 items-center text-gray-400 gap-2 justify-center">
+					<div className="flex group-hover:text-primary-700 max-sm:justify-start max-sm:flex-1 items-center text-gray-400 gap-2 justify-center">
 						{!checkinDate && !checkoutDate && (
-							<Calendar className=" left-0 size-5" />
+							<Calendar className=" left-0 mr-2 size-5" />
 						)}
 						{checkinDate ? (
 							<div className="group__input relative w-full max-sm:flex-1 max-sm:w-fit px-4 flex justify-center items-center">

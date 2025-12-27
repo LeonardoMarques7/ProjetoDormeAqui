@@ -255,6 +255,7 @@ const Home = () => {
 															control={control}
 															render={({ field: checkoutField }) => (
 																<DatePickerAirbnb
+																	key={datePickerKey}
 																	onDateSelect={({ checkin, checkout }) => {
 																		field.onChange(checkin);
 																		checkoutField.onChange(checkout);
@@ -325,9 +326,11 @@ const Home = () => {
 												)}
 											</Button>
 											<button
-												type="button"
-												onClick={limparPesquisa}
-												className="bg-red-500 cursor-pointer text-white h-15 w-15 justify-center items-center rounded-xl text-sm font-bold hover:bg-red-700 transition-all disabled:bg-red-100 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
+												onClick={(e) => {
+													limparPesquisa(e);
+													setDatePickerKey((prev) => prev + 1); // Adicione esta linha
+												}}
+												className="bg-red-500 cursor-pointer text-white h-15 w-15 justify-center rounded-xl text-sm font-bold hover:bg-red-700 transition-all disabled:bg-red-100 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
 											>
 												<Trash />
 											</button>

@@ -78,7 +78,6 @@ function MenuBar({ active }) {
 			label: "Torne-se um anfitrião",
 		},
 	];
-
 	useEffect(() => {
 		const handleScroll = () => {
 			setScrolled(window.scrollY > 200); // ativa quando rola 10px
@@ -364,10 +363,7 @@ function MenuBar({ active }) {
 												</span>
 												<Link
 													to={"/login"}
-													onClick={() => {
-														if (item.function) item.function();
-														handleNavClick();
-													}}
+													onClick={() => handleNavClick()}
 													className="flex text-sm items-center bg-primary-900 justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-800 text-white transition-all group"
 												>
 													<span className="">Entrar</span>
@@ -375,10 +371,7 @@ function MenuBar({ active }) {
 												</Link>
 												<Link
 													to={"/register"}
-													onClick={() => {
-														if (item.function) item.function();
-														handleNavClick();
-													}}
+													onClick={() => handleNavClick()}
 													className="flex text-sm items-center bg-white justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-200 text-primary-900 transition-all group"
 												>
 													<span className="">Criar Conta</span>
