@@ -114,7 +114,7 @@ function MenuBar({ active }) {
 		<>
 			{!moblie ? (
 				<motion.nav
-					initial={{ opacity: 0, y: -20 }}
+					initial={{ opacity: 0, y: -50 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.8, delay: 0.5 }}
 					className="flex items-center gap-4"
@@ -250,12 +250,7 @@ function MenuBar({ active }) {
 					)}
 				</motion.nav>
 			) : (
-				<motion.nav
-					initial={{ opacity: 0, y: -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.8, delay: 0.5 }}
-					className="flex items-center gap-2 "
-				>
+				<div className="flex items-center gap-2 ">
 					<Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
 						<SheetTrigger className={`absolute z-50 right-8`}>
 							<Sidebar className="w-5 h-5" />
@@ -435,7 +430,7 @@ function MenuBar({ active }) {
 							</div>
 						</SheetContent>
 					</Sheet>
-				</motion.nav>
+				</div>
 			)}
 		</>
 	);

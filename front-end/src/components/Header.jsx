@@ -20,7 +20,7 @@ const Header = ({ active }) => {
 
 	useEffect(() => {
 		const handleScroll = () => {
-			setScrolled(window.scrollY > 200);
+			setScrolled(window.scrollY > 25);
 		};
 
 		window.addEventListener("scroll", handleScroll);

@@ -41,20 +41,20 @@ const AccPlaces = () => {
 
 	return (
 		<>
-			<div className="flex w-full mt-10 mx-auto max-w-full max-h-full lg:max-w-7xl h-full flex-col gap-8 relative justify-start items-start px-8">
+			<div className="flex w-full mt-10 mx-auto max-w-full max-h-full lg:max-w-7xl h-full flex-col gap-8 relative justify-start items-start max-sm:my-0 max-sm:px-3.5 px-8">
 				<div className="mt-20 flex border-l-3 pl-4 justify-between items-center w-full ">
 					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
-						<span className=" text-3xl max-sm:text-xl flex items-end gap-3 text-black">
+						<span className=" text-3xl max-sm:text-xl text-nowrap flex items-end gap-3 text-black">
 							{edit
 								? "Editando acomodação"
 								: action !== "new"
 								? "Meus lugares"
 								: "Adicionando acomodação"}{" "}
-							<span className="text-lg flex items-center gap-3">
+							<span className="text-lg max-sm:text-sm flex items-center gap-3">
 								({places.length} Acomodações)
 								<Link
 									to="/account/places/new"
-									className=" text-sm underline"
+									className=" text-sm underline max-sm:hidden"
 									title="Anuncie seu espaço"
 								>
 									Anuncie seu espaço

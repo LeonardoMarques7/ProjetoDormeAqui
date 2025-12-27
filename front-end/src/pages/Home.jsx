@@ -178,10 +178,10 @@ const Home = () => {
 
 				{moblie ? (
 					/* Versão Mobile - Bottom Sheet */
-					<div className="absolute z-20 -bottom-8 left-0 right-0 px-4">
+					<div className="absolute z-20 -bottom-8 left-0 right-0 px-3.5">
 						<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
 							<SheetTrigger asChild>
-								<button className="w-full bg-white shadow-lg rounded-2xl px-6 py-4 flex items-center gap-3 hover:shadow-xl transition-shadow">
+								<button className="w-full bg-white shadow-lg rounded-2xl px-4 py-4 flex items-center gap-3 hover:shadow-xl transition-shadow">
 									<div className="flex-1 text-left">
 										<p className="text-sm font-semibold text-gray-900">
 											{hasFilters
@@ -491,13 +491,13 @@ const Home = () => {
 				)
 			) : (
 				// Caso 1: sem pesquisa
-				<span className="mx-auto text__section font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 max-sm:px-3.5 lg:max-w-7xl text-2xl text-start pt-5">
+				<span className="mx-auto text__section max-sm:text-lg max-sm:mb-2.5 max-sm:pt-0 font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 max-sm:px-3.5 lg:max-w-7xl text-2xl text-start pt-5">
 					Acomodações disponíveis
 				</span>
 			)}
 			{loading && (
 				<div className="relative ">
-					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8  lg:max-w-7xl">
+					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8  lg:max-w-7xl">
 						{[...Array(8)].map((_, index) => (
 							<div
 								key={index}
@@ -518,7 +518,7 @@ const Home = () => {
 			)}
 			{/* GRID DE RESULTADOS */}
 			{city && placesSearch.length > 0 && (
-				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] mx-auto gap-8 px-8 max-sm:px-3.5 py-4 lg:max-w-7xl">
+				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 mx-auto gap-8 px-8 max-sm:px-3.5 py-4 lg:max-w-7xl">
 					<>
 						{placesSearch.map((place) => (
 							<Item {...{ place }} key={place._id} />
@@ -529,7 +529,7 @@ const Home = () => {
 			)}
 			{(!city || placesSearch.length === 0) && (
 				<div className="relative mb-10">
-					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8 px-8 max-sm:px-3.5 lg:max-w-7xl">
+					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8 max-sm:px-3.5 lg:max-w-7xl">
 						{places.map((place) => (
 							<Item {...{ place }} key={place._id} />
 						))}

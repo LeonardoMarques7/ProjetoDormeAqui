@@ -210,7 +210,7 @@ const AccProfile = () => {
 		<>
 			{!isEditingProfile ? (
 				<>
-					<div className="banner__home  max-sm:hidden h-[50svh]  bg-primar-700  w-full relative">
+					<div className="banner__home max-sm:h-[25svh] h-[50svh]  bg-primar-700  w-full relative">
 						<img
 							src={Banner}
 							alt=""
@@ -220,10 +220,10 @@ const AccProfile = () => {
 					</div>
 
 					{/* Container do conteúdo */}
-					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 relative -mt-28">
-						<div className="flex flex-col gap-5 relative mb-10">
+					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5 max-sm:mt-0 relative -mt-28">
+						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10">
 							{/* Header do perfil (avatar + botão) */}
-							<div className="avatar__btn flex gap-5 items-center justify-start relative">
+							<div className="avatar__btn flex  max-sm:gap-2 gap-5 items-center justify-start relative">
 								{/* Avatar sobreposto */}
 								<div className="icon__perfil relative w-40 h-40 rounded-full border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
 									{displayUser.photo ? (
@@ -236,18 +236,18 @@ const AccProfile = () => {
 										displayUser.name.charAt(0)
 									)}
 								</div>
-								<h1 className="container__name flex-1 mb-10 text-4xl font-bold text-white flex justify-start items-end gap-3">
+								<div className="container__name flex-1 mb-10 text-4xl max-sm:hidden font-bold text-white flex justify-start items-end gap-3">
 									{displayUser.name}
 									{displayUser.pronouns && (
 										<span className="text-lg font-normal text-white">
 											{displayUser.pronouns}
 										</span>
 									)}
-								</h1>
+								</div>
 
 								{/* Botão de editar - só mostra se for o próprio perfil E estiver logado */}
 								{isOwnProfile && (
-									<div className="flex items-center mb-10 gap-5 text-white">
+									<div className="flex items-center mb-10 gap-5 max-sm:hidden text-white">
 										<Link
 											to="/account/profile/edit"
 											className={`group flex cursor-pointer justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full`}
@@ -271,10 +271,10 @@ const AccProfile = () => {
 							</div>
 
 							{moblie ? (
-								<span className="text-3xl bg-red text-nowrap font-bold truncate flex-col flex justify-center items-center gap-3">
+								<span className="text-sm line-clamp-3 bg-red text-nowrap font-bold truncate flex-col flex justify-start items-start gap-1">
 									<h1>{displayUser.name}</h1>
 									{displayUser.pronouns && (
-										<span className="text-lg font-normal text-gray-300">
+										<span className="text-lg font-light text-gray-300">
 											{displayUser.pronouns}
 										</span>
 									)}
@@ -284,20 +284,11 @@ const AccProfile = () => {
 							)}
 
 							{/* Informações de contato */}
-							<div className="flex flex-wrap gap-4 text-gray-500 mt-4">
+							<div className="flex flex-wrap max-sm:flex-col max-sm:gap-1 gap-4 text-gray-500 mt-0">
 								{displayUser.city && (
 									<span className="flex items-center gap-2">
-										<MapPin size={18} /> {displayUser.city}
-									</span>
-								)}
-								{displayUser.email && (
-									<span className="flex items-center gap-2">
-										<Mail size={18} /> {displayUser.email}
-									</span>
-								)}
-								{displayUser.phone && (
-									<span className="flex items-center gap-2">
-										<Phone size={18} /> {displayUser.phone}
+										<MapPin size={18} className="max-sm:hidden" />
+										{displayUser.city}
 									</span>
 								)}
 							</div>

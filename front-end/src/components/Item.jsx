@@ -105,7 +105,7 @@ const Item = ({ place = null, placeHolder }) => {
 					onMouseLeave={() => setIsHovered(false)}
 					className={`${
 						isHovered && "border-2 border-primary-200 z-1 shadow-xl"
-					} flex bg-white shadow-md rounded-2xl  h-fit gap-4 flex-col w-full sm:max-w-[350px] transition-all duration-300`}
+					} flex bg-white shadow-md h-full rounded-2xl gap-4 flex-col w-full sm:max-w-[350px] transition-all duration-300`}
 				>
 					{/* Carrossel de imagens */}
 					<div className="relative">
@@ -163,29 +163,29 @@ const Item = ({ place = null, placeHolder }) => {
 					</div>
 
 					{/* Card info - estado normal */}
-					<div className="mt-2 px-4 flex flex-col gap-1">
-						<div className="flex flex-col  flex-1">
-							<span className="text-xs text-gray-500 flex items-center gap-1 ">
+					<div className="mt-1 px-4 max-sm:px-2 max-sm:mt-0 flex flex-col justify-end h-full gap-1">
+						<div className="flex flex-col flex-1">
+							<span className="text-xs  max-sm:hidden max-sm:line-through text-gray-500 flex items-center gap-1 ">
 								De <div className="">R$ {Math.round(place.price * 1.2)}</div>
 							</span>
 							<div className="flex items-baseline gap-1">
-								<span className="text-xl font-medium text-gray-900">
+								<span className="text-xl max-sm:text-xs font-medium text-gray-900">
 									Por R$ {place.price}
 								</span>
 							</div>
+							<div className="mt-1 leading-5">
+								<p className="text-[1rem] max-sm:text-xs font-light text-gray-900 line-clamp-1 overflow- max-sm:max-w-full max-w-[90%]">
+									{place.title}
+								</p>
+							</div>
 						</div>
-						<div className=" leading-5">
-							<p className="text-[1rem] font-light text-gray-900 line-clamp-2 overflow- max-w-[60%]">
-								{place.title}
-							</p>
-						</div>
-						<p className="flex items-center gap-4">
+						<div className="flex items-center h-full max-sm:pb-1 max-sm:py-0 py-2 gap-4 ">
 							<div className="flex py-2 items-center flex-1 gap-1 text-xs w-full text-gray-600">
-								<MapPin size={14} />
+								<MapPin className="max-sm:hidden" size={14} />
 								<span>{place.city}</span>
 							</div>
 							{!isHovered && <ChevronDown size={15} className="mr-2" />}
-						</p>
+						</div>
 
 						{/* Card info - estado hover (expanded) */}
 						<div
