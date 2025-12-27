@@ -65,7 +65,7 @@ router.post("/", async (req, res) => {
 
     try {
       const token = await JWTSign(newUserObj);
-      res.cookie("token", token).json(newUserObj);
+      res.cookie("token", token, {httpOnly: true, secure: true, sameSite: 'none',}).json(newUserObj);
     } 
     catch (error) {
       res.status(500).json("Erro ao assinar com o JWT", error);
@@ -190,7 +190,7 @@ router.post("/login", async (req, res) => {
 
         try {
           const token = await JWTSign(newUserObj);
-          res.cookie("token", token).json(newUserObj);
+          res.cookie("token", token, {httpOnly: true, secure: true, sameSite: 'none'}).json(newUserObj);
         }
         catch (error) {
           res.status(500).json("Erro ao assinar com o JWT", error);
