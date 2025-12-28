@@ -8,7 +8,10 @@ import axios from "axios";
 axios.defaults.withCredentials = true;
 
 // Configurar uma vez no início
-axios.defaults.baseURL = "https://projetodormeaqui.onrender.com/api";
+axios.defaults.baseURL =
+	import.meta.env.MODE === "development"
+		? "http://localhost:3000/api"
+		: "https://projetodormeaqui.onrender.com/api";
 
 axios.interceptors.request.use((config) => {
 	const token = localStorage.getItem("token");
