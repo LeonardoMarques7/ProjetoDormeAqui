@@ -17,6 +17,9 @@ const isProduction = process.env.NODE_ENV === 'production';
 // Nomes de cookies COMPLETAMENTE diferentes
 const COOKIE_NAME = isProduction ? 'prod_auth_token' : 'dev_auth_token';
 
+console.log('🔧 Ambiente detectado:', isProduction ? 'PRODUÇÃO' : 'DESENVOLVIMENTO');
+console.log('📌 NODE_ENV:', process.env.NODE_ENV);
+
 // Configurações específicas por ambiente
 const COOKIE_OPTIONS = isProduction ? {
   httpOnly: true,
@@ -33,6 +36,9 @@ const COOKIE_OPTIONS = isProduction ? {
   maxAge: 7 * 24 * 60 * 60 * 1000,
   // SEM domain - fica restrito ao localhost
 };
+
+console.log('🍪 Nome do cookie:', COOKIE_NAME);
+console.log('⚙️ Opções do cookie:', COOKIE_OPTIONS);
 
 // ⭐ Middleware opcional de autenticação
 const optionalAuth = async (req, res, next) => {
@@ -210,9 +216,12 @@ router.post("/login", async (req, res) => {
     const newUserObj = { name, email, photo, _id };
     const token = await JWTSign(newUserObj);
 
-    res
-      .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
+    isProduction ?   res
+      .cookie('prod_auth_token', token, COOKIE_OPTIONS)
+      .json(newUserObj) :   res
+      .cookie('dev_auth_token', token, COOKIE_OPTIONS)
       .json(newUserObj);
+  
       
   } catch (error) {
     console.error("Erro no login:", error);
