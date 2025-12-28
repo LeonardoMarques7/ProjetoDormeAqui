@@ -216,10 +216,8 @@ router.post("/login", async (req, res) => {
     const newUserObj = { name, email, photo, _id };
     const token = await JWTSign(newUserObj);
 
-    isProduction ?   res
-      .cookie('prod_auth_token', token, COOKIE_OPTIONS)
-      .json(newUserObj) :   res
-      .cookie('dev_auth_token', token, COOKIE_OPTIONS)
+    res
+      .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
       .json(newUserObj);
   
       
@@ -232,7 +230,7 @@ router.post("/login", async (req, res) => {
 // ⭐ LOGOUT - Limpa AMBOS os cookies para garantir
 router.post("/logout", (req, res) => {
   // Limpa o cookie do ambiente atual
-  res.clearCookie(COOKIE_NAME, COOKIE_OPTIONS);
+  res.clearCookie(COOKIE_OPTIONS);
   
   // Segurança extra: limpa ambos os cookies
   res.clearCookie('prod_auth_token', {
