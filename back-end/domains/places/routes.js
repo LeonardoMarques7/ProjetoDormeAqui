@@ -1,14 +1,12 @@
 import { Router } from "express";
 import Place from "./model.js";
 import { JWTVerify } from "../../ultis/jwt.js";
-import { connectDb } from "../../config/db.js";
 import { downloadImage } from "../../ultis/imageDownloader.js";
 import { __dirname } from "../../ultis/dirname.js";
 import { sendToS3, uploadImage } from "../controller.js";
 
 const router = Router();
 
-connectDb();
 
 router.get("/", async (req, res) => {
     const { city } = req.query;

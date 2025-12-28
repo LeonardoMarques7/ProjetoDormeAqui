@@ -134,12 +134,12 @@ const PlaceCard = ({ place }) => {
 							{place.title}
 						</p>
 					</div>
-					<p className="flex items-center gap-4">
+					<div className="flex items-center gap-4">
 						<div className="flex items-center flex-1 gap-1 text-xs w-full text-gray-600">
 							<MapPin size={14} />
 							<span>{place.city}</span>
 						</div>
-					</p>
+					</div>
 				</div>
 				<div className="flex items-center mt-4 justify-between">
 					<div className=" flex flex-col max-sm:items-start items-end py-4">

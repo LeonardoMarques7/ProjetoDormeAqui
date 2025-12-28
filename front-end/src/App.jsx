@@ -28,6 +28,7 @@ import { set } from "date-fns";
 import { MoblieContextProvider } from "./components/contexts/MoblieContext";
 import Footer from "./components/Footer";
 import Teste from "./pages/Teste";
+import { AuthModalContextProvider } from "./components/contexts/AuthModalContext";
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
 		? "http://localhost:3000/api"
@@ -52,25 +53,27 @@ function App() {
 		<MantineProvider>
 			<MoblieContextProvider>
 				<UserContextProvider>
-					<MessageProvider>
-						<Toaster position="top-right" />
-						<div className="flex flex-col ">
-							<ScrollToTop />
-							<Header active={isComponentActive} />
-							<Routes>
-								<Route path="/" element={<Home />} />
-								<Route path="/teste" element={<Teste />} />
-								<Route path="/login" element={<Login />} />
-								<Route path="/register" element={<Register />} />
-								<Route
-									path="/account/:subpage/:action?/:id?"
-									element={<Account />}
-								/>
-								<Route path="/places/:id" element={<Place />} />
-							</Routes>
-							<Footer active={isComponentActive} />
-						</div>
-					</MessageProvider>
+					<AuthModalContextProvider>
+						<MessageProvider>
+							<Toaster position="top-right" />
+							<div className="flex flex-col ">
+								<ScrollToTop />
+								<Header active={isComponentActive} />
+								<Routes>
+									<Route path="/" element={<Home />} />
+									<Route path="/teste" element={<Teste />} />
+									<Route path="/login" element={<Login />} />
+									<Route path="/register" element={<Register />} />
+									<Route
+										path="/account/:subpage/:action?/:id?"
+										element={<Account />}
+									/>
+									<Route path="/places/:id" element={<Place />} />
+								</Routes>
+								<Footer active={isComponentActive} />
+							</div>
+						</MessageProvider>
+					</AuthModalContextProvider>
 				</UserContextProvider>
 			</MoblieContextProvider>
 		</MantineProvider>

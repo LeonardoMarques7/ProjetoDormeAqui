@@ -5,6 +5,7 @@ import BookingRoutes from "../domains/bookings/routes.js";
 
 const router = Router();
 
+
 router.use("/users", UserRoutes);
 router.use("/places", PlacesRoutes);
 router.use("/bookings", BookingRoutes);

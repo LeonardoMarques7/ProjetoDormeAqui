@@ -74,12 +74,12 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 									ID: {booking.place._id.slice(0, 8)}
 								</span>
 							</div>
-							<p className="flex items-center gap-4">
+							<div className="flex items-center gap-4">
 								<div className="flex items-center flex-1 gap-1 text-xs w-full text-gray-600">
 									<MapPin size={14} />
 									<span>{booking.place.city}</span>
 								</div>
-							</p>
+							</div>
 							<div className="mt-5 ">
 								<div className="leading-5 flex justify-start gap-8 flex-1 w-full">
 									<span className="text-[1rem] max-sm:text-sm uppercase flex flex-col gap-1 font-light text-gray-900">

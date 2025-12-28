@@ -65,6 +65,7 @@ import {
 	TooltipContent,
 	TooltipProvider,
 } from "@/components/ui/tooltip";
+import { useAuthModalContext } from "../components/contexts/AuthModalContext";
 
 const Place = () => {
 	const { moblie } = useMoblieContext();
@@ -89,6 +90,7 @@ const Place = () => {
 	});
 	const [booking, setBooking] = useState(null);
 	const [loading, setLoading] = useState(false);
+	const { showAuthModal } = useAuthModalContext();
 
 	const numberOfDays = (date1, date2) => {
 		const date1GMT = date1 + "GMT-03:00";
@@ -881,10 +883,10 @@ const Place = () => {
 								</InteractiveHoverButton>
 							) : (
 								<InteractiveHoverButton
-									className="w-fit z-10"
+									className=""
 									onClick={(e) => {
 										e.preventDefault();
-										setLogin(true);
+										showAuthModal("login");
 									}}
 								>
 									Entre para continuar

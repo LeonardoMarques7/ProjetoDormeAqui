@@ -1,33 +1,44 @@
+// ============================================
+// ROUTES/USER.JS - Versão Final Completa
+// ============================================
 import "dotenv/config";
 import { Router } from "express";
-import { connectDb } from "../../config/db.js";
 import User from "./model.js";
-import { __dirname } from "../../ultis/dirname.js";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 import { JWTSign, JWTVerify } from "../../ultis/jwt.js";
-import { downloadImage } from "../../ultis/imageDownloader.js";
 import { sendToS3, uploadImage } from "../controller.js";
 
 const router = Router();
 const bcryptSalt = bcrypt.genSaltSync();
 
-connectDb();
+// ⭐ CONFIGURAÇÃO DINÂMICA POR AMBIENTE
+const isProduction = process.env.NODE_ENV === 'production';
+const COOKIE_NAME = isProduction ? 'token' : 'token_dev';
 
-// Middleware opcional de autenticação - não bloqueia se não tiver token
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? 'none' : 'lax',
+  path: '/',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  ...(isProduction && process.env.COOKIE_DOMAIN && { domain: process.env.COOKIE_DOMAIN })
+};
+
+// ⭐ Middleware opcional de autenticação
 const optionalAuth = async (req, res, next) => {
   try {
-    const userInfo = await JWTVerify(req);
-    req.user = userInfo; // Adiciona o usuário ao request se autenticado
+    const userInfo = await JWTVerify(req, COOKIE_NAME);
+    req.user = userInfo;
   } catch (error) {
-    req.user = null; // Não há usuário autenticado
+    req.user = null;
   }
   next();
 };
 
-// Middleware obrigatório de autenticação - bloqueia se não tiver token
+// ⭐ Middleware obrigatório de autenticação
 const requireAuth = async (req, res, next) => {
   try {
-    const userInfo = await JWTVerify(req);
+    const userInfo = await JWTVerify(req, COOKIE_NAME);
     req.user = userInfo;
     next();
   } catch (error) {
@@ -35,25 +46,30 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
+// ============================================
+// ROTAS
+// ============================================
+
 router.get("/", async (req, res) => {
   try {
     const userDoc = await User.find();
     res.json(userDoc);
   } catch (error) {
-    res.status(500).json(error);
+    res.status(500).json({ error: "Erro ao buscar usuários" });
   }
 });
 
-// Rota de perfil - requer autenticação
 router.get("/profile", requireAuth, async (req, res) => {
   res.json(req.user);
 });
 
+// REGISTRO
 router.post("/", async (req, res) => {
   const { name, email, password } = req.body;
-  const encryptedPassword = bcrypt.hashSync(password, bcryptSalt);
 
   try {
+    const encryptedPassword = bcrypt.hashSync(password, bcryptSalt);
+    
     const newUserDoc = await User.create({
       name,
       email,
@@ -62,26 +78,23 @@ router.post("/", async (req, res) => {
 
     const { _id } = newUserDoc;
     const newUserObj = { name, email, _id };
+    const token = await JWTSign(newUserObj);
 
-    try {
-      const token = await JWTSign(newUserObj);
-      res.cookie("token", token, {httpOnly: true, secure: true, sameSite: 'none',}).json(newUserObj);
-    } 
-    catch (error) {
-      res.status(500).json("Erro ao assinar com o JWT", error);
-    }
+    res
+      .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
+      .json(newUserObj);
+      
   } catch (error) {
-    res.status(500).json(error);
-    throw error;
+    console.error("Erro ao criar usuário:", error);
+    res.status(500).json({ error: "Erro ao criar usuário" });
   }
 });
 
-// Rota pública - qualquer um pode ver o perfil de outro usuário
+// PERFIL PÚBLICO
 router.get("/:id", async (req, res) => {
   const { id: _id } = req.params;
   
   try {
-    // Não retorna informações sensíveis como senha
     const userDoc = await User.findOne({_id}).select('-password');
 
     if (!userDoc) {
@@ -90,14 +103,12 @@ router.get("/:id", async (req, res) => {
 
     res.json(userDoc);
   } catch (error) {
-    res.status(500).json("Deu erro ao encontrar o usuário.", error);
-    throw error;
+    res.status(500).json({ error: "Erro ao encontrar usuário" });
   }
 });
 
-// Rota pública minimalista
+// PERFIL MINIMALISTA
 router.get("/minimal/:id", async (req, res) => {
-
   const { id: _id } = req.params;
   
   try {
@@ -109,14 +120,12 @@ router.get("/minimal/:id", async (req, res) => {
 
     res.json(userDoc);
   } catch (error) {
-    res.status(500).json("Deu erro ao encontrar o usuário.", error);
-    throw error;
+    res.status(500).json({ error: "Erro ao encontrar usuário" });
   }
 });
 
-// Upload de foto - requer autenticação
+// UPLOAD DE FOTO
 router.post("/upload", requireAuth, uploadImage().single("files"), async (req, res) => {
-  
   const file = req.file;
 
   if (!file) {
@@ -126,22 +135,18 @@ router.post("/upload", requireAuth, uploadImage().single("files"), async (req, r
   const { filename, path, mimetype } = file;
 
   try {
-    // 1. Upload para o S3
     const fileUrl = await sendToS3(filename, path, mimetype);
     
-    // 2. Usar o ID do usuário do middleware
     if (!req.user || !req.user._id) {
       return res.status(401).json({ error: "Usuário não autenticado" });
     }
     
-    // 3. Salvar no banco de dados
     await User.findByIdAndUpdate(
       req.user._id,
       { photo: fileUrl },
       { new: true }
     );
     
-    // 4. Retorna apenas a URL
     res.json(fileUrl);
     
   } catch (error) {
@@ -150,11 +155,10 @@ router.post("/upload", requireAuth, uploadImage().single("files"), async (req, r
   }
 });
 
-// Atualizar perfil - requer autenticação e só pode atualizar o próprio perfil
+// ATUALIZAR PERFIL
 router.put("/:id", requireAuth, async (req, res) => {
   const { id: _id } = req.params;
 
-  // Verifica se o usuário está tentando atualizar o próprio perfil
   if (req.user._id !== _id) {
     return res.status(403).json({ error: "Você só pode editar seu próprio perfil" });
   }
@@ -165,58 +169,58 @@ router.put("/:id", requireAuth, async (req, res) => {
     const updateUserDoc = await User.findOneAndUpdate(
       {_id}, 
       { name, email, phone, city, pronouns, photo, bio },
-      { new: true } // Retorna o documento atualizado
+      { new: true }
     ).select('-password');
 
     res.json(updateUserDoc);
   } catch (error) {
-    res.status(500).json("Deu erro ao atualizar as informações...", error);
-    throw error;
+    console.error("Erro ao atualizar usuário:", error);
+    res.status(500).json({ error: "Erro ao atualizar informações" });
   }
 });
 
+// LOGIN
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const userDoc = await User.findOne({ email });
 
-    if (userDoc) {
-      const passwordCorrect = bcrypt.compareSync(password, userDoc.password);
-      const { name, photo, _id } = userDoc;
-      
-      if (passwordCorrect) {
-        const newUserObj = { name, email, photo, _id };
-
-        try {
-          const token = await JWTSign(newUserObj);
-          res.cookie("token", token, {httpOnly: true, secure: true, sameSite: 'none'}).json(newUserObj);
-        }
-        catch (error) {
-          res.status(500).json("Erro ao assinar com o JWT", error);
-        }
-      } else {
-        res.status(400).json("Senha inválida!");
-      }
-    } else {
-      res.status(400).json("Usuário não encontrado!");
+    if (!userDoc) {
+      return res.status(400).json({ error: "Usuário não encontrado!" });
     }
+
+    const passwordCorrect = bcrypt.compareSync(password, userDoc.password);
+    
+    if (!passwordCorrect) {
+      return res.status(400).json({ error: "Senha inválida!" });
+    }
+
+    const { name, photo, _id } = userDoc;
+    const newUserObj = { name, email, photo, _id };
+    const token = await JWTSign(newUserObj);
+
+    res
+      .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
+      .json(newUserObj);
+      
   } catch (error) {
-    res.status(500).json(error);
-    throw error;
+    console.error("Erro no login:", error);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
+// ⭐ LOGOUT
 router.post("/logout", (req, res) => {
-  res.clearCookie("token").json("Deslogado com sucesso!")
+  res
+    .clearCookie(COOKIE_NAME, COOKIE_OPTIONS)
+    .json({ message: "Deslogado com sucesso!" });
 });
 
-// Deletar conta - requer autenticação e só pode deletar a própria conta
+// DELETAR CONTA
 router.delete("/:id", requireAuth, async (req, res) => {
-
   const { id: _id } = req.params;
 
-  // Verifica se o usuário está tentando deletar a própria conta
   if (req.user._id !== _id) {
     return res.status(403).json({ error: "Você só pode deletar sua própria conta" });
   }
@@ -225,13 +229,16 @@ router.delete("/:id", requireAuth, async (req, res) => {
     const deleteAccount = await User.findOneAndDelete({ _id });
 
     if (!deleteAccount) {
-      return res.status(404).json({ message: "Usuário não encontrada." });
+      return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    res.clearCookie("token").json({ message: "Usuário deletado com sucesso!", deleteAccount });
+    res
+      .clearCookie(COOKIE_NAME, COOKIE_OPTIONS)
+      .json({ message: "Usuário deletado com sucesso!", deleteAccount });
+      
   } catch (error) {
-    res.status(500).json({ message: "Erro ao deletar o usuário.", error });
-    throw error;
+    console.error("Erro ao deletar usuário:", error);
+    res.status(500).json({ error: "Erro ao deletar usuário" });
   }
 });
 

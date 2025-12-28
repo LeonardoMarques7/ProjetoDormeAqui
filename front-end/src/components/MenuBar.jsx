@@ -28,6 +28,8 @@ import { Home, Briefcase, User, Mail, Settings } from "lucide-react";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
+import { useAuthModalContext } from "./contexts/AuthModalContext";
+
 import ImageMail from "../assets/mailMinimal.png";
 import ImageGithub from "../assets/githubMinimal.png";
 import ImageLinkedin from "../assets/linkedinMinimal.png";
@@ -47,6 +49,7 @@ function MenuBar({ active }) {
 	const [scrolled, setScrolled] = useState(false);
 	const [moblie, setIsMoblie] = useState(window.innerWidth <= 768);
 	const [sidebarOpen, setSidebarOpen] = useState(false);
+	const { showAuthModal } = useAuthModalContext();
 
 	const navItems = [
 		{ path: "/", icon: Home, label: "Home" },
@@ -95,7 +98,21 @@ function MenuBar({ active }) {
 
 	const logout = async () => {
 		try {
-			const { data } = await axios.post("/users/logout");
+			const { data } = await axios.post(
+				"/users/logout",
+				{},
+				{
+					withCredentials: true,
+				}
+			);
+
+			// Limpa qualquer cache do axios
+			delete axios.defaults.headers.common["Authorization"];
+
+			// Limpa estados locais
+			localStorage.clear();
+			sessionStorage.clear();
+
 			console.log(data);
 			setUser(null);
 			setSidebarOpen(false);
@@ -126,7 +143,13 @@ function MenuBar({ active }) {
 									to={"/"}
 									className={`flex items-center  gap-2  rounded-2xl  justify-between  `}
 								>
-									<motion.div className="hover:bg-primary-100/50  px-4 py-2 rounded-xl transition-all duration-300">
+									<motion.div
+										onClick={(e) => {
+											e.preventDefault();
+											showAuthModal("login");
+										}}
+										className="hover:bg-primary-100/50  px-4 py-2 rounded-xl transition-all duration-300"
+									>
 										Torne-se um anfitrião
 									</motion.div>
 								</Link>
@@ -142,12 +165,15 @@ function MenuBar({ active }) {
 									align="end"
 									className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2"
 								>
-									<Link
-										to={"/login"}
-										className={`flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
+									<span
+										onClick={(e) => {
+											e.preventDefault();
+											showAuthModal("login");
+										}}
+										className={`flex group justify-between bg-red-500 hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
 									>
 										Entre ou Cadastre-se
-									</Link>
+									</span>
 								</DropdownMenuContent>
 							</DropdownMenu>
 						</>
@@ -238,12 +264,15 @@ function MenuBar({ active }) {
 									);
 								})}
 								{!user && (
-									<Link
-										to={"/login"}
+									<span
+										onClick={(e) => {
+											e.preventDefault();
+											showAuthModal("login");
+										}}
 										className="text-white bg-primary-500 px-5 border-1 rounded-xl py-2"
 									>
 										Entre ou Cadastre-se
-									</Link>
+									</span>
 								)}
 							</DropdownMenuContent>
 						</DropdownMenu>

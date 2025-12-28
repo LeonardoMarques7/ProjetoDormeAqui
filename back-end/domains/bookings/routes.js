@@ -1,12 +1,9 @@
 import { Router } from "express";
 import { __dirname } from "../../ultis/dirname.js";
 import Booking from "./model.js";
-import { connectDb } from "../../config/db.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 
 const router = Router();
-
-connectDb();
 
 router.get("/owner", async (req, res) => {
   
