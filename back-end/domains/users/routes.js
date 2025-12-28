@@ -1,5 +1,5 @@
 // ============================================
-// ROUTES/USER.JS - Versão Final Completa
+// ROUTES/USER.JS - Cookies Isolados por Ambiente
 // ============================================
 import "dotenv/config";
 import { Router } from "express";
@@ -11,16 +11,27 @@ import { sendToS3, uploadImage } from "../controller.js";
 const router = Router();
 const bcryptSalt = bcrypt.genSaltSync();
 
-// ⭐ CONFIGURAÇÃO DINÂMICA POR AMBIENTE
+// ⭐ CONFIGURAÇÃO SEPARADA POR AMBIENTE
 const isProduction = process.env.NODE_ENV === 'production';
-const COOKIE_NAME = isProduction ? 'token' : 'token_dev';
 
-const COOKIE_OPTIONS = {
+// Nomes de cookies COMPLETAMENTE diferentes
+const COOKIE_NAME = isProduction ? 'prod_auth_token' : 'dev_auth_token';
+
+// Configurações específicas por ambiente
+const COOKIE_OPTIONS = isProduction ? {
   httpOnly: true,
-  secure: isProduction,
-  sameSite: isProduction ? 'none' : 'lax',
+  secure: true,        // HTTPS obrigatório
+  sameSite: 'none',    // Cross-site para produção
   path: '/',
   maxAge: 7 * 24 * 60 * 60 * 1000,
+  domain: process.env.PROD_DOMAIN || undefined, // Ex: '.seusite.com'
+} : {
+  httpOnly: true,
+  secure: false,       // Permite HTTP local
+  sameSite: 'lax',     // Mais permissivo para dev
+  path: '/',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  // SEM domain - fica restrito ao localhost
 };
 
 // ⭐ Middleware opcional de autenticação
@@ -209,11 +220,27 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// ⭐ LOGOUT
+// ⭐ LOGOUT - Limpa AMBOS os cookies para garantir
 router.post("/logout", (req, res) => {
-  res
-    .clearCookie(COOKIE_NAME, COOKIE_OPTIONS)
-    .json({ message: "Deslogado com sucesso!" });
+  // Limpa o cookie do ambiente atual
+  res.clearCookie(COOKIE_NAME, COOKIE_OPTIONS);
+  
+  // Segurança extra: limpa ambos os cookies
+  res.clearCookie('prod_auth_token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    path: '/',
+  });
+  
+  res.clearCookie('dev_auth_token', {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax',
+    path: '/',
+  });
+
+  res.json({ message: "Deslogado com sucesso!" });
 });
 
 // DELETAR CONTA
@@ -231,9 +258,12 @@ router.delete("/:id", requireAuth, async (req, res) => {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    res
-      .clearCookie(COOKIE_NAME, COOKIE_OPTIONS)
-      .json({ message: "Usuário deletado com sucesso!", deleteAccount });
+    // Limpa todos os cookies
+    res.clearCookie(COOKIE_NAME, COOKIE_OPTIONS);
+    res.clearCookie('prod_auth_token', { httpOnly: true, secure: true, sameSite: 'none', path: '/' });
+    res.clearCookie('dev_auth_token', { httpOnly: true, secure: false, sameSite: 'lax', path: '/' });
+    
+    res.json({ message: "Usuário deletado com sucesso!", deleteAccount });
       
   } catch (error) {
     console.error("Erro ao deletar usuário:", error);
