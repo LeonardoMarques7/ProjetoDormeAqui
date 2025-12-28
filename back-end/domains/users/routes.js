@@ -21,7 +21,6 @@ const COOKIE_OPTIONS = {
   sameSite: isProduction ? 'none' : 'lax',
   path: '/',
   maxAge: 7 * 24 * 60 * 60 * 1000,
-  ...(isProduction && process.env.COOKIE_DOMAIN && { domain: process.env.COOKIE_DOMAIN })
 };
 
 // ⭐ Middleware opcional de autenticação
