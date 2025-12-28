@@ -228,28 +228,43 @@ router.post("/login", async (req, res) => {
 });
 
 // ⭐ LOGOUT - Limpa AMBOS os cookies para garantir
+// ⭐ LOGOUT - Versão mais robusta
 router.post("/logout", (req, res) => {
-  // Limpa o cookie do ambiente atual
-  res.clearCookie(COOKIE_OPTIONS);
-  
-  // Segurança extra: limpa ambos os cookies
-  res.clearCookie('prod_auth_token', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    path: '/',
-  });
-  
-  res.clearCookie('dev_auth_token', {
-    httpOnly: true,
-    secure: false,
-    sameSite: 'lax',
-    path: '/',
-  });
+  try {
+    // Validação adicional
+    if (!COOKIE_NAME) {
+      console.error('❌ COOKIE_NAME está indefinido');
+      return res.status(500).json({ error: "Erro de configuração do servidor" });
+    }
 
-  res.json({ message: "Deslogado com sucesso!" });
+    console.log('🔄 Tentando limpar cookie:', COOKIE_NAME);
+    
+    // Limpa o cookie do ambiente atual
+    res.clearCookie(COOKIE_NAME, COOKIE_OPTIONS);
+    
+    // Segurança extra: limpa ambos os cookies
+    res.clearCookie('prod_auth_token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+    });
+    
+    res.clearCookie('dev_auth_token', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
+    });
+
+    console.log('✅ Cookies limpos com sucesso');
+    res.json({ message: "Deslogado com sucesso!" });
+    
+  } catch (error) {
+    console.error('❌ Erro no logout:', error);
+    res.status(500).json({ error: "Erro ao fazer logout" });
+  }
 });
-
 // DELETAR CONTA
 router.delete("/:id", requireAuth, async (req, res) => {
   const { id: _id } = req.params;
