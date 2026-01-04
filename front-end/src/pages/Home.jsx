@@ -28,14 +28,14 @@ import Banner from "../assets/banner2.jpg";
 import "./Home.css";
 import DatePickerAirbnb from "../components/DatePickerAirbnb";
 import searchSchema from "@/components/schemas/searchSchema.jsx";
-import { useMoblieContext } from "../components/contexts/MoblieContext";
+import { useMobileContext } from "../components/contexts/MobileContext";
 import { useLocation } from "react-router";
 
 const Home = () => {
 	const location = useLocation();
 	const searchInputRef = useRef(null);
 	const [city, setCity] = useState("");
-	const { moblie } = useMoblieContext();
+	const { mobile } = useMobileContext();
 	const [places, setPlaces] = useState([]);
 	const [placesSearch, setPlacesSearch] = useState([]);
 	const [isSearching, setIsSearching] = useState(false);
@@ -176,7 +176,7 @@ const Home = () => {
 					<div className="absolute inset-0 bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
 				</div>
 
-				{moblie ? (
+				{mobile ? (
 					/* Versão Mobile - Bottom Sheet */
 					<div className="absolute z-20 -bottom-8 left-0 right-0 px-3.5">
 						<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>

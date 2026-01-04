@@ -47,7 +47,7 @@ const AccProfile = () => {
 	const paramId = isEditMode ? params.id : params.action;
 
 	const [profileUser, setProfileUser] = useState(null);
-	const [moblie, setIsMoblie] = useState(window.innerWidth <= 768);
+	const [mobile, setIsMobile] = useState(window.innerWidth <= 768);
 	const [redirect, setRedirect] = useState(false);
 	const [api, setApi] = useState(null);
 	const [current, setCurrent] = useState(0);
@@ -154,7 +154,7 @@ const AccProfile = () => {
 	}, [paramId, user?._id, ready, profileUser]);
 
 	useEffect(() => {
-		const handleResize = () => setIsMoblie(window.innerWidth <= 768);
+		const handleResize = () => setIsMobile(window.innerWidth <= 768);
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
@@ -270,7 +270,7 @@ const AccProfile = () => {
 								)}
 							</div>
 
-							{moblie ? (
+							{mobile ? (
 								<span className="text-sm line-clamp-3 bg-red text-nowrap font-bold truncate flex-col flex justify-start items-start gap-1">
 									<h1>{displayUser.name}</h1>
 									{displayUser.pronouns && (

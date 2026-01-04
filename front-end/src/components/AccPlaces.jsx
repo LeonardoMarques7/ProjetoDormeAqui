@@ -6,7 +6,7 @@ import axios from "axios";
 import NewPlace from "./NewPlace";
 import Places from "./Places";
 import "./Places.css";
-import { useMoblieContext } from "./contexts/MoblieContext";
+import { useMobileContext } from "./contexts/MobileContext";
 import Loading from "./Loading";
 import { useUserContext } from "./contexts/UserContext";
 import image from "../assets/image.png";
@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const AccPlaces = () => {
 	const { action } = useParams();
-	const { moblie } = useMoblieContext();
+	const { mobile } = useMobileContext();
 	const { user, ready } = useUserContext();
 	const [login, setLogin] = useState(false);
 	const [places, setPlaces] = useState([]);

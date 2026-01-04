@@ -25,7 +25,7 @@ import { MantineProvider } from "@mantine/core";
 import { useEffect } from "react";
 import { useState } from "react";
 import { set } from "date-fns";
-import { MoblieContextProvider } from "./components/contexts/MoblieContext";
+import { MobileContextProvider } from "./components/contexts/MobileContext";
 import Footer from "./components/Footer";
 import Teste from "./pages/Teste";
 import { AuthModalContextProvider } from "./components/contexts/AuthModalContext";
@@ -51,7 +51,7 @@ function App() {
 		location.pathname === "/login" || location.pathname === "/register";
 	return (
 		<MantineProvider>
-			<MoblieContextProvider>
+			<MobileContextProvider>
 				<UserContextProvider>
 					<AuthModalContextProvider>
 						<MessageProvider>
@@ -75,7 +75,7 @@ function App() {
 						</MessageProvider>
 					</AuthModalContextProvider>
 				</UserContextProvider>
-			</MoblieContextProvider>
+			</MobileContextProvider>
 		</MantineProvider>
 	);
 }

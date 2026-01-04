@@ -45,7 +45,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
 import BookingAlert from "../components/BookingAlert";
-import { useMoblieContext } from "../components/contexts/MoblieContext";
+import { useMobileContext } from "../components/contexts/MobileContext";
 import MarkdownIt from "markdown-it";
 import Perks from "../components/Perks";
 import Banner from "../assets/banner2.jpg";
@@ -68,7 +68,7 @@ import {
 import { useAuthModalContext } from "../components/contexts/AuthModalContext";
 
 const Place = () => {
-	const { moblie } = useMoblieContext();
+	const { mobile } = useMobileContext();
 	const { id } = useParams();
 	const { user } = useUserContext();
 	const [login, setLogin] = useState(false);
@@ -259,7 +259,7 @@ const Place = () => {
 									onClick={() => handleImageClick(2)}
 								/>
 							</div>
-							{moblie ? null : (
+							{mobile ? null : (
 								<>
 									<div className="col-span-1 row-span-1 max-sm:col-span-4">
 										<img
@@ -502,7 +502,7 @@ const Place = () => {
 								/>
 							</div>
 
-							{moblie ? null : (
+							{mobile ? null : (
 								<>
 									<div className="col-span-1 row-span-1 max-sm:col-span-4">
 										<img
@@ -602,7 +602,7 @@ const Place = () => {
 									<span>{place.city}</span>
 								</div>
 							</div>
-							{!moblie && (
+							{!mobile && (
 								<div className="flex gap-4  !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
 									<div className="flex gap-2 rounded-2xl items-center ">
 										<div className="flex items-center gap-2">

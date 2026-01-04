@@ -1,21 +1,18 @@
-import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { useState, useEffect, useRef } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { PriceInput } from "./ui/PriceInput";
-import { useUserContext } from "./contexts/UserContext";
+
 import { useMessage } from "./contexts/MessageContext";
 import { GuestsInput } from "./ui/GuestsInput";
 
-import { Skeleton } from "@/components/ui/skeleton";
+import { useMobileContext } from "./contexts/MobileContext";
+import { useUserContext } from "./contexts/UserContext";
 
 import MarkdownIt from "markdown-it";
 
 import Perks from "./Perks";
 
-import lgThumbnail from "lightgallery/plugins/thumbnail";
-import lgZoom from "lightgallery/plugins/zoom";
-import lgFullscreen from "lightgallery/plugins/fullscreen";
-import LightGallery from "lightgallery/react";
 import "lightgallery/css/lightgallery.css";
 import "lightgallery/css/lg-zoom.css";
 import "lightgallery/css/lg-thumbnail.css";
@@ -25,37 +22,19 @@ import "./NewPlace.css";
 
 import {
 	ArrowLeft,
-	ArrowUpFromLine,
 	CalendarArrowDown,
 	CalendarArrowUp,
-	Camera,
-	ChevronLeftIcon,
-	ChevronRight,
-	DollarSign,
-	Expand,
-	ExternalLink,
-	Eye,
 	Home,
-	ImagePlus,
 	MapPin,
-	Monitor,
-	NotepadTextDashed,
 	SaveAllIcon,
-	Search,
-	User,
-	Users,
-	Wifi,
 } from "lucide-react";
 import PhotosUploader from "./PhotosUploader";
-import { useMoblieContext } from "./contexts/MoblieContext";
 import { MarkdownEditor, MarkdownEditor2 } from "./ui/MarkdownEditor";
-import Preview from "./Preview";
 import { PreviewToggle } from "./PreviewToggle";
 import { TimePicker } from "./ui/TimePicker";
 
 const NewPlace = () => {
 	const { user } = useUserContext();
-	const { moblie } = useMoblieContext();
 	const { id } = useParams();
 	const { showMessage } = useMessage();
 	const [title, setTitle] = useState("");
@@ -70,12 +49,6 @@ const NewPlace = () => {
 	const [checkout, setCheckout] = useState("");
 	const [guests, setGuests] = useState("");
 	const [redirect, setRedirect] = useState(false);
-	const lightGalleryRef = useRef(null);
-	const [loaded, setLoaded] = useState([]);
-
-	const handleImageLoad = (index) => {
-		setLoaded((prev) => [...prev, index]);
-	};
 
 	const photosPlaceholder = [
 		{
@@ -177,12 +150,6 @@ const NewPlace = () => {
 	};
 
 	if (redirect) return <Navigate to="/account/places" />;
-
-	const md = new MarkdownIt({
-		html: false,
-		breaks: true,
-		linkify: true,
-	});
 
 	const handlePageChange = () => {
 		setRedirect(true);
@@ -396,7 +363,7 @@ const NewPlace = () => {
 				</form>
 				{/* Preview */}
 				{/* Toggle do preview */}
-				
+
 				<PreviewToggle formData={formData} />
 
 				{/* Preview aparece somente quando showPreview for true */}
