@@ -47,7 +47,7 @@ function MenuBar({ active }) {
 	const [activeSection, setActiveSection] = useState("Home");
 	const [redirect, setRedirect] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
-	const [moblie, setIsMoblie] = useState(window.innerWidth <= 768);
+	const [mobile, setIsMobile] = useState(window.innerWidth <= 768);
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const { showAuthModal } = useAuthModalContext();
 
@@ -91,7 +91,7 @@ function MenuBar({ active }) {
 	}, []);
 
 	useEffect(() => {
-		const handleResize = () => setIsMoblie(window.innerWidth <= 768);
+		const handleResize = () => setIsMobile(window.innerWidth <= 768);
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
@@ -129,7 +129,7 @@ function MenuBar({ active }) {
 
 	return (
 		<>
-			{!moblie ? (
+			{!mobile ? (
 				<motion.nav
 					initial={{ opacity: 0, y: -50 }}
 					animate={{ opacity: 1, y: 0 }}

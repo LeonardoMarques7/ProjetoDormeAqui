@@ -21,7 +21,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-import { useMoblieContext } from "./contexts/MoblieContext";
+import { useMobileContext } from "./contexts/MobileContext";
 
 // Funções auxiliares para datas
 const formatDate = (date, format = "dd/MM/yyyy") => {
@@ -112,7 +112,7 @@ const DatePickerAirbnb = ({
 	const [checkinDate, setCheckinDate] = useState(initialCheckin || null);
 	const [checkoutDate, setCheckoutDate] = useState(initialCheckout || null);
 	const [selectingCheckout, setSelectingCheckout] = useState(false);
-	const { moblie } = useMoblieContext();
+	const { mobile } = useMobileContext();
 
 	const year = currentMonth.getFullYear();
 	const month = currentMonth.getMonth();
@@ -322,7 +322,7 @@ const DatePickerAirbnb = ({
 								Selecione as datas
 							</DialogTitle>
 
-							{!moblie && !search && totalPrice > 0 && (
+							{!mobile && !search && totalPrice > 0 && (
 								<div className="text-center ml-auto md:text-right flex-1 md:flex-end mx-5">
 									<p className="text-xs text-gray-500 font-medium mb-1">
 										Total da estadia
@@ -397,7 +397,7 @@ const DatePickerAirbnb = ({
 									</p>
 								</div>
 							</div>
-							{moblie && !search && totalPrice > 0 && (
+							{mobile && !search && totalPrice > 0 && (
 								<div className="flex items-center w-full flex-1 justify-between">
 									<div className="text-start">
 										<p className="text-xs text-gray-500 font-medium mb-1">

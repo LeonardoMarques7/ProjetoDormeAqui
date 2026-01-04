@@ -241,8 +241,8 @@ router.post("/logout", (req, res) => {
     
     // Limpa o cookie do ambiente atual
     res.clearCookie(COOKIE_NAME, COOKIE_OPTIONS);
-    
-    // Segurança extra: limpa ambos os cookies
+      
+      // Segurança extra: limpa ambos os cookies
     res.clearCookie('prod_auth_token', {
       httpOnly: true,
       secure: true,

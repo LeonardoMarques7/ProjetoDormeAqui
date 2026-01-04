@@ -16,17 +16,19 @@ import imageDormeAqui from "../assets/logo__primary.png";
 import imageQrCode from "../assets/qrcode_leonardomdev.png";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+
+import { useMobileContext } from "./contexts/MobileContext";
 import "./Booking.css";
 
 import Marquee from "react-fast-marquee";
 import Status from "./Status";
 
 const BookingAll = ({ bookingsArray, bookingId }) => {
-	const [moblie, setIsMoblie] = useState(window.innerWidth <= 768);
+	const [mobile, setIsMobile] = useState(window.innerWidth <= 768);
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		const handleResize = () => setIsMoblie(window.innerWidth <= 768);
+		const handleResize = () => setIsMobile(window.innerWidth <= 768);
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);

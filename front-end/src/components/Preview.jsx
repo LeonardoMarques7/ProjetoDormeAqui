@@ -1,22 +1,15 @@
 import { useRef, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useUserContext } from "./contexts/UserContext";
 
-import { useMoblieContext } from "./contexts/MoblieContext";
+import { useMobileContext } from "./contexts/MobileContext";
 
 import MarkdownIt from "markdown-it";
 import Perk from "../components/Perk";
 
-import lgThumbnail from "lightgallery/plugins/thumbnail";
-import lgZoom from "lightgallery/plugins/zoom";
-import lgFullscreen from "lightgallery/plugins/fullscreen";
-import LightGallery from "lightgallery/react";
 import "lightgallery/css/lightgallery.css";
 import "lightgallery/css/lg-zoom.css";
 import "lightgallery/css/lg-thumbnail.css";
 import "lightgallery/css/lg-fullscreen.css";
-
-import { Button } from "@/components/ui/button";
 
 import photoDefault from "../assets/photoDefault.jpg";
 
@@ -24,24 +17,17 @@ import {
 	AlarmClockCheck,
 	Bath,
 	Bed,
-	CalendarArrowDown,
-	CalendarArrowUp,
 	ChevronRight,
 	Clock,
-	Expand,
 	HomeIcon,
-	ImagePlus,
 	MapPin,
-	Search,
-	Users,
 	Users2,
 } from "lucide-react";
 
 const Preview = ({ data }) => {
 	const lightGalleryRef = useRef(null);
-	const [loaded, setLoaded] = useState([]);
 	const { user } = useUserContext();
-	const { moblie } = useMoblieContext();
+	const { mobile } = useMobileContext();
 
 	const handleImageClick = (index) => {
 		if (lightGalleryRef.current) {
@@ -105,7 +91,7 @@ const Preview = ({ data }) => {
 								onClick={() => handleImageClick(2)}
 							/>
 						</div>
-						{!moblie && (
+						{!mobile && (
 							<>
 								<div className="col-span-1 row-span-1 max-sm:col-span-4">
 									<img
@@ -195,7 +181,7 @@ const Preview = ({ data }) => {
 								<span>{city}</span>
 							</div>
 						</div>
-						{!moblie && (
+						{!mobile && (
 							<div className="flex gap-4  !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
 								<div className="flex gap-2 rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
