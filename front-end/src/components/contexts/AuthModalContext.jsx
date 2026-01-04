@@ -1,6 +1,6 @@
 import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
-import { DrawerDialog } from "../DrawerDialog";
+import { AuthDialog } from "../AuthDialog";
 
 export const AuthModalContext = createContext(null);
 
@@ -19,12 +19,7 @@ export const AuthModalContextProvider = ({ children }) => {
 		<AuthModalContext.Provider value={{ showAuthModal }}>
 			{children}
 
-			<DrawerDialog
-				open={open}
-				mode={mode}
-				setMode={setMode}
-				setOpen={setOpen}
-			/>
+			<AuthDialog open={open} mode={mode} setMode={setMode} setOpen={setOpen} />
 		</AuthModalContext.Provider>
 	);
 };
