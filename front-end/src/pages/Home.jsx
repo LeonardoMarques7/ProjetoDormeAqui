@@ -353,7 +353,7 @@ const Home = () => {
 										id="city"
 										type="text"
 										placeholder="Para onde você vai?"
-										className="ml-4 outline-none !bg-white w-full"
+										className="ml-4 outline-none  w-full"
 										{...register("city")}
 									/>
 								</div>
@@ -409,7 +409,7 @@ const Home = () => {
 									className="justify-center ml-4 !px-5 !py-5 font-normal border bg-primary-900 hover:bg-primary-800/90 cursor-pointer hover:text-white border-gray-200 h-full rounded-2xl text-white outline-primary-400 disabled:opacity-50"
 								>
 									{isSearching ? (
-										<div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+										<div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
 									) : (
 										<Search className="h-5 w-5" />
 									)}
