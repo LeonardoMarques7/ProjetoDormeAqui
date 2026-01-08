@@ -8,6 +8,18 @@
   display: none;
 }
 
+@layer base {
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px theme('colors.white') inset !important;
+    -webkit-text-fill-color: theme('colors.black') !important;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+}
+
 @theme {
   --color-primary-100: #F3F4F6;
     --color-primary-200: #E5E7EB;
