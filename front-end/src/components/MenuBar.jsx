@@ -170,7 +170,7 @@ function MenuBar({ active }) {
 											e.preventDefault();
 											showAuthModal("login");
 										}}
-										className={`flex group justify-between bg-red-500 hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
+										className={`flex group justify-between cursor-pointer hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
 									>
 										Entre ou Cadastre-se
 									</span>
