@@ -185,6 +185,13 @@ const AccProfile = () => {
 		try {
 			const { data } = await axios.delete(`/users/${user._id}`);
 			console.log("Conta deletada!", data);
+			delete axios.defaults.headers.common["Authorization"];
+
+			localStorage.clear();
+			sessionStorage.clear();
+
+			console.log(data);
+			setUser(null);
 			setRedirect(true);
 		} catch (error) {
 			console.error("Erro ao deletar:", error);

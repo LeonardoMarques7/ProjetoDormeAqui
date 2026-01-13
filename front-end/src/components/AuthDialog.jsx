@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import axios from "axios";
 import { useUserContext } from "./contexts/UserContext";
+import photoDefault from "../assets/user__default.png";
 
 export function AuthDialog({ mode, setMode, open, setOpen }) {
 	const [desktop, setDesktop] = useState(window.innerWidth >= 768);
@@ -222,11 +223,14 @@ function ProfileForm({ onSuccess }) {
 					return;
 				}
 
+				const photo = photoDefault;
+
 				try {
 					const { data: userDoc } = await axios.post("/users", {
 						name,
 						email,
 						password,
+						photo,
 					});
 
 					setUser(userDoc);
@@ -393,7 +397,7 @@ function ProfileForm({ onSuccess }) {
 
 						<input
 							type={showPassword ? "text" : "password"}
-							className="border border-gray-200 px-14 py-4 rounded-full w-full outline-primary-400"
+							className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
 							placeholder="Digite sua senha"
 							value={password}
 							onChange={(e) =>
@@ -415,7 +419,7 @@ function ProfileForm({ onSuccess }) {
 
 						<input
 							type={showConfirmPassword ? "text" : "password"}
-							className="border border-gray-200 px-14 py-4 rounded-full w-full outline-primary-400"
+							className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
 							placeholder="Confirme sua senha"
 							value={confirmPassword}
 							onChange={(e) => {
