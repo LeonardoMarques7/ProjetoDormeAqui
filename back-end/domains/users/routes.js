@@ -81,7 +81,7 @@ router.get("/profile", requireAuth, async (req, res) => {
 
 // REGISTRO
 router.post("/", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, photo } = req.body;
 
   try {
     const encryptedPassword = bcrypt.hashSync(password, bcryptSalt);
@@ -89,11 +89,12 @@ router.post("/", async (req, res) => {
     const newUserDoc = await User.create({
       name,
       email,
+      photo,
       password: encryptedPassword,
     });
 
     const { _id } = newUserDoc;
-    const newUserObj = { name, email, _id };
+    const newUserObj = { name, email, photo, _id };
     const token = await JWTSign(newUserObj);
 
     res
