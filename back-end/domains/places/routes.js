@@ -1,5 +1,6 @@
 import { Router } from "express";
 import Place from "./model.js";
+import User from "../users/model.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 import { downloadImage } from "../../ultis/imageDownloader.js";
 import { __dirname } from "../../ultis/dirname.js";
@@ -45,7 +46,7 @@ router.get("/owner", async (req, res) => {
 });
 
 router.get("/user/:userId", async (req, res) => {
-    const { userId } = req.params; 
+    const { userId } = req.params;
 
     try {
         const placeDocs = await Place.find({ owner: userId });
@@ -54,6 +55,19 @@ router.get("/user/:userId", async (req, res) => {
     } catch (error) {
         console.error("Erro ao buscar acomodações para o usuário:", userId, error);
         res.status(500).json({ message: "Erro ao buscar acomodações do usuário.", error });
+    }
+});
+
+router.get("/owner/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const placeDocs = await Place.find({ owner: id });
+
+        res.json(placeDocs);
+    } catch (error) {
+        console.error("Erro ao buscar acomodações para o dono:", id, error);
+        res.status(500).json({ message: "Erro ao buscar acomodações do dono.", error });
     }
 });
 

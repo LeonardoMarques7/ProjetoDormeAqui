@@ -89,6 +89,7 @@ const Place = () => {
 		to: addDays(new Date(), 7),
 	});
 	const [booking, setBooking] = useState(null);
+	const [bookingsPlace, setBookingsPlace] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const { showAuthModal } = useAuthModalContext();
 
@@ -155,14 +156,30 @@ const Place = () => {
 	}, [id]);
 
 	useEffect(() => {
-		if (id) {
+		if (id && place && place.owner) {
 			const axiosGetOwner = async () => {
-				const { data } = await axios.get(`/places/owner/${place.owner}`);
-
-				setOwner(data);
+				try {
+					const { data } = await axios.get(`/places/owner/${place.owner._id}`);
+					setOwner(data);
+				} catch (error) {
+					console.error("Erro ao buscar dono da acomodação:", error);
+					setOwner(null);
+				}
 			};
 
 			axiosGetOwner();
+		}
+	}, [id, place]);
+
+	useEffect(() => {
+		if (id) {
+			const axiosGetBookings = async () => {
+				const { data } = await axios.get(`/bookings/place/${id}`);
+
+				setBookingsPlace(data);
+			};
+
+			axiosGetBookings();
 		}
 	}, [id]);
 
@@ -434,6 +451,8 @@ const Place = () => {
 	}
 
 	if (!place) return <></>;
+
+	console.log("Console bookings:", bookingsPlace);
 
 	const md = new MarkdownIt({
 		html: false,
@@ -817,6 +836,8 @@ const Place = () => {
 									initialCheckin={checkin}
 									initialCheckout={checkout}
 									price={place.price}
+									placeId={id}
+									bookings={bookingsPlace}
 								/>
 							</div>
 

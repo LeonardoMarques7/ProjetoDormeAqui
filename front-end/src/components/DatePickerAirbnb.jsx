@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { useMobileContext } from "./contexts/MobileContext";
+import axios from "axios";
 
 // Funções auxiliares para datas
 const formatDate = (date, format = "dd/MM/yyyy") => {
@@ -106,13 +107,34 @@ const DatePickerAirbnb = ({
 	search,
 	initialCheckout,
 	price = 250,
+	placeId,
+	bookings,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [currentMonth, setCurrentMonth] = useState(new Date());
 	const [checkinDate, setCheckinDate] = useState(initialCheckin || null);
 	const [checkoutDate, setCheckoutDate] = useState(initialCheckout || null);
 	const [selectingCheckout, setSelectingCheckout] = useState(false);
+	const [bookedDates, setBookedDates] = useState([]);
 	const { mobile } = useMobileContext();
+
+	// Buscar datas ocupadas quando o modal abrir
+	useEffect(() => {
+		if (isOpen && placeId) {
+			const fetchBookedDates = async () => {
+				try {
+					const response = await axios.get(
+						`/bookings/place/${placeId}/booked-dates`
+					);
+					setBookedDates(response.data);
+				} catch (error) {
+					console.error("Erro ao buscar datas ocupadas:", error);
+					setBookedDates([]);
+				}
+			};
+			fetchBookedDates();
+		}
+	}, [isOpen, placeId]);
 
 	const year = currentMonth.getFullYear();
 	const month = currentMonth.getMonth();
@@ -147,7 +169,18 @@ const DatePickerAirbnb = ({
 		today.setHours(0, 0, 0, 0);
 		const checkDate = new Date(date);
 		checkDate.setHours(0, 0, 0, 0);
-		return isBefore(checkDate, today);
+
+		// Verificar se é uma data passada
+		if (isBefore(checkDate, today)) return true;
+
+		// Verificar se a data está ocupada
+		return bookedDates.some((bookedDate) => {
+			// bookedDate is now a string in YYYY-MM-DD format
+			const [year, month, day] = bookedDate.split("-").map(Number);
+			const booked = new Date(year, month - 1, day);
+			booked.setHours(0, 0, 0, 0);
+			return isSameDay(checkDate, booked);
+		});
 	};
 
 	const getDayClassName = (date) => {
