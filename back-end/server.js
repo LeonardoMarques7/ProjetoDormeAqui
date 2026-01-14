@@ -17,7 +17,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://unexpected-zia-leonardomarques-23a75f11.koyeb.app"
+      "https://projetodormeaqui.onrender.com"
     ],
     credentials: true,
   })
