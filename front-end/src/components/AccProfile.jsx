@@ -63,7 +63,7 @@ const AccProfile = () => {
 			delay: 20000,
 			stopOnInteraction: false,
 			stopOnMouseEnter: false,
-		})
+		}),
 	);
 
 	useEffect(() => {
@@ -141,7 +141,7 @@ const AccProfile = () => {
 				// mas o usuário não está logado - não é um problema fatal
 				if (error.response?.status === 401) {
 					console.log(
-						"Não autenticado - mostrando perfil público sem anúncios privados"
+						"Não autenticado - mostrando perfil público sem anúncios privados",
 					);
 					setPlaces([]);
 				}
@@ -164,7 +164,6 @@ const AccProfile = () => {
 			const { data } = await axios.post("/users/logout");
 			console.log(data);
 			setUser(null);
-			setRedirect(true);
 		} catch (error) {
 			alert(JSON.stringify(error));
 		}

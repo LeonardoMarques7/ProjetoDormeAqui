@@ -19,6 +19,7 @@ import {
 	LocateIcon,
 	MapPin,
 	Minus,
+	Plane,
 	Plus,
 	User,
 	Users,
@@ -505,7 +506,7 @@ const Place = () => {
 			{/* Place */}
 
 			<div className="container__infos mx-auto max-w-7xl flex flex-col gap-2">
-				<div className="bg-primary-900 shadow-2xl max-sm:p-0 max-sm:shadow-none max-h-full mt-25 max-sm:mt-15 py-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
+				<div className="bg-primary-900  max-sm:p-0 max-sm:shadow-none max-h-full mt-25 max-sm:mt-15 py-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
 					<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:mx-0 max-sm:rounded-none rounded-2xl cursor-pointer">
 						{/* Container do grid principal */}
 						<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2  max-sm:h-[50svh]">
@@ -770,171 +771,206 @@ const Place = () => {
 					</div>
 
 					{console.log("Este é log: ", booking)}
-
-					{/* Booking */}
-					{booking && (
-						<div className="section__booking h-fit order-2 w-full border-dashed border bg-white backdrop-blur-2xl ml-auto lg:max-w-5xl shadow-2xl shadow-primary-200/50 rounded-2xl">
-							<div className="ticket__booking h-fit bg-primary-100/60 relative border-b border-dashed flex rounded-t-2xl px-4 gap-5 ">
-								<div className="flex flex-col items-start gap-2 w-full  text-gray-500 p-5">
-									<div className="flex flex-col gap-1 w-full text-start header__ticket">
-										<div className="text-primary-600 flex justify-between items-center text-sm font-medium uppercase">
-											Seu Ticket de Reserva
-											<Tooltip>
-												<TooltipTrigger asChild>
-													<Link
-														to={`../account/bookings/${booking._id}`}
-														className="group cursor-pointer w-fit hover:bg-primary-600 hover:text-white px-3 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-xl text-center py-2.5 overflow-hidden"
-													>
-														<ExternalLink
-															size={18}
-															className="transition-transform text-primary-500 group-hover:text-white duration-300 group-hover:scale-110"
-														/>
-													</Link>
-												</TooltipTrigger>
-												<TooltipContent className="bg-primary-600">
-													<p>Acessar reserva</p>
-												</TooltipContent>
-											</Tooltip>
+					<div className="order-1">
+						{/* Booking */}
+						{booking && (
+							<div className="section__booking  h-fit order-2 w-full ml-auto  lg:max-w-5xl">
+								<div className="ticket__booking relative shadow-gray-200 max-sm:rounded-2xl! bg-gray-100 rounded-3xl overflow-hidden">
+									{/* Boarding Pass Style Container */}
+									<div className="flex flex-col md:flex-row ">
+										{/* QR Code Section */}
+										<div className="bg-gray-100 p-4 max-sm:h-10 md:p-8 flex items-center justify-center border-b-2 md:border-b-0 max-sm:rounded-2xl border-r-0 md:border-r-2 border-dashed border-gray-200 relative">
+											{/* Semi-circle cutouts */}
+											<div className="absolute sm:-top-4 sm:-right-4 max-sm:-right-8 max-sm:-bottom-4 w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
+											<div className="absolute -bottom-4 -right-4 max-sm:-left-8 max-sm:-right-auto w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
 										</div>
 
-										<h2 className="text-2xl font-bold text-black">
-											{booking.place.title}
-										</h2>
-										<p className="items-center location__ticket flex gap-2">
-											<MapPin size={18} /> {booking.place.city}
-										</p>
-										<hr className="mb-0 mt-3 w-full border-gray-200" />
-									</div>
-									<div className="grow">
-										<div className="flex gap-6 infos__ticket my-2">
-											<span className="gap-5 items-start flex">
-												<span className="item-2 flex gap-2  flex-col items-start">
-													<p className=" ">Check-in</p>
-													<p className="flex items-center gap-2 text-gray-700 font-medium">
-														<CalendarArrowUp
-															size={18}
-															className="text-primary-500"
-														/>
+										{/* Main Content */}
+										<div className="flex-1 p-6 md:p-8">
+											{/* Route Information */}
+											<div className="flex items-center justify-between max-sm:my-4 mb-8">
+												<div className="flex-1">
+													<p className="text-2xl max-sm:text-sm font-bold text-primary-900">
+														CHECK-IN
+													</p>
+													<p className="text-xs text-gray-600 mt-1">
 														{new Date(booking.checkin).toLocaleDateString(
 															"pt-br",
+															{
+																weekday: "short",
+																day: "numeric",
+																month: "short",
+															},
 														)}
 													</p>
-												</span>
-												<span className="item-4 flex gap-2  flex-col items-start">
-													<p className=" ">Check-out</p>
-													<p className="flex items-center gap-2 text-gray-700 font-medium">
-														<CalendarArrowDown
-															size={20}
-															className="text-primary-500"
-														/>
+													<p className="text-sm font-medium text-gray-700">
+														{place.checkin}
+													</p>
+												</div>
+
+												<div className="flex flex-col items-center px-4">
+													<div className="flex items-center gap-2">
+														<div className="w-15 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
+														<Home className="text-primary-400" size={20} />
+														<div className="w-15 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
+													</div>
+												</div>
+
+												<div className="flex-1 text-right">
+													<p className="text-2xl  max-sm:text-sm font-bold text-primary-900">
+														CHECK-OUT
+													</p>
+													<p className="text-xs text-gray-600 mt-1">
 														{new Date(booking.checkout).toLocaleDateString(
 															"pt-br",
+															{
+																weekday: "short",
+																day: "numeric",
+																month: "short",
+															},
 														)}
 													</p>
-												</span>
-											</span>
+													<p className="text-sm font-medium text-gray-700">
+														{place.checkout}
+													</p>
+												</div>
+											</div>
+
+											{/* Booking Details */}
+											<div className="grid grid-cols-2 md:grid-cols-4 max-sm:gap-2 gap-6 pt-6 border-t max-sm:border-none border-gray-200">
+												<div>
+													<p className="text-xs text-gray-500 mb-1">Código</p>
+													<p className="text-sm font-semibold text-primary-600">
+														#{booking._id.slice(-6).toUpperCase()}
+													</p>
+												</div>
+
+												<div>
+													<p className="text-xs text-gray-500 mb-1">Ações</p>
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<Link
+																to={`../account/bookings/${booking._id}`}
+																className="inline-flex text-nowrap text-gray-900 items-center gap-1 text-sm font-semibold  hover:text-gray-700"
+															>
+																Acessar acomodação
+															</Link>
+														</TooltipTrigger>
+														<TooltipContent className="bg-primary-600">
+															<p>Acessar reserva completa</p>
+														</TooltipContent>
+													</Tooltip>
+												</div>
+											</div>
+										</div>
+
+										{/* Sidebar */}
+										<div className="bg-primary-900 text-white p-4 flex max-sm:absolute max-sm:bottom-0 max-sm:w-full max-sm:left-0 max-sm:h-10 md:flex-col items-center justify-center gap-3 min-w-[60px] max-sm:min-w-[50px] relative">
+											<p className="text-xs font-medium -rotate-0 md:-rotate-90 whitespace-nowrap tracking-wider">
+												RESERVA CONFIRMADA
+											</p>
 										</div>
 									</div>
 								</div>
 							</div>
-							<form className="form__place max-sm:relative max-sm:p-0  max-sm:w-full order-2   w-full  justify-self-end self-start sticky top-20 bottom-20 flex flex-col gap-4 rounded-2xl p-10">
-								<div className="border-l-2 border-primary-400 p-4">
-									<div className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
-										<p className="uppercase text-sm">preço</p>
-										<span className="font-light text-5xl text-primary-500">
-											R$ {place.price}
-										</span>{" "}
-										<p className="text-sm">por noite</p>
-									</div>
+						)}
+						<form className="form__place max-sm:relative max-sm:p-0  max-sm:w-full order-2   w-full  justify-self-end self-start sticky top-20 bottom-20 flex flex-col gap-4 rounded-2xl py-5">
+							<div className="border-l-2 border-primary-400 p-4">
+								<div className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
+									<p className="uppercase text-sm">preço</p>
+									<span className="font-light text-5xl text-primary-500">
+										R$ {place.price}
+									</span>{" "}
+									<p className="text-sm">por noite</p>
 								</div>
+							</div>
 
-								{/* NOVO CALENDÁRIO AIRBNB STYLE */}
-								<div className="w-full">
-									<DatePickerAirbnb
-										onDateSelect={handleDateSelect}
-										initialCheckin={checkin}
-										initialCheckout={checkout}
-										price={place.price}
-										placeId={id}
-										bookings={bookingsPlace}
-									/>
-								</div>
+							{/* NOVO CALENDÁRIO AIRBNB STYLE */}
+							<div className="w-full">
+								<DatePickerAirbnb
+									onDateSelect={handleDateSelect}
+									initialCheckin={checkin}
+									initialCheckout={checkout}
+									price={place.price}
+									placeId={id}
+									bookings={bookingsPlace}
+								/>
+							</div>
 
-								{/* Hóspedes */}
-								<div className="py-2 flex flex-col gap-4 justify-center sm:mx-auto sm:w-full ">
-									<div>
-										<p className="font-bold px-3 sm:px-0">Hóspedes</p>
-										{!limiteGuests ? (
-											<p className="text-sm text-gray-500 px-3 sm:px-0">
-												Hospedagem para até {place.guests} pessoas.
-											</p>
-										) : (
-											<p className="text-sm text-red-500 px-3 sm:px-0">
-												{limiteGuests}
-											</p>
-										)}
+							{/* Hóspedes */}
+							<div className="py-2 flex flex-col gap-4 justify-center sm:mx-auto sm:w-full ">
+								<div>
+									<p className="font-bold px-3 sm:px-0">Hóspedes</p>
+									{!limiteGuests ? (
+										<p className="text-sm text-gray-500 px-3 sm:px-0">
+											Hospedagem para até {place.guests} pessoas.
+										</p>
+									) : (
+										<p className="text-sm text-red-500 px-3 sm:px-0">
+											{limiteGuests}
+										</p>
+									)}
+								</div>
+								<div className="flex items-center text-center justify-center p-0 h-full w-fit border rounded-2xl">
+									<div className="rounded-l-2xl px-5 flex items-center justify-center bg-white">
+										<Counter value={guests} fontSize={25} />
 									</div>
-									<div className="flex items-center text-center justify-center p-0 h-full w-fit border rounded-2xl">
-										<div className="rounded-l-2xl px-5 flex items-center justify-center bg-white">
-											<Counter value={guests} fontSize={25} />
-										</div>
-										<div className="flex items-center">
-											<button
-												className="border-l py-2.5 hover:bg-gray-100 px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
-												onClick={(e) => {
-													e.preventDefault();
-													if (guests < place.guests) {
-														setGuests(guests + 1);
-														setLimiteGuests("");
-													} else {
-														setLimiteGuests(
-															"Atingiu o limite máximo de hóspedes!",
-														);
-													}
-												}}
-												disabled={guests >= place.guests}
-											>
-												<Plus />
-											</button>
-											<button
-												className="border-l min-h-full py-2.5 hover:bg-gray-100 rounded-r-2xl px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
-												onClick={(e) => {
-													e.preventDefault();
-													if (guests > 1) {
-														setGuests(guests - 1);
-														setLimiteGuests("");
-													} else {
-														setLimiteGuests("Mínimo de 1 hóspede!");
-													}
-												}}
-												disabled={guests <= 1}
-											>
-												<Minus />
-											</button>
-										</div>
+									<div className="flex items-center">
+										<button
+											className="border-l py-2.5 hover:bg-gray-100 px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
+											onClick={(e) => {
+												e.preventDefault();
+												if (guests < place.guests) {
+													setGuests(guests + 1);
+													setLimiteGuests("");
+												} else {
+													setLimiteGuests(
+														"Atingiu o limite máximo de hóspedes!",
+													);
+												}
+											}}
+											disabled={guests >= place.guests}
+										>
+											<Plus />
+										</button>
+										<button
+											className="border-l min-h-full py-2.5 hover:bg-gray-100 rounded-r-2xl px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
+											onClick={(e) => {
+												e.preventDefault();
+												if (guests > 1) {
+													setGuests(guests - 1);
+													setLimiteGuests("");
+												} else {
+													setLimiteGuests("Mínimo de 1 hóspede!");
+												}
+											}}
+											disabled={guests <= 1}
+										>
+											<Minus />
+										</button>
 									</div>
 								</div>
-								{user ? (
-									<InteractiveHoverButton
-										className="w-fit"
-										onClick={handleBooking}
-									>
-										Reservar comodidade
-									</InteractiveHoverButton>
-								) : (
-									<InteractiveHoverButton
-										className=""
-										onClick={(e) => {
-											e.preventDefault();
-											showAuthModal("login");
-										}}
-									>
-										Entre para continuar
-									</InteractiveHoverButton>
-								)}
-							</form>
-						</div>
-					)}
+							</div>
+							{user ? (
+								<InteractiveHoverButton
+									className="w-fit"
+									onClick={handleBooking}
+								>
+									Reservar comodidade
+								</InteractiveHoverButton>
+							) : (
+								<InteractiveHoverButton
+									className=""
+									onClick={(e) => {
+										e.preventDefault();
+										showAuthModal("login");
+									}}
+								>
+									Entre para continuar
+								</InteractiveHoverButton>
+							)}
+						</form>
+					</div>
 				</div>
 			</div>
 		</>
