@@ -75,6 +75,7 @@ const Place = () => {
 	const [login, setLogin] = useState(false);
 	const { showMessage } = useMessage();
 	const [place, setPlace] = useState(null);
+
 	const lightGalleryRef = useRef(null);
 	const [redirect, setRedirect] = useState(false);
 	const today = new Date();
@@ -774,16 +775,28 @@ const Place = () => {
 					<div className="order-1">
 						{/* Booking */}
 						{booking && (
-							<div className="section__booking  h-fit order-2 w-full ml-auto  lg:max-w-5xl">
-								<div className="ticket__booking relative shadow-gray-200 max-sm:rounded-2xl! bg-gray-100 rounded-3xl overflow-hidden">
+							<div className="section__booking  h-fit order-2 w-full ml-auto max-sm:mb-5  lg:max-w-5xl">
+								<div className=" relative shadow-gray-200 max-sm:rounded-2xl!  bg-gray-50 rounded-3xl overflow-hidden">
 									{/* Boarding Pass Style Container */}
 									<div className="flex flex-col md:flex-row ">
 										{/* QR Code Section */}
-										<div className="bg-gray-100 p-4 max-sm:h-10 md:p-8 flex items-center justify-center border-b-2 md:border-b-0 max-sm:rounded-2xl border-r-0 md:border-r-2 border-dashed border-gray-200 relative">
-											{/* Semi-circle cutouts */}
-											<div className="absolute sm:-top-4 sm:-right-4 max-sm:-right-8 max-sm:-bottom-4 w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
-											<div className="absolute -bottom-4 -right-4 max-sm:-left-8 max-sm:-right-auto w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
-										</div>
+
+										{mobile ? (
+											<div className="bg-gray-900 text-white h-15 flex items-center justify-center border-b-2 md:border-b-0  border-r-0 md:border-r-2 border-dashed border-gray-200 relative">
+												<p className="text-xs font-medium -rotate-0 md:-rotate-90 whitespace-nowrap tracking-wider">
+													RESERVA CONFIRMADA
+												</p>
+												{/* Semi-circle cutouts */}
+												<div className="absolute -left-4 -bottom-4 w-8 h-8 backdrop-blur-3xl bg-white  rounded-full"></div>
+												<div className="absolute -right-4 -bottom-4 w-8 h-8 backdrop-blur-3xl bg-white  rounded-full"></div>
+											</div>
+										) : (
+											<div className="bg-gray-100 p-4 max-sm:h-10 md:p-8 flex items-center justify-center border-b-2 md:border-b-0 max-sm:rounded-2xl border-r-0 md:border-r-2 border-dashed border-gray-200 relative">
+												{/* Semi-circle cutouts */}
+												<div className="absolute sm:-top-4 sm:-right-4 max-sm:-right-8 max-sm:-bottom-4 w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
+												<div className="absolute -bottom-4 -right-4 max-sm:-left-8 max-sm:-right-auto w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
+											</div>
+										)}
 
 										{/* Main Content */}
 										<div className="flex-1 p-6 md:p-8">
@@ -853,7 +866,7 @@ const Place = () => {
 																to={`../account/bookings/${booking._id}`}
 																className="inline-flex text-nowrap text-gray-900 items-center gap-1 text-sm font-semibold  hover:text-gray-700"
 															>
-																Acessar acomodação
+																Acessar reserva
 															</Link>
 														</TooltipTrigger>
 														<TooltipContent className="bg-primary-600">
@@ -865,11 +878,13 @@ const Place = () => {
 										</div>
 
 										{/* Sidebar */}
-										<div className="bg-primary-900 text-white p-4 flex max-sm:absolute max-sm:bottom-0 max-sm:w-full max-sm:left-0 max-sm:h-10 md:flex-col items-center justify-center gap-3 min-w-[60px] max-sm:min-w-[50px] relative">
-											<p className="text-xs font-medium -rotate-0 md:-rotate-90 whitespace-nowrap tracking-wider">
-												RESERVA CONFIRMADA
-											</p>
-										</div>
+										{!mobile && (
+											<div className="bg-primary-900 text-white p-4 flex max-sm:absolute max-sm:bottom-0 max-sm:w-full max-sm:left-0 max-sm:h-10 md:flex-col items-center justify-center gap-3 min-w-[60px] max-sm:min-w-[50px] relative">
+												<p className="text-xs font-medium -rotate-0 md:-rotate-90 whitespace-nowrap tracking-wider">
+													RESERVA CONFIRMADA
+												</p>
+											</div>
+										)}
 									</div>
 								</div>
 							</div>
