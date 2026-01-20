@@ -92,6 +92,7 @@ const Place = () => {
 	const [bookingsPlace, setBookingsPlace] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const { showAuthModal } = useAuthModalContext();
+	const [resetDates, setResetDates] = useState(false);
 
 	const numberOfDays = (date1, date2) => {
 		const date1GMT = date1 + "GMT-03:00";
@@ -121,7 +122,7 @@ const Place = () => {
 					data.filter((booking) => {
 						console.log(booking.place._id, place._id);
 						return booking.place._id === place._id;
-					})[0]
+					})[0],
 				);
 			};
 
@@ -205,16 +206,36 @@ const Place = () => {
 				place: id,
 				user: user._id,
 				price: place.price,
-				total: place.price * nights,
+				priceTotal: place.price * nights,
 				checkin,
 				checkout,
 				guests,
 				nights,
 			};
 
-			const { data } = await axios.post("/bookings", objBooking);
-
-			setRedirect(true);
+			try {
+				const { data } = await axios.post("/bookings", objBooking);
+				setRedirect(true);
+			} catch (error) {
+				if (error.response?.status === 409) {
+					// Datas conflitantes - mostrar mensagem e resetar datas
+					showMessage(
+						"Datas conflitantes com reservas existentes. As datas selecionadas não estão disponíveis.",
+						"error",
+					);
+					// Resetar as datas selecionadas
+					setCheckin(today);
+					setCheckout(fiveDaysAfter);
+					// Também resetar o estado do DatePicker se necessário
+					setDate({
+						from: today,
+						to: fiveDaysAfter,
+					});
+				} else {
+					// Outros erros
+					showMessage("Erro ao criar reserva. Tente novamente.", "error");
+				}
+			}
 		} else {
 			showMessage("Insira todas as informações!", "warning");
 		}
@@ -728,7 +749,7 @@ const Place = () => {
 											>
 												<Perk perk={perk} />
 											</div>
-										)
+										),
 								)}
 							</div>
 						</div>
@@ -751,9 +772,9 @@ const Place = () => {
 					{console.log("Este é log: ", booking)}
 
 					{/* Booking */}
-					{booking ? (
+					{booking && (
 						<div className="section__booking h-fit order-2 w-full border-dashed border bg-white backdrop-blur-2xl ml-auto lg:max-w-5xl shadow-2xl shadow-primary-200/50 rounded-2xl">
-							<div className="ticket__booking h-fit bg-white/80 relative flex rounded-2xl border  border-primary-100 gap-5 ">
+							<div className="ticket__booking h-fit bg-primary-100/60 relative border-b border-dashed flex rounded-t-2xl px-4 gap-5 ">
 								<div className="flex flex-col items-start gap-2 w-full  text-gray-500 p-5">
 									<div className="flex flex-col gap-1 w-full text-start header__ticket">
 										<div className="text-primary-600 flex justify-between items-center text-sm font-medium uppercase">
@@ -795,7 +816,7 @@ const Place = () => {
 															className="text-primary-500"
 														/>
 														{new Date(booking.checkin).toLocaleDateString(
-															"pt-br"
+															"pt-br",
 														)}
 													</p>
 												</span>
@@ -807,7 +828,7 @@ const Place = () => {
 															className="text-primary-500"
 														/>
 														{new Date(booking.checkout).toLocaleDateString(
-															"pt-br"
+															"pt-br",
 														)}
 													</p>
 												</span>
@@ -816,104 +837,103 @@ const Place = () => {
 									</div>
 								</div>
 							</div>
+							<form className="form__place max-sm:relative max-sm:p-0  max-sm:w-full order-2   w-full  justify-self-end self-start sticky top-20 bottom-20 flex flex-col gap-4 rounded-2xl p-10">
+								<div className="border-l-2 border-primary-400 p-4">
+									<div className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
+										<p className="uppercase text-sm">preço</p>
+										<span className="font-light text-5xl text-primary-500">
+											R$ {place.price}
+										</span>{" "}
+										<p className="text-sm">por noite</p>
+									</div>
+								</div>
+
+								{/* NOVO CALENDÁRIO AIRBNB STYLE */}
+								<div className="w-full">
+									<DatePickerAirbnb
+										onDateSelect={handleDateSelect}
+										initialCheckin={checkin}
+										initialCheckout={checkout}
+										price={place.price}
+										placeId={id}
+										bookings={bookingsPlace}
+									/>
+								</div>
+
+								{/* Hóspedes */}
+								<div className="py-2 flex flex-col gap-4 justify-center sm:mx-auto sm:w-full ">
+									<div>
+										<p className="font-bold px-3 sm:px-0">Hóspedes</p>
+										{!limiteGuests ? (
+											<p className="text-sm text-gray-500 px-3 sm:px-0">
+												Hospedagem para até {place.guests} pessoas.
+											</p>
+										) : (
+											<p className="text-sm text-red-500 px-3 sm:px-0">
+												{limiteGuests}
+											</p>
+										)}
+									</div>
+									<div className="flex items-center text-center justify-center p-0 h-full w-fit border rounded-2xl">
+										<div className="rounded-l-2xl px-5 flex items-center justify-center bg-white">
+											<Counter value={guests} fontSize={25} />
+										</div>
+										<div className="flex items-center">
+											<button
+												className="border-l py-2.5 hover:bg-gray-100 px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
+												onClick={(e) => {
+													e.preventDefault();
+													if (guests < place.guests) {
+														setGuests(guests + 1);
+														setLimiteGuests("");
+													} else {
+														setLimiteGuests(
+															"Atingiu o limite máximo de hóspedes!",
+														);
+													}
+												}}
+												disabled={guests >= place.guests}
+											>
+												<Plus />
+											</button>
+											<button
+												className="border-l min-h-full py-2.5 hover:bg-gray-100 rounded-r-2xl px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
+												onClick={(e) => {
+													e.preventDefault();
+													if (guests > 1) {
+														setGuests(guests - 1);
+														setLimiteGuests("");
+													} else {
+														setLimiteGuests("Mínimo de 1 hóspede!");
+													}
+												}}
+												disabled={guests <= 1}
+											>
+												<Minus />
+											</button>
+										</div>
+									</div>
+								</div>
+								{user ? (
+									<InteractiveHoverButton
+										className="w-fit"
+										onClick={handleBooking}
+									>
+										Reservar comodidade
+									</InteractiveHoverButton>
+								) : (
+									<InteractiveHoverButton
+										className=""
+										onClick={(e) => {
+											e.preventDefault();
+											showAuthModal("login");
+										}}
+									>
+										Entre para continuar
+									</InteractiveHoverButton>
+								)}
+							</form>
 						</div>
-					) : (
-						<form className="form__place max-sm:relative max-sm:p-0  max-sm:w-full order-2   w-full  justify-self-end self-start sticky top-20 bottom-20 flex flex-col gap-4 rounded-2xl p-10">
-							<div className="border-l-2 border-primary-400 p-4">
-								<div className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
-									<p className="uppercase text-sm">preço</p>
-									<span className="font-light text-5xl text-primary-500">
-										R$ {place.price}
-									</span>{" "}
-									<p className="text-sm">por noite</p>
-								</div>
-							</div>
-
-							{/* NOVO CALENDÁRIO AIRBNB STYLE */}
-							<div className="w-full">
-								<DatePickerAirbnb
-									onDateSelect={handleDateSelect}
-									initialCheckin={checkin}
-									initialCheckout={checkout}
-									price={place.price}
-									placeId={id}
-									bookings={bookingsPlace}
-								/>
-							</div>
-
-							{/* Hóspedes */}
-							<div className="py-2 flex flex-col gap-4 justify-center sm:mx-auto sm:w-full ">
-								<div>
-									<p className="font-bold px-3 sm:px-0">Hóspedes</p>
-									{!limiteGuests ? (
-										<p className="text-sm text-gray-500 px-3 sm:px-0">
-											Hospedagem para até {place.guests} pessoas.
-										</p>
-									) : (
-										<p className="text-sm text-red-500 px-3 sm:px-0">
-											{limiteGuests}
-										</p>
-									)}
-								</div>
-								<div className="flex items-center text-center justify-center p-0 h-full w-fit border rounded-2xl">
-									<div className="rounded-l-2xl px-5 flex items-center justify-center bg-white">
-										<Counter value={guests} fontSize={25} />
-									</div>
-									<div className="flex items-center">
-										<button
-											className="border-l py-2.5 hover:bg-gray-100 px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
-											onClick={(e) => {
-												e.preventDefault();
-												if (guests < place.guests) {
-													setGuests(guests + 1);
-													setLimiteGuests("");
-												} else {
-													setLimiteGuests(
-														"Atingiu o limite máximo de hóspedes!"
-													);
-												}
-											}}
-											disabled={guests >= place.guests}
-										>
-											<Plus />
-										</button>
-										<button
-											className="border-l min-h-full py-2.5 hover:bg-gray-100 rounded-r-2xl px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
-											onClick={(e) => {
-												e.preventDefault();
-												if (guests > 1) {
-													setGuests(guests - 1);
-													setLimiteGuests("");
-												} else {
-													setLimiteGuests("Mínimo de 1 hóspede!");
-												}
-											}}
-											disabled={guests <= 1}
-										>
-											<Minus />
-										</button>
-									</div>
-								</div>
-							</div>
-							{user ? (
-								<InteractiveHoverButton
-									className="w-fit"
-									onClick={handleBooking}
-								>
-									Reservar comodidade
-								</InteractiveHoverButton>
-							) : (
-								<InteractiveHoverButton
-									className=""
-									onClick={(e) => {
-										e.preventDefault();
-										showAuthModal("login");
-									}}
-								>
-									Entre para continuar
-								</InteractiveHoverButton>
-							)}
-						</form>
 					)}
 				</div>
 			</div>

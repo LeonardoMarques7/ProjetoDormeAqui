@@ -109,6 +109,7 @@ const DatePickerAirbnb = ({
 	price = 250,
 	placeId,
 	bookings,
+	resetDates,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -124,7 +125,7 @@ const DatePickerAirbnb = ({
 			const fetchBookedDates = async () => {
 				try {
 					const response = await axios.get(
-						`/bookings/place/${placeId}/booked-dates`
+						`/bookings/place/${placeId}/booked-dates`,
 					);
 					setBookedDates(response.data);
 				} catch (error) {
@@ -463,7 +464,7 @@ const DatePickerAirbnb = ({
 										search && "w-full flex-1"
 									} bg-primary-900 cursor-pointer flex-1 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-primary-800 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none`}
 								>
-									Confirmar datas
+									Selecionar datas
 								</InteractiveHoverButton>
 								<button
 									type="button"

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { __dirname } from "../../ultis/dirname.js";
 import Booking from "./model.js";
 import { JWTVerify } from "../../ultis/jwt.js";
+import mongoose from "mongoose";
 
 const router = Router();
 
@@ -64,8 +65,8 @@ router.get("/place/:id/booked-dates", async (req, res) => {
     // Extrair todas as datas ocupadas (de checkin até checkout, incluindo checkout)
     const bookedDates = [];
     bookingDocs.forEach(booking => {
-      const checkin = new Date(booking.checkin);
-      const checkout = new Date(booking.checkout);
+      const checkin = booking.checkin;
+      const checkout = booking.checkout;
 
       // Adicionar todas as datas entre checkin e checkout (incluindo checkout)
       for (let date = new Date(checkin); date <= checkout; date.setDate(date.getDate() + 1)) {
@@ -84,22 +85,29 @@ router.get("/place/:id/booked-dates", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
+    const { place, user, price, priceTotal, checkin, checkout, guests, nights } = req.body;
 
-    const {place, user, price, priceTotal, checkin, checkout, guests, nights} = req.body;
+    // Iniciar sessão de transação para garantir atomicidade e prevenir conflitos de concorrência
+    // Isso garante que apenas uma reserva seja criada por vez, mesmo com múltiplas requisições simultâneas
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
     try {
         // Buscar o lugar para obter os horários de check-in e check-out
         const Place = (await import("../places/model.js")).default;
-        const placeDoc = await Place.findById(place);
+        const placeDoc = await Place.findById(place).session(session);
 
         if (!placeDoc) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(404).json({ message: "Lugar não encontrado." });
         }
 
         const checkinDate = new Date(checkin);
         const checkoutDate = new Date(checkout);
 
-        // Verificar se há reservas conflitantes
+        // Verificar se há reservas conflitantes dentro da transação
+        // Esta verificação é feita atomicamente com a criação da reserva
         const conflictingBookings = await Booking.find({
             place: place,
             $or: [
@@ -108,17 +116,19 @@ router.post("/", async (req, res) => {
                     checkout: { $gt: checkinDate }
                 }
             ]
-        });
+        }).session(session);
 
         if (conflictingBookings.length > 0) {
-            return res.status(400).json({ message: "Datas conflitantes com reservas existentes." });
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(409).json({ message: "Datas conflitantes com reservas existentes. As datas selecionadas não estão disponíveis." });
         }
 
         // Validar intervalo mínimo entre check-out e check-in
         // Se o check-out for no mesmo dia ou próximo, verificar os horários
-        const lastBooking = await Booking.findOne({ place: place }).sort({ checkout: -1 });
+        const lastBooking = await Booking.findOne({ place: place }).sort({ checkout: -1 }).session(session);
         if (lastBooking) {
-            const lastCheckout = new Date(lastBooking.checkout);
+            const lastCheckout = lastBooking.checkout;
             const timeDiff = checkinDate.getTime() - lastCheckout.getTime();
             const hoursDiff = timeDiff / (1000 * 60 * 60);
 
@@ -126,19 +136,28 @@ router.post("/", async (req, res) => {
             const minIntervalHours = 3;
 
             if (hoursDiff < minIntervalHours) {
+                await session.abortTransaction();
+                session.endSession();
                 return res.status(400).json({ message: `Intervalo mínimo de ${minIntervalHours} horas entre check-out e check-in não respeitado.` });
             }
         }
 
-        const newBookingDoc = await Booking.create({
-            place, user, price, priceTotal, checkin, checkout, guests, nights
-        })
+        // Criar a reserva dentro da transação
+        const newBookingDoc = await Booking.create([{
+            place, user, price, priceTotal, checkin: checkinDate, checkout: checkoutDate, guests, nights
+        }], { session });
 
-        res.json(newBookingDoc);
-    }
-    catch (error) {
-        res.status(500).json("Deu erro ao criar a reserva..",error);
-        throw error;
+        // Confirmar a transação
+        await session.commitTransaction();
+        session.endSession();
+
+        res.json(newBookingDoc[0]);
+    } catch (error) {
+        // Em caso de erro, abortar a transação
+        await session.abortTransaction();
+        session.endSession();
+        console.error("Erro ao criar reserva:", error);
+        res.status(500).json({ message: "Erro interno do servidor ao criar reserva." });
     }
 });
 

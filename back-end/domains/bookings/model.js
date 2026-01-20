@@ -5,8 +5,8 @@ const bookingSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: "User" },
     price: Number,
     priceTotal: Number,
-    checkin: String,
-    checkout: String,
+    checkin: Date,
+    checkout: Date,
     guests: Number,
     nights: Number,
 });

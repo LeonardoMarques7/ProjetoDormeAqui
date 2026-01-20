@@ -1,20 +1,28 @@
-# Correção de Erros do Console
+# TODO: Implement Robust Booking Flow
 
-## Tarefas Pendentes
+## Completed Tasks
 
-- [ ] Configurar Axios para enviar cookies automaticamente
-- [ ] Corrigir TypeError em Place.jsx (place.owner null)
-- [ ] Corrigir erro 500 em bookings/routes.js (JWTVerify sem COOKIE_NAME)
-- [ ] Adicionar DialogTitle nos componentes de diálogo
-- [ ] Adicionar tratamento de erros em AccBookings.jsx
+- [x] Update Booking model to use Date types for checkin and checkout
+- [x] Modify booked-dates route to handle Date objects
+- [x] Implement transaction-based booking creation with concurrency control
+- [x] Add proper error handling and conflict detection within transactions
+- [x] Add comments explaining concurrency handling
 
-## Arquivos a Editar
+## Summary of Changes
 
-- front-end/src/main.jsx (configurar Axios)
-- front-end/src/pages/Place.jsx
-- back-end/domains/bookings/routes.js
-- Componentes de diálogo (a identificar)
+- **Model Update**: Changed checkin/checkout from String to Date in booking schema for consistency
+- **Transaction Implementation**: Wrapped booking creation in MongoDB transactions to prevent race conditions
+- **Concurrency Handling**: Atomic conflict checking and booking creation ensures no overlaps even with simultaneous requests
+- **Error Handling**: Improved error responses with clear messages for conflicts (409 status)
 
-## Status
+## Testing Recommendations
 
-Aguardando confirmação do usuário para prosseguir.
+- Test concurrent booking attempts for the same dates to verify only one succeeds
+- Verify transaction rollback on conflicts
+- Check that existing bookings are preserved and not overwritten
+
+## Notes
+
+- Assumes MongoDB is configured with replica set for transactions
+- If replica set is not available, consider implementing optimistic locking as alternative
+- No payment flow implemented yet; temporary holds not added
