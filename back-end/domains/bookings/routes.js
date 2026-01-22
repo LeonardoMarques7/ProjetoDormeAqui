@@ -16,18 +16,29 @@ router.get("/owner", async (req, res) => {
     const { _id: id } = await JWTVerify(req, COOKIE_NAME);
 
     try {
-      const bookingDocs = await Booking.find({ user: id })
-    .sort({ createdAt: -1 }) // Ordena por check-in mais recente primeiro
-    .populate({
-        path: "place",
-        populate: {
-            path: "owner",     
-            select: "name email avatar"
-        }
-    })
-    .populate("user", "name email avatar");
+      // Primeiro, buscar todas as reservas do usuário
+      const allBookings = await Booking.find({ user: id })
+        .sort({ createdAt: -1 }) // Ordena por check-in mais recente primeiro
+        .populate({
+            path: "place",
+            populate: {
+                path: "owner",
+                select: "name email avatar"
+            }
+        })
+        .populate("user", "name email avatar");
 
-res.json(bookingDocs);
+      // Buscar avaliações do usuário
+      const Review = (await import("../reviews/model.js")).default;
+      const userReviews = await Review.find({ user: id }).select("booking");
+
+      // Criar um set de IDs de reservas que já foram avaliadas
+      const reviewedBookingIds = new Set(userReviews.map(review => review.booking.toString()));
+
+      // Filtrar reservas que não foram avaliadas
+      const bookingDocs = allBookings.filter(booking => !reviewedBookingIds.has(booking._id.toString()));
+
+      res.json(bookingDocs);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Deu erro ao encontrar as reservas.." });

@@ -211,12 +211,12 @@ router.put("/:id", requireAuth, async (req, res) => {
     return res.status(403).json({ error: "Você só pode editar seu próprio perfil" });
   }
 
-  const { name, email, phone, city, pronouns, photo, banner, bio } = req.body;
+  const { name, email, phone, city, pronouns, photo, banner, bio, occupation } = req.body;
 
   try {
     const updateUserDoc = await User.findOneAndUpdate(
       {_id},
-      { name, email, phone, city, pronouns, photo, banner, bio },
+      { name, email, phone, city, pronouns, photo, banner, bio, occupation },
       { new: true }
     ).select('-password');
 

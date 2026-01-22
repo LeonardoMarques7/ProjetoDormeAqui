@@ -8,6 +8,7 @@ const userSchema = new Schema({
     city: String,
     phone: String,
     pronouns: String,
+    occupation: String,
     email: {type: String, unique: true},
     password: String,
 }, { timestamps: true })

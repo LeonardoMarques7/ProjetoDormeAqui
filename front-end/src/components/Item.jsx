@@ -59,7 +59,7 @@ const Item = ({ place = null, placeHolder }) => {
 			if (!api) return;
 			api.scrollTo(index);
 		},
-		[api]
+		[api],
 	);
 
 	useEffect(() => {
@@ -143,7 +143,9 @@ const Item = ({ place = null, placeHolder }) => {
 							{/* Rating badge */}
 							<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
 								<Star size={14} fill="#FFC107" stroke="#FFC107" />
-								<span className="text-sm font-semibold">4.98</span>
+								<span className="text-sm font-semibold">
+									{place.averageRating.toFixed(1)}
+								</span>
 							</div>
 						</Carousel>
 

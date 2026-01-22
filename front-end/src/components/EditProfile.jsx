@@ -50,6 +50,7 @@ const EditProfile = ({ user }) => {
 	const [pronouns, setPronouns] = useState(user.pronouns);
 	const [photo, setPhoto] = useState(user.photo);
 	const [banner, setBanner] = useState(user.banner);
+	const [occupation, setOccupation] = useState(user.occupation);
 	const [redirect, setRedirect] = useState(false);
 
 	useEffect(() => {
@@ -66,6 +67,7 @@ const EditProfile = ({ user }) => {
 				setPronouns(data.pronouns);
 				setPhoto(data.photo);
 				setBanner(data.banner);
+				setOccupation(data.occupation);
 				setCity(data.city);
 				setBio(data.bio);
 			};
@@ -137,6 +139,7 @@ const EditProfile = ({ user }) => {
 						pronouns,
 						city,
 						bio,
+						occupation,
 					});
 					setRedirect(true);
 					showMessage(
@@ -329,7 +332,30 @@ const EditProfile = ({ user }) => {
 						</div>
 					</div>
 				</div>
-
+				<div className="label__input text-start flex flex-col gap-2 w-full">
+					<label
+						htmlFor="occupation"
+						className="text-2xl ml-2 font-medium text-gray-600"
+					>
+						Ocupação
+						<div className="text-sm font-normal">
+							Com que trabalha ou estuda? <strong>Campo Opcional</strong>
+						</div>
+					</label>
+					<div className="group__input relative flex justify-center items-center">
+						<Users className="absolute left-4 text-gray-400 size-6" />
+						<input
+							id="occupation"
+							type="text"
+							placeholder="Digite sua ocupação ou curso"
+							className="border border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400"
+							value={occupation}
+							onChange={(e) => {
+								setOccupation(e.target.value);
+							}}
+						/>
+					</div>
+				</div>
 				<div className="label__input text-start flex flex-col gap-2 w-full">
 					<label
 						htmlFor="email"

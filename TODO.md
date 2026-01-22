@@ -1,19 +1,22 @@
-# TODO: Adicionar campo 'banner' ao usuário
+# TODO: Implement Review Feature for Places
 
-## Back-end
+## Backend Tasks
 
-- [x] Atualizar modelo de usuário (back-end/domains/users/model.js) para incluir campo 'banner'
-- [x] Atualizar rotas de usuário (back-end/domains/users/routes.js) para suportar upload de banner
-- [x] Atualizar rota PUT para incluir banner na atualização
+- [x] Create Review model (back-end/domains/reviews/model.js)
+- [x] Create Review routes (back-end/domains/reviews/routes.js)
+- [x] Update Place model to include average rating calculation (back-end/domains/places/model.js)
+- [x] Update Booking routes to handle review submission during checkout (back-end/domains/bookings/routes.js)
+- [x] Update main routes to include review routes (back-end/routes/index.js)
 
-## Front-end
+## Frontend Tasks
 
-- [x] Atualizar AccProfile.jsx para exibir banner do usuário
-- [x] Atualizar EditProfile.jsx para permitir edição do banner
-- [x] Adicionar funcionalidade de upload de banner similar ao upload de foto
+- [x] Add Review component for submission during checkout (front-end/src/components/Review.jsx)
+- [x] Update Place page to display dynamic ratings (front-end/src/pages/Place.jsx)
+- [x] Update Booking component to include review form (front-end/src/components/Booking.jsx)
+- [x] Update Places listing to show average ratings (front-end/src/components/Places.jsx)
 
-## Testes
+## Testing and Verification
 
-- [ ] Testar upload de banner
-- [ ] Testar exibição de banner no perfil
-- [ ] Testar edição de banner
+- [x] Test review submission flow
+- [x] Verify average rating calculations
+- [x] Check UI updates for ratings display
