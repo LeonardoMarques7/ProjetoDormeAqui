@@ -57,6 +57,7 @@ const AccProfile = () => {
 	const [imageErrors, setImageErrors] = useState({});
 	const [totalGuestsSatisfied, setTotalGuestsSatisfied] = useState(0);
 	const [experienceTime, setExperienceTime] = useState("");
+	const [reviews, setReviews] = useState([]);
 
 	const plugin = useRef(
 		Autoplay({
@@ -202,6 +203,27 @@ const AccProfile = () => {
 			calculateExperienceTime();
 		}
 	}, [profileUser]);
+
+	useEffect(() => {
+		const fetchReviews = async () => {
+			let allReviews = [];
+			for (const place of places) {
+				try {
+					const { data: placeReviews } = await axios.get(
+						`/reviews/place/${place._id}`,
+					);
+					allReviews = [...allReviews, ...placeReviews];
+				} catch (error) {
+					console.error("Erro ao buscar reviews para place:", place._id, error);
+				}
+			}
+			setReviews(allReviews);
+		};
+
+		if (places.length > 0) {
+			fetchReviews();
+		}
+	}, [places]);
 
 	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -477,10 +499,62 @@ const AccProfile = () => {
 										<p className="text-primary-500 uppercase font-light">
 											Testemunhos
 										</p>
-										<div className="flex items-center mb-15 justify-between">
+										<div className="flex items-center  justify-between">
 											<div className="">
 												<p className="text-4xl font-bold">O Que Dizem</p>
 											</div>
+										</div>
+										<div className="flex flex-col gap-6 mt-5 mb-15">
+											{reviews.length > 0 ? (
+												reviews.map((review) => (
+													<div
+														key={review._id}
+														className="flex flex-col gap-4 p-6 w-fit bg-white rounded-2xl border border-gray-200 shadow-sm"
+													>
+														<div className="flex items-center gap-4">
+															<img
+																src={review.user.photo || photoDefault}
+																alt={review.user.name}
+																className="w-12 h-12 rounded-full object-cover"
+															/>
+															<div className="flex flex-col">
+																<p className="font-semibold text-gray-900">
+																	{review.user.name}
+																</p>
+																<div className="flex items-center gap-2">
+																	<div className="flex items-center gap-1">
+																		{[...Array(5)].map((_, i) => (
+																			<Star
+																				key={i}
+																				size={16}
+																				className={`${
+																					i < Math.floor(review.rating)
+																						? "text-yellow-500 fill-current"
+																						: i < review.rating
+																							? "text-yellow-500 fill-current opacity-50"
+																							: "text-gray-300"
+																				}`}
+																			/>
+																		))}
+																	</div>
+																	<span className="text-sm text-gray-600">
+																		{review.rating.toFixed(1)}
+																	</span>
+																</div>
+															</div>
+														</div>
+														{review.comment && (
+															<p className="text-gray-700 leading-relaxed">
+																{review.comment}
+															</p>
+														)}
+													</div>
+												))
+											) : (
+												<p className="text-gray-500 text-center py-8">
+													Ainda não há avaliações para este anfitrião.
+												</p>
+											)}
 										</div>
 									</div>
 								</div>
