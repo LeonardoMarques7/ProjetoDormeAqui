@@ -1,19 +1,15 @@
 import React, { useState } from "react";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import photoDefault from "../assets/photoDefault.jpg";
 import axios from "axios";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
 import {
+	ArrowLeft,
+	ArrowRight,
 	Cog,
 	EllipsisVertical,
 	Globe,
+	Heart,
 	Loader,
 	LogOut,
 	Mail,
@@ -21,6 +17,7 @@ import {
 	Pen,
 	Phone,
 	PhoneCall,
+	Star,
 	Sunrise,
 	Trash2,
 } from "lucide-react";
@@ -57,6 +54,7 @@ const AccProfile = () => {
 	const [ready, setReady] = useState(false);
 	const [onDelete, setOnDelete] = useState(false);
 	const [initialValues, setInitialValues] = useState(null);
+	const [imageErrors, setImageErrors] = useState({});
 
 	const plugin = useRef(
 		Autoplay({
@@ -212,26 +210,35 @@ const AccProfile = () => {
 	const isOwnProfile =
 		user && (!paramId || String(paramId) === String(user._id));
 
+	const nameUser = displayUser.name.split(" ");
+
+	const handleImageError = (index) => {
+		setImageErrors((prev) => ({ ...prev, [index]: true }));
+	};
+
+	const getImageSrc = (item, index) => {
+		if (imageErrors[`${item._id}_${index}`]) {
+			return photoDefault;
+		}
+		return item.photos?.[index];
+	};
+
 	return (
 		<>
 			{!isEditingProfile ? (
 				<>
-					<div className="banner__home max-sm:h-[25svh] h-[50vh]  bg-primar-700  w-full relative">
-						<img
-							src={displayUser.banner || Banner}
-							alt=""
-							className="object-cover pointer-events-none h-full w-full  shadow-2xl"
-						/>
-						<div className="absolute inset-0 bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
-					</div>
+					<img
+						className="mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[40svh] relative overflow-hidden"
+						src={displayUser.banner}
+					/>
 
 					{/* Container do conteúdo */}
-					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5 max-sm:mt-0 relative -mt-28">
+					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5 max-sm:mt-0 relative -mt-35">
 						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10">
 							{/* Header do perfil (avatar + botão) */}
 							<div className="avatar__btn flex  max-sm:gap-2 gap-5 items-center justify-start relative">
 								{/* Avatar sobreposto */}
-								<div className="icon__perfil relative w-40 h-40 rounded-full border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
+								<div className=" relative w-60 h-60 rounded-full border-2 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
 									{displayUser.photo ? (
 										<img
 											src={displayUser.photo}
@@ -242,55 +249,35 @@ const AccProfile = () => {
 										displayUser.name.charAt(0)
 									)}
 								</div>
-								<div className="container__name flex-1 mb-10 text-4xl max-sm:hidden font-bold text-white flex justify-start items-end gap-3">
-									{displayUser.name}
-									{displayUser.pronouns && (
-										<span className="text-lg font-normal text-white">
-											{displayUser.pronouns}
-										</span>
-									)}
-								</div>
 
 								{/* Botão de editar - só mostra se for o próprio perfil E estiver logado */}
-								{isOwnProfile && (
-									<div className="flex items-center mb-10 gap-5 max-sm:hidden text-white">
-										<Link
-											to="/account/profile/edit"
-											className={`group flex cursor-pointer justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full`}
-										>
-											<Pen size={18} />
-											<span className="hidden group-hover:inline pl-2">
-												Editar perfil
-											</span>
-										</Link>
-										<button
-											onClick={logout}
-											className="group flex cursor-pointer justify-between hover:text-primary-500 hover:bg-white transition-colors items-center gap-2 py-2 px-4 rounded-full"
-										>
-											<LogOut size={18} />
-											<span className="hidden group-hover:inline pl-2">
-												Sair
-											</span>
-										</button>
-									</div>
-								)}
 							</div>
-
-							{mobile ? (
-								<span className="text-sm line-clamp-3 bg-red text-nowrap font-bold truncate flex-col flex justify-start items-start gap-1">
-									<h1>{displayUser.name}</h1>
-									{displayUser.pronouns && (
-										<span className="text-lg font-light text-gray-300">
-											{displayUser.pronouns}
-										</span>
-									)}
+							<div className="flex gap-0 flex-col">
+								<p className="text-primary-700 uppercase font-mono">
+									{displayUser.occupation}
+								</p>
+								<span className="flex text-7xl leading-20 flex-col font-bold">
+									<p>{nameUser[0]}</p>
+									{nameUser[1]}
 								</span>
-							) : (
-								<></>
-							)}
-
+							</div>
+							<div className="flex gap-5 items-center">
+								<span className="flex gap-1.5 text-black">
+									{[...Array(5)].map((_, index) => (
+										<Star fill="black"></Star>
+									))}
+									<p className="font-bold ml-2 ">4.97</p>
+								</span>
+								<span className="w-1 h-1 rounded-full bg-primary-500"></span>
+								<p className="">7 Avaliações</p>
+							</div>
+							{displayUser.bio && (
+								<div className="text__bio max-w-xl flex flex-col gap-2 leading-relaxed text-gray-600 my-2">
+									{displayUser.bio}
+								</div>
+							)}{" "}
 							{/* Informações de contato */}
-							<div className="flex flex-wrap max-sm:flex-col max-sm:gap-1 gap-4 text-gray-500 mt-0">
+							<div className="flex flex-wrap max-sm:flex-col max-sm:gap-1 gap-4 text-gray-600 mt-0">
 								{displayUser.city && (
 									<span className="flex items-center gap-2">
 										<MapPin size={18} className="max-sm:hidden" />
@@ -298,52 +285,118 @@ const AccProfile = () => {
 									</span>
 								)}
 							</div>
-
-							{/* Sobre mim */}
-							<div className="profile mt-5">
-								<h2 className="text-2xl font-medium mb-2">Sobre mim</h2>
-								<span className="flex gap-2 flex-col text-gray-500">
-									<span className="flex items-end gap-2 font-bold">
-										Anfitrião desde 10/04/2025
-									</span>
+							<div className="flex items-center gap-5 my-5 p-0 list-none">
+								<span className="flex flex-col gap-2.5">
+									<span className="font-bold text-5xl">5</span>
+									<p>Acomodações Exclusivas</p>
 								</span>
-								{displayUser.bio && (
-									<div className="text__bio max-w-xl flex flex-col gap-2 leading-relaxed text-gray-600 mt-4">
-										{displayUser.bio}
-									</div>
-								)}
+								<span className="flex flex-col gap-2.5">
+									<span className="font-bold text-5xl">10</span>
+									<p>Hóspedes Satisfeitos</p>
+								</span>
+								<span className="flex flex-col gap-2.5">
+									<span className="font-bold text-5xl">2m</span>
+									<p>De Experiência</p>
+								</span>
 							</div>
-
 							{/* Meus anúncios */}
 							<div>
-								<h2 className="text-2xl my-5 font-medium">
-									{isOwnProfile ? "Meus Anúncios" : "Anúncios"} ({places.length}
-									)
-								</h2>
-								<div className="grid__anuncios grid grid-cols-[repeat(auto-fit,minmax(250px,250px))] gap-8 md:max-w-7xl mx-auto">
+								<p className="text-primary-500 uppercase font-light">Seleção</p>
+								<div className="flex items-center mb-15 justify-between">
+									<div className="">
+										<p className="text-4xl font-bold">
+											Acomodações em Destaque
+										</p>
+									</div>
+									<span className="text-primary-700 cursor-pointer uppercase font-mono">
+										Ver tudo
+									</span>
+								</div>
+								<div className="flex flex-col gap-20">
 									{places.length > 0 ? (
-										places.map((item) => (
+										places.map((item, index) => (
 											<div
+												className={`item__projeto rounded-xl relative flex gap-5 ${
+													index % 2 === 0
+														? "item__left "
+														: "item__right flex-row-reverse"
+												}`}
 												key={item._id}
-												className="relative hover:scale-105 transition-all ease-in-out duration-500 hover:saturate-125"
 											>
-												<Link to={`/places/${item._id}`}>
-													<div className="relative flex flex-col gap-2">
-														<img
-															src={item.photos[0]}
-															className="aspect-square object-cover rounded-2xl"
-															alt={item.title}
-														/>
-														<div className="">
-															<p className="text-gray-700 font-normal overflow-hidden">
-																{item.title}
-															</p>
-															<strong className="w-fit rounded-full text-black">
-																R$ {item.price}/noite
-															</strong>
-														</div>
+												<div className="grid gap-2 grid-cols-4 max-sm:col-span-4 max-sm:row-span-2 ">
+													<img
+														src={getImageSrc(item, 0)}
+														onError={() => handleImageError(`${item._id}_0`)}
+														className="aspect-square w-80 col-span-2 row-span-2 object-cover rounded-2xl"
+														alt={item.title}
+													/>
+													<img
+														src={getImageSrc(item, 1)}
+														onError={() => handleImageError(`${item._id}_1`)}
+														className="aspect-square w-40 col-span-1 row-span-1 object-cover rounded-2xl"
+														alt={item.title}
+													/>
+													<img
+														src={getImageSrc(item, 2)}
+														onError={() => handleImageError(`${item._id}_2`)}
+														className="aspect-square  col-span-1 row-span-1 w-40 object-cover rounded-2xl"
+														alt={item.title}
+													/>
+													<img
+														src={getImageSrc(item, 3)}
+														onError={() => handleImageError(`${item._id}_3`)}
+														className="aspect-square w-40  col-span-1 row-span-1 object-cover rounded-2xl"
+														alt={item.title}
+													/>
+													<img
+														src={getImageSrc(item, 4)}
+														onError={() => handleImageError(`${item._id}_4`)}
+														className="aspect-square w-40  col-span-1 row-span-1 object-cover rounded-2xl"
+														alt={item.title}
+													/>
+												</div>
+												<div className="relative flex flex-col justify-between gap-10">
+													<div className="flex flex-col">
+														<p className="absolute -top-6 text-primary-700 cursor-pointer uppercase font-light">
+															{item.city}
+														</p>
+														<p className=" font-bold text-3xl text-[#0F172B] text-wrap max-w-md overflow-hidden">
+															{item.title}
+														</p>
+														<span className="flex items-center gap-1">
+															<Star
+																fill="black"
+																stroke="black"
+																size={20}
+															></Star>
+															5.0{" "}
+															<span className="w-1 h-1 rounded-full bg-primary-500 mx-2"></span>
+															<Heart
+																fill="red"
+																stroke="red"
+																size={20}
+																className="mr-2"
+															/>
+															Favorito
+														</span>
 													</div>
-												</Link>
+													<div className="flex items-center justify-between">
+														<div className="relative font-bold text-3xl text-[#0F172B]">
+															R$ {item.price}
+															<span className="absolute font-normal text-sm pl-1 top-4">
+																/noite
+															</span>
+														</div>
+
+														<Link
+															className="flex items-center group hover:px-5 hover:bg-primary-100 transition-all rounded-2xl px-5 py-2.5 gap-4"
+															to={`/places/${item._id}`}
+														>
+															Acessar acomodação
+															<ArrowRight className="group-hover:translate-x-1 transition-transform" />
+														</Link>
+													</div>
+												</div>
 											</div>
 										))
 									) : (
@@ -353,9 +406,19 @@ const AccProfile = () => {
 												: "Este usuário não tem anúncios públicos"}
 										</p>
 									)}
+									<div className="flex flex-col">
+										<p className="text-primary-500 uppercase font-light">
+											Testemunhos
+										</p>
+										<div className="flex items-center mb-15 justify-between">
+											<div className="">
+												<p className="text-4xl font-bold">O Que Dizem</p>
+											</div>
+										</div>
+									</div>
 								</div>
 							</div>
-							{isOwnProfile && <DeleteAccountDialog onDelete={handleDelete} />}
+							{/* {isOwnProfile && <DeleteAccountDialog onDelete={handleDelete} />} */}
 						</div>
 					</div>
 				</>
