@@ -48,8 +48,8 @@ const AccPlaces = () => {
 							{edit
 								? "Editando acomodação"
 								: action !== "new"
-								? "Meus lugares"
-								: "Adicionando acomodação"}{" "}
+									? "Meus lugares"
+									: "Adicionando acomodação"}{" "}
 							<span className="text-lg max-sm:text-sm flex items-center gap-3">
 								({places.length} Acomodações)
 								<Link

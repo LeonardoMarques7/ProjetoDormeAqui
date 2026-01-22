@@ -8,6 +8,10 @@ import { sendToS3, uploadImage } from "../controller.js";
 
 const router = Router();
 
+// Configuração do cookie baseada no ambiente (igual ao users/routes.js)
+const isProduction = process.env.NODE_ENV === 'production';
+const COOKIE_NAME = isProduction ? 'prod_auth_token' : 'dev_auth_token';
+
 
 router.get("/", async (req, res) => {
     const { city } = req.query;
@@ -28,7 +32,7 @@ router.get("/", async (req, res) => {
 
 router.get("/owner", async (req, res) => {
     try {
-        const { _id } = await JWTVerify(req);
+        const { _id } = await JWTVerify(req, COOKIE_NAME);
 
         try {
             const placeDocs = await Place.find({owner: _id});
@@ -139,7 +143,7 @@ router.post("/", async (req, res) => {
     const { title, city, photos, description, extras, perks, price, checkin, checkout, guests } = req.body;
 
         try {
-            const { _id } = await JWTVerify(req);
+            const { _id } = await JWTVerify(req, COOKIE_NAME);
             const newPlaceDoc = await Place.create({
                 owner: _id,
                 title,

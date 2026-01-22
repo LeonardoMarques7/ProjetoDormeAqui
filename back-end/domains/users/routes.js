@@ -153,22 +153,53 @@ router.post("/upload", requireAuth, uploadImage().single("files"), async (req, r
 
   try {
     const fileUrl = await sendToS3(filename, path, mimetype);
-    
+
     if (!req.user || !req.user._id) {
       return res.status(401).json({ error: "Usuário não autenticado" });
     }
-    
+
     await User.findByIdAndUpdate(
       req.user._id,
       { photo: fileUrl },
       { new: true }
     );
-    
+
     res.json(fileUrl);
-    
+
   } catch (error) {
     console.error("Erro ao fazer upload:", error);
     res.status(500).json({ error: "Erro ao fazer upload da imagem" });
+  }
+});
+
+// UPLOAD DE BANNER
+router.post("/upload-banner", requireAuth, uploadImage().single("files"), async (req, res) => {
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ error: "Nenhum arquivo enviado" });
+  }
+
+  const { filename, path, mimetype } = file;
+
+  try {
+    const fileUrl = await sendToS3(filename, path, mimetype);
+
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ error: "Usuário não autenticado" });
+    }
+
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { banner: fileUrl },
+      { new: true }
+    );
+
+    res.json(fileUrl);
+
+  } catch (error) {
+    console.error("Erro ao fazer upload do banner:", error);
+    res.status(500).json({ error: "Erro ao fazer upload do banner" });
   }
 });
 
@@ -180,12 +211,12 @@ router.put("/:id", requireAuth, async (req, res) => {
     return res.status(403).json({ error: "Você só pode editar seu próprio perfil" });
   }
 
-  const { name, email, phone, city, pronouns, photo, bio } = req.body;
+  const { name, email, phone, city, pronouns, photo, banner, bio } = req.body;
 
   try {
     const updateUserDoc = await User.findOneAndUpdate(
-      {_id}, 
-      { name, email, phone, city, pronouns, photo, bio },
+      {_id},
+      { name, email, phone, city, pronouns, photo, banner, bio },
       { new: true }
     ).select('-password');
 

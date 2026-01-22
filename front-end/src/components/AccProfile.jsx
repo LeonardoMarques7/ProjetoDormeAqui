@@ -216,9 +216,9 @@ const AccProfile = () => {
 		<>
 			{!isEditingProfile ? (
 				<>
-					<div className="banner__home max-sm:h-[25svh] h-[50svh]  bg-primar-700  w-full relative">
+					<div className="banner__home max-sm:h-[25svh] h-[50vh]  bg-primar-700  w-full relative">
 						<img
-							src={Banner}
+							src={displayUser.banner || Banner}
 							alt=""
 							className="object-cover pointer-events-none h-full w-full  shadow-2xl"
 						/>
@@ -364,13 +364,13 @@ const AccProfile = () => {
 					{/* Só permite editar se for o próprio perfil */}
 					{isOwnProfile ? (
 						<>
-							<div
-								className="bg-primar-700 shadow-2xl mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[50svh] relative overflow-hidden"
-								style={{
-									backgroundImage: `url(${image})`,
-								}}
-							>
-								<div className="absolute inset-0 backdrop-blur-[5px]"></div>
+							<div className="banner__home max-sm:h-[25svh] h-[50vh]  bg-primar-700  w-full relative">
+								<img
+									src={displayUser.banner || Banner}
+									alt=""
+									className="object-cover pointer-events-none h-full w-full  shadow-2xl"
+								/>
+								<div className="absolute inset-0 bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
 							</div>
 							<EditProfile user={user} />
 						</>

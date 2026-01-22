@@ -487,8 +487,6 @@ const Place = () => {
 	let beds = 2;
 	let bathrooms = 1;
 
-	if (login) return <Navigate to={`/login`} />;
-
 	return (
 		<>
 			<LightGallery

@@ -62,8 +62,6 @@ function App() {
 								<Routes>
 									<Route path="/" element={<Home />} />
 									<Route path="/teste" element={<Teste />} />
-									<Route path="/login" element={<Login />} />
-									<Route path="/register" element={<Register />} />
 									<Route
 										path="/account/:subpage/:action?/:id?"
 										element={<Account />}

@@ -75,9 +75,6 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 					onOpenChange={setOpen}
 					modal={false}
 				>
-					<DialogTrigger asChild>
-						<Button variant="outline">Edit Profile</Button>
-					</DialogTrigger>
 					<DialogContent className="h-full rounded-none xl:h-fit xl:rounded-3xl">
 						<div className="flex justify-between items-center xl:mb-5 -mb-10">
 							<img src={logo__primary} className="w-90" alt="" />
@@ -98,9 +95,6 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 
 	return (
 		<Drawer open={open} onOpenChange={setOpen}>
-			<DrawerTrigger asChild>
-				<Button variant="outline">Edit Profile</Button>
-			</DrawerTrigger>
 			<DrawerContent>
 				<DrawerHeader className="text-left">
 					<DrawerTitle>Edit profile</DrawerTitle>
@@ -244,7 +238,7 @@ function ProfileForm({ onSuccess }) {
 						setMessage("Este email já está em uso");
 					} else {
 						setMessage(
-							`Erro ao cadastrar: ${error.response?.data || error.message}`
+							`Erro ao cadastrar: ${error.response?.data || error.message}`,
 						);
 					}
 				}

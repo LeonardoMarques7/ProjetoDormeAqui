@@ -49,6 +49,7 @@ const EditProfile = ({ user }) => {
 	const [bio, setBio] = useState(user.bio);
 	const [pronouns, setPronouns] = useState(user.pronouns);
 	const [photo, setPhoto] = useState(user.photo);
+	const [banner, setBanner] = useState(user.banner);
 	const [redirect, setRedirect] = useState(false);
 
 	useEffect(() => {
@@ -64,6 +65,7 @@ const EditProfile = ({ user }) => {
 				setPhone(data.phone);
 				setPronouns(data.pronouns);
 				setPhoto(data.photo);
+				setBanner(data.banner);
 				setCity(data.city);
 				setBio(data.bio);
 			};
@@ -95,6 +97,31 @@ const EditProfile = ({ user }) => {
 		}
 	};
 
+	const uploadBanner = async (e) => {
+		const { files } = e.target;
+		const file = files[0];
+
+		if (!file) return;
+
+		const formData = new FormData();
+		formData.append("files", file);
+
+		try {
+			const { data: bannerUrl } = await axios.post(
+				"/users/upload-banner",
+				formData,
+			);
+
+			console.log("✅ Banner atualizado:", bannerUrl);
+
+			setBanner(bannerUrl);
+			showMessage("Banner atualizado com sucesso!", "success");
+		} catch (error) {
+			showMessage("Erro ao enviar banner!", "error");
+			console.error("❌ Erro:", error);
+		}
+	};
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
@@ -105,6 +132,7 @@ const EditProfile = ({ user }) => {
 						name,
 						email,
 						photo,
+						banner,
 						phone,
 						pronouns,
 						city,
@@ -113,7 +141,7 @@ const EditProfile = ({ user }) => {
 					setRedirect(true);
 					showMessage(
 						"Suas informações foram atualizadas com sucesso!",
-						"success"
+						"success",
 					);
 				} catch (error) {
 					console.log("Erro ao enviar o formulário: ", JSON.stringify(error));
@@ -184,6 +212,36 @@ const EditProfile = ({ user }) => {
 							<div className="flex items-center w-full justify-start">
 								<p className=" text-gray-500 transition-all duration-500  ">
 									Selecionar a foto
+								</p>
+								<Upload className="ml-auto text-gray-400 size-6" />
+							</div>
+						</div>
+					</label>
+				</div>
+				<div className="flex flex-col items-start justify-center w-full gap-5">
+					<label
+						htmlFor="banner"
+						className="label__input text-start flex flex-col gap-2 w-full	"
+					>
+						<label
+							htmlFor="banner"
+							className="text-2xl ml-2 font-medium text-gray-600"
+						>
+							Banner
+							<div className="text-sm font-normal">Selecione seu banner.</div>
+						</label>
+						<div className="group__input flex-1 w-full relative border border-gray-300 cursor-pointer hover:border-primary-400 hover:bg-primary-100/25 pl-14 pr-5 py-4 rounded-2xl outline-primary-400  flex justify-center items-center">
+							<input
+								type="file"
+								id="banner"
+								className="hidden"
+								onChange={uploadBanner}
+								accept="image/*"
+							/>
+							<ImagePlus className="absolute left-4 text-gray-400 size-6" />
+							<div className="flex items-center w-full justify-start">
+								<p className=" text-gray-500 transition-all duration-500  ">
+									Selecionar o banner
 								</p>
 								<Upload className="ml-auto text-gray-400 size-6" />
 							</div>

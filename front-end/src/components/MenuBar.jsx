@@ -60,7 +60,6 @@ function MenuBar({ active }) {
 	const navItemsPerfil = [
 		{ path: "/account/profile/edit", label: "Editar perfil" },
 		{
-			path: "/login",
 			label: "Sair",
 			function: () => {
 				logout();
@@ -103,7 +102,7 @@ function MenuBar({ active }) {
 				{},
 				{
 					withCredentials: true,
-				}
+				},
 			);
 
 			// Limpa qualquer cache do axios

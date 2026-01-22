@@ -1,28 +1,19 @@
-# TODO: Implement Robust Booking Flow
+# TODO: Adicionar campo 'banner' ao usuário
 
-## Completed Tasks
+## Back-end
 
-- [x] Update Booking model to use Date types for checkin and checkout
-- [x] Modify booked-dates route to handle Date objects
-- [x] Implement transaction-based booking creation with concurrency control
-- [x] Add proper error handling and conflict detection within transactions
-- [x] Add comments explaining concurrency handling
+- [x] Atualizar modelo de usuário (back-end/domains/users/model.js) para incluir campo 'banner'
+- [x] Atualizar rotas de usuário (back-end/domains/users/routes.js) para suportar upload de banner
+- [x] Atualizar rota PUT para incluir banner na atualização
 
-## Summary of Changes
+## Front-end
 
-- **Model Update**: Changed checkin/checkout from String to Date in booking schema for consistency
-- **Transaction Implementation**: Wrapped booking creation in MongoDB transactions to prevent race conditions
-- **Concurrency Handling**: Atomic conflict checking and booking creation ensures no overlaps even with simultaneous requests
-- **Error Handling**: Improved error responses with clear messages for conflicts (409 status)
+- [x] Atualizar AccProfile.jsx para exibir banner do usuário
+- [x] Atualizar EditProfile.jsx para permitir edição do banner
+- [x] Adicionar funcionalidade de upload de banner similar ao upload de foto
 
-## Testing Recommendations
+## Testes
 
-- Test concurrent booking attempts for the same dates to verify only one succeeds
-- Verify transaction rollback on conflicts
-- Check that existing bookings are preserved and not overwritten
-
-## Notes
-
-- Assumes MongoDB is configured with replica set for transactions
-- If replica set is not available, consider implementing optimistic locking as alternative
-- No payment flow implemented yet; temporary holds not added
+- [ ] Testar upload de banner
+- [ ] Testar exibição de banner no perfil
+- [ ] Testar edição de banner
