@@ -22,9 +22,11 @@ import "./Booking.css";
 
 import Marquee from "react-fast-marquee";
 import Status from "./Status";
+import Review from "./Review";
 
 const BookingAll = ({ bookingsArray, bookingId }) => {
 	const [mobile, setIsMobile] = useState(window.innerWidth <= 768);
+	const [sortOrder, setSortOrder] = useState("closest"); // 'closest' or 'furthest'
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -33,18 +35,25 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
 
-	// Reordena o array para que o booking com o ID do param apareça primeiro
+	// Reordena o array para que o booking com o ID do param apareça primeiro, depois por data
 	const sortedBookings = [...bookingsArray].sort((a, b) => {
 		if (bookingId) {
 			if (a._id === bookingId) return -1;
 			if (b._id === bookingId) return 1;
 		}
-		return 0;
+		// Sort by checkin date
+		const dateA = new Date(a.checkin);
+		const dateB = new Date(b.checkin);
+		if (sortOrder === "closest") {
+			return dateA - dateB; // Ascending: closest first
+		} else {
+			return dateB - dateA; // Descending: furthest first
+		}
 	});
 
 	// Filtra bookings válidos (com place e user não nulos)
 	const validBookings = sortedBookings.filter(
-		(booking) => booking && booking.place && booking.user
+		(booking) => booking && booking.place && booking.user,
 	);
 
 	function formatarData(dataISO) {
@@ -54,6 +63,30 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 
 	return (
 		<>
+			{/* Filter Controls */}
+			<div className="flex gap-2 mb-4">
+				<button
+					onClick={() => setSortOrder("closest")}
+					className={`px-4 cursor-pointer py-2 rounded-lg text-sm font-medium transition-colors ${
+						sortOrder === "closest"
+							? "bg-primary-500 text-white"
+							: "bg-gray-200 text-gray-700 hover:bg-gray-300"
+					}`}
+				>
+					Data mais próxima
+				</button>
+				<button
+					onClick={() => setSortOrder("furthest")}
+					className={`px-4 cursor-pointer py-2 rounded-lg text-sm font-medium transition-colors ${
+						sortOrder === "furthest"
+							? "bg-primary-500 text-white"
+							: "bg-gray-200 text-gray-700 hover:bg-gray-300"
+					}`}
+				>
+					Data mais distante
+				</button>
+			</div>
+
 			{validBookings.map((booking) => (
 				<div
 					key={booking._id}
@@ -123,6 +156,10 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 								Acessar acomodação
 							</InteractiveHoverButton>
 						</div>
+						{/* Review Section */}
+						{new Date(booking.checkout) < new Date() && (
+							<Review booking={booking} />
+						)}
 					</div>
 				</div>
 			))}

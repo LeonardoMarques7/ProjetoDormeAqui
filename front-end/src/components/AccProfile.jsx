@@ -55,6 +55,8 @@ const AccProfile = () => {
 	const [onDelete, setOnDelete] = useState(false);
 	const [initialValues, setInitialValues] = useState(null);
 	const [imageErrors, setImageErrors] = useState({});
+	const [totalGuestsSatisfied, setTotalGuestsSatisfied] = useState(0);
+	const [experienceTime, setExperienceTime] = useState("");
 
 	const plugin = useRef(
 		Autoplay({
@@ -152,6 +154,56 @@ const AccProfile = () => {
 	}, [paramId, user?._id, ready, profileUser]);
 
 	useEffect(() => {
+		const fetchTotalGuestsSatisfied = async () => {
+			let total = 0;
+			for (const place of places) {
+				try {
+					const { data: bookings } = await axios.get(
+						`/bookings/place/${place._id}`,
+					);
+					total += bookings.reduce((sum, booking) => sum + booking.guests, 0);
+				} catch (error) {
+					console.error(
+						"Erro ao buscar bookings para place:",
+						place._id,
+						error,
+					);
+				}
+			}
+			setTotalGuestsSatisfied(total);
+		};
+
+		if (places.length > 0) {
+			fetchTotalGuestsSatisfied();
+		}
+	}, [places]);
+
+	useEffect(() => {
+		const calculateExperienceTime = () => {
+			if (!profileUser?.createdAt) return;
+
+			const createdDate = new Date(profileUser.createdAt);
+			const now = new Date();
+			const diffTime = Math.abs(now - createdDate);
+			const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+			if (diffDays < 30) {
+				setExperienceTime(`${diffDays} dia${diffDays !== 1 ? "s" : ""}`);
+			} else if (diffDays < 365) {
+				const months = Math.floor(diffDays / 30);
+				setExperienceTime(`${months} ${months !== 1 ? "meses" : "mês"}`);
+			} else {
+				const years = Math.floor(diffDays / 365);
+				setExperienceTime(`${years} ano${years !== 1 ? "s" : ""}`);
+			}
+		};
+
+		if (profileUser) {
+			calculateExperienceTime();
+		}
+	}, [profileUser]);
+
+	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth <= 768);
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
@@ -242,20 +294,33 @@ const AccProfile = () => {
 									{displayUser.photo ? (
 										<img
 											src={displayUser.photo}
-											className="w-full h-full object-cover rounded-full"
+											className="w-full h-full object-cover object-center rounded-full"
 											alt={displayUser.name}
 										/>
 									) : (
 										displayUser.name.charAt(0)
 									)}
 								</div>
+								<div className="flex absolute gap-2.5 right-0 top-35">
+									<Link
+										to="/account/profile/edit"
+										className={` cursor-pointer px-5 py-2.5 hover:bg-primary-100 rounded-2xl text-end justify-end font-light text-primary-900`}
+									>
+										Editar perfil
+									</Link>
+									<span className="cursor-pointer px-5 py-2.5 hover:bg-primary-100 rounded-2xl text-primary-900">
+										<Cog />
+									</span>
+								</div>
 
 								{/* Botão de editar - só mostra se for o próprio perfil E estiver logado */}
 							</div>
 							<div className="flex gap-0 flex-col">
-								<p className="text-primary-700 uppercase font-mono">
-									{displayUser.occupation}
-								</p>
+								<div className="">
+									<p className="text-primary-700 uppercase font-mono">
+										{displayUser.occupation}
+									</p>
+								</div>
 								<span className="flex text-7xl leading-20 flex-col font-bold">
 									<p>{nameUser[0]}</p>
 									{nameUser[1]}
@@ -287,15 +352,17 @@ const AccProfile = () => {
 							</div>
 							<div className="flex items-center gap-5 my-5 p-0 list-none">
 								<span className="flex flex-col gap-2.5">
-									<span className="font-bold text-5xl">5</span>
+									<span className="font-bold text-5xl">{places.length}</span>
 									<p>Acomodações Exclusivas</p>
 								</span>
 								<span className="flex flex-col gap-2.5">
-									<span className="font-bold text-5xl">10</span>
+									<span className="font-bold text-5xl">
+										{totalGuestsSatisfied}
+									</span>
 									<p>Hóspedes Satisfeitos</p>
 								</span>
 								<span className="flex flex-col gap-2.5">
-									<span className="font-bold text-5xl">2m</span>
+									<span className="font-bold text-5xl">{experienceTime}</span>
 									<p>De Experiência</p>
 								</span>
 							</div>

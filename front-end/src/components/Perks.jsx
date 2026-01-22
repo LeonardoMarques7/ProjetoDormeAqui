@@ -20,7 +20,7 @@ const Perks = ({ perks, setPerks }) => {
 		setPerks((prevValue) =>
 			checked
 				? [...prevValue, perkId]
-				: prevValue.filter((perk) => perk !== perkId)
+				: prevValue.filter((perk) => perk !== perkId),
 		);
 	};
 

@@ -7,14 +7,15 @@ const placeSchema = new Schema({
     photos: [String],
     description: String,
     extras: String,
-    perks: [String],                    
+    perks: [String],
     price: Number,
     checkin: String,
-    checkout: String,                                         
+    checkout: String,
     guests: Number,
     rooms: Number,
     beds: Number,
     bathrooms: Number,
+    averageRating: { type: Number, default: 0 },
 });
 
 export default model("Place", placeSchema);

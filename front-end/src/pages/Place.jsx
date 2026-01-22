@@ -23,6 +23,7 @@ import {
 	Plus,
 	User,
 	Users,
+	Star,
 	Users2,
 } from "lucide-react";
 import React, { useEffect, useState, useRef, useContext } from "react";
@@ -67,6 +68,8 @@ import {
 	TooltipProvider,
 } from "@/components/ui/tooltip";
 import { useAuthModalContext } from "../components/contexts/AuthModalContext";
+import Review from "../components/Review";
+import PaginationControls from "../components/PaginationControls";
 
 const Place = () => {
 	const { mobile } = useMobileContext();
@@ -95,6 +98,7 @@ const Place = () => {
 	const [loading, setLoading] = useState(false);
 	const { showAuthModal } = useAuthModalContext();
 	const [resetDates, setResetDates] = useState(false);
+	const [reviews, setReviews] = useState([]);
 
 	const numberOfDays = (date1, date2) => {
 		const date1GMT = date1 + "GMT-03:00";
@@ -183,6 +187,21 @@ const Place = () => {
 			};
 
 			axiosGetBookings();
+		}
+	}, [id]);
+
+	useEffect(() => {
+		if (id) {
+			const axiosGetReviews = async () => {
+				try {
+					const { data } = await axios.get(`/reviews/place/${id}`);
+					setReviews(data);
+				} catch (error) {
+					console.error("Erro ao buscar avaliações:", error);
+				}
+			};
+
+			axiosGetReviews();
 		}
 	}, [id]);
 
@@ -637,6 +656,30 @@ const Place = () => {
 								<div className="text-[2rem] max-sm:text-[1.5rem] font-medium text-gray-700 ">
 									{place.title}
 								</div>
+								{place.averageRating > 0 && (
+									<>
+										<div className="flex gap-2 rounded-2xl items-center ">
+											<div className="flex items-center gap-2">
+												<div className="flex items-center gap-1">
+													{[...Array(5)].map((_, i) => (
+														<Star
+															key={i}
+															size={15}
+															className={`${
+																i < Math.floor(place.averageRating)
+																	? "text-yellow-500 fill-current"
+																	: i < place.averageRating
+																		? "text-yellow-500 fill-current opacity-50"
+																		: "text-gray-300"
+															}`}
+														/>
+													))}
+												</div>
+												<div>{place.averageRating.toFixed(1)} estrelas</div>
+											</div>
+										</div>
+									</>
+								)}
 								<div className="flex items-center max-sm:text-sm text-gray-600 gap-2">
 									<MapPin size={13} />
 									<span>{place.city}</span>
@@ -739,18 +782,20 @@ const Place = () => {
 							<p className="sm:text-2xl text-large font-medium">
 								O que esse lugar oferece
 							</p>
-							<div className="flex flex-wrap gap-3 mt-8 max-w-7xl mx-auto">
-								{place.perks.map(
-									(perk, index) =>
-										perk && (
-											<div
-												key={index}
-												className="flex border-gray-300 border w-fit items-center px-4 py-2 rounded-2xl gap-2.5"
-											>
-												<Perk perk={perk} />
-											</div>
-										),
-								)}
+							<div className="my-4">
+								<div className="flex flex-wrap gap-3 mt-8 max-w-7xl mx-auto">
+									{place.perks.map(
+										(perk, index) =>
+											perk && (
+												<div
+													key={index}
+													className="flex border-gray-300 border w-fit items-center px-4 py-2 rounded-2xl gap-2.5"
+												>
+													<Perk perk={perk} />
+												</div>
+											),
+									)}
+								</div>
 							</div>
 						</div>
 						<div className="my-4">
@@ -765,6 +810,51 @@ const Place = () => {
 									<Clock size={15} color="gray" />
 									Check-out: {place.checkout}
 								</div>
+							</div>
+						</div>
+						<div className="my-4">
+							<p className="sm:text-2xl text-large font-medium">Avaliações</p>
+							<div className="my-2 space-y-4">
+								{reviews.length > 0 ? (
+									reviews.map((review) => (
+										<div
+											key={review._id}
+											className=" bg-primary-100/50 rounded-2xl p-4"
+										>
+											<div className="flex items-center gap-4">
+												<img
+													src={review.user.photo || photoDefault}
+													alt={review.user.name}
+													className="w-12 h-12 rounded-full object-cover"
+												/>
+												<div>
+													<p className="font-medium">{review.user.name}</p>
+													<div className="flex items-center gap-2">
+														<div className="flex">
+															{[...Array(5)].map((_, i) => (
+																<Star
+																	key={i}
+																	size={16}
+																	className={`${
+																		i < review.rating
+																			? "text-yellow-500 fill-current"
+																			: "text-gray-300"
+																	}`}
+																/>
+															))}
+														</div>
+														<span className="text-sm text-gray-600">
+															{review.rating.toFixed(1)}
+														</span>
+													</div>
+												</div>
+											</div>
+											<p className="mt-2 text-gray-700">{review.comment}</p>
+										</div>
+									))
+								) : (
+									<p className="text-gray-500">Nenhuma avaliação disponível.</p>
+								)}
 							</div>
 						</div>
 					</div>
