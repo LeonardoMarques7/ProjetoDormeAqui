@@ -26,6 +26,7 @@
     "mime-types": "^3.0.1",
     "mongoose": "^8.17.1",
     "multer": "^2.0.2",
+    "nodemailer": "^6.9.7",
     "projetodormeaqui": "file:..",
     "url": "^0.11.4"
   }

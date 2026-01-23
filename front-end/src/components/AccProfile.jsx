@@ -58,6 +58,8 @@ const AccProfile = () => {
 	const [totalGuestsSatisfied, setTotalGuestsSatisfied] = useState(0);
 	const [experienceTime, setExperienceTime] = useState("");
 	const [reviews, setReviews] = useState([]);
+	const [averageRating, setAverageRating] = useState(0);
+	const [totalReviews, setTotalReviews] = useState(0);
 
 	const plugin = useRef(
 		Autoplay({
@@ -226,6 +228,27 @@ const AccProfile = () => {
 	}, [places]);
 
 	useEffect(() => {
+		const calculateAverageRating = () => {
+			if (reviews.length === 0) {
+				setAverageRating(0);
+				setTotalReviews(0);
+				return;
+			}
+
+			const totalRating = reviews.reduce(
+				(sum, review) => sum + review.rating,
+				0,
+			);
+			const average = totalRating / reviews.length;
+
+			setAverageRating(average);
+			setTotalReviews(reviews.length);
+		};
+
+		calculateAverageRating();
+	}, [reviews]);
+
+	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth <= 768);
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
@@ -351,12 +374,21 @@ const AccProfile = () => {
 							<div className="flex gap-5 items-center">
 								<span className="flex gap-1.5 text-black">
 									{[...Array(5)].map((_, index) => (
-										<Star fill="black"></Star>
+										<Star
+											key={index}
+											fill={
+												index < Math.floor(averageRating) ? "black" : "none"
+											}
+											stroke="black"
+											size={20}
+										/>
 									))}
-									<p className="font-bold ml-2 ">4.97</p>
+									<p className="font-bold ml-2">{averageRating.toFixed(1)}</p>
 								</span>
 								<span className="w-1 h-1 rounded-full bg-primary-500"></span>
-								<p className="">7 Avaliações</p>
+								<p className="">
+									{totalReviews} Avaliação{totalReviews !== 1 ? "ões" : ""}
+								</p>
 							</div>
 							{displayUser.bio && (
 								<div className="text__bio max-w-xl flex flex-col gap-2 leading-relaxed text-gray-600 my-2">

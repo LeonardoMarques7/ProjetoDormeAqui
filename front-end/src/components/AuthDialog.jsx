@@ -142,6 +142,8 @@ function ProfileForm({ onSuccess }) {
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [emailError, setEmailError] = useState("");
 	const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+	const [resetToken, setResetToken] = useState("");
+	const [isLoading, setIsLoading] = useState(false);
 
 	// Função para verificar se o email já existe
 	const checkEmailExists = async (emailToCheck) => {
@@ -200,6 +202,24 @@ function ProfileForm({ onSuccess }) {
 			} else {
 				setMessage("Erro ao fazer login. Verifique seus dados.");
 			}
+		} else if (mode === "forgotPassword") {
+			if (email) {
+				setIsLoading(true);
+				try {
+					await axios.post("/users/forgot-password", { email });
+					setMessage(
+						"Email de recuperação enviado! Verifique sua caixa de entrada.",
+					);
+				} catch (error) {
+					setMessage(
+						"Erro ao enviar email de recuperação. Verifique se o email está correto.",
+					);
+				} finally {
+					setIsLoading(false);
+				}
+			} else {
+				setMessage("Digite seu email para recuperar a senha.");
+			}
 		} else {
 			if (email && password && name) {
 				if (emailError) {
@@ -250,7 +270,74 @@ function ProfileForm({ onSuccess }) {
 
 	if (redirect) return <Navigate to="/account/profile" />;
 
-	return mode === "login" ? (
+	return mode === "forgotPassword" ? (
+		<section className="flex w-full">
+			<div className="flex-1 bg-white flex items-center justify-center">
+				<div className="w-full max-w-md text-start">
+					<p className="text-3xl font-medium text-gray-900 mb-2">
+						Recuperar senha
+					</p>
+					<p className="text-gray-600 mb-8">
+						Digite seu email para receber instruções de recuperação de senha
+					</p>
+
+					<form className="space-y-5 text-start" onSubmit={handleSubmit}>
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Email
+							</label>
+							<div className="relative">
+								<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+								<input
+									type="email"
+									className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+									placeholder="seu@email.com"
+									value={email}
+									onChange={(e) => {
+										setEmail(e.target.value);
+										if (message) setMessage("");
+									}}
+								/>
+							</div>
+						</div>
+
+						{message && (
+							<div
+								className={`text-sm py-3 px-4 rounded-lg ${
+									message.includes("enviado")
+										? "bg-green-50 border border-green-200 text-green-600"
+										: "bg-red-50 border border-red-200 text-red-600"
+								}`}
+							>
+								{message}
+							</div>
+						)}
+
+						<button
+							type="submit"
+							disabled={isLoading}
+							className="w-full cursor-pointer py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary-200 disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							{isLoading ? "Enviando..." : "Enviar email de recuperação"}
+						</button>
+					</form>
+
+					<p className="text-center text-gray-600 mt-6">
+						Lembrou da senha?{" "}
+						<button
+							onClick={(e) => {
+								e.preventDefault();
+								setMode("login");
+							}}
+							className="text-primary-600 hover:text-primary-700 font-semibold"
+						>
+							Voltar ao login
+						</button>
+					</p>
+				</div>
+			</div>
+		</section>
+	) : mode === "login" ? (
 		<section className="flex w-full">
 			<div className="flex-1 bg-white flex items-center justify-center">
 				<div className="w-full max-w-md text-start">
@@ -309,6 +396,7 @@ function ProfileForm({ onSuccess }) {
 							<button
 								type="button"
 								className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+								onClick={() => setMode("forgotPassword")}
 							>
 								Esqueceu a senha?
 							</button>
