@@ -19,6 +19,7 @@ import Register from "./pages/Register";
 import Account from "./pages/Account";
 import Place from "./pages/Place";
 import ResetPassword from "./pages/ResetPassword";
+import NotFound from "./pages/NotFound";
 
 import "@mantine/core/styles.css";
 
@@ -69,6 +70,7 @@ function App() {
 										element={<Account />}
 									/>
 									<Route path="/places/:id" element={<Place />} />
+									<Route path="/*" element={<NotFound />} />
 								</Routes>
 								<Footer active={isComponentActive} />
 							</div>

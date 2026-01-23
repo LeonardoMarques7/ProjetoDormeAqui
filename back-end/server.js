@@ -30,6 +30,18 @@ app.use(express.static(path.join(__dirname, "../front-end/dist")));
 // Rotas da API
 app.use("/api", routes);
 
+// Handler para 404 em rotas de API
+app.use((req, res, next) => {
+  if (!req.path.startsWith("/api") && !req.path.startsWith("/tmp")) {
+    res.sendFile(
+      path.join(__dirname, "../front-end/dist/index.html")
+    );
+  } else {
+    next();
+  }
+});
+
+
 // Fallback para React Router - DEVE estar DEPOIS de todas as rotas
 // Só serve o index.html se NÃO for uma rota de API ou arquivo estático
 app.use((req, res, next) => {

@@ -124,7 +124,6 @@ const Review = ({ booking }) => {
 						</>
 					) : (
 						<>
-							<Send size={16} />
 							Enviar avaliação
 						</>
 					)}
