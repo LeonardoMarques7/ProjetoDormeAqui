@@ -384,22 +384,26 @@ function MenuBar({ active }) {
 												<span className="font-light">
 													Faça login para acessar suas reservas e acomodações
 												</span>
-												<Link
-													to={"/login"}
-													onClick={() => handleNavClick()}
+												<button
+													onClick={(e) => {
+														e.preventDefault();
+														showAuthModal("login");
+													}}
 													className="flex text-sm items-center bg-primary-900 justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-800 text-white transition-all group"
 												>
 													<span className="">Entrar</span>
 													<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-												</Link>
-												<Link
-													to={"/register"}
-													onClick={() => handleNavClick()}
+												</button>
+												<button
+													onClick={(e) => {
+														e.preventDefault();
+														showAuthModal("login");
+													}}
 													className="flex text-sm items-center bg-white justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-200 text-primary-900 transition-all group"
 												>
 													<span className="">Criar Conta</span>
 													<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-												</Link>
+												</button>
 											</div>
 											<p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
 												Menu

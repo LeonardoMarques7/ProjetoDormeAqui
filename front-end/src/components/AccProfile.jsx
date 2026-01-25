@@ -321,13 +321,15 @@ const AccProfile = () => {
 
 	if (redirect) return <Navigate to="/" state={{ updated: true }} />;
 
+	if (!profileUser) return <Loading />;
+
 	const displayUser = profileUser;
 	// Verifica se está visualizando o próprio perfil
 	// Só é próprio perfil se o usuário está logado E o ID bate
 	const isOwnProfile =
 		user && (!paramId || String(paramId) === String(user._id));
 
-	const nameUser = displayUser.name.split(" ");
+	const nameUser = displayUser.name ? displayUser.name.split(" ") : ["", ""];
 
 	const handleImageError = (index) => {
 		setImageErrors((prev) => ({ ...prev, [index]: true }));
@@ -359,6 +361,8 @@ const AccProfile = () => {
 		},
 	];
 
+	if (!profileUser) return <Loading />;
+
 	return (
 		<>
 			{!isEditingProfile ? (
@@ -381,8 +385,10 @@ const AccProfile = () => {
 											className="w-full h-full object-cover object-center rounded-full"
 											alt={displayUser.name}
 										/>
-									) : (
+									) : displayUser.name ? (
 										displayUser.name.charAt(0)
+									) : (
+										""
 									)}
 								</div>
 								{isOwnProfile && (
