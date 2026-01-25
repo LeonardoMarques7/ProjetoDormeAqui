@@ -5,6 +5,8 @@ import "dotenv/config";
 import { Router } from "express";
 import User from "./model.js";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 import { JWTSign, JWTVerify } from "../../ultis/jwt.js";
 import { sendToS3, uploadImage } from "../controller.js";
 
@@ -239,7 +241,7 @@ router.post("/login", async (req, res) => {
     }
 
     const passwordCorrect = bcrypt.compareSync(password, userDoc.password);
-    
+
     if (!passwordCorrect) {
       return res.status(400).json({ error: "Senha inválida!" });
     }
@@ -251,11 +253,116 @@ router.post("/login", async (req, res) => {
     res
       .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
       .json(newUserObj);
-  
-      
+
+
   } catch (error) {
     console.error("Erro no login:", error);
     res.status(500).json({ error: "Erro no servidor" });
+  }
+});
+
+// FORGOT PASSWORD
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const userDoc = await User.findOne({ email });
+
+    if (!userDoc) {
+      return res.status(400).json({ error: "Email não encontrado!" });
+    }
+
+    // Gera token de reset
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000; // 1 hora
+
+    // Salva token no banco
+    await User.findByIdAndUpdate(userDoc._id, {
+      resetToken,
+      resetTokenExpiry
+    });
+
+    // Configura transporte de email
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: process.env.SMTP_PORT || 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    });
+
+    // Verifica se as credenciais SMTP estão configuradas
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.warn('⚠️ Credenciais SMTP não configuradas. Email não será enviado.');
+      return res.json({ message: "Solicitação de recuperação processada. Configure SMTP para enviar emails." });
+    }
+
+    // URL de reset (ajuste conforme necessário)
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+
+    // Envia email
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to: email,
+      subject: 'Recuperação de Senha - DormeAqui',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Recuperação de Senha</h2>
+          <p>Olá ${userDoc.name},</p>
+          <p>Recebemos uma solicitação para redefinir sua senha.</p>
+          <p>Clique no link abaixo para criar uma nova senha:</p>
+          <a href="${resetUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0;">Redefinir Senha</a>
+          <p>Este link expira em 1 hora.</p>
+          <p>Se você não solicitou esta alteração, ignore este email.</p>
+          <p>Atenciosamente,<br>Equipe DormeAqui</p>
+        </div>
+      `
+    });
+
+    res.json({ message: "Email de recuperação enviado com sucesso!" });
+
+  } catch (error) {
+    console.error("Erro no forgot password:", error);
+    res.status(500).json({ error: "Erro ao enviar email de recuperação" });
+  }
+});
+
+// RESET PASSWORD
+router.post("/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    const userDoc = await User.findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: Date.now() }
+    });
+
+    if (!userDoc) {
+      return res.status(400).json({ error: "Token inválido ou expirado!" });
+    }
+
+    // Valida nova senha
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: "A senha deve ter pelo menos 6 caracteres!" });
+    }
+
+    // Hash da nova senha
+    const encryptedPassword = bcrypt.hashSync(newPassword, bcryptSalt);
+
+    // Atualiza senha e limpa tokens
+    await User.findByIdAndUpdate(userDoc._id, {
+      password: encryptedPassword,
+      resetToken: undefined,
+      resetTokenExpiry: undefined
+    });
+
+    res.json({ message: "Senha redefinida com sucesso!" });
+
+  } catch (error) {
+    console.error("Erro no reset password:", error);
+    res.status(500).json({ error: "Erro ao redefinir senha" });
   }
 });
 

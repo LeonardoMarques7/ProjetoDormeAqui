@@ -18,6 +18,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Account from "./pages/Account";
 import Place from "./pages/Place";
+import ResetPassword from "./pages/ResetPassword";
+import NotFound from "./pages/NotFound";
 
 import "@mantine/core/styles.css";
 
@@ -62,11 +64,13 @@ function App() {
 								<Routes>
 									<Route path="/" element={<Home />} />
 									<Route path="/teste" element={<Teste />} />
+									<Route path="/reset-password" element={<ResetPassword />} />
 									<Route
 										path="/account/:subpage/:action?/:id?"
 										element={<Account />}
 									/>
 									<Route path="/places/:id" element={<Place />} />
+									<Route path="/*" element={<NotFound />} />
 								</Routes>
 								<Footer active={isComponentActive} />
 							</div>

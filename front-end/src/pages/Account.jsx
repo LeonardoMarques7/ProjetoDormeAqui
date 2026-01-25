@@ -7,6 +7,7 @@ import { useUserContext } from "../components/contexts/UserContext";
 import { Calendar, House, User } from "lucide-react";
 import Loading from "../components/Loading";
 import Teste2 from "./Teste2";
+import NotFound from "./NotFound";
 
 const Account = () => {
 	const { subpage, id, action } = useParams();
@@ -14,6 +15,12 @@ const Account = () => {
 	const { user, ready } = useUserContext();
 
 	const bookingId = action || id;
+
+	const validSubpages = ["profile", "places", "bookings"];
+
+	if (!validSubpages.includes(subpage)) {
+		return <NotFound />;
+	}
 
 	return (
 		<div className="flex flex-col gap-4">

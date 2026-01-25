@@ -70,6 +70,7 @@ import {
 import { useAuthModalContext } from "../components/contexts/AuthModalContext";
 import Review from "../components/Review";
 import PaginationControls from "../components/PaginationControls";
+import NotFound from "./NotFound";
 
 const Place = () => {
 	const { mobile } = useMobileContext();
@@ -99,6 +100,7 @@ const Place = () => {
 	const { showAuthModal } = useAuthModalContext();
 	const [resetDates, setResetDates] = useState(false);
 	const [reviews, setReviews] = useState([]);
+	const [placeNotFound, setPlaceNotFound] = useState(false);
 
 	const numberOfDays = (date1, date2) => {
 		const date1GMT = date1 + "GMT-03:00";
@@ -149,8 +151,10 @@ const Place = () => {
 				try {
 					const { data } = await axios.get(`/places/${id}`);
 					setPlace(data);
+					setPlaceNotFound(false);
 				} catch (error) {
 					console.error("Erro ao buscar lugar:", error);
+					setPlaceNotFound(true);
 				} finally {
 					setTimeout(() => {
 						setLoading(false);
@@ -275,6 +279,8 @@ const Place = () => {
 	};
 
 	if (redirect) return <Navigate to={`/account/bookings`} />;
+
+	if (placeNotFound) return <NotFound />;
 
 	// Função para lidar com a seleção de datas do novo componente
 	const handleDateSelect = ({ checkin: newCheckin, checkout: newCheckout }) => {

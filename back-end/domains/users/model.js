@@ -11,6 +11,8 @@ const userSchema = new Schema({
     occupation: String,
     email: {type: String, unique: true},
     password: String,
+    resetToken: String,
+    resetTokenExpiry: Date,
 }, { timestamps: true })
 
 export default model("User", userSchema);
