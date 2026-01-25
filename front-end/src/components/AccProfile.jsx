@@ -1,7 +1,15 @@
 import React, { useState } from "react";
 import photoDefault from "../assets/photoDefault.jpg";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import axios from "axios";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
 import {
 	ArrowLeft,
@@ -20,20 +28,35 @@ import {
 	Star,
 	Sunrise,
 	Trash2,
+	ExternalLink,
+	ArrowRightSquare,
+	ChevronRight,
+	Menu,
+	Ellipsis,
 } from "lucide-react";
+
+import {
+	Tooltip,
+	TooltipTrigger,
+	TooltipContent,
+	TooltipProvider,
+} from "@/components/ui/tooltip";
+
 import verify from "../assets/verify.png";
 import "./AccProfile.css";
 import Autoplay from "embla-carousel-autoplay";
 import { useRef } from "react";
 import { useEffect } from "react";
 import DeleteAccountDialog from "@/components/DeleteAccountDialog";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import EditProfile from "./EditProfile";
-import { LoadingOverlay } from "@mantine/core";
+import { LoadingOverlay, MenuDropdown } from "@mantine/core";
 import Loading from "./Loading";
 import { useTimeout } from "@mantine/hooks";
 import { useLocation } from "react-router-dom";
 import image from "../assets/image.png";
 import Banner from "../assets/banner.jpg";
+import MenuBar from "./MenuBar";
 
 const AccProfile = () => {
 	const { user, setUser } = useUserContext();
@@ -60,6 +83,8 @@ const AccProfile = () => {
 	const [reviews, setReviews] = useState([]);
 	const [averageRating, setAverageRating] = useState(0);
 	const [totalReviews, setTotalReviews] = useState(0);
+
+	const navigate = useNavigate();
 
 	const plugin = useRef(
 		Autoplay({
@@ -104,7 +129,7 @@ const AccProfile = () => {
 		};
 
 		fetchProfile();
-	}, [paramId, user?._id, state?.updated]);
+	}, [paramId, user?._id.updated, state?.updated]);
 
 	useEffect(() => {
 		if (!api) return;
@@ -320,6 +345,25 @@ const AccProfile = () => {
 		return item.photos?.[index];
 	};
 
+	const navItemsPerfil = [
+		{ path: "/account/profile/edit", label: "Editar perfil" },
+	];
+
+	const navItemsActions = [
+		{
+			label: "Sair",
+			function: () => {
+				logout();
+			},
+		},
+		{
+			label: "Deletar conta",
+			function: () => {
+				handleDelete();
+			},
+		},
+	];
+
 	return (
 		<>
 			{!isEditingProfile ? (
@@ -346,23 +390,65 @@ const AccProfile = () => {
 										displayUser.name.charAt(0)
 									)}
 								</div>
-								<div className="flex absolute gap-2.5 right-0 top-35">
-									<Link
-										to="/account/profile/edit"
-										className={` cursor-pointer px-5 py-2.5 hover:bg-primary-100 rounded-2xl text-end justify-end font-light text-primary-900`}
-									>
-										Editar perfil
-									</Link>
-									<span className="cursor-pointer px-5 py-2.5 hover:bg-primary-100 rounded-2xl text-primary-900">
-										<Cog />
-									</span>
-								</div>
+								{isOwnProfile && (
+									<div className="flex absolute gap-2.5 right-0 top-35">
+										<DropdownMenu modal={false}>
+											<DropdownMenuTrigger
+												className={`outline-none bg-primary-100/50 p-2 cursor-pointer hover:bg-primary-100 transition-all rounded-full`}
+											>
+												<Ellipsis size={20} />
+											</DropdownMenuTrigger>
+
+											<DropdownMenuContent
+												align="end"
+												className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2"
+											>
+												{navItemsPerfil.map((item) => {
+													return (
+														<Link
+															key={item.path}
+															to={item.path}
+															onClick={item.function}
+															className={`flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
+														>
+															{item.label}
+															<ChevronRight
+																size={15}
+																className="opacity-0 group-hover:opacity-100 text-gray-500"
+															/>
+														</Link>
+													);
+												})}
+												{/* Perfil */}
+												<DropdownMenuSeparator />
+
+												{/* Navegação */}
+												{navItemsActions.map((item) => {
+													return (
+														<Link
+															key={item.path}
+															to={item.path}
+															onClick={item.function}
+															className={`flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
+														>
+															{item.label}
+															<ChevronRight
+																size={15}
+																className="opacity-0 group-hover:opacity-100 text-gray-500"
+															/>
+														</Link>
+													);
+												})}
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</div>
+								)}
 
 								{/* Botão de editar - só mostra se for o próprio perfil E estiver logado */}
 							</div>
 							<div className="flex gap-0 flex-col">
 								<div className="">
-									<p className="text-primary-700 uppercase font-mono">
+									<p className="text-primary-700 uppercase font-light">
 										{displayUser.occupation}
 									</p>
 								</div>
@@ -387,7 +473,7 @@ const AccProfile = () => {
 								</span>
 								<span className="w-1 h-1 rounded-full bg-primary-500"></span>
 								<p className="">
-									{totalReviews} Avaliação{totalReviews !== 1 ? "ões" : ""}
+									{totalReviews} Avaliaç{totalReviews !== 1 ? "ões" : "ão"}
 								</p>
 							</div>
 							{displayUser.bio && (
@@ -433,100 +519,99 @@ const AccProfile = () => {
 										Ver tudo
 									</span>
 								</div>
-								<div className="flex flex-col gap-20">
-									{places.length > 0 ? (
-										places.map((item, index) => (
-											<div
-												className={`item__projeto rounded-xl relative flex gap-5 ${
-													index % 2 === 0
-														? "item__left "
-														: "item__right flex-row-reverse"
-												}`}
-												key={item._id}
-											>
-												<div className="grid gap-2 grid-cols-4 max-sm:col-span-4 max-sm:row-span-2 ">
-													<img
-														src={getImageSrc(item, 0)}
-														onError={() => handleImageError(`${item._id}_0`)}
-														className="aspect-square w-80 col-span-2 row-span-2 object-cover rounded-2xl"
-														alt={item.title}
-													/>
-													<img
-														src={getImageSrc(item, 1)}
-														onError={() => handleImageError(`${item._id}_1`)}
-														className="aspect-square w-40 col-span-1 row-span-1 object-cover rounded-2xl"
-														alt={item.title}
-													/>
-													<img
-														src={getImageSrc(item, 2)}
-														onError={() => handleImageError(`${item._id}_2`)}
-														className="aspect-square  col-span-1 row-span-1 w-40 object-cover rounded-2xl"
-														alt={item.title}
-													/>
-													<img
-														src={getImageSrc(item, 3)}
-														onError={() => handleImageError(`${item._id}_3`)}
-														className="aspect-square w-40  col-span-1 row-span-1 object-cover rounded-2xl"
-														alt={item.title}
-													/>
-													<img
-														src={getImageSrc(item, 4)}
-														onError={() => handleImageError(`${item._id}_4`)}
-														className="aspect-square w-40  col-span-1 row-span-1 object-cover rounded-2xl"
-														alt={item.title}
-													/>
-												</div>
-												<div className="relative flex flex-col justify-between gap-10">
-													<div className="flex flex-col">
-														<p className="absolute -top-6 text-primary-700 cursor-pointer uppercase font-light">
-															{item.city}
-														</p>
-														<p className=" font-bold text-3xl text-[#0F172B] text-wrap max-w-md overflow-hidden">
-															{item.title}
-														</p>
-														<span className="flex items-center gap-1">
-															<Star
-																fill="black"
-																stroke="black"
-																size={20}
-															></Star>
-															5.0{" "}
-															<span className="w-1 h-1 rounded-full bg-primary-500 mx-2"></span>
-															<Heart
-																fill="red"
-																stroke="red"
-																size={20}
-																className="mr-2"
-															/>
-															Favorito
-														</span>
+								<div className="flex flex-col gap-10">
+									<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
+										{places.length > 0 ? (
+											places.map((item, index) => (
+												<div
+													className={`item__projeto rounded-xl relative flex gap-5 ${
+														index % 2 === 0 ? "item__left " : "item__right"
+													}`}
+													key={item._id}
+												>
+													<div className="grid gap-2 grid-cols-8  grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2 ">
+														<img
+															src={getImageSrc(item, 0)}
+															onError={() => handleImageError(`${item._id}_0`)}
+															className="row-span-4 col-span-5  h-full w-40 object-cover rounded-2xl"
+															alt={item.title}
+														/>
+														<img
+															src={getImageSrc(item, 1)}
+															onError={() => handleImageError(`${item._id}_1`)}
+															className="row-span-2 col-span-3  h-full w-40 object-cover rounded-2xl"
+															alt={item.title}
+														/>
+														<img
+															src={getImageSrc(item, 2)}
+															onError={() => handleImageError(`${item._id}_2`)}
+															className="row-span-2 col-span-3  h-full w-40 object-cover rounded-2xl"
+															alt={item.title}
+														/>
 													</div>
-													<div className="flex items-center justify-between">
-														<div className="relative font-bold text-3xl text-[#0F172B]">
-															R$ {item.price}
-															<span className="absolute font-normal text-sm pl-1 top-4">
-																/noite
+													<div className="relative flex flex-col w-full justify-between gap-2">
+														<div className="flex flex-col">
+															<p className="absolute -top-6 text-primary-700 cursor-pointer uppercase font-light">
+																{item.city}
+															</p>
+															<Link
+																to={`/places/${item._id}`}
+																className="cursor-pointer hover:underline font-bold text-3xl text-[#0F172B] text-wrap max-w-md overflow-hidden"
+															>
+																{item.title}
+															</Link>
+															<span className="flex items-center gap-1">
+																<Star
+																	fill="black"
+																	stroke="black"
+																	size={20}
+																></Star>
+																5.0{" "}
+																<span className="w-1 h-1 rounded-full bg-primary-500 mx-2"></span>
+																<Heart
+																	fill="red"
+																	stroke="red"
+																	size={20}
+																	className="mr-2"
+																/>
+																Favorito
 															</span>
 														</div>
-
-														<Link
-															className="flex items-center group hover:px-5 hover:bg-primary-100 transition-all rounded-2xl px-5 py-2.5 gap-4"
-															to={`/places/${item._id}`}
-														>
-															Acessar acomodação
-															<ArrowRight className="group-hover:translate-x-1 transition-transform" />
-														</Link>
+														<div className="flex items-end gap-10 w-full justify-between">
+															<div className="relative font-medium text-2xl flex-1  text-[#0F172B]">
+																R$ {item.price}
+																<span className="absolute font-normal text-sm pl-1 top-2">
+																	/noite
+																</span>
+															</div>
+															<Tooltip>
+																<TooltipTrigger asChild>
+																	<Link
+																		to={`/places/${item._id}`}
+																		className="cursor-pointer group p-2 hover:bg-primary-100/50 rounded-2xl transition-all flex items-center gap-2 font-medium"
+																	>
+																		<ArrowRight
+																			size={18}
+																			className="group-hover:-rotate-12"
+																		/>
+																	</Link>
+																</TooltipTrigger>
+																<TooltipContent className="bg-primary-600">
+																	<p>Acessar acomodação</p>
+																</TooltipContent>
+															</Tooltip>
+														</div>
 													</div>
 												</div>
-											</div>
-										))
-									) : (
-										<p className="text-gray-500">
-											{isOwnProfile
-												? "Você ainda não tem anúncios"
-												: "Este usuário não tem anúncios públicos"}
-										</p>
-									)}
+											))
+										) : (
+											<p className="text-gray-500">
+												{isOwnProfile
+													? "Você ainda não tem anúncios"
+													: "Este usuário não tem anúncios públicos"}
+											</p>
+										)}
+									</div>
 									<div className="flex flex-col">
 										<p className="text-primary-500 uppercase font-light">
 											Testemunhos
@@ -544,42 +629,45 @@ const AccProfile = () => {
 														className="flex flex-col gap-4 p-6 w-fit bg-white rounded-2xl border border-gray-200 shadow-sm"
 													>
 														<div className="flex items-center gap-4">
-															<img
-																src={review.user.photo || photoDefault}
-																alt={review.user.name}
-																className="w-12 h-12 rounded-full object-cover"
-															/>
-															<div className="flex flex-col">
-																<p className="font-semibold text-gray-900">
-																	{review.user.name}
-																</p>
+															<div className="flex flex-col gap-4">
 																<div className="flex items-center gap-2">
 																	<div className="flex items-center gap-1">
-																		{[...Array(5)].map((_, i) => (
+																		{[...Array(5)].map((_, index) => (
 																			<Star
-																				key={i}
-																				size={16}
-																				className={`${
-																					i < Math.floor(review.rating)
-																						? "text-yellow-500 fill-current"
-																						: i < review.rating
-																							? "text-yellow-500 fill-current opacity-50"
-																							: "text-gray-300"
-																				}`}
+																				key={index}
+																				fill={
+																					index < Math.floor(review.rating)
+																						? "black"
+																						: "none"
+																				}
+																				stroke="black"
+																				size={20}
 																			/>
 																		))}
 																	</div>
-																	<span className="text-sm text-gray-600">
-																		{review.rating.toFixed(1)}
-																	</span>
+																</div>
+																{review.comment && (
+																	<p className="text-gray-700 max-w-md leading-relaxed">
+																		"{review.comment}"
+																	</p>
+																)}
+																<div className="flex items-center gap-2">
+																	<img
+																		src={review.user.photo || photoDefault}
+																		alt={review.user.name}
+																		className="w-12 h-12 rounded-full object-cover"
+																	/>
+																	<div className="flex flex-col text-sm">
+																		<p className="font-semibold text-gray-900">
+																			{review.user.name}
+																		</p>
+																		<p className="text-xs text-gray-500">
+																			Hóspede Verificado
+																		</p>
+																	</div>
 																</div>
 															</div>
 														</div>
-														{review.comment && (
-															<p className="text-gray-700 leading-relaxed">
-																{review.comment}
-															</p>
-														)}
 													</div>
 												))
 											) : (
