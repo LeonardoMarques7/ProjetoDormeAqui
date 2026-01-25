@@ -321,11 +321,6 @@ const AccProfile = () => {
 
 	if (redirect) return <Navigate to="/" state={{ updated: true }} />;
 
-	// Se não carregou ainda
-	if (!ready || !profileUser) {
-		return <Loading />; // ou seu componente de loading
-	}
-
 	const displayUser = profileUser;
 	// Verifica se está visualizando o próprio perfil
 	// Só é próprio perfil se o usuário está logado E o ID bate
