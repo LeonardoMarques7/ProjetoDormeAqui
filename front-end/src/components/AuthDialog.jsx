@@ -100,7 +100,7 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 		<>
 			<Drawer open={open} onOpenChange={setOpen}>
 				<DrawerContent className="!rounded-none !rounded-tl-4xl  p-10">
-					<ProfileForm />
+					<ProfileForm onSuccess={handleLoginSuccess} />
 				</DrawerContent>
 			</Drawer>
 		</>
@@ -333,283 +333,208 @@ function ProfileForm({ onSuccess }) {
 			</div>
 		</section>
 	) : mode === "login" ? (
-		desktop ? (
-			<section className="flex w-full">
-				<div className="flex-1 bg-white flex items-center justify-center">
-					<div className="w-full max-w-md text-start">
-						<p className="text-3xl font-medium text-gray-900 mb-2">
-							Bem-vindo de volta!
-						</p>
-						<p className="text-gray-600 mb-8">
-							Entre para continuar sua jornada
-						</p>
+		<section className="flex w-full">
+			<div className="flex-1 bg-white flex items-center justify-center">
+				<div className="w-full max-w-md text-start">
+					<p className="text-3xl font-medium text-gray-900 mb-2">Login</p>
+					<p className="text-gray-600 mb-8">Entre para continuar sua jornada</p>
 
-						<form className="space-y-5 text-start" onSubmit={handleSubmit}>
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-2">
-									Email
-								</label>
-								<div className="relative">
-									<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-									<input
-										type="email"
-										className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-										placeholder="seu@email.com"
-										value={email}
-										onChange={(e) => {
-											setEmail(e.target.value);
-											if (message) setMessage("");
-										}}
-									/>
-								</div>
+					<form className="space-y-5 text-start" onSubmit={handleSubmit}>
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Email
+							</label>
+							<div className="relative">
+								<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+								<input
+									type="email"
+									className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+									placeholder="seu@email.com"
+									value={email}
+									onChange={(e) => {
+										setEmail(e.target.value);
+										if (message) setMessage("");
+									}}
+								/>
 							</div>
+						</div>
 
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-2">
-									Senha
-								</label>
-								<div className="relative">
-									<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-									<input
-										type={showPassword ? "text" : "password"}
-										className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-										placeholder="••••••••"
-										value={password}
-										onChange={(e) => {
-											setPassword(e.target.value);
-											if (message) setMessage("");
-										}}
-									/>
-									<button
-										type="button"
-										onClick={() => setShowPassword(!showPassword)}
-										className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-									>
-										{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-									</button>
-								</div>
-							</div>
-
-							<div className="text-right">
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Senha
+							</label>
+							<div className="relative">
+								<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+								<input
+									type={showPassword ? "text" : "password"}
+									className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+									placeholder="••••••••"
+									value={password}
+									onChange={(e) => {
+										setPassword(e.target.value);
+										if (message) setMessage("");
+									}}
+								/>
 								<button
 									type="button"
-									className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-									onClick={() => setMode("forgotPassword")}
+									onClick={() => setShowPassword(!showPassword)}
+									className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
 								>
-									Esqueceu a senha?
+									{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
 								</button>
 							</div>
+						</div>
 
-							{message && (
-								<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
-									{message}
-								</div>
-							)}
-
+						<div className="text-right">
 							<button
-								type="submit"
-								className="w-full cursor-pointer py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary-200"
+								type="button"
+								className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+								onClick={() => setMode("forgotPassword")}
 							>
-								Entrar
+								Esqueceu a senha?
 							</button>
-						</form>
+						</div>
 
-						<p className="text-center text-gray-600 mt-6">
-							Não tem uma conta?{" "}
-							<button
-								onClick={(e) => {
-									e.preventDefault();
-									setMode("register");
-								}}
-								className="text-primary-600 hover:text-primary-700 font-semibold"
-							>
-								Criar conta
-							</button>
-						</p>
-					</div>
+						{message && (
+							<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
+								{message}
+							</div>
+						)}
+
+						<button
+							type="submit"
+							className="w-full cursor-pointer py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary-200"
+						>
+							Entrar
+						</button>
+					</form>
+
+					<p className="text-center text-gray-600 mt-6">
+						Não tem uma conta?{" "}
+						<button
+							onClick={(e) => {
+								e.preventDefault();
+								setMode("register");
+							}}
+							className="text-primary-600 hover:text-primary-700 font-semibold"
+						>
+							Criar conta
+						</button>
+					</p>
 				</div>
-			</section>
-		) : (
-			<section className="flex w-full">
-				<div className="flex-1 bg-white flex items-center justify-center">
-					<div className="w-full max-w-md text-start">
-						<p className="text-3xl font-medium text-gray-900 mb-2">Login</p>
-						<p className="text-gray-600 mb-8">
-							Entre para continuar sua jornada
-						</p>
-
-						<form className="space-y-5 text-start" onSubmit={handleSubmit}>
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-2">
-									Email
-								</label>
-								<div className="relative">
-									<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-									<input
-										type="email"
-										className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-										placeholder="seu@email.com"
-										value={email}
-										onChange={(e) => {
-											setEmail(e.target.value);
-											if (message) setMessage("");
-										}}
-									/>
-								</div>
-							</div>
-
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-2">
-									Senha
-								</label>
-								<div className="relative">
-									<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-									<input
-										type={showPassword ? "text" : "password"}
-										className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-										placeholder="••••••••"
-										value={password}
-										onChange={(e) => {
-											setPassword(e.target.value);
-											if (message) setMessage("");
-										}}
-									/>
-									<button
-										type="button"
-										onClick={() => setShowPassword(!showPassword)}
-										className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-									>
-										{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-									</button>
-								</div>
-							</div>
-
-							<div className="text-right">
-								<button
-									type="button"
-									className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-									onClick={() => setMode("forgotPassword")}
-								>
-									Esqueceu a senha?
-								</button>
-							</div>
-
-							{message && (
-								<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
-									{message}
-								</div>
-							)}
-
-							<button
-								type="submit"
-								className="w-full cursor-pointer py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary-200"
-							>
-								Entrar
-							</button>
-						</form>
-
-						<p className="text-center text-gray-600 mt-6">
-							Não tem uma conta?{" "}
-							<button
-								onClick={(e) => {
-									e.preventDefault();
-									setMode("register");
-								}}
-								className="text-primary-600 hover:text-primary-700 font-semibold"
-							>
-								Criar conta
-							</button>
-						</p>
-					</div>
-				</div>
-			</section>
-		)
+			</div>
+		</section>
 	) : (
 		<section className="flex items-center justify-between flex-1  py-4">
-			<div className="max-w-125 mx-auto gap-0  rounded-4xl py-2.5  right-0 flex flex-col items-start w-full ">
-				<h1 className="text-3xl font-bold y-0">Cadastre-se e descubra</h1>
+			<div className="max-w-125 maxs-m:max-w-full mx-auto gap-0  rounded-4xl py-2.5  right-0 flex flex-col items-start w-full ">
+				{desktop ? (
+					<h1 className="text-3xl font-bold y-0">Cadastre-se e descubra </h1>
+				) : (
+					<h1 className="text-3xl font-bold y-0">Cadastro</h1>
+				)}
+
 				<p className="mb-5">Crie uma conta para continuar</p>
 				<form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
-					<div className="group__input relative flex justify-center items-center">
-						<CircleUserRound className="absolute left-4 text-gray-400 size-6" />
-						<input
-							type="text"
-							className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
-							placeholder="Digite seu nome"
-							value={name}
-							onChange={(e) => {
-								setName(e.target.value);
-							}}
-						/>
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Nome
+						</label>
+						<div className="relative">
+							<CircleUserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 size-6" />
+							<input
+								type="text"
+								className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
+								placeholder="Digite seu nome"
+								value={name}
+								onChange={(e) => {
+									setName(e.target.value);
+								}}
+							/>
+						</div>
 					</div>
-					<div className="group__input relative flex justify-center items-center">
-						<Mail className="absolute left-4 text-gray-400 size-6" />
-						<input
-							type="email"
-							className={`border ${
-								emailError ? "border-red-400" : "border-gray-200"
-							} px-14 py-4 rounded-2xl w-full outline-primary-400`}
-							placeholder="Digite seu email"
-							value={email}
-							onChange={(e) => {
-								setEmail(e.target.value);
-								setEmailError("");
-								if (message) setMessage("");
-							}}
-							onBlur={(e) => checkEmailExists(e.target.value)}
-						/>
-						{isCheckingEmail && (
-							<span className="absolute right-4 text-gray-400 text-sm">
-								Verificando...
-							</span>
-						)}
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Email
+						</label>
+						<div className="relative">
+							<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 size-6" />
+							<input
+								type="email"
+								className={`border ${
+									emailError ? "border-red-400" : "border-gray-200"
+								} px-14 py-4 rounded-2xl w-full outline-primary-400`}
+								placeholder="Digite seu email"
+								value={email}
+								onChange={(e) => {
+									setEmail(e.target.value);
+									setEmailError("");
+									if (message) setMessage("");
+								}}
+								onBlur={(e) => checkEmailExists(e.target.value)}
+							/>
+							{isCheckingEmail && (
+								<span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+									Verificando...
+								</span>
+							)}
+						</div>
 					</div>
 					{emailError && (
 						<div className="text-red-500 text-sm -mt-1 ml-1">{emailError}</div>
 					)}
-					<div className="group__input relative flex justify-center items-center">
-						<Lock className="absolute left-4 text-gray-400 size-6" />
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Senha
+						</label>
+						<div className="relative">
+							<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 size-6" />
 
-						<input
-							type={showPassword ? "text" : "password"}
-							className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
-							placeholder="Digite sua senha"
-							value={password}
-							onChange={(e) =>
-								setPassword(e.target.value) || setShowPasswordPopover(true)
-							}
-							onBlur={() => setShowPasswordPopover(false)}
-						/>
+							<input
+								type={showPassword ? "text" : "password"}
+								className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
+								placeholder="Digite sua senha"
+								value={password}
+								onChange={(e) =>
+									setPassword(e.target.value) || setShowPasswordPopover(true)
+								}
+								onBlur={() => setShowPasswordPopover(false)}
+							/>
 
-						<button
-							type="button"
-							onClick={() => setShowPassword(!showPassword)}
-							className="cursor-pointer absolute right-5 text-gray-400 hover:text-gray-600 transition-colors z-10"
-						>
-							{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-						</button>
+							<button
+								type="button"
+								onClick={() => setShowPassword(!showPassword)}
+								className="cursor-pointer absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
+							>
+								{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+							</button>
+						</div>
 					</div>
-					<div className="group__input relative flex justify-center items-center">
-						<Lock className="absolute left-4 text-gray-400 size-6" />
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Confirmar Senha
+						</label>
+						<div className="relative">
+							<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 size-6" />
 
-						<input
-							type={showConfirmPassword ? "text" : "password"}
-							className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
-							placeholder="Confirme sua senha"
-							value={confirmPassword}
-							onChange={(e) => {
-								setConfirmPassword(e.target.value);
-								if (message) setMessage("");
-							}}
-						/>
+							<input
+								type={showConfirmPassword ? "text" : "password"}
+								className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
+								placeholder="Confirme sua senha"
+								value={confirmPassword}
+								onChange={(e) => {
+									setConfirmPassword(e.target.value);
+									if (message) setMessage("");
+								}}
+							/>
 
-						<button
-							type="button"
-							onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-							className="cursor-pointer absolute right-5 text-gray-400 hover:text-gray-600 transition-colors z-10"
-						>
-							{showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-						</button>
+							<button
+								type="button"
+								onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+								className="cursor-pointer absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
+							>
+								{showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+							</button>
+						</div>
 					</div>
 					{showPasswordPopover && (
 						<div className="text-sm text-center mt-2 flex justify-start flex-col items-start mx-auto">

@@ -387,6 +387,7 @@ function MenuBar({ active }) {
 												<button
 													onClick={(e) => {
 														e.preventDefault();
+														setSidebarOpen(false);
 														showAuthModal("login");
 													}}
 													className="flex text-sm items-center bg-primary-900 justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-800 text-white transition-all group"
@@ -397,7 +398,8 @@ function MenuBar({ active }) {
 												<button
 													onClick={(e) => {
 														e.preventDefault();
-														showAuthModal("login");
+														setSidebarOpen(false);
+														showAuthModal("register");
 													}}
 													className="flex text-sm items-center bg-white justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-200 text-primary-900 transition-all group"
 												>
