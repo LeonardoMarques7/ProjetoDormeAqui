@@ -126,7 +126,7 @@ const Home = () => {
 			// 2. Aplica os outros filtros (Data e Hóspedes) na lista já filtrada por local
 			if (formData.guests) {
 				filteredResults = filteredResults.filter(
-					(place) => place.guests >= formData.guests
+					(place) => place.guests >= formData.guests,
 				);
 			}
 
@@ -167,11 +167,11 @@ const Home = () => {
 	return (
 		<div>
 			<div className="relative flex justify-center mb-12 ">
-				<div className="sm:banner__home max-sm:h-[25svh] h-[50svh] max-sm:top-0   w-svw relative">
+				<div className="sm:banner__home max-sm:h-[25svh] max-w-7xl w-full  xl:h-[30svh] h-[50svh] max-sm:top-0   relative">
 					<img
 						src={Banner}
 						alt=""
-						className="object-cover pointer-events-none h-full w-full  shadow-2xl"
+						className="object-cover pointer-events-none h-full w-full xl:rounded-b-2xl shadow-2xl"
 					/>
 					<div className="absolute inset-0 bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
 				</div>
