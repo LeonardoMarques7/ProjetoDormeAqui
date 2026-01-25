@@ -28,6 +28,7 @@ import {
 	DrawerTitle,
 	DrawerTrigger,
 } from "@/components/ui/drawer";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
@@ -65,7 +66,7 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 		return (
 			<>
 				<div
-					className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
+					className="fixed inset-0 bg-black backdrop-blur-sm z-50"
 					onClick={() => setOpen(false)}
 				/>
 
@@ -93,17 +94,16 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 		);
 	}
 
+	// Mobile
+
 	return (
-		<Drawer open={open} onOpenChange={setOpen}>
-			<DrawerContent>
-				<ProfileForm className="px-4" />
-				<DrawerFooter className="pt-2">
-					<DrawerClose asChild>
-						<Button variant="outline">Cancelar</Button>
-					</DrawerClose>
-				</DrawerFooter>
-			</DrawerContent>
-		</Drawer>
+		<>
+			<Drawer open={open} onOpenChange={setOpen}>
+				<DrawerContent className="!rounded-none !rounded-tl-4xl  p-10">
+					<ProfileForm />
+				</DrawerContent>
+			</Drawer>
+		</>
 	);
 }
 
@@ -125,6 +125,7 @@ function PasswordRequirement({ meets, label }) {
 function ProfileForm({ onSuccess }) {
 	const { user, setUser } = useUserContext();
 	const [mode, setMode] = useState("login");
+	const [desktop, setDesktop] = useState(window.innerWidth >= 768);
 	const [email, setEmail] = useState("");
 	const [name, setName] = useState("");
 	const [password, setPassword] = useState("");
@@ -332,99 +333,197 @@ function ProfileForm({ onSuccess }) {
 			</div>
 		</section>
 	) : mode === "login" ? (
-		<section className="flex w-full">
-			<div className="flex-1 bg-white flex items-center justify-center">
-				<div className="w-full max-w-md text-start">
-					<p className="text-3xl font-medium text-gray-900 mb-2">
-						Bem-vindo de volta!
-					</p>
-					<p className="text-gray-600 mb-8">Entre para continuar sua jornada</p>
+		desktop ? (
+			<section className="flex w-full">
+				<div className="flex-1 bg-white flex items-center justify-center">
+					<div className="w-full max-w-md text-start">
+						<p className="text-3xl font-medium text-gray-900 mb-2">
+							Bem-vindo de volta!
+						</p>
+						<p className="text-gray-600 mb-8">
+							Entre para continuar sua jornada
+						</p>
 
-					<form className="space-y-5 text-start" onSubmit={handleSubmit}>
-						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">
-								Email
-							</label>
-							<div className="relative">
-								<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-								<input
-									type="email"
-									className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-									placeholder="seu@email.com"
-									value={email}
-									onChange={(e) => {
-										setEmail(e.target.value);
-										if (message) setMessage("");
-									}}
-								/>
+						<form className="space-y-5 text-start" onSubmit={handleSubmit}>
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									Email
+								</label>
+								<div className="relative">
+									<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+									<input
+										type="email"
+										className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+										placeholder="seu@email.com"
+										value={email}
+										onChange={(e) => {
+											setEmail(e.target.value);
+											if (message) setMessage("");
+										}}
+									/>
+								</div>
 							</div>
-						</div>
 
-						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">
-								Senha
-							</label>
-							<div className="relative">
-								<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-								<input
-									type={showPassword ? "text" : "password"}
-									className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-									placeholder="••••••••"
-									value={password}
-									onChange={(e) => {
-										setPassword(e.target.value);
-										if (message) setMessage("");
-									}}
-								/>
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									Senha
+								</label>
+								<div className="relative">
+									<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+									<input
+										type={showPassword ? "text" : "password"}
+										className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+										placeholder="••••••••"
+										value={password}
+										onChange={(e) => {
+											setPassword(e.target.value);
+											if (message) setMessage("");
+										}}
+									/>
+									<button
+										type="button"
+										onClick={() => setShowPassword(!showPassword)}
+										className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+									>
+										{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+									</button>
+								</div>
+							</div>
+
+							<div className="text-right">
 								<button
 									type="button"
-									onClick={() => setShowPassword(!showPassword)}
-									className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+									className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+									onClick={() => setMode("forgotPassword")}
 								>
-									{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+									Esqueceu a senha?
 								</button>
 							</div>
-						</div>
 
-						<div className="text-right">
+							{message && (
+								<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
+									{message}
+								</div>
+							)}
+
 							<button
-								type="button"
-								className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-								onClick={() => setMode("forgotPassword")}
+								type="submit"
+								className="w-full cursor-pointer py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary-200"
 							>
-								Esqueceu a senha?
+								Entrar
 							</button>
-						</div>
+						</form>
 
-						{message && (
-							<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
-								{message}
-							</div>
-						)}
-
-						<button
-							type="submit"
-							className="w-full cursor-pointer py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary-200"
-						>
-							Entrar
-						</button>
-					</form>
-
-					<p className="text-center text-gray-600 mt-6">
-						Não tem uma conta?{" "}
-						<button
-							onClick={(e) => {
-								e.preventDefault();
-								setMode("register");
-							}}
-							className="text-primary-600 hover:text-primary-700 font-semibold"
-						>
-							Criar conta
-						</button>
-					</p>
+						<p className="text-center text-gray-600 mt-6">
+							Não tem uma conta?{" "}
+							<button
+								onClick={(e) => {
+									e.preventDefault();
+									setMode("register");
+								}}
+								className="text-primary-600 hover:text-primary-700 font-semibold"
+							>
+								Criar conta
+							</button>
+						</p>
+					</div>
 				</div>
-			</div>
-		</section>
+			</section>
+		) : (
+			<section className="flex w-full">
+				<div className="flex-1 bg-white flex items-center justify-center">
+					<div className="w-full max-w-md text-start">
+						<p className="text-3xl font-medium text-gray-900 mb-2">Login</p>
+						<p className="text-gray-600 mb-8">
+							Entre para continuar sua jornada
+						</p>
+
+						<form className="space-y-5 text-start" onSubmit={handleSubmit}>
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									Email
+								</label>
+								<div className="relative">
+									<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+									<input
+										type="email"
+										className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+										placeholder="seu@email.com"
+										value={email}
+										onChange={(e) => {
+											setEmail(e.target.value);
+											if (message) setMessage("");
+										}}
+									/>
+								</div>
+							</div>
+
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									Senha
+								</label>
+								<div className="relative">
+									<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+									<input
+										type={showPassword ? "text" : "password"}
+										className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+										placeholder="••••••••"
+										value={password}
+										onChange={(e) => {
+											setPassword(e.target.value);
+											if (message) setMessage("");
+										}}
+									/>
+									<button
+										type="button"
+										onClick={() => setShowPassword(!showPassword)}
+										className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+									>
+										{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+									</button>
+								</div>
+							</div>
+
+							<div className="text-right">
+								<button
+									type="button"
+									className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+									onClick={() => setMode("forgotPassword")}
+								>
+									Esqueceu a senha?
+								</button>
+							</div>
+
+							{message && (
+								<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
+									{message}
+								</div>
+							)}
+
+							<button
+								type="submit"
+								className="w-full cursor-pointer py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary-200"
+							>
+								Entrar
+							</button>
+						</form>
+
+						<p className="text-center text-gray-600 mt-6">
+							Não tem uma conta?{" "}
+							<button
+								onClick={(e) => {
+									e.preventDefault();
+									setMode("register");
+								}}
+								className="text-primary-600 hover:text-primary-700 font-semibold"
+							>
+								Criar conta
+							</button>
+						</p>
+					</div>
+				</div>
+			</section>
+		)
 	) : (
 		<section className="flex items-center justify-between flex-1  py-4">
 			<div className="max-w-125 mx-auto gap-0  rounded-4xl py-2.5  right-0 flex flex-col items-start w-full ">
