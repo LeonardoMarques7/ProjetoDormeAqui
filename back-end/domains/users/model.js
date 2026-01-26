@@ -13,6 +13,7 @@ const userSchema = new Schema({
     password: String,
     resetToken: String,
     resetTokenExpiry: Date,
+    deactivated: { type: Boolean, default: false },
 }, { timestamps: true })
 
 export default model("User", userSchema);

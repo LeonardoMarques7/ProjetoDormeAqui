@@ -15,12 +15,21 @@ export default function AlertDialog({
 	description,
 	onConfirm,
 	trigger,
+	open,
+	onOpenChange,
 }) {
+	const controlled = open !== undefined && onOpenChange !== undefined;
+
 	return (
-		<ShadAlertDialog>
-			<AlertDialogTrigger className="cursor-pointer hover:bg-red-600 transition-all bg-red-500 text-white font-bold w-fit px-5 py-2.5 rounded-md">
-				{trigger}
-			</AlertDialogTrigger>
+		<ShadAlertDialog
+			open={controlled ? open : undefined}
+			onOpenChange={controlled ? onOpenChange : undefined}
+		>
+			{!controlled && (
+				<AlertDialogTrigger className="cursor-pointer hover:bg-red-600 transition-all bg-red-500 text-white font-bold w-fit px-5 py-2.5 rounded-md">
+					{trigger}
+				</AlertDialogTrigger>
+			)}
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>{title}</AlertDialogTitle>

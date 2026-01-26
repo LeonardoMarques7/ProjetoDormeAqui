@@ -4,6 +4,7 @@
 import "dotenv/config";
 import { Router } from "express";
 import User from "./model.js";
+import Place from "../places/model.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
@@ -404,7 +405,7 @@ router.post("/logout", (req, res) => {
     res.status(500).json({ error: "Erro ao fazer logout" });
   }
 });
-// DELETAR CONTA
+// DELETAR CONTA (AGORA DESATIVA CONTA)
 router.delete("/:id", requireAuth, async (req, res) => {
   const { id: _id } = req.params;
 
@@ -413,9 +414,17 @@ router.delete("/:id", requireAuth, async (req, res) => {
   }
 
   try {
-    const deleteAccount = await User.findOneAndDelete({ _id });
+    // Primeiro, deletar todos os places do usuário
+    await Place.deleteMany({ owner: _id });
 
-    if (!deleteAccount) {
+    // Depois, desativar a conta do usuário (não deletar)
+    const deactivatedUser = await User.findByIdAndUpdate(
+      _id,
+      { deactivated: true },
+      { new: true }
+    );
+
+    if (!deactivatedUser) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
@@ -423,12 +432,12 @@ router.delete("/:id", requireAuth, async (req, res) => {
     res.clearCookie(COOKIE_NAME, COOKIE_OPTIONS);
     res.clearCookie('prod_auth_token', { httpOnly: true, secure: true, sameSite: 'none', path: '/' });
     res.clearCookie('dev_auth_token', { httpOnly: true, secure: false, sameSite: 'lax', path: '/' });
-    
-    res.json({ message: "Usuário deletado com sucesso!", deleteAccount });
-      
+
+    res.json({ message: "Conta desativada com sucesso! Suas reservas e avaliações foram preservadas.", deactivatedUser });
+
   } catch (error) {
-    console.error("Erro ao deletar usuário:", error);
-    res.status(500).json({ error: "Erro ao deletar usuário" });
+    console.error("Erro ao desativar usuário:", error);
+    res.status(500).json({ error: "Erro ao desativar usuário" });
   }
 });
 

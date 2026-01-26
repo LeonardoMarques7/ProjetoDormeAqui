@@ -104,6 +104,22 @@ router.post("/", async (req, res) => {
     session.startTransaction();
 
     try {
+        // Verificar se o usuário está desativado
+        const User = (await import("../users/model.js")).default;
+        const userDoc = await User.findById(user).session(session);
+
+        if (!userDoc) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ message: "Usuário não encontrado." });
+        }
+
+        if (userDoc.deactivated) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(403).json({ message: "Conta desativada. Não é possível fazer novas reservas." });
+        }
+
         // Buscar o lugar para obter os horários de check-in e check-out
         const Place = (await import("../places/model.js")).default;
         const placeDoc = await Place.findById(place).session(session);
