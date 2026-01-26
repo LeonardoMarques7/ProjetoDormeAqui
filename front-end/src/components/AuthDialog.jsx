@@ -105,7 +105,7 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 		<>
 			<Drawer open={open} onOpenChange={setOpen}>
 				<DrawerContent className="!rounded-none !rounded-tl-4xl p-0">
-					<div className="px-10 pb-10">
+					<div className="p-10">
 						<ProfileForm
 							onSuccess={handleLoginSuccess}
 							mode={mode}
@@ -426,7 +426,7 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 								e.preventDefault();
 								setMode("register");
 							}}
-							className="text-primary-600 hover:text-primary-700 font-semibold"
+							className="text-primary-900 underline hover:text-primary-800 font-semibold"
 						>
 							Criar conta
 						</button>
@@ -454,7 +454,7 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 							<input
 								type="text"
 								className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
-								placeholder="Digite seu nome"
+								placeholder="Leonardo Emanuel"
 								value={name}
 								onChange={(e) => {
 									setName(e.target.value);
@@ -473,7 +473,7 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 								className={`border ${
 									emailError ? "border-red-400" : "border-gray-200"
 								} px-14 py-4 rounded-2xl w-full outline-primary-400`}
-								placeholder="Digite seu email"
+								placeholder="seu@email.com"
 								value={email}
 								onChange={(e) => {
 									setEmail(e.target.value);
@@ -502,7 +502,7 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 							<input
 								type={showPassword ? "text" : "password"}
 								className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
-								placeholder="Digite sua senha"
+								placeholder="••••••••"
 								value={password}
 								onChange={(e) =>
 									setPassword(e.target.value) || setShowPasswordPopover(true)
@@ -529,7 +529,7 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 							<input
 								type={showConfirmPassword ? "text" : "password"}
 								className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
-								placeholder="Confirme sua senha"
+								placeholder="••••••••"
 								value={confirmPassword}
 								onChange={(e) => {
 									setConfirmPassword(e.target.value);
