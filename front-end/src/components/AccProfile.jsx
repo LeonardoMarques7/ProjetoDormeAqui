@@ -50,7 +50,7 @@ import { useEffect } from "react";
 import DeleteAccountDialog from "@/components/DeleteAccountDialog";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import EditProfile from "./EditProfile";
-import { LoadingOverlay, MenuDropdown } from "@mantine/core";
+import { Skeleton } from "@/components/ui/skeleton";
 import Loading from "./Loading";
 import { useTimeout } from "@mantine/hooks";
 import { useLocation } from "react-router-dom";
@@ -320,9 +320,120 @@ const AccProfile = () => {
 
 	const isEditingProfile = params.action === "edit";
 
+	const SkeletonProfile = () => (
+		<div>
+			{/* Banner skeleton */}
+			<div className="bg-gray-200 animate-pulse mt-20 max-w-7xl mx-auto w-full h-[40svh] rounded-4xl" />
+			{/* Container */}
+			<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5 max-sm:mt-0 relative -mt-35">
+				<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10">
+					{/* Header */}
+					<div className="avatar__btn flex max-sm:gap-2 gap-5 items-center justify-start relative">
+						<div className="bg-gray-200 animate-pulse w-60 h-60 rounded-full" />
+					</div>
+					<div className="flex gap-0 flex-col">
+						<div className="bg-gray-200 animate-pulse h-4 w-32 mb-2" />
+						<div className="bg-gray-200 animate-pulse h-16 w-64 mb-2" />
+						<div className="bg-gray-200 animate-pulse h-16 w-48" />
+					</div>
+					<div className="bg-gray-200 animate-pulse h-5 w-40" />
+					{/* Bio */}
+					<div className="flex flex-col gap-2 max-w-xl">
+						<div className="bg-gray-200 animate-pulse h-4 w-full" />
+						<div className="bg-gray-200 animate-pulse h-4 w-3/4" />
+					</div>
+					{/* Contact */}
+					<div className="bg-gray-200 animate-pulse h-4 w-32" />
+					{/* Stats */}
+					<div className="flex items-center gap-5 my-5 p-0 list-none">
+						<div className="flex flex-col gap-2.5">
+							<div className="bg-gray-200 animate-pulse h-12 w-16" />
+							<div className="bg-gray-200 animate-pulse h-4 w-24" />
+						</div>
+						<div className="flex flex-col gap-2.5">
+							<div className="bg-gray-200 animate-pulse h-12 w-16" />
+							<div className="bg-gray-200 animate-pulse h-4 w-24" />
+						</div>
+						<div className="flex flex-col gap-2.5">
+							<div className="bg-gray-200 animate-pulse h-12 w-16" />
+							<div className="bg-gray-200 animate-pulse h-4 w-24" />
+						</div>
+					</div>
+					{/* Places section */}
+					<div>
+						<div className="bg-gray-200 animate-pulse h-4 w-16 mb-2" />
+						<div className="flex items-center mb-15 justify-between">
+							<div className="bg-gray-200 animate-pulse h-10 w-64" />
+							<div className="bg-gray-200 animate-pulse h-4 w-16" />
+						</div>
+						<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
+							{Array(2)
+								.fill()
+								.map((_, i) => (
+									<div
+										key={i}
+										className="item__projeto rounded-xl w-full  flex gap-10"
+									>
+										<div className="flex-1 grid gap-2 grid-cols-8  grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2 ">
+											<div className="row-span-4 col-span-5 bg-gray-200 animate-pulse h-full w-40 object-cover rounded-2xl"></div>
+											<div className="row-span-2 col-span-3 bg-gray-200 animate-pulse h-full w-30 object-cover rounded-2xl"></div>
+											<div className="row-span-2 col-span-3 bg-gray-200 animate-pulse  h-full w-30 object-cover rounded-2xl"></div>
+										</div>
+										<div className="relative flex flex-col flex-1 justify-between gap-2">
+											<div className="flex flex-col">
+												<div className="bg-gray-200 animate-pulse h-4 w-16 -top-6 absolute" />
+												<div className="bg-gray-200 animate-pulse h-8 w-48 mb-2" />
+												<div className="bg-gray-200 animate-pulse h-5 w-32" />
+											</div>
+											<div className="flex items-end gap-10 w-full justify-between">
+												<div className="bg-gray-200 animate-pulse h-6 w-20" />
+												<div className="bg-gray-200 animate-pulse w-10 h-10 rounded-2xl" />
+											</div>
+										</div>
+									</div>
+								))}
+						</div>
+					</div>
+					{/* Reviews section */}
+					<div className="flex flex-col">
+						<div className="bg-gray-200 animate-pulse h-4 w-20 mb-2" />
+						<div className="flex items-center justify-between">
+							<div className="bg-gray-200 animate-pulse h-10 w-50" />
+						</div>
+						<div className="flex gap-6 mt-5 mb-15">
+							{Array(3)
+								.fill()
+								.map((_, i) => (
+									<div
+										key={i}
+										className="flex flex-col gap-4 p-6 w-fit bg-white rounded-2xl border border-gray-200 shadow-sm"
+									>
+										<div className="flex items-center gap-4">
+											<div className="flex flex-col gap-4">
+												<div className="bg-gray-200 animate-pulse h-5 w-32" />
+												<div className="bg-gray-200 animate-pulse h-4 w-64" />
+												<div className="bg-gray-200 animate-pulse h-4 w-48" />
+												<div className="flex items-center gap-2">
+													<div className="bg-gray-200 animate-pulse w-12 h-12 rounded-full" />
+													<div className="flex flex-col gap-1">
+														<div className="bg-gray-200 animate-pulse h-4 w-24" />
+														<div className="bg-gray-200 animate-pulse h-3 w-32" />
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								))}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+
 	if (redirect) return <Navigate to="/" state={{ updated: true }} />;
 
-	if (!profileUser) return <></>;
+	if (!ready) return <SkeletonProfile />;
 
 	const displayUser = profileUser;
 	// Verifica se está visualizando o próprio perfil
@@ -362,7 +473,7 @@ const AccProfile = () => {
 		},
 	];
 
-	if (!profileUser) return <Loading />;
+	if (!ready) return <SkeletonProfile />;
 
 	return (
 		<>
