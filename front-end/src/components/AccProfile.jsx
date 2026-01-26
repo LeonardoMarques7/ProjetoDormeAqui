@@ -692,11 +692,11 @@ const AccProfile = () => {
 													}`}
 													key={item._id}
 												>
-													<div className="grid gap-2 grid-cols-8  grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2 ">
+													<div className="grid gap-2 max-sm:gap-x-2 grid-cols-8  grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2 ">
 														<img
 															src={getImageSrc(item, 0)}
 															onError={() => handleImageError(`${item._id}_0`)}
-															className="row-span-4 col-span-5  h-full w-50 object-cover rounded-2xl"
+															className="row-span-4 col-span-5 max-sm:col-span-5  h-full max-sm:w-full w-50 object-cover rounded-2xl"
 															alt={item.title}
 														/>
 														<img
