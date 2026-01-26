@@ -390,7 +390,7 @@ function MenuBar({ active }) {
 														setSidebarOpen(false);
 														showAuthModal("login");
 													}}
-													className="flex text-sm items-center bg-primary-900 justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-800 text-white transition-all group"
+													className="flex text-sm items-center bg-primary-900 cursor-pointer justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-800 text-white transition-all group"
 												>
 													<span className="">Entrar</span>
 													<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -401,7 +401,7 @@ function MenuBar({ active }) {
 														setSidebarOpen(false);
 														showAuthModal("register");
 													}}
-													className="flex text-sm items-center bg-white justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-200 text-primary-900 transition-all group"
+													className="flex text-sm items-center bg-white cursor-pointer justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-200 text-primary-900 transition-all group"
 												>
 													<span className="">Criar Conta</span>
 													<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
