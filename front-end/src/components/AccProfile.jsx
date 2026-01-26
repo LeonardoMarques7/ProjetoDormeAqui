@@ -56,6 +56,7 @@ import { useTimeout } from "@mantine/hooks";
 import { useLocation } from "react-router-dom";
 import image from "../assets/image.png";
 import Banner from "../assets/banner.jpg";
+import bannerDefault from "../assets/banner__default2.jpg";
 import MenuBar from "./MenuBar";
 
 const AccProfile = () => {
@@ -321,7 +322,7 @@ const AccProfile = () => {
 
 	if (redirect) return <Navigate to="/" state={{ updated: true }} />;
 
-	if (!profileUser) return <Loading />;
+	if (!profileUser) return <></>;
 
 	const displayUser = profileUser;
 	// Verifica se está visualizando o próprio perfil
@@ -369,7 +370,7 @@ const AccProfile = () => {
 				<>
 					<img
 						className="mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[40svh] relative overflow-hidden"
-						src={displayUser.banner}
+						src={displayUser.banner || bannerDefault}
 					/>
 
 					{/* Container do conteúdo */}
