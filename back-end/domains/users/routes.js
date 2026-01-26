@@ -14,6 +14,10 @@ import { sendToS3, uploadImage } from "../controller.js";
 const router = Router();
 const bcryptSalt = bcrypt.genSaltSync();
 
+// URLs padrão para foto e banner
+const DEFAULT_PHOTO_URL = `https://${process.env.BUCKET}.s3.us-east-2.amazonaws.com/user__default.png`;
+const DEFAULT_BANNER_URL = `https://${process.env.BUCKET}.s3.us-east-2.amazonaws.com/banner__default2.jpg`;
+
 // ⭐ CONFIGURAÇÃO SEPARADA POR AMBIENTE
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -88,22 +92,23 @@ router.post("/", async (req, res) => {
 
   try {
     const encryptedPassword = bcrypt.hashSync(password, bcryptSalt);
-    
+
     const newUserDoc = await User.create({
       name,
       email,
-      photo,
+      photo: photo || DEFAULT_PHOTO_URL,
+      banner: DEFAULT_BANNER_URL,
       password: encryptedPassword,
     });
 
     const { _id } = newUserDoc;
-    const newUserObj = { name, email, photo, _id };
+    const newUserObj = { name, email, photo: photo || DEFAULT_PHOTO_URL, banner: DEFAULT_BANNER_URL, _id };
     const token = await JWTSign(newUserObj);
 
     res
       .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
       .json(newUserObj);
-      
+
   } catch (error) {
     console.error("Erro ao criar usuário:", error);
     res.status(500).json({ error: "Erro ao criar usuário" });
@@ -217,9 +222,22 @@ router.put("/:id", requireAuth, async (req, res) => {
   const { name, email, phone, city, pronouns, photo, banner, bio, occupation } = req.body;
 
   try {
+    // Construir objeto de atualização apenas com campos fornecidos
+    const updateFields = {};
+
+    if (name !== undefined) updateFields.name = name;
+    if (email !== undefined) updateFields.email = email;
+    if (phone !== undefined) updateFields.phone = phone;
+    if (city !== undefined) updateFields.city = city;
+    if (pronouns !== undefined) updateFields.pronouns = pronouns;
+    if (photo !== undefined) updateFields.photo = photo || DEFAULT_PHOTO_URL;
+    if (banner !== undefined) updateFields.banner = banner || DEFAULT_BANNER_URL;
+    if (bio !== undefined) updateFields.bio = bio;
+    if (occupation !== undefined) updateFields.occupation = occupation;
+
     const updateUserDoc = await User.findOneAndUpdate(
       {_id},
-      { name, email, phone, city, pronouns, photo, banner, bio, occupation },
+      updateFields,
       { new: true }
     ).select('-password');
 

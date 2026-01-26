@@ -828,11 +828,16 @@ const Place = () => {
 											className=" bg-primary-100/50 rounded-2xl p-4"
 										>
 											<div className="flex items-center gap-4">
-												<img
-													src={review.user.photo || photoDefault}
-													alt={review.user.name}
-													className="w-12 h-12 rounded-full object-cover"
-												/>
+												<Link
+													className="cursor-pointer"
+													to={`/account/profile/${review.user._id}`}
+												>
+													<img
+														src={review.user.photo || photoDefault}
+														alt={review.user.name}
+														className="w-12 h-12 rounded-full object-cover"
+													/>
+												</Link>
 												<div>
 													<p className="font-medium">{review.user.name}</p>
 													<div className="flex items-center gap-2">
