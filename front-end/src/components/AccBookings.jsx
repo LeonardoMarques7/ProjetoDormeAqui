@@ -38,6 +38,11 @@ const AccBookings = ({ bookingId }) => {
 						Visualize suas reservas
 					</span>
 				</div>
+				{bookings.length === 0 && (
+					<p className="text-gray-500 text-center py-8">
+						Você não possue reservas.
+					</p>
+				)}
 
 				{!readyBookings ? (
 					<>

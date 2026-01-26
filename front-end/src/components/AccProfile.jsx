@@ -84,6 +84,7 @@ const AccProfile = () => {
 	const [reviews, setReviews] = useState([]);
 	const [averageRating, setAverageRating] = useState(0);
 	const [totalReviews, setTotalReviews] = useState(0);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
 	const navigate = useNavigate();
 
@@ -468,12 +469,39 @@ const AccProfile = () => {
 		{
 			label: "Deletar conta",
 			function: () => {
-				handleDelete();
+				setShowDeleteDialog(true);
 			},
 		},
 	];
 
-	if (!ready) return <SkeletonProfile />;
+	const isDeactivated = displayUser?.deactivated;
+
+	// Se o perfil estiver desativado, mostrar mensagem especial
+	if (isDeactivated) {
+		return (
+			<>
+				<div className="mt-20 max-w-7xl mx-auto w-full bg-gray-100 rounded-4xl h-[40svh] relative overflow-hidden flex items-center justify-center">
+					<div className="text-center">
+						<h1 className="text-6xl font-bold text-gray-500 mb-4">
+							Perfil Desativado
+						</h1>
+						<p className="text-xl text-gray-400">
+							Este usuário desativou sua conta.
+						</p>
+						<p className="text-lg text-gray-400 mt-2">
+							Suas reservas e avaliações anteriores permanecem no site.
+						</p>
+					</div>
+				</div>
+				<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5 max-sm:mt-0 relative -mt-35">
+					<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10">
+						{/* Espaço vazio para manter layout */}
+						<div className="h-60"></div>
+					</div>
+				</div>
+			</>
+		);
+	}
 
 	return (
 		<>
@@ -537,6 +565,21 @@ const AccProfile = () => {
 
 												{/* Navegação */}
 												{navItemsActions.map((item) => {
+													if (item.label === "Deletar conta") {
+														return (
+															<div
+																key={item.label}
+																onClick={item.function}
+																className={`flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl cursor-pointer`}
+															>
+																{item.label}
+																<ChevronRight
+																	size={15}
+																	className="opacity-0 group-hover:opacity-100 text-gray-500"
+																/>
+															</div>
+														);
+													}
 													return (
 														<Link
 															key={item.path}
@@ -792,7 +835,13 @@ const AccProfile = () => {
 									</div>
 								</div>
 							</div>
-							{/* {isOwnProfile && <DeleteAccountDialog onDelete={handleDelete} />} */}
+							{isOwnProfile && (
+								<DeleteAccountDialog
+									open={showDeleteDialog}
+									onOpenChange={setShowDeleteDialog}
+									onDelete={handleDelete}
+								/>
+							)}
 						</div>
 					</div>
 				</>

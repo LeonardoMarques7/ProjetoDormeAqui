@@ -138,7 +138,7 @@ const NewPlace = () => {
 					console.log("Erro ao enviar o formulário: ", JSON.stringify(error));
 					showMessage(
 						"Deu erro ao enviar formulário de nova acomodação!",
-						"error"
+						"error",
 					);
 				}
 			}
@@ -170,7 +170,7 @@ const NewPlace = () => {
 
 	return (
 		<div className="relative w-full ">
-			<div className="container__prev__form relative flex p-10  rounded-2xl max-sm:px-4 max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
+			<div className="container__prev__form relative flex  rounded-2xl max-sm:px-4 max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
 				<form
 					onSubmit={handleSubmit}
 					className="container__form max-w-3xl pb-5 min-w-auto flex grow flex-col gap-10 w-full"

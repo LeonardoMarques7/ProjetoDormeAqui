@@ -73,7 +73,13 @@ const AccPlaces = () => {
 						</Link>
 					)}
 				</div>
-
+				{places.length === 0 && action !== "new" ? (
+					<p className="text-gray-500 text-center py-8">
+						Você não possue acomodações.
+					</p>
+				) : (
+					<></>
+				)}
 				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
 					{loadingPlaces ? (
 						<>
