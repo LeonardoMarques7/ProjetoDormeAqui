@@ -104,8 +104,14 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 	return (
 		<>
 			<Drawer open={open} onOpenChange={setOpen}>
-				<DrawerContent className="!rounded-none !rounded-tl-4xl  p-10">
-					<ProfileForm onSuccess={handleLoginSuccess} mode={mode} />
+				<DrawerContent className="!rounded-none !rounded-tl-4xl p-0">
+					<div className="px-10 pb-10">
+						<ProfileForm
+							onSuccess={handleLoginSuccess}
+							mode={mode}
+							setMode={setMode}
+						/>
+					</div>
 				</DrawerContent>
 			</Drawer>
 		</>
@@ -127,7 +133,7 @@ function PasswordRequirement({ meets, label }) {
 	);
 }
 
-function ProfileForm({ onSuccess, mode }) {
+function ProfileForm({ onSuccess, mode, setMode }) {
 	const { user, setUser } = useUserContext();
 	const [desktop, setDesktop] = useState(window.innerWidth >= 768);
 	const [email, setEmail] = useState("");
