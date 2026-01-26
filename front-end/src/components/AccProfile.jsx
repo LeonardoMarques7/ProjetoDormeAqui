@@ -666,7 +666,7 @@ const AccProfile = () => {
 											Acomodações em Destaque
 										</p>
 									</div>
-									<span className="text-primary-700 cursor-pointer uppercase font-mono">
+									<span className="text-primary-700 cursor-pointer font-light hover:bg-primary-100 rounded-2xl px-4 py-1.5 transition-all">
 										Ver tudo
 									</span>
 								</div>
