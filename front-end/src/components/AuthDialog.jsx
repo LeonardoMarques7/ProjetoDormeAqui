@@ -36,6 +36,7 @@ import { Link, Navigate } from "react-router-dom";
 import axios from "axios";
 import { useUserContext } from "./contexts/UserContext";
 import photoDefault from "../assets/user__default.png";
+import { useAuthModalContext } from "./contexts/AuthModalContext";
 
 export function AuthDialog({ mode, setMode, open, setOpen }) {
 	const [desktop, setDesktop] = useState(window.innerWidth >= 768);
@@ -66,7 +67,7 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 		return (
 			<>
 				<div
-					className="fixed inset-0 bg-black backdrop-blur-sm z-50"
+					className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
 					onClick={() => setOpen(false)}
 				/>
 
@@ -87,7 +88,11 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 							</button>
 						</div>
 
-						<ProfileForm mode={mode} onSuccess={handleLoginSuccess} />
+						<ProfileForm
+							mode={mode}
+							setMode={setMode}
+							onSuccess={handleLoginSuccess}
+						/>
 					</DialogContent>
 				</Dialog>
 			</>
@@ -100,7 +105,7 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 		<>
 			<Drawer open={open} onOpenChange={setOpen}>
 				<DrawerContent className="!rounded-none !rounded-tl-4xl  p-10">
-					<ProfileForm onSuccess={handleLoginSuccess} />
+					<ProfileForm onSuccess={handleLoginSuccess} mode={mode} />
 				</DrawerContent>
 			</Drawer>
 		</>
@@ -122,9 +127,8 @@ function PasswordRequirement({ meets, label }) {
 	);
 }
 
-function ProfileForm({ onSuccess }) {
+function ProfileForm({ onSuccess, mode }) {
 	const { user, setUser } = useUserContext();
-	const [mode, setMode] = useState("login");
 	const [desktop, setDesktop] = useState(window.innerWidth >= 768);
 	const [email, setEmail] = useState("");
 	const [name, setName] = useState("");
@@ -545,27 +549,26 @@ function ProfileForm({ onSuccess }) {
 						</div>
 					)}
 					{message && (
-						<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg mt-2">
+						<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rorunded-lg mt-2">
 							{message}
 						</div>
 					)}
 					<button className="font-bold rounded-2xl text-xl cursor-pointer w-full px-14 py-4 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300">
 						Criar Conta
 					</button>
+					<p className="text-center text-gray-600 mt-6">
+						Já tem uma conta?{" "}
+						<button
+							onClick={(e) => {
+								e.preventDefault();
+								setMode("login");
+							}}
+							className="text-primary-900 underline hover:text-primary-800 font-semibold"
+						>
+							Entrar
+						</button>
+					</p>
 				</form>
-
-				<p className="mt-5">
-					Já possue uma conta?{" "}
-					<button
-						onClick={(e) => {
-							e.preventDefault();
-							setMode("login");
-						}}
-						className="underline font-semibold"
-					>
-						Entre Aqui!
-					</button>{" "}
-				</p>
 			</div>
 		</section>
 	);

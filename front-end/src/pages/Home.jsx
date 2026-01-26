@@ -17,12 +17,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-	Sheet,
-	SheetContent,
-	SheetHeader,
-	SheetTitle,
-	SheetTrigger,
-} from "@/components/ui/sheet";
+	Drawer,
+	DrawerContent,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "@/components/ui/drawer";
 import Banner from "../assets/banner2.jpg";
 
 import "./Home.css";
@@ -40,7 +40,7 @@ const Home = () => {
 	const [placesSearch, setPlacesSearch] = useState([]);
 	const [isSearching, setIsSearching] = useState(false);
 	const [loading, setLoading] = useState(true);
-	const [sheetOpen, setSheetOpen] = useState(false);
+	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [datePickerKey, setDatePickerKey] = useState(0);
 
 	// Configuração do React Hook Form com Zod
@@ -177,11 +177,14 @@ const Home = () => {
 				</div>
 
 				{mobile ? (
-					/* Versão Mobile - Bottom Sheet */
+					/* Versão Mobile - Drawer */
 					<div className="absolute z-20 -bottom-8 left-0 right-0 px-3.5">
-						<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-							<SheetTrigger asChild>
-								<button className="w-full bg-white shadow-lg rounded-2xl px-4 py-4 flex items-center gap-3 hover:shadow-xl transition-shadow">
+						<Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+							<DrawerTrigger asChild>
+								<button
+									className="w-full bg-white shadow-lg rounded-2xl px-4 py-4 
+								flex items-center gap-3 hover:shadow-xl transition-shadow"
+								>
 									<div className="flex-1 text-left">
 										<p className="text-sm font-semibold text-gray-900">
 											{hasFilters
@@ -192,29 +195,24 @@ const Home = () => {
 											{watchedValues.city || "Para onde? • Quando? • Quem?"}
 										</p>
 									</div>
-									<span className="bg-primary-900 w-10 h-10 flex justify-center items-center rounded-2xl">
-										<Search className="text-white size-5 flex-shrink-0" />
-									</span>
+									<Search className="mr-2" />
 								</button>
-							</SheetTrigger>
+							</DrawerTrigger>
 
-							<SheetContent
-								side="bottom"
-								className="h-[85vh] rounded-t-3xl p-0"
-							>
-								<SheetHeader className="p-6 pb-4 border-b sticky top-0 bg-white z-10">
+							<DrawerContent className=" rounded-r-3xl p-0">
+								<DrawerHeader className="p-6 pb-4 border-b sticky top-0 bg-white z-10">
 									<div className="flex items-center justify-between">
-										<SheetTitle className="text-xl !font-medium">
+										<DrawerTitle className="text-xl !font-medium">
 											Buscar acomodações
-										</SheetTitle>
+										</DrawerTitle>
 										<button
-											onClick={() => setSheetOpen(false)}
-											className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+											onClick={() => setDrawerOpen(false)}
+											className="p-2 cursor-pointer hover:bg-gray-100 rounded-full transition-colors"
 										>
 											<X className="w-5 h-5" />
 										</button>
 									</div>
-								</SheetHeader>
+								</DrawerHeader>
 
 								<div className="flex flex-col h-full">
 									<div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -311,7 +309,7 @@ const Home = () => {
 											<Button
 												onClick={handleSubmit(onSubmit)}
 												disabled={isSearching}
-												className="justify-center font-normal flex-1 h-15 border bg-primary-900 hover:bg-primary-800/90 cursor-pointer hover:text-white border-gray-200 rounded-2xl text-white outline-primary-400 disabled:opacity-50"
+												className="justify-center font-normal flex-1 h-15 border bg-primary-800 hover:bg-primary-900 cursor-pointer hover:text-white border-gray-200 rounded-2xl text-white outline-primary-400 disabled:opacity-50"
 											>
 												{isSearching ? (
 													<div className="flex items-center gap-2">
@@ -319,10 +317,7 @@ const Home = () => {
 														Buscando...
 													</div>
 												) : (
-													<div className="flex items-center gap-2">
-														<Search className="h-5 w-5" />
-														Buscar
-													</div>
+													<div className="flex items-center gap-2">Buscar</div>
 												)}
 											</Button>
 											<button
@@ -330,15 +325,15 @@ const Home = () => {
 													limparPesquisa(e);
 													setDatePickerKey((prev) => prev + 1); // Adicione esta linha
 												}}
-												className="bg-red-500 cursor-pointer text-white h-15 w-15 justify-center rounded-xl text-sm font-bold hover:bg-red-700 transition-all disabled:bg-red-100 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
+												className="bg-red-500 cursor-pointer text-white h-15 w-15 justify-center rounded-xl text-sm font-bold hover:bg-red-700/90 transition-all disabled:bg-red-100 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
 											>
 												<Trash />
 											</button>
 										</div>
 									</div>
 								</div>
-							</SheetContent>
-						</Sheet>
+							</DrawerContent>
+						</Drawer>
 					</div>
 				) : (
 					/* Versão Desktop - Original */
