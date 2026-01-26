@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import photoDefault from "../assets/photoDefault.jpg";
 import userDefault from "../assets/user__default.png";
 import {
@@ -9,6 +9,13 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import axios from "axios";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
@@ -86,6 +93,9 @@ const AccProfile = () => {
 	const [averageRating, setAverageRating] = useState(0);
 	const [totalReviews, setTotalReviews] = useState(0);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [sortBy, setSortBy] = useState("recent");
+	const [ratingFilter, setRatingFilter] = useState("all");
+	const [commentFilter, setCommentFilter] = useState("all");
 
 	const navigate = useNavigate();
 
@@ -281,6 +291,37 @@ const AccProfile = () => {
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
+
+	const filteredReviews = useMemo(() => {
+		let filtered = [...reviews];
+
+		// Filter by rating
+		if (ratingFilter !== "all") {
+			filtered = filtered.filter(
+				(review) => review.rating === parseInt(ratingFilter),
+			);
+		}
+
+		// Filter by comment presence
+		if (commentFilter === "with") {
+			filtered = filtered.filter(
+				(review) => review.comment && review.comment.trim() !== "",
+			);
+		} else if (commentFilter === "without") {
+			filtered = filtered.filter(
+				(review) => !review.comment || review.comment.trim() === "",
+			);
+		}
+
+		// Sort by date
+		filtered.sort((a, b) => {
+			const dateA = new Date(a.createdAt || 0);
+			const dateB = new Date(b.createdAt || 0);
+			return sortBy === "recent" ? dateB - dateA : dateA - dateB;
+		});
+
+		return filtered;
+	}, [reviews, sortBy, ratingFilter, commentFilter]);
 
 	const logout = async () => {
 		try {
@@ -784,9 +825,71 @@ const AccProfile = () => {
 												<p className="text-4xl font-bold">O Que Dizem</p>
 											</div>
 										</div>
+										{/* Filter Controls */}
+										<div className="flex flex-wrap gap-4 mt-5 mb-5">
+											<div className="flex flex-col gap-2">
+												<label className="text-sm font-medium text-gray-700">
+													Ordenar por:
+												</label>
+												<Select
+													value={sortBy}
+													onValueChange={setSortBy}
+													modal={false}
+												>
+													<SelectTrigger className="w-[180px]">
+														<SelectValue placeholder="Ordenar por" />
+													</SelectTrigger>
+													<SelectContent>
+														<SelectItem value="recent">Mais recente</SelectItem>
+														<SelectItem value="oldest">Mais antigo</SelectItem>
+													</SelectContent>
+												</Select>
+											</div>
+											<div className="flex flex-col gap-2">
+												<label className="text-sm font-medium text-gray-700">
+													Estrelas:
+												</label>
+												<Select
+													value={ratingFilter}
+													onValueChange={setRatingFilter}
+												>
+													<SelectTrigger className="w-[180px]">
+														<SelectValue placeholder="Estrelas" />
+													</SelectTrigger>
+													<SelectContent>
+														<SelectItem value="all">Todas</SelectItem>
+														<SelectItem value="5">5 estrelas</SelectItem>
+														<SelectItem value="4">4 estrelas</SelectItem>
+														<SelectItem value="3">3 estrelas</SelectItem>
+														<SelectItem value="2">2 estrelas</SelectItem>
+														<SelectItem value="1">1 estrela</SelectItem>
+													</SelectContent>
+												</Select>
+											</div>
+											<div className="flex flex-col gap-2">
+												<label className="text-sm font-medium text-gray-700">
+													Comentários:
+												</label>
+												<Select
+													value={commentFilter}
+													onValueChange={setCommentFilter}
+												>
+													<SelectTrigger className="w-[180px]">
+														<SelectValue placeholder="Comentários" />
+													</SelectTrigger>
+													<SelectContent>
+														<SelectItem value="all">Todos</SelectItem>
+														<SelectItem value="with">Com comentário</SelectItem>
+														<SelectItem value="without">
+															Sem comentário
+														</SelectItem>
+													</SelectContent>
+												</Select>
+											</div>
+										</div>
 										<div className="flex gap-6 mt-5 mb-15 max-sm:mb-0 flex-wrap ">
-											{reviews.length > 0 ? (
-												reviews.map((review) => (
+											{filteredReviews.length > 0 ? (
+												filteredReviews.map((review) => (
 													<div
 														key={review._id}
 														className="flex flex-col min-w-60 max-sm:w-full  gap-4 p-6 w-fit bg-white rounded-2xl border border-gray-200 shadow-sm"
