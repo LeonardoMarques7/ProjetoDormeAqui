@@ -9,13 +9,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { Select } from "@mantine/core";
 import axios from "axios";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
@@ -833,17 +827,14 @@ const AccProfile = () => {
 												</label>
 												<Select
 													value={sortBy}
-													onValueChange={setSortBy}
-													modal={false}
-												>
-													<SelectTrigger className="w-[180px]">
-														<SelectValue placeholder="Ordenar por" />
-													</SelectTrigger>
-													<SelectContent>
-														<SelectItem value="recent">Mais recente</SelectItem>
-														<SelectItem value="oldest">Mais antigo</SelectItem>
-													</SelectContent>
-												</Select>
+													onChange={setSortBy}
+													data={[
+														{ value: "recent", label: "Mais recente" },
+														{ value: "oldest", label: "Mais antigo" },
+													]}
+													placeholder="Ordenar por"
+													className="w-[180px]"
+												/>
 											</div>
 											<div className="flex flex-col gap-2">
 												<label className="text-sm font-medium text-gray-700">
@@ -851,20 +842,18 @@ const AccProfile = () => {
 												</label>
 												<Select
 													value={ratingFilter}
-													onValueChange={setRatingFilter}
-												>
-													<SelectTrigger className="w-[180px]">
-														<SelectValue placeholder="Estrelas" />
-													</SelectTrigger>
-													<SelectContent>
-														<SelectItem value="all">Todas</SelectItem>
-														<SelectItem value="5">5 estrelas</SelectItem>
-														<SelectItem value="4">4 estrelas</SelectItem>
-														<SelectItem value="3">3 estrelas</SelectItem>
-														<SelectItem value="2">2 estrelas</SelectItem>
-														<SelectItem value="1">1 estrela</SelectItem>
-													</SelectContent>
-												</Select>
+													onChange={setRatingFilter}
+													data={[
+														{ value: "all", label: "Todas" },
+														{ value: "5", label: "5 estrelas" },
+														{ value: "4", label: "4 estrelas" },
+														{ value: "3", label: "3 estrelas" },
+														{ value: "2", label: "2 estrelas" },
+														{ value: "1", label: "1 estrela" },
+													]}
+													placeholder="Estrelas"
+													className="w-[180px]"
+												/>
 											</div>
 											<div className="flex flex-col gap-2">
 												<label className="text-sm font-medium text-gray-700">
@@ -872,19 +861,15 @@ const AccProfile = () => {
 												</label>
 												<Select
 													value={commentFilter}
-													onValueChange={setCommentFilter}
-												>
-													<SelectTrigger className="w-[180px]">
-														<SelectValue placeholder="Comentários" />
-													</SelectTrigger>
-													<SelectContent>
-														<SelectItem value="all">Todos</SelectItem>
-														<SelectItem value="with">Com comentário</SelectItem>
-														<SelectItem value="without">
-															Sem comentário
-														</SelectItem>
-													</SelectContent>
-												</Select>
+													onChange={setCommentFilter}
+													data={[
+														{ value: "all", label: "Todos" },
+														{ value: "with", label: "Com comentário" },
+														{ value: "without", label: "Sem comentário" },
+													]}
+													placeholder="Comentários"
+													className="w-[180px]"
+												/>
 											</div>
 										</div>
 										<div className="flex gap-6 mt-5 mb-15 max-sm:mb-0 flex-wrap ">
