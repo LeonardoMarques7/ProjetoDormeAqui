@@ -441,7 +441,7 @@ const AccProfile = () => {
 	const isOwnProfile =
 		user && (!paramId || String(paramId) === String(user._id));
 
-	const nameUser = displayUser.name ? displayUser.name.split(" ") : ["", ""];
+	const nameUser = displayUser?.name ? displayUser.name.split(" ") : ["", ""];
 
 	const handleImageError = (index) => {
 		setImageErrors((prev) => ({ ...prev, [index]: true }));
@@ -481,7 +481,7 @@ const AccProfile = () => {
 				<>
 					<img
 						className="mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[40svh] relative overflow-hidden"
-						src={displayUser.banner || bannerDefault}
+						src={displayUser?.banner || bannerDefault}
 					/>
 
 					{/* Container do conteúdo */}
@@ -491,14 +491,14 @@ const AccProfile = () => {
 							<div className="avatar__btn flex  max-sm:gap-2 gap-5 items-center justify-start relative">
 								{/* Avatar sobreposto */}
 								<div className=" relative w-60 h-60 rounded-full border-2 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
-									{displayUser.photo ? (
+									{displayUser?.photo ? (
 										<img
-											src={displayUser.photo}
+											src={displayUser?.photo}
 											className="w-full h-full object-cover object-center rounded-full"
-											alt={displayUser.name}
+											alt={displayUser?.name}
 										/>
-									) : displayUser.name ? (
-										displayUser.name.charAt(0)
+									) : displayUser?.name ? (
+										displayUser?.name.charAt(0)
 									) : (
 										""
 									)}
@@ -562,7 +562,7 @@ const AccProfile = () => {
 							<div className="flex gap-0 flex-col">
 								<div className="">
 									<p className="text-primary-700 uppercase font-light">
-										{displayUser.occupation}
+										{displayUser?.occupation}
 									</p>
 								</div>
 								<span className="flex text-7xl leading-20 flex-col font-bold">
@@ -589,14 +589,14 @@ const AccProfile = () => {
 									{totalReviews} Avaliaç{totalReviews !== 1 ? "ões" : "ão"}
 								</p>
 							</div>
-							{displayUser.bio && (
+							{displayUser?.bio && (
 								<div className="text__bio max-w-xl flex flex-col gap-2 leading-relaxed text-gray-600 my-2">
 									{displayUser.bio}
 								</div>
 							)}{" "}
 							{/* Informações de contato */}
 							<div className="flex flex-wrap max-sm:flex-col max-sm:gap-1 gap-4 text-gray-600 mt-0">
-								{displayUser.city && (
+								{displayUser?.city && (
 									<span className="flex items-center gap-2">
 										<MapPin size={18} className="max-sm:hidden" />
 										{displayUser.city}
@@ -734,7 +734,7 @@ const AccProfile = () => {
 												<p className="text-4xl font-bold">O Que Dizem</p>
 											</div>
 										</div>
-										<div className="flex flex-col gap-6 mt-5 mb-15">
+										<div className="flex gap-6 mt-5 mb-15">
 											{reviews.length > 0 ? (
 												reviews.map((review) => (
 													<div
@@ -799,7 +799,7 @@ const AccProfile = () => {
 			) : (
 				<>
 					{/* Só permite editar se for o próprio perfil */}
-					{isOwnProfile ? (
+					{isOwnProfile && displayUser ? (
 						<>
 							<div className="banner__home max-sm:h-[25svh] h-[50vh]  bg-primar-700  w-full relative">
 								<img
