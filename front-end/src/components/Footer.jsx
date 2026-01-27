@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 const Footer = () => {
 	return (
 		<footer className="bg-white px-6 py-0 max-w-7xl  mt-5 w-full mx-auto">
-			<div className=" pt-16 pb-8 ">
+			<div className=" pt-16 pb-8 max-sm:pt-4 ">
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
 					{/* Logo e Descrição */}
 					<div className="col-span-2">

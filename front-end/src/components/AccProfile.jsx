@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import photoDefault from "../assets/photoDefault.jpg";
 import userDefault from "../assets/user__default.png";
 import {
@@ -9,6 +9,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select } from "@mantine/core";
 import axios from "axios";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
@@ -61,7 +62,7 @@ import bannerDefault from "../assets/banner__default2.jpg";
 import MenuBar from "./MenuBar";
 
 const AccProfile = () => {
-	const { user, setUser } = useUserContext();
+	const { user, setUser, ready: userContextReady } = useUserContext();
 	const { state } = useLocation();
 	const params = useParams();
 
@@ -86,6 +87,9 @@ const AccProfile = () => {
 	const [averageRating, setAverageRating] = useState(0);
 	const [totalReviews, setTotalReviews] = useState(0);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [sortBy, setSortBy] = useState("recent");
+	const [ratingFilter, setRatingFilter] = useState("all");
+	const [commentFilter, setCommentFilter] = useState("all");
 
 	const navigate = useNavigate();
 
@@ -132,7 +136,7 @@ const AccProfile = () => {
 		};
 
 		fetchProfile();
-	}, [paramId, user?._id.updated, state?.updated]);
+	}, [paramId, user?._id]);
 
 	useEffect(() => {
 		if (!api) return;
@@ -281,6 +285,37 @@ const AccProfile = () => {
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
+
+	const filteredReviews = useMemo(() => {
+		let filtered = [...reviews];
+
+		// Filter by rating
+		if (ratingFilter !== "all") {
+			filtered = filtered.filter(
+				(review) => review.rating === parseInt(ratingFilter),
+			);
+		}
+
+		// Filter by comment presence
+		if (commentFilter === "with") {
+			filtered = filtered.filter(
+				(review) => review.comment && review.comment.trim() !== "",
+			);
+		} else if (commentFilter === "without") {
+			filtered = filtered.filter(
+				(review) => !review.comment || review.comment.trim() === "",
+			);
+		}
+
+		// Sort by date
+		filtered.sort((a, b) => {
+			const dateA = new Date(a.createdAt || 0);
+			const dateB = new Date(b.createdAt || 0);
+			return sortBy === "recent" ? dateB - dateA : dateA - dateB;
+		});
+
+		return filtered;
+	}, [reviews, sortBy, ratingFilter, commentFilter]);
 
 	const logout = async () => {
 		try {
@@ -435,7 +470,7 @@ const AccProfile = () => {
 
 	if (redirect) return <Navigate to="/" state={{ updated: true }} />;
 
-	if (!ready) return <SkeletonProfile />;
+	if (!ready || !userContextReady) return <SkeletonProfile />;
 
 	const displayUser = profileUser;
 	// Verifica se está visualizando o próprio perfil
@@ -509,17 +544,17 @@ const AccProfile = () => {
 			{!isEditingProfile ? (
 				<>
 					<img
-						className="mt-20 max-w-7xl mx-auto w-full object-cover bg-center rounded-4xl h-[40svh] relative overflow-hidden"
+						className="mt-20 max-w-7xl mx-auto w-full object-cover bg-center max-sm:h-[25svh] max-sm:rounded-none rounded-4xl h-[40svh] relative overflow-hidden"
 						src={displayUser?.banner || bannerDefault}
 					/>
 
 					{/* Container do conteúdo */}
-					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5 max-sm:mt-0 relative -mt-35">
-						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10">
+					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5  relative max-sm:-mt-30 -mt-35">
+						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10 max-sm:mb-0">
 							{/* Header do perfil (avatar + botão) */}
 							<div className="avatar__btn flex  max-sm:gap-2 gap-5 items-center justify-start relative">
 								{/* Avatar sobreposto */}
-								<div className=" relative w-60 h-60 rounded-full border-2 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
+								<div className=" relative w-60 h-60 max-sm:w-50 max-sm:h-50 rounded-full border-2 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
 									<img
 										src={displayUser?.photo || userDefault}
 										className="w-full h-full object-cover object-center rounded-full"
@@ -527,13 +562,21 @@ const AccProfile = () => {
 									/>
 								</div>
 								{isOwnProfile && (
-									<div className="flex absolute gap-2.5 right-0 top-35">
+									<div className="flex absolute gap-2.5 max-sm:top-30 max-sm:right-5 right-0 top-35">
 										<DropdownMenu modal={false}>
-											<DropdownMenuTrigger
-												className={`outline-none bg-primary-100/50 p-2 cursor-pointer hover:bg-primary-100 transition-all rounded-full`}
-											>
-												<Ellipsis size={20} />
-											</DropdownMenuTrigger>
+											{mobile ? (
+												<DropdownMenuTrigger
+													className={`outline-none bg-primary-100/50 p-2 px-5 cursor-pointer hover:bg-primary-100 transition-all rounded-2xl`}
+												>
+													Editar perfil
+												</DropdownMenuTrigger>
+											) : (
+												<DropdownMenuTrigger
+													className={`outline-none bg-primary-100/50 p-2 cursor-pointer hover:bg-primary-100 transition-all rounded-full`}
+												>
+													<Ellipsis size={20} />
+												</DropdownMenuTrigger>
+											)}
 
 											<DropdownMenuContent
 												align="end"
@@ -603,7 +646,7 @@ const AccProfile = () => {
 										{displayUser?.occupation}
 									</p>
 								</div>
-								<span className="flex text-7xl leading-20 flex-col font-bold">
+								<span className="flex text-7xl max-sm:text-5xl max-sm:leading-none leading-20 flex-col font-bold">
 									<p>{nameUser[0]}</p>
 									{nameUser[1]}
 								</span>
@@ -635,25 +678,29 @@ const AccProfile = () => {
 							{/* Informações de contato */}
 							<div className="flex flex-wrap max-sm:flex-col max-sm:gap-1 gap-4 text-gray-600 mt-0">
 								{displayUser?.city && (
-									<span className="flex items-center gap-2">
-										<MapPin size={18} className="max-sm:hidden" />
+									<div className="flex  items-center gap-2">
+										<MapPin size={18} />
 										{displayUser.city}
-									</span>
+									</div>
 								)}
 							</div>
-							<div className="flex items-center gap-5 my-5 p-0 list-none">
-								<span className="flex flex-col gap-2.5">
-									<span className="font-bold text-5xl">{places.length}</span>
+							<div className="flex items-center max-sm:items-start max-sm:flex-col gap-5 max-sm:gap-2 max-sm:mt-2.5  my-5 p-0 list-none">
+								<span className="flex flex-col gap-2.5 max-sm:gap-0 ">
+									<span className="font-bold max-sm:font-medium text-5xl  ">
+										{places.length}
+									</span>
 									<p>Acomodações Exclusivas</p>
 								</span>
-								<span className="flex flex-col gap-2.5">
-									<span className="font-bold text-5xl">
+								<span className="flex flex-col gap-2.5 max-sm:gap-0 ">
+									<span className="font-bold max-sm:font-medium text-5xl ">
 										{totalGuestsSatisfied}
 									</span>
 									<p>Hóspedes Satisfeitos</p>
 								</span>
-								<span className="flex flex-col gap-2.5">
-									<span className="font-bold text-5xl">{experienceTime}</span>
+								<span className="flex flex-col gap-2.5 max-sm:gap-0 ">
+									<span className="font-bold max-sm:font-medium text-5xl ">
+										{experienceTime}
+									</span>
 									<p>De Experiência</p>
 								</span>
 							</div>
@@ -662,11 +709,11 @@ const AccProfile = () => {
 								<p className="text-primary-500 uppercase font-light">Seleção</p>
 								<div className="flex items-center mb-15 justify-between">
 									<div className="">
-										<p className="text-4xl font-bold">
+										<p className="text-4xl max: font-bold">
 											Acomodações em Destaque
 										</p>
 									</div>
-									<span className="text-primary-700 cursor-pointer font-light hover:bg-primary-100 rounded-2xl px-4 py-1.5 transition-all">
+									<span className="max-sm:hidden text-primary-700 cursor-pointer font-light hover:bg-primary-100 rounded-2xl px-4 py-1.5 transition-all">
 										Ver tudo
 									</span>
 								</div>
@@ -675,16 +722,16 @@ const AccProfile = () => {
 										{places.length > 0 ? (
 											places.map((item, index) => (
 												<div
-													className={`item__projeto rounded-xl relative flex gap-5 ${
+													className={`item__projeto rounded-xl max-sm:flex-col relative flex gap-5 max-sm:gap-2 ${
 														index % 2 === 0 ? "item__left " : "item__right"
 													}`}
 													key={item._id}
 												>
-													<div className="grid gap-2 grid-cols-8  grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2 ">
+													<div className="grid gap-2 max-sm:gap-x-2 grid-cols-8  grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2 ">
 														<img
 															src={getImageSrc(item, 0)}
 															onError={() => handleImageError(`${item._id}_0`)}
-															className="row-span-4 col-span-5  h-full w-50 object-cover rounded-2xl"
+															className="row-span-4 col-span-5 max-sm:col-span-5  h-full max-sm:w-full w-50 object-cover rounded-2xl"
 															alt={item.title}
 														/>
 														<img
@@ -702,7 +749,7 @@ const AccProfile = () => {
 													</div>
 													<div className="relative flex flex-col w-full justify-between gap-2">
 														<div className="flex flex-col">
-															<p className="absolute -top-6 text-primary-700 cursor-pointer uppercase font-light">
+															<p className="absolute -top-6 max-sm:static text-primary-700 cursor-pointer uppercase font-light">
 																{item.city}
 															</p>
 															<Link
@@ -772,12 +819,89 @@ const AccProfile = () => {
 												<p className="text-4xl font-bold">O Que Dizem</p>
 											</div>
 										</div>
-										<div className="flex gap-6 mt-5 mb-15 flex-wrap ">
-											{reviews.length > 0 ? (
-												reviews.map((review) => (
+										{/* Filter Controls */}
+										<div className="flex flex-wrap gap-4 mt-5 mb-5">
+											<div className="flex flex-col gap-2">
+												<label className="text-sm font-medium text-gray-700">
+													Ordenar por:
+												</label>
+												<Select
+													value={sortBy}
+													onChange={setSortBy}
+													data={[
+														{ value: "recent", label: "Mais recente" },
+														{ value: "oldest", label: "Mais antigo" },
+													]}
+													placeholder="Ordenar por"
+													className="w-[180px]"
+													styles={{
+														input: {
+															borderRadius: "12px",
+														},
+														dropdown: {
+															borderRadius: "12px",
+														},
+													}}
+												/>
+											</div>
+											<div className="flex flex-col gap-2">
+												<label className="text-sm font-medium text-gray-700">
+													Estrelas:
+												</label>
+												<Select
+													value={ratingFilter}
+													onChange={setRatingFilter}
+													data={[
+														{ value: "all", label: "Todas" },
+														{ value: "5", label: "5 estrelas" },
+														{ value: "4", label: "4 estrelas" },
+														{ value: "3", label: "3 estrelas" },
+														{ value: "2", label: "2 estrelas" },
+														{ value: "1", label: "1 estrela" },
+													]}
+													placeholder="Estrelas"
+													className="w-[180px]"
+													styles={{
+														input: {
+															borderRadius: "12px",
+														},
+														dropdown: {
+															borderRadius: "12px",
+														},
+													}}
+												/>
+											</div>
+											<div className="flex flex-col gap-2">
+												<label className="text-sm font-medium text-gray-700">
+													Comentários:
+												</label>
+												<Select
+													value={commentFilter}
+													onChange={setCommentFilter}
+													data={[
+														{ value: "all", label: "Todos" },
+														{ value: "with", label: "Com comentário" },
+														{ value: "without", label: "Sem comentário" },
+													]}
+													placeholder="Comentários"
+													className="w-[180px]"
+													styles={{
+														input: {
+															borderRadius: "12px",
+														},
+														dropdown: {
+															borderRadius: "12px",
+														},
+													}}
+												/>
+											</div>
+										</div>
+										<div className="flex gap-6 mt-5 mb-15 max-sm:mb-0 flex-wrap ">
+											{filteredReviews.length > 0 ? (
+												filteredReviews.map((review) => (
 													<div
 														key={review._id}
-														className="flex flex-col min-w-60  gap-4 p-6 w-fit bg-white rounded-2xl border border-gray-200 shadow-sm"
+														className="flex flex-col min-w-60 max-sm:w-full  gap-4 p-6 w-fit bg-white rounded-2xl border border-gray-200 shadow-sm"
 													>
 														<div className="flex items-center gap-4">
 															<div className="flex flex-col gap-4">
