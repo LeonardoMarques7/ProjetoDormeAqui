@@ -62,7 +62,7 @@ import bannerDefault from "../assets/banner__default2.jpg";
 import MenuBar from "./MenuBar";
 
 const AccProfile = () => {
-	const { user, setUser } = useUserContext();
+	const { user, setUser, ready: userContextReady } = useUserContext();
 	const { state } = useLocation();
 	const params = useParams();
 
@@ -136,7 +136,7 @@ const AccProfile = () => {
 		};
 
 		fetchProfile();
-	}, [paramId, user?._id.updated, state?.updated]);
+	}, [paramId, user?._id]);
 
 	useEffect(() => {
 		if (!api) return;
@@ -470,7 +470,7 @@ const AccProfile = () => {
 
 	if (redirect) return <Navigate to="/" state={{ updated: true }} />;
 
-	if (!ready) return <SkeletonProfile />;
+	if (!ready || !userContextReady) return <SkeletonProfile />;
 
 	const displayUser = profileUser;
 	// Verifica se está visualizando o próprio perfil
@@ -834,6 +834,14 @@ const AccProfile = () => {
 													]}
 													placeholder="Ordenar por"
 													className="w-[180px]"
+													styles={{
+														input: {
+															borderRadius: "12px",
+														},
+														dropdown: {
+															borderRadius: "12px",
+														},
+													}}
 												/>
 											</div>
 											<div className="flex flex-col gap-2">
@@ -853,6 +861,14 @@ const AccProfile = () => {
 													]}
 													placeholder="Estrelas"
 													className="w-[180px]"
+													styles={{
+														input: {
+															borderRadius: "12px",
+														},
+														dropdown: {
+															borderRadius: "12px",
+														},
+													}}
 												/>
 											</div>
 											<div className="flex flex-col gap-2">
@@ -869,6 +885,14 @@ const AccProfile = () => {
 													]}
 													placeholder="Comentários"
 													className="w-[180px]"
+													styles={{
+														input: {
+															borderRadius: "12px",
+														},
+														dropdown: {
+															borderRadius: "12px",
+														},
+													}}
 												/>
 											</div>
 										</div>
