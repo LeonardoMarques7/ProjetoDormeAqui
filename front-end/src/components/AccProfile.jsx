@@ -100,14 +100,11 @@ const AccProfile = () => {
 	const [commentFilter, setCommentFilter] = useState("all");
 	const [sheetRating, setSheetRating] = useState(0);
 	const [sheetHoverRating, setSheetHoverRating] = useState(0);
-	const [commentWith, setCommentWith] = useState(false);
-	const [commentWithout, setCommentWithout] = useState(false);
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [sortByTemp, setSortByTemp] = useState("recent");
 	const [tempRating, setTempRating] = useState(0);
 	const [tempHoverRating, setTempHoverRating] = useState(0);
-	const [tempCommentWith, setTempCommentWith] = useState(false);
-	const [tempCommentWithout, setTempCommentWithout] = useState(false);
+	const [tempCommentFilter, setTempCommentFilter] = useState("all");
 
 	const navigate = useNavigate();
 
@@ -308,8 +305,7 @@ const AccProfile = () => {
 		if (sheetOpen) {
 			setSortByTemp(sortBy);
 			setTempRating(parseInt(ratingFilter) || 0);
-			setTempCommentWith(commentFilter === "with");
-			setTempCommentWithout(commentFilter === "without");
+			setTempCommentFilter(commentFilter);
 		}
 	}, [sheetOpen, sortBy, ratingFilter, commentFilter]);
 
@@ -872,31 +868,60 @@ const AccProfile = () => {
 																<label className="text-sm font-medium text-gray-700">
 																	Ordenar por:
 																</label>
-																<Select
-																	value={sortByTemp}
-																	onChange={setSortByTemp}
-																	data={[
-																		{
-																			value: "recent",
-																			label: "Mais recente",
-																		},
-																		{ value: "oldest", label: "Mais antigo" },
-																	]}
-																	placeholder="Ordenar por"
-																	className="w-full "
-																	portal={false}
-																	dropdownPosition="top"
-																	styles={{
-																		input: {
-																			borderRadius: "12px",
-																		},
-																		dropdown: {
-																			borderRadius: "12px",
-																			zIndex: 10001,
-																			position: "absolute",
-																		},
-																	}}
-																/>
+																<div className="flex flex-col gap-4">
+																	<label
+																		htmlFor="recent"
+																		className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																			sortByTemp === "recent"
+																				? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																				: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																		}`}
+																	>
+																		<input
+																			type="checkbox"
+																			id="recent"
+																			name="sortBy"
+																			value="recent"
+																			checked={sortByTemp === "recent"}
+																			onChange={(e) => {
+																				if (e.target.checked) {
+																					setSortByTemp("recent");
+																				}
+																			}}
+																			className="hidden"
+																		/>
+																		Mais recente
+																		<span
+																			className={`w-2 h-2 ml-auto rounded-full bg-transparent ${sortByTemp === "recent" && "!bg-primary-900"}`}
+																		></span>
+																	</label>
+																	<label
+																		htmlFor="oldest"
+																		className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																			sortByTemp === "oldest"
+																				? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																				: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																		}`}
+																	>
+																		<input
+																			type="checkbox"
+																			id="oldest"
+																			name="sortBy"
+																			value="oldest"
+																			checked={sortByTemp === "oldest"}
+																			onChange={(e) => {
+																				if (e.target.checked) {
+																					setSortByTemp("oldest");
+																				}
+																			}}
+																			className="hidden"
+																		/>
+																		Mais antigo
+																		<span
+																			className={`w-2 h-2 ml-auto rounded-full bg-transparent ${sortByTemp === "oldest" && "!bg-primary-900"}`}
+																		></span>
+																	</label>
+																</div>
 															</div>
 															<div className="flex flex-col gap-2">
 																<label className="text-sm font-medium text-gray-700">
@@ -907,7 +932,7 @@ const AccProfile = () => {
 																		<button
 																			key={star}
 																			type="button"
-																			className="p-1 hover:scale-110 transition-transform"
+																			className="p-3 hover:scale-110 rounded-2xl bg-primary-900 transition-transform"
 																			onMouseEnter={() =>
 																				setTempHoverRating(star)
 																			}
@@ -921,7 +946,7 @@ const AccProfile = () => {
 																				className={`${
 																					star <=
 																					(tempHoverRating || tempRating)
-																						? "fill-yellow-400 cursor-pointer text-yellow-400"
+																						? "fill-white cursor-pointer text-white"
 																						: "text-gray-300"
 																				} transition-colors`}
 																			/>
@@ -933,41 +958,85 @@ const AccProfile = () => {
 																<label className="text-sm font-medium text-gray-700">
 																	Comentários:
 																</label>
-																<div className="flex gap-4">
-																	<button
-																		type="button"
-																		onClick={() => {
-																			setCommentWith(!commentWith);
-																			setCommentWithout(false);
-																			setCommentFilter(
-																				commentWith ? "all" : "with",
-																			);
-																		}}
-																		className={`px-4 py-2 cursor-pointer rounded-lg border transition-colors ${
-																			commentWith
-																				? "bg-primary-500  text-white border-primary-500"
-																				: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+																<div className="flex flex-col gap-4">
+																	<label
+																		htmlFor="all_comments"
+																		className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																			tempCommentFilter === "all"
+																				? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																				: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
 																		}`}
 																	>
+																		<input
+																			type="checkbox"
+																			id="all_comments"
+																			name="commentFilter"
+																			value="all"
+																			checked={tempCommentFilter === "all"}
+																			onChange={(e) => {
+																				if (e.target.checked) {
+																					setTempCommentFilter("all");
+																				}
+																			}}
+																			className="hidden"
+																		/>
+																		Todos
+																		<span
+																			className={`w-2 h-2 ml-auto rounded-full bg-transparent ${tempCommentFilter === "all" && "!bg-primary-900"}`}
+																		></span>
+																	</label>
+																	<label
+																		htmlFor="with_comments"
+																		className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																			tempCommentFilter === "with"
+																				? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																				: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																		}`}
+																	>
+																		<input
+																			type="checkbox"
+																			id="with_comments"
+																			name="commentFilter"
+																			value="with"
+																			checked={tempCommentFilter === "with"}
+																			onChange={(e) => {
+																				if (e.target.checked) {
+																					setTempCommentFilter("with");
+																				}
+																			}}
+																			className="hidden"
+																		/>
 																		Com comentário
-																	</button>
-																	<button
-																		type="button"
-																		onClick={() => {
-																			setCommentWithout(!commentWithout);
-																			setCommentWith(false);
-																			setCommentFilter(
-																				commentWithout ? "all" : "without",
-																			);
-																		}}
-																		className={`px-4 py-2 cursor-pointer rounded-lg border transition-colors ${
-																			commentWithout
-																				? "bg-primary-500 text-white border-primary-500"
-																				: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+																		<span
+																			className={`w-2 h-2 ml-auto rounded-full bg-transparent ${tempCommentFilter === "with" && "!bg-primary-900"}`}
+																		></span>
+																	</label>
+																	<label
+																		htmlFor="without_comments"
+																		className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																			tempCommentFilter === "without"
+																				? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																				: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
 																		}`}
 																	>
+																		<input
+																			type="checkbox"
+																			id="without_comments"
+																			name="commentFilter"
+																			value="without"
+																			checked={tempCommentFilter === "without"}
+																			onChange={(e) => {
+																				if (e.target.checked) {
+																					setTempCommentFilter("without");
+																				}
+																			}}
+																			className="hidden"
+																		/>
 																		Sem comentário
-																	</button>
+																		<span
+																			className={`w-2 h-2 ml-auto rounded-full bg-transparent ${tempCommentFilter === "without" && "!bg-primary-900"}`}
+																		></span>
+																	</label>
 																</div>
 															</div>
 														</div>
@@ -980,8 +1049,6 @@ const AccProfile = () => {
 																	setRatingFilter("all");
 																	setCommentFilter("all");
 																	setSheetRating(0);
-																	setCommentWith(false);
-																	setCommentWithout(false);
 																}}
 																className="px-4 py-2 cursor-pointer hover:bg-primary-100 rounded-lg border hover:text-primary-900 transition-colors font-medium"
 															>
