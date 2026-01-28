@@ -35,6 +35,7 @@ import {
 	ChevronRight,
 	Menu,
 	Ellipsis,
+	Filter,
 } from "lucide-react";
 
 import {
@@ -43,6 +44,13 @@ import {
 	TooltipContent,
 	TooltipProvider,
 } from "@/components/ui/tooltip";
+import {
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/ui/sheet";
 
 import verify from "../assets/verify.png";
 import "./AccProfile.css";
@@ -90,6 +98,11 @@ const AccProfile = () => {
 	const [sortBy, setSortBy] = useState("recent");
 	const [ratingFilter, setRatingFilter] = useState("all");
 	const [commentFilter, setCommentFilter] = useState("all");
+	const [sheetRating, setSheetRating] = useState(0);
+	const [sheetHoverRating, setSheetHoverRating] = useState(0);
+	const [commentWith, setCommentWith] = useState(false);
+	const [commentWithout, setCommentWithout] = useState(false);
+	const [sheetOpen, setSheetOpen] = useState(false);
 
 	const navigate = useNavigate();
 
@@ -814,88 +827,242 @@ const AccProfile = () => {
 										<p className="text-primary-500 uppercase font-light">
 											Testemunhos
 										</p>
-										<div className="flex items-center  justify-between">
+										<div className="flex items-center justify-between">
 											<div className="">
 												<p className="text-4xl font-bold">O Que Dizem</p>
 											</div>
+											{/* Mobile Filter Button */}
+											{mobile && (
+												<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+													<SheetTrigger asChild>
+														<button className="flex items-center gap-2 bg-primary-100 hover:bg-primary-200 transition-colors px-4 py-2 rounded-2xl text-primary-700 font-medium">
+															<Filter size={18} />
+															Filtros
+														</button>
+													</SheetTrigger>
+													<SheetContent
+														side="bottom"
+														className="h-auto p-4 max-h-[80vh]"
+													>
+														<div className="flex flex-col gap-6 mt-6">
+															Filtros de Avaliações
+															<div className="flex flex-col gap-2">
+																<label className="text-sm font-medium text-gray-700">
+																	Ordenar por:
+																</label>
+																<Select
+																	value={sortBy}
+																	onChange={setSortBy}
+																	data={[
+																		{ value: "recent", label: "Mais recente" },
+																		{ value: "oldest", label: "Mais antigo" },
+																	]}
+																	placeholder="Ordenar por"
+																	className="w-full"
+																	styles={{
+																		input: {
+																			borderRadius: "12px",
+																		},
+																		dropdown: {
+																			borderRadius: "12px",
+																		},
+																	}}
+																/>
+															</div>
+															<div className="flex flex-col gap-2">
+																<label className="text-sm font-medium text-gray-700">
+																	Estrelas:
+																</label>
+																<div className="flex gap-1">
+																	{[1, 2, 3, 4, 5].map((star) => (
+																		<button
+																			key={star}
+																			type="button"
+																			className="p-1 hover:scale-110 transition-transform"
+																			onMouseEnter={() =>
+																				setSheetHoverRating(star)
+																			}
+																			onMouseLeave={() =>
+																				setSheetHoverRating(0)
+																			}
+																			onClick={() => {
+																				setSheetRating(star);
+																				setRatingFilter(star.toString());
+																			}}
+																		>
+																			<Star
+																				size={24}
+																				className={`${
+																					star <=
+																					(sheetHoverRating || sheetRating)
+																						? "fill-yellow-400 text-yellow-400"
+																						: "text-gray-300"
+																				} transition-colors`}
+																			/>
+																		</button>
+																	))}
+																</div>
+															</div>
+															<div className="flex flex-col gap-2">
+																<label className="text-sm font-medium text-gray-700">
+																	Comentários:
+																</label>
+																<div className="flex gap-4">
+																	<button
+																		type="button"
+																		onClick={() => {
+																			setCommentWith(!commentWith);
+																			setCommentWithout(false);
+																			setCommentFilter(
+																				commentWith ? "all" : "with",
+																			);
+																		}}
+																		className={`px-4 py-2 rounded-lg border transition-colors ${
+																			commentWith
+																				? "bg-primary-500 text-white border-primary-500"
+																				: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+																		}`}
+																	>
+																		Com comentário
+																	</button>
+																	<button
+																		type="button"
+																		onClick={() => {
+																			setCommentWithout(!commentWithout);
+																			setCommentWith(false);
+																			setCommentFilter(
+																				commentWithout ? "all" : "without",
+																			);
+																		}}
+																		className={`px-4 py-2 rounded-lg border transition-colors ${
+																			commentWithout
+																				? "bg-primary-500 text-white border-primary-500"
+																				: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+																		}`}
+																	>
+																		Sem comentário
+																	</button>
+																</div>
+															</div>
+														</div>
+														<div className="flex justify-between mt-6">
+															<button
+																type="button"
+																onClick={() => {
+																	// Clear filters
+																	setSortBy("recent");
+																	setRatingFilter("all");
+																	setCommentFilter("all");
+																	setSheetRating(0);
+																	setCommentWith(false);
+																	setCommentWithout(false);
+																}}
+																className="text-gray-700  cursor-pointer rounded-lg hover:text-red-500 transition-colors font-medium"
+															>
+																Limpar
+															</button>
+															<button
+																type="button"
+																onClick={() => {
+																	// Apply filters and close sheet
+																	setRatingFilter(sheetRating.toString());
+																	setCommentFilter(
+																		commentWith
+																			? "with"
+																			: commentWithout
+																				? "without"
+																				: "all",
+																	);
+																	setSheetOpen(false);
+																}}
+																className="px-6 py-2 bg-primary-500 cursor-pointer text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+															>
+																Aplicar Filtros
+															</button>
+														</div>
+													</SheetContent>
+												</Sheet>
+											)}
 										</div>
-										{/* Filter Controls */}
-										<div className="flex flex-wrap gap-4 mt-5 mb-5">
-											<div className="flex flex-col gap-2">
-												<label className="text-sm font-medium text-gray-700">
-													Ordenar por:
-												</label>
-												<Select
-													value={sortBy}
-													onChange={setSortBy}
-													data={[
-														{ value: "recent", label: "Mais recente" },
-														{ value: "oldest", label: "Mais antigo" },
-													]}
-													placeholder="Ordenar por"
-													className="w-[180px]"
-													styles={{
-														input: {
-															borderRadius: "12px",
-														},
-														dropdown: {
-															borderRadius: "12px",
-														},
-													}}
-												/>
+										{/* Desktop Filter Controls */}
+										{!mobile && (
+											<div className="flex flex-wrap gap-4 mt-5 mb-5">
+												<div className="flex flex-col gap-2">
+													<label className="text-sm font-medium text-gray-700">
+														Ordenar por:
+													</label>
+													<Select
+														value={sortBy}
+														onChange={setSortBy}
+														data={[
+															{ value: "recent", label: "Mais recente" },
+															{ value: "oldest", label: "Mais antigo" },
+														]}
+														placeholder="Ordenar por"
+														className="w-[180px]"
+														styles={{
+															input: {
+																borderRadius: "12px",
+															},
+															dropdown: {
+																borderRadius: "12px",
+															},
+														}}
+													/>
+												</div>
+												<div className="flex flex-col gap-2">
+													<label className="text-sm font-medium text-gray-700">
+														Estrelas:
+													</label>
+													<Select
+														value={ratingFilter}
+														onChange={setRatingFilter}
+														data={[
+															{ value: "all", label: "Todas" },
+															{ value: "5", label: "5 estrelas" },
+															{ value: "4", label: "4 estrelas" },
+															{ value: "3", label: "3 estrelas" },
+															{ value: "2", label: "2 estrelas" },
+															{ value: "1", label: "1 estrela" },
+														]}
+														placeholder="Estrelas"
+														className="w-[180px]"
+														styles={{
+															input: {
+																borderRadius: "12px",
+															},
+															dropdown: {
+																borderRadius: "12px",
+															},
+														}}
+													/>
+												</div>
+												<div className="flex flex-col gap-2">
+													<label className="text-sm font-medium text-gray-700">
+														Comentários:
+													</label>
+													<Select
+														value={commentFilter}
+														onChange={setCommentFilter}
+														data={[
+															{ value: "all", label: "Todos" },
+															{ value: "with", label: "Com comentário" },
+															{ value: "without", label: "Sem comentário" },
+														]}
+														placeholder="Comentários"
+														className="w-[180px]"
+														styles={{
+															input: {
+																borderRadius: "12px",
+															},
+															dropdown: {
+																borderRadius: "12px",
+															},
+														}}
+													/>
+												</div>
 											</div>
-											<div className="flex flex-col gap-2">
-												<label className="text-sm font-medium text-gray-700">
-													Estrelas:
-												</label>
-												<Select
-													value={ratingFilter}
-													onChange={setRatingFilter}
-													data={[
-														{ value: "all", label: "Todas" },
-														{ value: "5", label: "5 estrelas" },
-														{ value: "4", label: "4 estrelas" },
-														{ value: "3", label: "3 estrelas" },
-														{ value: "2", label: "2 estrelas" },
-														{ value: "1", label: "1 estrela" },
-													]}
-													placeholder="Estrelas"
-													className="w-[180px]"
-													styles={{
-														input: {
-															borderRadius: "12px",
-														},
-														dropdown: {
-															borderRadius: "12px",
-														},
-													}}
-												/>
-											</div>
-											<div className="flex flex-col gap-2">
-												<label className="text-sm font-medium text-gray-700">
-													Comentários:
-												</label>
-												<Select
-													value={commentFilter}
-													onChange={setCommentFilter}
-													data={[
-														{ value: "all", label: "Todos" },
-														{ value: "with", label: "Com comentário" },
-														{ value: "without", label: "Sem comentário" },
-													]}
-													placeholder="Comentários"
-													className="w-[180px]"
-													styles={{
-														input: {
-															borderRadius: "12px",
-														},
-														dropdown: {
-															borderRadius: "12px",
-														},
-													}}
-												/>
-											</div>
-										</div>
+										)}
 										<div className="flex gap-6 mt-5 mb-15 max-sm:mb-0 flex-wrap ">
 											{filteredReviews.length > 0 ? (
 												filteredReviews.map((review) => (
