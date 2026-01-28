@@ -45,12 +45,12 @@ import {
 	TooltipProvider,
 } from "@/components/ui/tooltip";
 import {
-	Sheet,
-	SheetContent,
-	SheetHeader,
-	SheetTitle,
-	SheetTrigger,
-} from "@/components/ui/sheet";
+	Drawer,
+	DrawerContent,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "@/components/ui/drawer";
 
 import verify from "../assets/verify.png";
 import "./AccProfile.css";
@@ -103,6 +103,11 @@ const AccProfile = () => {
 	const [commentWith, setCommentWith] = useState(false);
 	const [commentWithout, setCommentWithout] = useState(false);
 	const [sheetOpen, setSheetOpen] = useState(false);
+	const [sortByTemp, setSortByTemp] = useState("recent");
+	const [tempRating, setTempRating] = useState(0);
+	const [tempHoverRating, setTempHoverRating] = useState(0);
+	const [tempCommentWith, setTempCommentWith] = useState(false);
+	const [tempCommentWithout, setTempCommentWithout] = useState(false);
 
 	const navigate = useNavigate();
 
@@ -298,6 +303,26 @@ const AccProfile = () => {
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
+
+	useEffect(() => {
+		if (sheetOpen) {
+			setSortByTemp(sortBy);
+			setTempRating(parseInt(ratingFilter) || 0);
+			setTempCommentWith(commentFilter === "with");
+			setTempCommentWithout(commentFilter === "without");
+		}
+	}, [sheetOpen, sortBy, ratingFilter, commentFilter]);
+
+	useEffect(() => {
+		if (sheetOpen) {
+			document.body.style.overflow = "hidden";
+		} else {
+			document.body.style.overflow = "unset";
+		}
+		return () => {
+			document.body.style.overflow = "unset";
+		};
+	}, [sheetOpen]);
 
 	const filteredReviews = useMemo(() => {
 		let filtered = [...reviews];
@@ -833,38 +858,54 @@ const AccProfile = () => {
 											</div>
 											{/* Mobile Filter Button */}
 											{mobile && (
-												<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-													<SheetTrigger asChild>
+												<Drawer
+													open={sheetOpen}
+													onOpenChange={setSheetOpen}
+													modal={false}
+												>
+													<DrawerTrigger asChild>
 														<button className="flex items-center gap-2 bg-primary-100 hover:bg-primary-200 transition-colors px-4 py-2 rounded-2xl text-primary-700 font-medium">
 															<Filter size={18} />
 															Filtros
 														</button>
-													</SheetTrigger>
-													<SheetContent
-														side="bottom"
-														className="h-auto p-4 max-h-[80vh]"
-													>
-														<div className="flex flex-col gap-6 mt-6">
+													</DrawerTrigger>
+													{sheetOpen && (
+														<div
+															className="fixed inset-0 bg-black/50 z-50"
+															onClick={() => setSheetOpen(false)}
+														/>
+													)}
+													<DrawerContent className="h-auto p-5 py-6 max-h-[80vh]">
+														<p className="text-xl font-medium text-gray-900 mb-2">
 															Filtros de Avaliações
+														</p>
+														<div className="flex flex-col gap-6 mt-6">
 															<div className="flex flex-col gap-2">
 																<label className="text-sm font-medium text-gray-700">
 																	Ordenar por:
 																</label>
 																<Select
-																	value={sortBy}
-																	onChange={setSortBy}
+																	value={sortByTemp}
+																	onChange={setSortByTemp}
 																	data={[
-																		{ value: "recent", label: "Mais recente" },
+																		{
+																			value: "recent",
+																			label: "Mais recente",
+																		},
 																		{ value: "oldest", label: "Mais antigo" },
 																	]}
 																	placeholder="Ordenar por"
-																	className="w-full"
+																	className="w-full "
+																	portal={false}
+																	dropdownPosition="top"
 																	styles={{
 																		input: {
 																			borderRadius: "12px",
 																		},
 																		dropdown: {
 																			borderRadius: "12px",
+																			zIndex: 10001,
+																			position: "absolute",
 																		},
 																	}}
 																/>
@@ -880,22 +921,19 @@ const AccProfile = () => {
 																			type="button"
 																			className="p-1 hover:scale-110 transition-transform"
 																			onMouseEnter={() =>
-																				setSheetHoverRating(star)
+																				setTempHoverRating(star)
 																			}
-																			onMouseLeave={() =>
-																				setSheetHoverRating(0)
-																			}
+																			onMouseLeave={() => setTempHoverRating(0)}
 																			onClick={() => {
-																				setSheetRating(star);
-																				setRatingFilter(star.toString());
+																				setTempRating(star);
 																			}}
 																		>
 																			<Star
 																				size={24}
 																				className={`${
 																					star <=
-																					(sheetHoverRating || sheetRating)
-																						? "fill-yellow-400 text-yellow-400"
+																					(tempHoverRating || tempRating)
+																						? "fill-yellow-400 cursor-pointer text-yellow-400"
 																						: "text-gray-300"
 																				} transition-colors`}
 																			/>
@@ -917,9 +955,9 @@ const AccProfile = () => {
 																				commentWith ? "all" : "with",
 																			);
 																		}}
-																		className={`px-4 py-2 rounded-lg border transition-colors ${
+																		className={`px-4 py-2 cursor-pointer rounded-lg border transition-colors ${
 																			commentWith
-																				? "bg-primary-500 text-white border-primary-500"
+																				? "bg-primary-500  text-white border-primary-500"
 																				: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
 																		}`}
 																	>
@@ -934,7 +972,7 @@ const AccProfile = () => {
 																				commentWithout ? "all" : "without",
 																			);
 																		}}
-																		className={`px-4 py-2 rounded-lg border transition-colors ${
+																		className={`px-4 py-2 cursor-pointer rounded-lg border transition-colors ${
 																			commentWithout
 																				? "bg-primary-500 text-white border-primary-500"
 																				: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
@@ -945,7 +983,7 @@ const AccProfile = () => {
 																</div>
 															</div>
 														</div>
-														<div className="flex justify-between mt-6">
+														<div className="flex justify-end gap-4 mt-6">
 															<button
 																type="button"
 																onClick={() => {
@@ -957,7 +995,7 @@ const AccProfile = () => {
 																	setCommentWith(false);
 																	setCommentWithout(false);
 																}}
-																className="text-gray-700  cursor-pointer rounded-lg hover:text-red-500 transition-colors font-medium"
+																className="text-red-500  cursor-pointer rounded-lg hover:text-red-400 transition-colors font-medium"
 															>
 																Limpar
 															</button>
@@ -965,23 +1003,28 @@ const AccProfile = () => {
 																type="button"
 																onClick={() => {
 																	// Apply filters and close sheet
-																	setRatingFilter(sheetRating.toString());
+																	setSortBy(sortByTemp);
+																	setRatingFilter(
+																		tempRating > 0
+																			? tempRating.toString()
+																			: "all",
+																	);
 																	setCommentFilter(
-																		commentWith
+																		tempCommentWith
 																			? "with"
-																			: commentWithout
+																			: tempCommentWithout
 																				? "without"
 																				: "all",
 																	);
 																	setSheetOpen(false);
 																}}
-																className="px-6 py-2 bg-primary-500 cursor-pointer text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+																className="px-6 py-2 bg-primary-900 cursor-pointer text-white rounded-lg hover:bg-primary-800 transition-colors font-medium"
 															>
 																Aplicar Filtros
 															</button>
 														</div>
-													</SheetContent>
-												</Sheet>
+													</DrawerContent>
+												</Drawer>
 											)}
 										</div>
 										{/* Desktop Filter Controls */}
