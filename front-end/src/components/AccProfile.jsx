@@ -151,7 +151,7 @@ const AccProfile = () => {
 		};
 
 		fetchProfile();
-	}, [paramId, user?._id]);
+	}, [paramId, user?._id, state?.updated]);
 
 	useEffect(() => {
 		if (!api) return;

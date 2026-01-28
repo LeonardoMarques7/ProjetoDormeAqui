@@ -35,7 +35,8 @@ import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import axios from "axios";
 import { useUserContext } from "./contexts/UserContext";
-import photoDefault from "../assets/user__default.png";
+const photoDefault =
+	"https://projeto-dorme-aqui.s3.us-east-2.amazonaws.com/1769633448464-848631051.png";
 import { useAuthModalContext } from "./contexts/AuthModalContext";
 
 export function AuthDialog({ mode, setMode, open, setOpen }) {
