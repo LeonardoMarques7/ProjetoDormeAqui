@@ -1288,60 +1288,74 @@ const AccProfile = () => {
 												</div>
 											</div>
 										)}
-										<div className="flex gap-6 mt-5 mb-15 max-sm:mb-0 flex-wrap ">
+										<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5 mb-15 max-sm:mb-0">
 											{filteredReviews.length > 0 ? (
-												filteredReviews.map((review) => (
-													<div
-														key={review._id}
-														className="flex flex-col min-w-60 max-sm:w-full  gap-4 p-6 w-fit bg-white rounded-2xl border border-gray-200 shadow-sm"
-													>
-														<div className="flex items-center gap-4">
-															<div className="flex flex-col gap-4">
-																<div className="flex items-center gap-2">
-																	<div className="flex items-center gap-1">
-																		{[...Array(5)].map((_, index) => (
-																			<Star
-																				key={index}
-																				fill={
-																					index < Math.floor(review.rating)
-																						? "black"
-																						: "none"
-																				}
-																				stroke="black"
-																				size={20}
-																			/>
-																		))}
-																	</div>
-																</div>
-																{review.comment && (
-																	<p className="text-gray-700 max-w-md leading-relaxed">
-																		"{review.comment}"
-																	</p>
-																)}
-																<Link
-																	to={`/account/profile/${review.user._id}`}
-																	className="flex items-center gap-2"
+												(() => {
+													const columns = mobile ? 2 : 4;
+													const columnReviews = Array.from(
+														{ length: columns },
+														() => [],
+													);
+													filteredReviews.forEach((review, index) => {
+														columnReviews[index % columns].push(review);
+													});
+													return columnReviews.map((column, colIndex) => (
+														<div key={colIndex} className="grid gap-4">
+															{column.map((review) => (
+																<div
+																	key={review._id}
+																	className="flex flex-col gap-4 p-6 bg-white rounded-2xl border border-gray-200 shadow-sm"
 																>
-																	<img
-																		src={review.user.photo || photoDefault}
-																		alt={review.user.name}
-																		className="w-12 h-12 rounded-full object-cover"
-																	/>
-																	<div className="flex flex-col text-sm">
-																		<p className="font-semibold text-gray-900">
-																			{review.user.name}
-																		</p>
-																		<p className="text-xs text-gray-500">
-																			Hóspede Verificado
-																		</p>
+																	<div className="flex items-center gap-2">
+																		<div className="flex items-center gap-1">
+																			{[...Array(5)].map((_, index) => (
+																				<Star
+																					key={index}
+																					fill={
+																						index < Math.floor(review.rating)
+																							? "black"
+																							: "none"
+																					}
+																					stroke="black"
+																					size={20}
+																				/>
+																			))}
+																		</div>
 																	</div>
-																</Link>
-															</div>
+																	{review.comment ? (
+																		<p className="text-gray-700 max-w-md leading-relaxed line-clamp-4">
+																			"{review.comment}"
+																		</p>
+																	) : (
+																		<p className=" max-w-md mt-auto items-center text-primary-500 leading-relaxed line-clamp-4">
+																			Sem comentário
+																		</p>
+																	)}
+																	<Link
+																		to={`/account/profile/${review.user._id}`}
+																		className="flex items-center mt-auto gap-2"
+																	>
+																		<img
+																			src={review.user.photo || photoDefault}
+																			alt={review.user.name}
+																			className="w-12 h-12 rounded-full object-cover"
+																		/>
+																		<div className="flex flex-col text-sm">
+																			<p className="font-semibold text-gray-900">
+																				{review.user.name}
+																			</p>
+																			<p className="text-xs text-gray-500">
+																				Hóspede Verificado
+																			</p>
+																		</div>
+																	</Link>
+																</div>
+															))}
 														</div>
-													</div>
-												))
+													));
+												})()
 											) : (
-												<p className="text-gray-500 text-center py-0">
+												<p className="text-gray-500 text-center py-0 col-span-full">
 													Ainda não há avaliações para este filtro.
 												</p>
 											)}
