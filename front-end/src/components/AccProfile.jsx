@@ -35,6 +35,7 @@ import {
 	ChevronRight,
 	Menu,
 	Ellipsis,
+	Filter,
 } from "lucide-react";
 
 import {
@@ -43,6 +44,13 @@ import {
 	TooltipContent,
 	TooltipProvider,
 } from "@/components/ui/tooltip";
+import {
+	Drawer,
+	DrawerContent,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "@/components/ui/drawer";
 
 import verify from "../assets/verify.png";
 import "./AccProfile.css";
@@ -90,6 +98,13 @@ const AccProfile = () => {
 	const [sortBy, setSortBy] = useState("recent");
 	const [ratingFilter, setRatingFilter] = useState("all");
 	const [commentFilter, setCommentFilter] = useState("all");
+	const [sheetRating, setSheetRating] = useState(0);
+	const [sheetHoverRating, setSheetHoverRating] = useState(0);
+	const [sheetOpen, setSheetOpen] = useState(false);
+	const [sortByTemp, setSortByTemp] = useState("recent");
+	const [tempRating, setTempRating] = useState(0);
+	const [tempHoverRating, setTempHoverRating] = useState(0);
+	const [tempCommentFilter, setTempCommentFilter] = useState("all");
 
 	const navigate = useNavigate();
 
@@ -285,6 +300,25 @@ const AccProfile = () => {
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
+
+	useEffect(() => {
+		if (sheetOpen) {
+			setSortByTemp(sortBy);
+			setTempRating(parseInt(ratingFilter) || 0);
+			setTempCommentFilter(commentFilter);
+		}
+	}, [sheetOpen, sortBy, ratingFilter, commentFilter]);
+
+	useEffect(() => {
+		if (sheetOpen) {
+			document.body.style.overflow = "hidden";
+		} else {
+			document.body.style.overflow = "unset";
+		}
+		return () => {
+			document.body.style.overflow = "unset";
+		};
+	}, [sheetOpen]);
 
 	const filteredReviews = useMemo(() => {
 		let filtered = [...reviews];
@@ -810,92 +844,319 @@ const AccProfile = () => {
 											</p>
 										)}
 									</div>
-									<div className="flex flex-col">
+									<div className="flex flex-col w-full relative ">
 										<p className="text-primary-500 uppercase font-light">
 											Testemunhos
 										</p>
-										<div className="flex items-center  justify-between">
+										<div className="flex items-center justify-between">
 											<div className="">
 												<p className="text-4xl font-bold">O Que Dizem</p>
 											</div>
+											{/* Mobile Filter Button */}
+											{mobile && (
+												<Drawer
+													open={sheetOpen}
+													onOpenChange={setSheetOpen}
+													modal={true}
+												>
+													<DrawerContent className="rounded-tl-3xl h-auto p-5 py-6 max-h-[80vh]">
+														<p className="text-xl font-medium text-gray-900 mb-2">
+															Filtros de Avaliações
+														</p>
+														<div className="flex flex-col gap-6 mt-6">
+															<div className="flex flex-col gap-2">
+																<label className="text-sm font-medium text-gray-700">
+																	Ordenar por:
+																</label>
+																<div className="flex flex-col gap-4">
+																	<label
+																		htmlFor="recent"
+																		className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																			sortByTemp === "recent"
+																				? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																				: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																		}`}
+																	>
+																		<input
+																			type="checkbox"
+																			id="recent"
+																			name="sortBy"
+																			value="recent"
+																			checked={sortByTemp === "recent"}
+																			onChange={(e) => {
+																				if (e.target.checked) {
+																					setSortByTemp("recent");
+																				}
+																			}}
+																			className="hidden"
+																		/>
+																		Mais recente
+																		<span
+																			className={`w-2 h-2 ml-auto rounded-full bg-transparent ${sortByTemp === "recent" && "!bg-primary-900"}`}
+																		></span>
+																	</label>
+																	<label
+																		htmlFor="oldest"
+																		className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																			sortByTemp === "oldest"
+																				? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																				: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																		}`}
+																	>
+																		<input
+																			type="checkbox"
+																			id="oldest"
+																			name="sortBy"
+																			value="oldest"
+																			checked={sortByTemp === "oldest"}
+																			onChange={(e) => {
+																				if (e.target.checked) {
+																					setSortByTemp("oldest");
+																				}
+																			}}
+																			className="hidden"
+																		/>
+																		Mais antigo
+																		<span
+																			className={`w-2 h-2 ml-auto rounded-full bg-transparent ${sortByTemp === "oldest" && "!bg-primary-900"}`}
+																		></span>
+																	</label>
+																</div>
+															</div>
+															<div className="flex flex-col gap-2">
+																<label className="text-sm font-medium text-gray-700">
+																	Estrelas:
+																</label>
+																<div className="flex gap-1">
+																	{[1, 2, 3, 4, 5].map((star) => (
+																		<button
+																			key={star}
+																			type="button"
+																			className="p-3 hover:scale-110 rounded-2xl bg-primary-900 transition-transform"
+																			onMouseEnter={() =>
+																				setTempHoverRating(star)
+																			}
+																			onMouseLeave={() => setTempHoverRating(0)}
+																			onClick={() => {
+																				setTempRating(star);
+																			}}
+																		>
+																			<Star
+																				size={24}
+																				className={`${
+																					star <=
+																					(tempHoverRating || tempRating)
+																						? "fill-white cursor-pointer text-white"
+																						: "text-gray-300"
+																				} transition-colors`}
+																			/>
+																		</button>
+																	))}
+																</div>
+															</div>
+															<div className="flex flex-col gap-2">
+																<label className="text-sm font-medium text-gray-700">
+																	Comentários:
+																</label>
+																<div className="flex flex-col gap-4">
+																	<label
+																		htmlFor="all_comments"
+																		className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																			tempCommentFilter === "all"
+																				? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																				: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																		}`}
+																	>
+																		<input
+																			type="checkbox"
+																			id="all_comments"
+																			name="commentFilter"
+																			value="all"
+																			checked={tempCommentFilter === "all"}
+																			onChange={(e) => {
+																				if (e.target.checked) {
+																					setTempCommentFilter("all");
+																				}
+																			}}
+																			className="hidden"
+																		/>
+																		Todos
+																		<span
+																			className={`w-2 h-2 ml-auto rounded-full bg-transparent ${tempCommentFilter === "all" && "!bg-primary-900"}`}
+																		></span>
+																	</label>
+																	<label
+																		htmlFor="with_comments"
+																		className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																			tempCommentFilter === "with"
+																				? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																				: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																		}`}
+																	>
+																		<input
+																			type="checkbox"
+																			id="with_comments"
+																			name="commentFilter"
+																			value="with"
+																			checked={tempCommentFilter === "with"}
+																			onChange={(e) => {
+																				if (e.target.checked) {
+																					setTempCommentFilter("with");
+																				}
+																			}}
+																			className="hidden"
+																		/>
+																		Com comentário
+																		<span
+																			className={`w-2 h-2 ml-auto rounded-full bg-transparent ${tempCommentFilter === "with" && "!bg-primary-900"}`}
+																		></span>
+																	</label>
+																	<label
+																		htmlFor="without_comments"
+																		className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																			tempCommentFilter === "without"
+																				? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																				: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																		}`}
+																	>
+																		<input
+																			type="checkbox"
+																			id="without_comments"
+																			name="commentFilter"
+																			value="without"
+																			checked={tempCommentFilter === "without"}
+																			onChange={(e) => {
+																				if (e.target.checked) {
+																					setTempCommentFilter("without");
+																				}
+																			}}
+																			className="hidden"
+																		/>
+																		Sem comentário
+																		<span
+																			className={`w-2 h-2 ml-auto rounded-full bg-transparent ${tempCommentFilter === "without" && "!bg-primary-900"}`}
+																		></span>
+																	</label>
+																</div>
+															</div>
+														</div>
+														<div className="flex justify-end gap-4 mt-6">
+															<button
+																type="button"
+																onClick={() => {
+																	// Clear filters
+																	setSortBy("recent");
+																	setRatingFilter("all");
+																	setCommentFilter("all");
+																	setSheetRating(0);
+																}}
+																className="px-4 py-2 cursor-pointer hover:bg-primary-100 rounded-lg border hover:text-primary-900 transition-colors font-medium"
+															>
+																Limpar
+															</button>
+															<button
+																type="button"
+																onClick={() => {
+																	// Apply filters and close sheet
+																	setSortBy(sortByTemp);
+																	setRatingFilter(
+																		tempRating > 0
+																			? tempRating.toString()
+																			: "all",
+																	);
+																	setCommentFilter(tempCommentFilter);
+																	setSheetOpen(false);
+																}}
+																className="px-6 py-2 bg-primary-900 cursor-pointer text-white rounded-lg hover:bg-primary-800 transition-colors font-medium"
+															>
+																Aplicar Filtros
+															</button>
+														</div>
+													</DrawerContent>
+												</Drawer>
+											)}
 										</div>
-										{/* Filter Controls */}
-										<div className="flex flex-wrap gap-4 mt-5 mb-5">
-											<div className="flex flex-col gap-2">
-												<label className="text-sm font-medium text-gray-700">
-													Ordenar por:
-												</label>
-												<Select
-													value={sortBy}
-													onChange={setSortBy}
-													data={[
-														{ value: "recent", label: "Mais recente" },
-														{ value: "oldest", label: "Mais antigo" },
-													]}
-													placeholder="Ordenar por"
-													className="w-[180px]"
-													styles={{
-														input: {
-															borderRadius: "12px",
-														},
-														dropdown: {
-															borderRadius: "12px",
-														},
-													}}
-												/>
+										{/* External Filter Button */}
+
+										{/* Desktop Filter Controls */}
+										{!mobile && (
+											<div className="flex flex-wrap gap-4 mt-5 mb-5">
+												<div className="flex flex-col gap-2">
+													<label className="text-sm font-medium text-gray-700">
+														Ordenar por:
+													</label>
+													<Select
+														value={sortBy}
+														onChange={setSortBy}
+														data={[
+															{ value: "recent", label: "Mais recente" },
+															{ value: "oldest", label: "Mais antigo" },
+														]}
+														placeholder="Ordenar por"
+														className="w-[180px]"
+														styles={{
+															input: {
+																borderRadius: "12px",
+															},
+															dropdown: {
+																borderRadius: "12px",
+															},
+														}}
+													/>
+												</div>
+												<div className="flex flex-col gap-2">
+													<label className="text-sm font-medium text-gray-700">
+														Estrelas:
+													</label>
+													<Select
+														value={ratingFilter}
+														onChange={setRatingFilter}
+														data={[
+															{ value: "all", label: "Todas" },
+															{ value: "5", label: "5 estrelas" },
+															{ value: "4", label: "4 estrelas" },
+															{ value: "3", label: "3 estrelas" },
+															{ value: "2", label: "2 estrelas" },
+															{ value: "1", label: "1 estrela" },
+														]}
+														placeholder="Estrelas"
+														className="w-[180px]"
+														styles={{
+															input: {
+																borderRadius: "12px",
+															},
+															dropdown: {
+																borderRadius: "12px",
+															},
+														}}
+													/>
+												</div>
+												<div className="flex flex-col gap-2">
+													<label className="text-sm font-medium text-gray-700">
+														Comentários:
+													</label>
+													<Select
+														value={commentFilter}
+														onChange={setCommentFilter}
+														data={[
+															{ value: "all", label: "Todos" },
+															{ value: "with", label: "Com comentário" },
+															{ value: "without", label: "Sem comentário" },
+														]}
+														placeholder="Comentários"
+														className="w-[180px]"
+														styles={{
+															input: {
+																borderRadius: "12px",
+															},
+															dropdown: {
+																borderRadius: "12px",
+															},
+														}}
+													/>
+												</div>
 											</div>
-											<div className="flex flex-col gap-2">
-												<label className="text-sm font-medium text-gray-700">
-													Estrelas:
-												</label>
-												<Select
-													value={ratingFilter}
-													onChange={setRatingFilter}
-													data={[
-														{ value: "all", label: "Todas" },
-														{ value: "5", label: "5 estrelas" },
-														{ value: "4", label: "4 estrelas" },
-														{ value: "3", label: "3 estrelas" },
-														{ value: "2", label: "2 estrelas" },
-														{ value: "1", label: "1 estrela" },
-													]}
-													placeholder="Estrelas"
-													className="w-[180px]"
-													styles={{
-														input: {
-															borderRadius: "12px",
-														},
-														dropdown: {
-															borderRadius: "12px",
-														},
-													}}
-												/>
-											</div>
-											<div className="flex flex-col gap-2">
-												<label className="text-sm font-medium text-gray-700">
-													Comentários:
-												</label>
-												<Select
-													value={commentFilter}
-													onChange={setCommentFilter}
-													data={[
-														{ value: "all", label: "Todos" },
-														{ value: "with", label: "Com comentário" },
-														{ value: "without", label: "Sem comentário" },
-													]}
-													placeholder="Comentários"
-													className="w-[180px]"
-													styles={{
-														input: {
-															borderRadius: "12px",
-														},
-														dropdown: {
-															borderRadius: "12px",
-														},
-													}}
-												/>
-											</div>
-										</div>
+										)}
 										<div className="flex gap-6 mt-5 mb-15 max-sm:mb-0 flex-wrap ">
 											{filteredReviews.length > 0 ? (
 												filteredReviews.map((review) => (
@@ -946,11 +1207,19 @@ const AccProfile = () => {
 													</div>
 												))
 											) : (
-												<p className="text-gray-500 text-center py-8">
-													Ainda não há avaliações para este anfitrião.
+												<p className="text-gray-500 text-center py-0">
+													Ainda não há avaliações para este filtro.
 												</p>
 											)}
 										</div>
+										{mobile && (
+											<button
+												onClick={() => setSheetOpen(true)}
+												className="sticky bottom-0 ml-auto text-center -mt-7.5 cursor-pointer justify-center text-xl p-4 w-fit shadow-sm flex flex-1 items-center gap-2 bg-primary-900 hover:bg-primary-black transition-colors rounded-full text-white font-medium"
+											>
+												<Filter size={18} />
+											</button>
+										)}
 									</div>
 								</div>
 							</div>
