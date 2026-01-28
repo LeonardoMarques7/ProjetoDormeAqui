@@ -151,7 +151,7 @@ const AccProfile = () => {
 		};
 
 		fetchProfile();
-	}, [paramId, user?._id]);
+	}, [paramId, user?._id, state?.updated]);
 
 	useEffect(() => {
 		if (!api) return;
@@ -393,7 +393,7 @@ const AccProfile = () => {
 
 	const SkeletonProfile = () => (
 		<>
-			{!mobile && (
+			{!mobile ? (
 				<div>
 					{/* Banner skeleton */}
 					<div className="bg-gray-200 animate-pulse mt-20 max-w-7xl mx-auto w-full h-[40svh] rounded-4xl" />
@@ -498,6 +498,118 @@ const AccProfile = () => {
 											</div>
 										))}
 								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			) : (
+				<div>
+					{/* Banner skeleton mobile */}
+					<div className="bg-gray-200 animate-pulse mt-20 max-w-7xl mx-auto w-full h-[25svh]" />
+					{/* Container mobile */}
+					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5 relative -mt-30">
+						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10 max-sm:mb-0">
+							{/* Header mobile */}
+							<div className="avatar__btn flex max-sm:gap-2 gap-5 items-center justify-start relative">
+								<div className="bg-gray-200 animate-pulse w-50 h-50 rounded-full" />
+							</div>
+							<div className="flex gap-0 flex-col">
+								<div className="bg-gray-200 animate-pulse h-16 w-64 mb-2" />
+								<div className="bg-gray-200 animate-pulse h-16 w-48" />
+							</div>
+							<div className="flex items-center gap-2 5">
+								<div className="bg-gray-200 animate-pulse h-5 w-30" />
+								<div className="bg-gray-200 animate-pulse h-5 w-50" />
+							</div>
+							{/* Bio */}
+							<div className="flex flex-col gap-2 max-w-xl">
+								<div className="bg-gray-200 animate-pulse h-4 w-full" />
+								<div className="bg-gray-200 animate-pulse h-4 w-3/4" />
+							</div>
+							{/* Contact */}
+							<div className="bg-gray-200 animate-pulse h-4 w-32" />
+							{/* Stats mobile */}
+							<div className="flex items-center max-sm:items-start max-sm:flex-col gap-5 max-sm:gap-2 max-sm:mt-2.5 my-5 p-0 list-none">
+								<div className="flex flex-col gap-2.5 max-sm:gap-0">
+									<div className="bg-gray-200 animate-pulse h-12 w-16" />
+									<div className="bg-gray-200 animate-pulse h-4 w-24" />
+								</div>
+								<div className="flex flex-col gap-2.5 max-sm:gap-0">
+									<div className="bg-gray-200 animate-pulse h-12 w-16" />
+									<div className="bg-gray-200 animate-pulse h-4 w-24" />
+								</div>
+								<div className="flex flex-col gap-2.5 max-sm:gap-0">
+									<div className="bg-gray-200 animate-pulse h-12 w-16" />
+									<div className="bg-gray-200 animate-pulse h-4 w-24" />
+								</div>
+							</div>
+							{/* Places section mobile */}
+							<div>
+								<div className="bg-gray-200 animate-pulse h-4 w-16 mb-2" />
+								<div className="flex items-center mb-15 justify-between">
+									<div className="bg-gray-200 animate-pulse h-10 w-64" />
+								</div>
+								<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
+									{Array(2)
+										.fill()
+										.map((_, i) => (
+											<div
+												key={i}
+												className="item__projeto rounded-xl max-sm:flex-col relative flex gap-5 max-sm:gap-2"
+											>
+												<div className="grid gap-2 max-sm:gap-x-2 grid-cols-8 grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2">
+													<div className="row-span-4 col-span-5 max-sm:col-span-5 bg-gray-200 animate-pulse h-full max-sm:w-full w-50 object-cover rounded-2xl"></div>
+													<div className="row-span-2 col-span-3 bg-gray-200 animate-pulse h-full w-40 object-cover rounded-2xl"></div>
+													<div className="row-span-2 col-span-3 bg-gray-200 animate-pulse h-full w-40 object-cover rounded-2xl"></div>
+												</div>
+												<div className="relative flex flex-col w-full justify-between gap-2">
+													<div className="flex flex-col">
+														<div className="bg-gray-200 animate-pulse h-4 w-16 max-sm:static -top-6 absolute" />
+														<div className="bg-gray-200 animate-pulse h-8 w-48 mb-2" />
+														<div className="bg-gray-200 animate-pulse h-5 w-32" />
+													</div>
+													<div className="flex items-end gap-10 w-full justify-between">
+														<div className="bg-gray-200 animate-pulse h-6 w-20" />
+														<div className="bg-gray-200 animate-pulse w-10 h-10 rounded-2xl" />
+													</div>
+												</div>
+											</div>
+										))}
+								</div>
+							</div>
+							{/* Reviews section mobile */}
+							<div className="flex scroll-m-25 flex-col w-full relative">
+								<div className="bg-gray-200 animate-pulse h-4 w-20 mb-2" />
+								<div className="flex items-center justify-between">
+									<div className="bg-gray-200 animate-pulse h-10 w-50" />
+								</div>
+								<div className="flex gap-6 mt-5 mb-15 max-sm:mb-0 flex-wrap">
+									{Array(3)
+										.fill()
+										.map((_, i) => (
+											<div
+												key={i}
+												className="flex flex-col min-w-60 max-sm:w-full gap-4 p-6 w-fit bg-white rounded-2xl border border-gray-200 shadow-sm"
+											>
+												<div className="flex items-center gap-4">
+													<div className="flex flex-col gap-4">
+														<div className="bg-gray-200 animate-pulse h-5 w-32" />
+														<div className="bg-gray-200 animate-pulse h-4 w-64" />
+														<div className="bg-gray-200 animate-pulse h-4 w-48" />
+														<div className="flex items-center gap-2">
+															<div className="bg-gray-200 animate-pulse w-12 h-12 rounded-full" />
+															<div className="flex flex-col gap-1">
+																<div className="bg-gray-200 animate-pulse h-4 w-24" />
+																<div className="bg-gray-200 animate-pulse h-3 w-32" />
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										))}
+								</div>
+								{/* Mobile filter button skeleton */}
+								<div className="sticky bottom-2.5 ml-auto text-center -mt-7.5 justify-center text-xl p-4 w-fit shadow-sm flex flex-1 items-center gap-2 bg-gray-200 animate-pulse rounded-full h-12 w-32" />
 							</div>
 						</div>
 					</div>
@@ -1206,7 +1318,10 @@ const AccProfile = () => {
 																		"{review.comment}"
 																	</p>
 																)}
-																<div className="flex items-center gap-2">
+																<Link
+																	to={`/account/profile/${review.user._id}`}
+																	className="flex items-center gap-2"
+																>
 																	<img
 																		src={review.user.photo || photoDefault}
 																		alt={review.user.name}
@@ -1220,7 +1335,7 @@ const AccProfile = () => {
 																			Hóspede Verificado
 																		</p>
 																	</div>
-																</div>
+																</Link>
 															</div>
 														</div>
 													</div>

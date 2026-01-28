@@ -4,11 +4,19 @@ import cookieParser from "cookie-parser";
 import routes from "./routes/index.js";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
+import fs from "fs";
 
 export const app = express();
 
 export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = dirname(__filename);
+
+// Ensure tmp directory exists
+const tmpDir = path.join(__dirname, "tmp");
+if (!fs.existsSync(tmpDir)) {
+  fs.mkdirSync(tmpDir, { recursive: true });
+  console.log("📁 Tmp directory created:", tmpDir);
+}
 
 app.use(cookieParser());
 app.use(express.json());
