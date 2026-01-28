@@ -848,7 +848,7 @@ const AccProfile = () => {
 											</p>
 										)}
 									</div>
-									<div className="flex flex-col">
+									<div className="flex flex-col w-full relative ">
 										<p className="text-primary-500 uppercase font-light">
 											Testemunhos
 										</p>
@@ -861,21 +861,9 @@ const AccProfile = () => {
 												<Drawer
 													open={sheetOpen}
 													onOpenChange={setSheetOpen}
-													modal={false}
+													modal={true}
 												>
-													<DrawerTrigger asChild>
-														<button className="flex items-center gap-2 bg-primary-100 hover:bg-primary-200 transition-colors px-4 py-2 rounded-2xl text-primary-700 font-medium">
-															<Filter size={18} />
-															Filtros
-														</button>
-													</DrawerTrigger>
-													{sheetOpen && (
-														<div
-															className="fixed inset-0 bg-black/50 z-50"
-															onClick={() => setSheetOpen(false)}
-														/>
-													)}
-													<DrawerContent className="h-auto p-5 py-6 max-h-[80vh]">
+													<DrawerContent className="rounded-tl-3xl h-auto p-5 py-6 max-h-[80vh]">
 														<p className="text-xl font-medium text-gray-900 mb-2">
 															Filtros de Avaliações
 														</p>
@@ -995,7 +983,7 @@ const AccProfile = () => {
 																	setCommentWith(false);
 																	setCommentWithout(false);
 																}}
-																className="text-red-500  cursor-pointer rounded-lg hover:text-red-400 transition-colors font-medium"
+																className="px-4 py-2 cursor-pointer hover:bg-primary-100 rounded-lg border hover:text-primary-900 transition-colors font-medium"
 															>
 																Limpar
 															</button>
@@ -1027,6 +1015,8 @@ const AccProfile = () => {
 												</Drawer>
 											)}
 										</div>
+										{/* External Filter Button */}
+
 										{/* Desktop Filter Controls */}
 										{!mobile && (
 											<div className="flex flex-wrap gap-4 mt-5 mb-5">
@@ -1161,6 +1151,14 @@ const AccProfile = () => {
 												</p>
 											)}
 										</div>
+										{mobile && (
+											<button
+												onClick={() => setSheetOpen(true)}
+												className="sticky bottom-0 ml-auto text-center -mt-7.5 cursor-pointer justify-center text-xl p-4 w-fit shadow-sm flex flex-1 items-center gap-2 bg-primary-900 hover:bg-primary-black transition-colors rounded-full text-white font-medium"
+											>
+												<Filter size={18} />
+											</button>
+										)}
 									</div>
 								</div>
 							</div>
