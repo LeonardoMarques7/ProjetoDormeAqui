@@ -1058,6 +1058,9 @@ const AccProfile = () => {
 																	setRatingFilter("all");
 																	setCommentFilter("all");
 																	setSheetRating(0);
+																	setSortByTemp("recent");
+																	setTempRating(0);
+																	setTempCommentFilter("all");
 																}}
 																className="px-4 py-2 cursor-pointer hover:bg-primary-100 rounded-lg border hover:text-primary-900 transition-colors font-medium"
 															>
