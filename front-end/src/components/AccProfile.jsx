@@ -848,7 +848,10 @@ const AccProfile = () => {
 											</p>
 										)}
 									</div>
-									<div className="flex flex-col w-full relative ">
+									<div
+										id="o-que-dizem"
+										className="flex scroll-m-25 flex-col w-full relative "
+									>
 										<p className="text-primary-500 uppercase font-light">
 											Testemunhos
 										</p>
@@ -1078,6 +1081,10 @@ const AccProfile = () => {
 																	);
 																	setCommentFilter(tempCommentFilter);
 																	setSheetOpen(false);
+																	// Scroll to "O Que Dizem" section
+																	document
+																		.getElementById("o-que-dizem")
+																		?.scrollIntoView({ behavior: "smooth" });
 																}}
 																className="px-6 py-2 bg-primary-900 cursor-pointer text-white rounded-lg hover:bg-primary-800 transition-colors font-medium"
 															>
