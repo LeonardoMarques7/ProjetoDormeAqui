@@ -1064,13 +1064,7 @@ const AccProfile = () => {
 																			? tempRating.toString()
 																			: "all",
 																	);
-																	setCommentFilter(
-																		tempCommentWith
-																			? "with"
-																			: tempCommentWithout
-																				? "without"
-																				: "all",
-																	);
+																	setCommentFilter(tempCommentFilter);
 																	setSheetOpen(false);
 																}}
 																className="px-6 py-2 bg-primary-900 cursor-pointer text-white rounded-lg hover:bg-primary-800 transition-colors font-medium"
@@ -1213,8 +1207,8 @@ const AccProfile = () => {
 													</div>
 												))
 											) : (
-												<p className="text-gray-500 text-center py-8">
-													Ainda não há avaliações para este anfitrião.
+												<p className="text-gray-500 text-center py-0">
+													Ainda não há avaliações para este filtro.
 												</p>
 											)}
 										</div>
