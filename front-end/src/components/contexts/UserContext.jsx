@@ -11,10 +11,19 @@ export const UserContextProvider = ({ children }) => {
 
 	useEffect(() => {
 		const axiosGet = async () => {
-			const { data } = await axios.get("/users/profile");
-
-			setUser(data);
-			setReady(true);
+			try {
+				const { data } = await axios.get("/users/profile");
+				setUser(data);
+			} catch (error) {
+				if (error.response?.status === 401) {
+					// User is not authenticated, set user to null
+					setUser(null);
+				} else {
+					console.error("Error fetching user profile:", error);
+				}
+			} finally {
+				setReady(true);
+			}
 		};
 
 		axiosGet();
