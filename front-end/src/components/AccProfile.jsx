@@ -1318,7 +1318,10 @@ const AccProfile = () => {
 																		"{review.comment}"
 																	</p>
 																)}
-																<div className="flex items-center gap-2">
+																<Link
+																	to={`/account/profile/${review.user._id}`}
+																	className="flex items-center gap-2"
+																>
 																	<img
 																		src={review.user.photo || photoDefault}
 																		alt={review.user.name}
@@ -1332,7 +1335,7 @@ const AccProfile = () => {
 																			Hóspede Verificado
 																		</p>
 																	</div>
-																</div>
+																</Link>
 															</div>
 														</div>
 													</div>
