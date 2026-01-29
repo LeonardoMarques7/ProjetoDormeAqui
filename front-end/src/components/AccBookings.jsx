@@ -22,7 +22,7 @@ const AccBookings = ({ bookingId }) => {
 		};
 
 		axiosGet();
-	}, []);
+	}, [user?._id]);
 
 	return (
 		<>

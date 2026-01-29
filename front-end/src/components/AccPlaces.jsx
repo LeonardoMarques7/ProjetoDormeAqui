@@ -35,7 +35,7 @@ const AccPlaces = () => {
 		};
 
 		axiosGet();
-	}, [action]);
+	}, [action, user?._id]);
 
 	if (redirect) return <Navigate to="/account/places" />;
 

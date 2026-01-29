@@ -1,22 +1,17 @@
-# TODO: Implementar fotos e banners padrão para usuários
+# TODO: Implementar Controle de Usuário
 
-## Passos para implementação:
+## Tarefas Pendentes
 
-1. **✅ Modificar rota de criação de usuário (POST /)**
-   - Definir constantes para URLs padrão de foto e banner do S3
-   - Na criação, definir photo como photo || defaultPhoto e banner como defaultBanner
+- [ ] Modificar Account.jsx para verificar login em places e bookings
+- [ ] Importar AuthModalContext em Account.jsx
+- [ ] Adicionar lógica de verificação de usuário logado
+- [ ] Testar acesso às rotas sem login
+- [ ] Verificar se modal aparece corretamente
 
-2. **✅ Modificar rota de atualização de perfil (PUT /:id)**
-   - Na atualização, se photo for falsy, definir como defaultPhoto
-   - Se banner for falsy, definir como defaultBanner
-   - Garantir que apenas campos fornecidos sejam atualizados
+## Arquivos a Editar
 
-3. **✅ Testar as mudanças**
-   - Verificar se novos usuários têm foto e banner padrão
-   - Verificar se ao remover foto/banner, volta ao padrão
-   - Teste realizado: Código implementado corretamente, URLs padrão definidas
+- front-end/src/pages/Account.jsx
 
-4. **✅ Validação front-end para usuários existentes**
-   - Modificar AccProfile.jsx para mostrar foto padrão quando displayUser?.photo for falsy
-   - Banner já estava funcionando corretamente
-   - Implementação concluída
+## Status
+
+Em andamento

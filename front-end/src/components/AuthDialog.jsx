@@ -37,7 +37,6 @@ import axios from "axios";
 import { useUserContext } from "./contexts/UserContext";
 const photoDefault =
 	"https://projeto-dorme-aqui.s3.us-east-2.amazonaws.com/1769633448464-848631051.png";
-import { useAuthModalContext } from "./contexts/AuthModalContext";
 
 export function AuthDialog({ mode, setMode, open, setOpen }) {
 	const [desktop, setDesktop] = useState(window.innerWidth >= 768);
@@ -78,17 +77,13 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 					onOpenChange={setOpen}
 					modal={false}
 				>
-					<DialogContent className="h-full rounded-none xl:h-fit xl:rounded-3xl">
-						<div className="flex justify-between items-center xl:mb-5 -mb-10">
-							<img src={logo__primary} className="w-90" alt="" />
-							<button
-								onClick={() => setOpen(false)}
-								className="cursor-pointer z-50 w-10 outline-none mt-2 h-10 flex items-center justify-center rounded-full hover:bg-primary-100 transition-colors"
-							>
-								<X className="w-6 h-6 text-black" />
-							</button>
-						</div>
-
+					<DialogContent className="h-full flex rounded-none xl:h-fit xl:rounded-3xl">
+						<button
+							onClick={() => setOpen(false)}
+							className="cursor-pointer mt-5 absolute right-5 z-50 w-10 outline-none h-10 flex items-center justify-center rounded-full hover:bg-primary-100 transition-colors"
+						>
+							<X className="w-6 h-6 text-black" />
+						</button>
 						<ProfileForm
 							mode={mode}
 							setMode={setMode}
@@ -106,7 +101,7 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 		<>
 			<Drawer open={open} onOpenChange={setOpen}>
 				<DrawerContent className="!rounded-none !rounded-tl-4xl p-0">
-					<div className="p-10">
+					<div className="p-10 ">
 						<ProfileForm
 							onSuccess={handleLoginSuccess}
 							mode={mode}
@@ -436,7 +431,7 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 			</div>
 		</section>
 	) : (
-		<section className="flex items-center justify-between flex-1  py-4">
+		<section className="flex items-center justify-between flex-1 ">
 			<div className="max-w-125 maxs-m:max-w-full mx-auto gap-0  rounded-4xl py-2.5  right-0 flex flex-col items-start w-full ">
 				{desktop ? (
 					<h1 className="text-3xl font-bold y-0">Cadastre-se e descubra </h1>
