@@ -1,15 +1,30 @@
-import { Edit, Edit2, ExternalLink, MapPin, Star, Trash2 } from "lucide-react";
+import {
+	ChevronRight,
+	Edit,
+	Edit2,
+	Ellipsis,
+	ExternalLink,
+	HousePlus,
+	Icon,
+	MapPin,
+	Star,
+	Trash2,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import ScrollReveal from "scrollreveal";
 import MarkdownIt from "markdown-it";
 import PaginationControls from "./PaginationControls";
 
+import { Link } from "react-router-dom";
+
 import {
-	Tooltip,
-	TooltipTrigger,
-	TooltipContent,
-	TooltipProvider,
-} from "@/components/ui/tooltip";
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import {
 	Carousel,
@@ -69,10 +84,31 @@ const PlaceCard = ({ place }) => {
 		};
 	}, [api]);
 
+	const navItemsPlace = [
+		{
+			path: `/account/places/${place._id}`,
+			label: "Acessar",
+			icon: ExternalLink,
+			class: "text-blue-500",
+		},
+		{
+			path: `/account/places/new/${place._id}`,
+			label: "Editar",
+			icon: Edit,
+		},
+		{
+			path: `/account/places/r/${place._id}`,
+			label: "Deletar",
+			icon: Trash2,
+			class: "text-white",
+			classBg: "bg-red-500 text-white",
+		},
+	];
+
 	return (
 		<div
 			ref={cardRef}
-			className={`flex-col bg-white/80 max-w-[350px] h-fit relative flex-1 flex rounded-3xl border border-primary-200 gap-5`}
+			className={`flex-col bg-white/80 max-w-[325px] h-fit relative flex-1 flex rounded-3xl border border-primary-200 `}
 		>
 			{/* Carrossel de imagens */}
 			<div className="relative">
@@ -108,10 +144,7 @@ const PlaceCard = ({ place }) => {
 
 					{/* Rating badge */}
 					<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
-						<Star size={14} fill="#FFC107" stroke="#FFC107" />
-						<span className="text-sm font-semibold">
-							{place.averageRating.toFixed(1)}
-						</span>
+						<span className="text-sm font-semibold">ID: {place._id}</span>
 					</div>
 				</Carousel>
 
@@ -129,77 +162,39 @@ const PlaceCard = ({ place }) => {
 					))}
 				</div>
 			</div>
-			<div className="px-4 mr-4 max-sm:py-0 flex flex-col justify-between w-full">
+			<div className="px-4 py-5">
 				<div className="flex flex-col gap-3">
-					<div className="flex justify-between max-sm:mb-3 leading-5">
+					<div className="flex justify-between items-center max-sm:mb-3 leading-5">
 						<p className="text-[1.2rem] font-light text-gray-900">
 							{place.title}
 						</p>
-					</div>
-					<div className="flex items-center gap-4">
-						<div className="flex items-center flex-1 gap-1 text-xs w-full text-gray-600">
-							<MapPin size={14} />
-							<span>{place.city}</span>
-						</div>
-					</div>
-				</div>
-				<div className="flex items-center mt-4 justify-between">
-					<div className=" flex flex-col max-sm:items-start items-end py-4">
-						<div className="flex items-center gap-2">
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<a
-										href={`/places/${place._id}`}
-										className="group cursor-pointer w-fit hover:bg-primary-600 hover:text-white px-3 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-xl text-center py-2.5 overflow-hidden"
-									>
-										<ExternalLink
-											size={18}
-											className="transition-transform text-primary-500 group-hover:text-white duration-300 group-hover:scale-110"
-										/>
-									</a>
-								</TooltipTrigger>
-								<TooltipContent className="bg-primary-600">
-									<p>Acessar acomodação</p>
-								</TooltipContent>
-							</Tooltip>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<a
-										href={`/account/places/new/${place._id}`}
-										className="edit__btn group cursor-pointer flex items-center hover:text-white justify-center transition-all duration-300 ease-in-out px-3 hover:bg-blue-600 gap-0 hover:gap-3 text-blue-500 rounded-xl text-center py-2.5 overflow-hidden"
-									>
-										<Edit
-											size={18}
-											className="transition-transform group-hover:text-white duration-300 group-hover:scale-110"
-										/>
-									</a>
-								</TooltipTrigger>
-								<TooltipContent className="bg-blue-600">
-									<p>Editar acomodação</p>
-								</TooltipContent>
-							</Tooltip>
+						<DropdownMenu modal={false}>
+							<DropdownMenuTrigger
+								className={`outline-none bg-primary-100/50 cursor-pointer hover:bg-primary-100 transition-all rounded-full`}
+							>
+								<Ellipsis size={20} />
+							</DropdownMenuTrigger>
 
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<a
-										href={`/account/places/r/${place._id}`}
-										className="edit__btn group cursor-pointer group-hover:text-white hover:text-white flex items-center justify-center transition-all duration-300 ease-in-out px-3 hover:bg-red-600 gap-0 hover:gap-3 text-red-500 rounded-xl text-center py-2.5 overflow-hidden"
-									>
-										<Trash2
-											size={18}
-											className="transition-transform duration-300 group-hover:scale-110"
-										/>
-									</a>
-								</TooltipTrigger>
-								<TooltipContent className="bg-red-600">
-									<p>Excluir acomodação</p>
-								</TooltipContent>
-							</Tooltip>
-						</div>
+							<DropdownMenuContent
+								align="end"
+								className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2"
+							>
+								{navItemsPlace.map((item) => {
+									const Icon = item.icon;
+									return (
+										<Link
+											key={item.path}
+											to={item.path}
+											className={`${item.classBg} flex group w-full justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
+										>
+											<Icon className={item.class} size={18} />
+											{item.label}
+										</Link>
+									);
+								})}
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</div>
-					<p className="font-medium text-primary-600 rounded-xl p-2 absolute right-4">
-						R$ {place.price}/noite
-					</p>
 				</div>
 			</div>
 		</div>
