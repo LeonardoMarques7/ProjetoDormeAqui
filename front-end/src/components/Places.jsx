@@ -164,33 +164,62 @@ const PlaceCard = ({ place, index }) => {
 					>
 						{place.title}
 					</Link>
-					<span className="flex items-center gap-1">
-						<Star fill="black" stroke="black" size={20}></Star>
-						5.0{" "}
-						<span className="w-1 h-1 rounded-full bg-primary-500 mx-2"></span>
-						Favorito
-					</span>
-				</div>
-				<div className="flex items-end gap-10 w-full justify-between">
 					<div className="relative font-medium text-2xl flex-1  text-[#0F172B]">
 						R$ {place.price}
 						<span className="absolute font-normal text-sm pl-1 top-2">
 							/noite
 						</span>
 					</div>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Link
-								to={`/places/${place._id}`}
-								className="cursor-pointer group p-2 hover:bg-primary-100/50 rounded-2xl transition-all flex items-center gap-2 font-medium"
-							>
-								<ArrowRight size={18} className="group-hover:-rotate-12" />
-							</Link>
-						</TooltipTrigger>
-						<TooltipContent className="bg-primary-600">
-							<p>Acessar acomodação</p>
-						</TooltipContent>
-					</Tooltip>
+				</div>
+				<div className="flex items-end gap-10 w-full justify-between">
+					<div className="flex items-center gap-2">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<a
+									href={`/places/${place._id}`}
+									className="group cursor-pointer w-fit hover:bg-primary-600 hover:text-white px-3 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-xl text-center py-2.5 overflow-hidden"
+								>
+									<ArrowRight size={18} className="group-hover:-rotate-12" />
+								</a>
+							</TooltipTrigger>
+							<TooltipContent className="bg-primary-600">
+								<p>Acessar acomodação</p>
+							</TooltipContent>
+						</Tooltip>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<a
+									href={`/account/places/new/${place._id}`}
+									className="edit__btn group cursor-pointer flex items-center hover:text-white justify-center transition-all duration-300 ease-in-out px-3 hover:bg-blue-600 gap-0 hover:gap-3 text-blue-500 rounded-xl text-center py-2.5 overflow-hidden"
+								>
+									<Edit
+										size={18}
+										className="transition-transform group-hover:text-white duration-300 group-hover:scale-110"
+									/>
+								</a>
+							</TooltipTrigger>
+							<TooltipContent className="bg-blue-600">
+								<p>Editar acomodação</p>
+							</TooltipContent>
+						</Tooltip>
+
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<a
+									href={`/account/places/r/${place._id}`}
+									className="edit__btn group cursor-pointer group-hover:text-white hover:text-white flex items-center justify-center transition-all duration-300 ease-in-out px-3 hover:bg-red-600 gap-0 hover:gap-3 text-red-500 rounded-xl text-center py-2.5 overflow-hidden"
+								>
+									<Trash2
+										size={18}
+										className="transition-transform duration-300 group-hover:scale-110"
+									/>
+								</a>
+							</TooltipTrigger>
+							<TooltipContent className="bg-red-600">
+								<p>Excluir acomodação</p>
+							</TooltipContent>
+						</Tooltip>
+					</div>
 				</div>
 			</div>
 		</div>
