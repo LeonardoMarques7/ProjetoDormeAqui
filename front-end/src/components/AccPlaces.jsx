@@ -120,7 +120,7 @@ const AccPlaces = () => {
 				)}
 
 				<div className="flex gap-5 items-start">
-					{!action && (
+					{!action && !mobile && (
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<Link
@@ -138,7 +138,7 @@ const AccPlaces = () => {
 							</TooltipContent>
 						</Tooltip>
 					)}
-					<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]  gap-5 lg:max-w-7xl">
+					<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
 						{loadingPlaces ? (
 							<>
 								{[...Array(2)].map((_, index) => (
