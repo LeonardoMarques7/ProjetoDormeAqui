@@ -26,6 +26,12 @@ const AccPlaces = () => {
 	const { edit } = useParams();
 
 	useEffect(() => {
+		if (!user) {
+			setPlaces([]);
+			setLoadingPlaces(false);
+			return;
+		}
+
 		const axiosGet = async () => {
 			const { data } = await axios.get("/places/owner");
 			setTimeout(() => {
@@ -35,7 +41,7 @@ const AccPlaces = () => {
 		};
 
 		axiosGet();
-	}, [action]);
+	}, [action, user?._id]);
 
 	if (redirect) return <Navigate to="/account/places" />;
 
@@ -74,9 +80,15 @@ const AccPlaces = () => {
 					)}
 				</div>
 				{places.length === 0 && action !== "new" ? (
-					<p className="text-gray-500 text-center py-8">
-						Você não possue acomodações.
-					</p>
+					user ? (
+						<p className="text-gray-500 text-center py-8">
+							Você não possue acomodações.
+						</p>
+					) : (
+						<p className="text-gray-500 text-center py-8">
+							Você precisa estar logado para ter informações das acomodações.
+						</p>
+					)
 				) : (
 					<></>
 				)}
