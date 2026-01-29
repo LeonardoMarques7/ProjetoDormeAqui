@@ -1,4 +1,5 @@
 import {
+	ArrowRight,
 	ChevronRight,
 	Edit,
 	Edit2,
@@ -35,6 +36,13 @@ import {
 } from "@/components/ui/carousel";
 import { useRef } from "react";
 
+import {
+	Tooltip,
+	TooltipTrigger,
+	TooltipContent,
+	TooltipProvider,
+} from "@/components/ui/tooltip";
+
 const DotButton = ({ selected, onClick }) => (
 	<button
 		className={`w-2 h-2 rounded-full cursor-pointer transition-all duration-300 ${
@@ -46,10 +54,11 @@ const DotButton = ({ selected, onClick }) => (
 );
 
 // NOVO COMPONENTE: PlaceCard - cada card tem seus próprios estados
-const PlaceCard = ({ place }) => {
+const PlaceCard = ({ place, index }) => {
 	const [api, setApi] = useState(null);
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [isHovered, setIsHovered] = useState(false);
+	const [imageErrors, setImageErrors] = useState({});
 	const [scrollSnaps, setScrollSnaps] = useState([]);
 	const cardRef = useRef(null);
 
@@ -105,96 +114,83 @@ const PlaceCard = ({ place }) => {
 		},
 	];
 
+	const handleImageError = (index) => {
+		setImageErrors((prev) => ({ ...prev, [index]: true }));
+	};
+
+	const getImageSrc = (item, index) => {
+		if (imageErrors[`${item._id}_${index}`]) {
+			return photoDefault;
+		}
+		return item.photos?.[index];
+	};
+
 	return (
 		<div
 			ref={cardRef}
-			className={`flex-col bg-white/80 max-w-[325px] h-fit relative flex-1 flex rounded-3xl border border-primary-200 `}
+			className={`item__projeto rounded-xl max-sm:flex-col relative flex gap-5 max-sm:gap-2 ${
+				index % 2 === 0 ? "item__left " : "item__right"
+			}`}
+			key={place._id}
 		>
-			{/* Carrossel de imagens */}
-			<div className="relative">
-				<Carousel
-					opts={{
-						loop: true,
-					}}
-					className="w-full relative rounded-b-none"
-					setApi={setApi}
-				>
-					<CarouselContent>
-						{place.photos.map((photo, index) => (
-							<CarouselItem
-								className="relative overflow-hidden rounded-b-none rounded-t-2xl"
-								key={index}
-							>
-								<img
-									src={photo}
-									alt={`Imagem da acomodação ${index + 1}`}
-									className="aspect-square z-0 w-full *:rounded-2xl object-cover transition-transform rounded-t-2xl rounded-b-none"
-								/>
-							</CarouselItem>
-						))}
-					</CarouselContent>
-
-					{/* Navegação do carrossel */}
-					<div onClick={(e) => e.preventDefault()}>
-						<CarouselPrevious className="absolute border-none left-2 text-white bg-white/30 hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
-					</div>
-					<div onClick={(e) => e.preventDefault()}>
-						<CarouselNext className="absolute right-2 border-none bg-white/30 text-white hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
-					</div>
-
-					{/* Rating badge */}
-					<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
-						<span className="text-sm font-semibold">ID: {place._id}</span>
-					</div>
-				</Carousel>
-
-				{/* Dot indicators */}
-				<div
-					className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"
-					onClick={(e) => e.preventDefault()}
-				>
-					{scrollSnaps.map((_, index) => (
-						<DotButton
-							key={`${place._id}-dot-${index}`}
-							selected={index === selectedIndex}
-							onClick={() => onDotButtonClick(index)}
-						/>
-					))}
-				</div>
+			<div className="grid gap-2 max-sm:gap-x-2 grid-cols-8  grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2 ">
+				<img
+					src={getImageSrc(place, 0)}
+					onError={() => handleImageError(`${place._id}_0`)}
+					className="row-span-4 col-span-5 max-sm:col-span-5  h-full max-sm:w-full w-50 object-cover rounded-2xl"
+					alt={place.title}
+				/>
+				<img
+					src={getImageSrc(place, 1)}
+					onError={() => handleImageError(`${place._id}_1`)}
+					className="row-span-2 col-span-3  h-full w-40 object-cover rounded-2xl"
+					alt={place.title}
+				/>
+				<img
+					src={getImageSrc(place, 2)}
+					onError={() => handleImageError(`${place._id}_2`)}
+					className="row-span-2 col-span-3  h-full w-40 object-cover rounded-2xl"
+					alt={place.title}
+				/>
 			</div>
-			<div className="px-4 py-5">
-				<div className="flex flex-col gap-3">
-					<div className="flex justify-between items-center max-sm:mb-3 leading-5">
-						<p className="text-[1.2rem] font-light text-gray-900">
-							{place.title}
-						</p>
-						<DropdownMenu modal={false}>
-							<DropdownMenuTrigger
-								className={`outline-none bg-primary-100/50 cursor-pointer hover:bg-primary-100 transition-all rounded-full`}
-							>
-								<Ellipsis size={20} />
-							</DropdownMenuTrigger>
-
-							<DropdownMenuContent
-								align="end"
-								className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2"
-							>
-								{navItemsPlace.map((item) => {
-									const Icon = item.icon;
-									return (
-										<Link
-											key={item.path}
-											to={item.path}
-											className={`${item.classBg} flex group w-full justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
-										>
-											<Icon className={item.class} size={18} />
-											{item.label}
-										</Link>
-									);
-								})}
-							</DropdownMenuContent>
-						</DropdownMenu>
+			<div className="relative flex flex-col w-full justify-between gap-2">
+				<div className="flex flex-col">
+					<p className="absolute -top-6 max-sm:static text-primary-700 cursor-pointer uppercase font-light">
+						{place.city}
+					</p>
+					<Link
+						to={`/places/${place._id}`}
+						className="cursor-pointer hover:underline font-bold text-3xl text-[#0F172B] text-wrap max-w-md overflow-hidden"
+					>
+						{place.title}
+					</Link>
+					<span className="flex items-center gap-1">
+						<Star fill="black" stroke="black" size={20}></Star>
+						5.0{" "}
+						<span className="w-1 h-1 rounded-full bg-primary-500 mx-2"></span>
+						Favorito
+					</span>
+				</div>
+				<div className="flex items-end gap-10 w-full justify-between">
+					<div className="relative font-medium text-2xl flex-1  text-[#0F172B]">
+						R$ {place.price}
+						<span className="absolute font-normal text-sm pl-1 top-2">
+							/noite
+						</span>
 					</div>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Link
+								to={`/places/${place._id}`}
+								className="cursor-pointer group p-2 hover:bg-primary-100/50 rounded-2xl transition-all flex items-center gap-2 font-medium"
+							>
+								<ArrowRight size={18} className="group-hover:-rotate-12" />
+							</Link>
+						</TooltipTrigger>
+						<TooltipContent className="bg-primary-600">
+							<p>Acessar acomodação</p>
+						</TooltipContent>
+					</Tooltip>
 				</div>
 			</div>
 		</div>
@@ -235,8 +231,8 @@ const Places = ({ places }) => {
 
 	return (
 		<>
-			{currentPlaces.map((place) => (
-				<PlaceCard key={place._id} place={place} />
+			{currentPlaces.map((place, index) => (
+				<PlaceCard key={place._id} index={index} place={place} />
 			))}
 
 			{/* Componente de paginação reutilizável */}

@@ -117,7 +117,27 @@ const AccPlaces = () => {
 				) : (
 					<></>
 				)}
-				<div className="flex gap-5">
+
+				<div className="flex gap-5 items-start">
+					{!action && (
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Link
+									// title="Anuncie uma acomodação"
+									className="grid gap-2 grid-cols-8 justify-center items-center grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2"
+									to="/account/places/new"
+								>
+									<div className="row-span-4 col-span-5 justify-center border border-dashed border-gray-400 flex items-center flex-1 text-center bg-gray-200 animate-pulse h-full w-40 object-cover rounded-2xl">
+										<HousePlus size={45} className="text-gray-400" />
+									</div>
+								</Link>
+							</TooltipTrigger>
+							<TooltipContent className="bg-primary-600">
+								<p>Anuncie uma acomodação</p>
+							</TooltipContent>
+						</Tooltip>
+					)}
+
 					<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]  gap-5 lg:max-w-7xl">
 						{loadingPlaces ? (
 							<>
@@ -142,25 +162,6 @@ const AccPlaces = () => {
 							</>
 						) : action !== "new" ? (
 							<>
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Link
-											// title="Anuncie uma acomodação"
-											className="flex flex-col h-full gap-2"
-											to="/account/places/new"
-										>
-											<div className="aspect-square w-full cursor-pointer h-fit hover:bg-primary-100 transition-all rounded-2xl border-dashed border text-primary-300 bg-primary-100/50 text-center text-2xl flex justify-center items-center ">
-												<HousePlus size={50} />
-											</div>
-											<div className=" w-full cursor-pointer h-full hover:bg-primary-100 transition-all rounded-2xl border-dashed border text-primary-300 bg-primary-100/50 text-center uppercase flex justify-center items-center ">
-												Anuncie Aqui!
-											</div>
-										</Link>
-									</TooltipTrigger>
-									<TooltipContent className="bg-primary-600">
-										<p>Anuncie uma acomodação</p>
-									</TooltipContent>
-								</Tooltip>
 								<Places places={places} />
 							</>
 						) : (
