@@ -166,20 +166,24 @@ const Home = () => {
 
 	return (
 		<div>
-			<div className="relative flex justify-center mb-12 ">
-				<div className="sm:banner__home max-sm:h-[25svh] max-w-7xl w-full  xl:h-[30svh] h-[50svh] max-sm:top-0   relative">
+			<div className="relative flex justify-center w-full mb-12 ">
+				<div className="sm:banner__home max-sm:h-[25svh] max-w-7xl w-full 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10  xl:h-[30svh] h-[50svh] max-sm:top-0   relative">
 					<img
 						src={Banner}
 						alt=""
 						className="object-cover pointer-events-none h-full w-full xl:rounded-b-2xl shadow-2xl"
 					/>
-					<div className="absolute inset-0 bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
+					<div className="absolute inset-0 2xl:mx-20 bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
 				</div>
 
 				{mobile ? (
 					/* Versão Mobile - Drawer */
 					<div className="absolute z-20 -bottom-8 left-0 right-0 px-3.5">
-						<Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+						<Drawer
+							open={drawerOpen}
+							className="rounded-3xl"
+							onOpenChange={setDrawerOpen}
+						>
 							<DrawerTrigger asChild>
 								<button
 									className="w-full bg-white shadow-lg rounded-2xl px-4 py-4 
@@ -199,7 +203,7 @@ const Home = () => {
 								</button>
 							</DrawerTrigger>
 
-							<DrawerContent className=" rounded-r-3xl p-0">
+							<DrawerContent className="   p-0">
 								<DrawerHeader className="p-6 pb-4 border-b sticky top-0 bg-white z-10">
 									<div className="flex items-center justify-between">
 										<DrawerTitle className="text-xl !font-medium">
@@ -239,7 +243,7 @@ const Home = () => {
 										</div>
 
 										{/* Campo Datas */}
-										<div className="space-y-2">
+										<div className="space-y-2 w-full">
 											<label className="text-sm font-semibold text-gray-700">
 												Quando?
 											</label>
@@ -337,7 +341,7 @@ const Home = () => {
 					</div>
 				) : (
 					/* Versão Desktop - Original */
-					<div className="container__bg__form z-20 w-full max-w-5xl bg-white absolute flex flex-col justify-center -bottom-12 p-4 pl-8 px-4 shadow-xl rounded-2xl mt-4">
+					<div className="2xl:max-w-10/12 z-20 w-full max-w-5xl max-lg:max-w-4xl bg-white absolute flex flex-col justify-center -bottom-12 p-4 pl-8 px-4 shadow-xl rounded-2xl mt-4">
 						<form onSubmit={handleSubmit(onSubmit)}>
 							<div className=" flex items-center w-full justify-start">
 								{/* Campo Cidade */}
@@ -354,7 +358,7 @@ const Home = () => {
 								</div>
 
 								{/* Campo Datas */}
-								<div className="w-90 h-fit text-nowrap border-r px-6">
+								<div className="w-90 2xl:w-120 h-fit text-nowrap border-r px-6">
 									<Controller
 										name="checkin"
 										control={control}
@@ -435,7 +439,7 @@ const Home = () => {
 			{city ? (
 				placesSearch.length > 0 ? (
 					// Caso 3: pesquisou e encontrou
-					<div className="mx-auto mb-5 text-primary-500  max-w-full gap-2 w-full flex justify-between items-center px-8  lg:max-w-7xl text-2xl text-start pt-5">
+					<div className="mx-auto mb-5 text-primary-500  max-w-full gap-2 w-full flex justify-between items-center px-8  2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10 text-2xl text-start pt-5">
 						<span>
 							Buscando por{" "}
 							<span className="font-medium text-primary-900">{city}</span> e foi
@@ -455,7 +459,7 @@ const Home = () => {
 				) : (
 					// Caso 2: pesquisou mas não encontrou
 					<>
-						<div className="my-8 max-sm:my-4 max-w-7xl mx-auto  text-start w-full overflow-hidden">
+						<div className="my-8 max-sm:my-4 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10 mx-auto  text-start w-full overflow-hidden">
 							{/* Conteúdo */}
 							<div className="text-center flex-col mx-8 max-sm:mx-3.5 flex gap-2 items-start max-sm:text-start justify-start transition-all">
 								<h1 className="max-sm:text-xl!">
@@ -476,7 +480,7 @@ const Home = () => {
 								</button>
 							</div>
 						</div>
-						<div className="mx-auto mb-5 font-medium max-sm:flex-col max-sm:px-3.5 max-sm:gap-1 max-sm:text-lg! max-w-full text-gray-700 gap-2 w-full flex justify-start items-start px-8 lg:max-w-7xl text-xl text-start ">
+						<div className="mx-auto mb-5 font-medium max-sm:flex-col max-sm:px-3.5 max-sm:gap-1 max-sm:text-lg! max-w-full text-gray-700 gap-2 w-full flex justify-start items-start px-8 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10 text-xl text-start ">
 							<span>Mas não se preocupe!</span>{" "}
 							<span className="max-sm:text-sm font-normal">
 								Confira abaixo outras opções disponíveis.
@@ -486,34 +490,54 @@ const Home = () => {
 				)
 			) : (
 				// Caso 1: sem pesquisa
-				<span className="mx-auto text__section max-sm:text-lg max-sm:mb-2.5 max-sm:pt-0 font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 max-sm:px-3.5 lg:max-w-7xl text-2xl text-start pt-5">
+				<span className="mx-auto text__section max-sm:text-lg max-sm:mb-2.5 max-sm:pt-0 font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 max-sm:px-3.5 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10 text-2xl text-start pt-5">
 					Acomodações disponíveis
 				</span>
 			)}
 			{loading && (
 				<div className="relative ">
-					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8  lg:max-w-7xl">
-						{[...Array(8)].map((_, index) => (
-							<div
-								key={index}
-								className="flex flex-col gap-2 w-full max-w-[350px]"
-							>
-								<Skeleton className="aspect-square w-full rounded-none rounded-t-2xl" />
-								<div className="space-y-2">
-									<Skeleton className="h-4 w-1/4" />
-									<Skeleton className="h-7 w-2/4" />
-									<Skeleton className="h-4 w-3/8" />
-									<Skeleton className="h-4 w-4/6" />
+					{mobile ? (
+						<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8 max-sm:px-3.5 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10">
+							{[...Array(16)].map((_, index) => (
+								<div
+									key={index}
+									className="flex flex-col gap-2 w-full max-w-[350px]"
+								>
+									<Skeleton className="aspect-square w-full rounded-none rounded-t-2xl" />
+									<div className="space-y-2">
+										<Skeleton className="h-4 w-1/4" />
+										<Skeleton className="h-7 w-2/4" />
+										<Skeleton className="h-4 w-3/8" />
+										<Skeleton className="h-4 w-4/6" />
+									</div>
+									<Skeleton className="h-5 w-50 mt-1" />
 								</div>
-								<Skeleton className="h-5 w-50 mt-1" />
-							</div>
-						))}
-					</div>
+							))}
+						</div>
+					) : (
+						<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8 max-sm:px-3.5 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10">
+							{[...Array(16)].map((_, index) => (
+								<div
+									key={index}
+									className="flex flex-col gap-2 w-full max-w-[350px]"
+								>
+									<Skeleton className="aspect-square w-full rounded-none rounded-t-2xl" />
+									<div className="space-y-2">
+										<Skeleton className="h-4 w-1/4" />
+										<Skeleton className="h-7 w-2/4" />
+										<Skeleton className="h-4 w-3/8" />
+										<Skeleton className="h-4 w-4/6" />
+									</div>
+									<Skeleton className="h-5 w-50 mt-1" />
+								</div>
+							))}
+						</div>
+					)}
 				</div>
 			)}
 			{/* GRID DE RESULTADOS */}
 			{city && placesSearch.length > 0 && (
-				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 mx-auto gap-8 px-8 max-sm:px-3.5 py-4 lg:max-w-7xl">
+				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 mx-auto gap-8 px-8 max-sm:px-3.5 py-4 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10">
 					<>
 						{placesSearch.map((place) => (
 							<Item {...{ place }} key={place._id} />
@@ -524,7 +548,7 @@ const Home = () => {
 			)}
 			{(!city || placesSearch.length === 0) && (
 				<div className="relative mb-10">
-					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8 max-sm:px-3.5 lg:max-w-7xl">
+					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8 max-sm:px-3.5 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10">
 						{places.map((place) => (
 							<Item {...{ place }} key={place._id} />
 						))}
