@@ -32,11 +32,13 @@ import PhotosUploader from "./PhotosUploader";
 import { MarkdownEditor, MarkdownEditor2 } from "./ui/MarkdownEditor";
 import { PreviewToggle } from "./PreviewToggle";
 import { TimePicker } from "./ui/TimePicker";
+import { useAuthModalContext } from "./contexts/AuthModalContext";
 
 const NewPlace = () => {
 	const { user } = useUserContext();
 	const { id } = useParams();
 	const { showMessage } = useMessage();
+	const { showAuthModal } = useAuthModalContext();
 	const [title, setTitle] = useState("");
 	const [city, setCity] = useState("");
 	const [photos, setPhotos] = useState([]);
@@ -63,6 +65,10 @@ const NewPlace = () => {
 	];
 
 	console.log(id);
+
+	if (!user) {
+		return <Navigate to="/" />;
+	}
 
 	useEffect(() => {
 		if (id) {

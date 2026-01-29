@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useUserContext } from "./contexts/UserContext";
+import { useAuthModalContext } from "./contexts/AuthModalContext";
 
 const Footer = () => {
+	const { showAuthModal } = useAuthModalContext();
+	const { user } = useUserContext();
 	return (
 		<footer className="bg-white px-6 py-0 max-w-7xl  mt-5 w-full mx-auto">
 			<div className=" pt-16 pb-8 max-sm:pt-4 ">
@@ -17,47 +21,53 @@ const Footer = () => {
 						</div>
 
 						<div>
-							<ul className="gap-4 list-none flex items-center appearance-none ">
+							<ul className="gap-4 list-none flex  items-center appearance-none ">
 								<li className="">
-									<a
-										href="/"
+									<Link
+										to="/"
 										className="text-gray-600 hover:text-black transition-colors"
 									>
 										Home
-									</a>
+									</Link>
 								</li>
 								<li className="">
-									<a
-										href="/account/profile"
+									<Link
+										to="/account/profile"
 										className="text-gray-600 hover:text-black transition-colors"
 									>
 										Perfil
-									</a>
+									</Link>
 								</li>
 								<li className="">
-									<a
-										href="/account/bookings"
+									<Link
+										to="/account/bookings"
 										className="text-gray-600 hover:text-black transition-colors"
 									>
 										Reservas
-									</a>
+									</Link>
 								</li>
 								<li className="">
-									<a
-										href="/account/places"
+									<Link
+										to="/account/places"
 										className="text-gray-600 hover:text-black transition-colors"
 									>
 										Acomodações
-									</a>
+									</Link>
 								</li>
-								<li className="">
-									<a
-										href="/login"
-										className="text-gray-600 hover:text-black transition-colors"
-									>
-										Entrar
-									</a>
-								</li>
+								{!user && (
+									<li className="">
+										<button
+											href="/login"
+											onClick={(e) => {
+												e.preventDefault();
+												showAuthModal("login");
+											}}
+											className=" cursor-pointer bg-primary-900 px-5 py-2 rounded-2xl text-white hover:bg-black transition-colors"
+										>
+											Entrar
+										</button>
+									</li>
+								)}
 							</ul>
 						</div>
 

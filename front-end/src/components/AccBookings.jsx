@@ -13,6 +13,12 @@ const AccBookings = ({ bookingId }) => {
 	const { user, ready: userReady } = useUserContext();
 
 	useEffect(() => {
+		if (!user) {
+			setBookings([]);
+			setReadyBookings(false);
+			return;
+		}
+
 		const axiosGet = async () => {
 			const { data } = await axios.get("/bookings/owner");
 			setTimeout(() => {
