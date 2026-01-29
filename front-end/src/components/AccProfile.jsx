@@ -609,7 +609,7 @@ const AccProfile = () => {
 										))}
 								</div>
 								{/* Mobile filter button skeleton */}
-								<div className="sticky bottom-2.5 ml-auto text-center -mt-7.5 justify-center text-xl p-4 w-fit shadow-sm flex flex-1 items-center gap-2 bg-gray-200 animate-pulse rounded-full h-12 w-32" />
+								<div className="sticky bottom-2.5 ml-auto text-center -mt-7.5 justify-center text-xl p-4 shadow-sm flex flex-1 items-center gap-2 bg-gray-200 animate-pulse rounded-full h-12 w-32" />
 							</div>
 						</div>
 					</div>
