@@ -1,15 +1,31 @@
-import { Edit, Edit2, ExternalLink, MapPin, Star, Trash2 } from "lucide-react";
+import {
+	ArrowRight,
+	ChevronRight,
+	Edit,
+	Edit2,
+	Ellipsis,
+	ExternalLink,
+	HousePlus,
+	Icon,
+	MapPin,
+	Star,
+	Trash2,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import ScrollReveal from "scrollreveal";
 import MarkdownIt from "markdown-it";
 import PaginationControls from "./PaginationControls";
 
+import { Link } from "react-router-dom";
+
 import {
-	Tooltip,
-	TooltipTrigger,
-	TooltipContent,
-	TooltipProvider,
-} from "@/components/ui/tooltip";
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import {
 	Carousel,
@@ -19,6 +35,13 @@ import {
 	CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useRef } from "react";
+
+import {
+	Tooltip,
+	TooltipTrigger,
+	TooltipContent,
+	TooltipProvider,
+} from "@/components/ui/tooltip";
 
 const DotButton = ({ selected, onClick }) => (
 	<button
@@ -31,10 +54,11 @@ const DotButton = ({ selected, onClick }) => (
 );
 
 // NOVO COMPONENTE: PlaceCard - cada card tem seus próprios estados
-const PlaceCard = ({ place }) => {
+const PlaceCard = ({ place, index }) => {
 	const [api, setApi] = useState(null);
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [isHovered, setIsHovered] = useState(false);
+	const [imageErrors, setImageErrors] = useState({});
 	const [scrollSnaps, setScrollSnaps] = useState([]);
 	const cardRef = useRef(null);
 
@@ -69,137 +93,104 @@ const PlaceCard = ({ place }) => {
 		};
 	}, [api]);
 
+	const navItemsPlace = [
+		{
+			path: `/account/places/${place._id}`,
+			label: "Acessar",
+			icon: ExternalLink,
+			class: "text-blue-500",
+		},
+		{
+			path: `/account/places/new/${place._id}`,
+			label: "Editar",
+			icon: Edit,
+		},
+		{
+			path: `/account/places/r/${place._id}`,
+			label: "Deletar",
+			icon: Trash2,
+			class: "text-white",
+			classBg: "bg-red-500 text-white",
+		},
+	];
+
+	const handleImageError = (index) => {
+		setImageErrors((prev) => ({ ...prev, [index]: true }));
+	};
+
+	const getImageSrc = (item, index) => {
+		if (imageErrors[`${item._id}_${index}`]) {
+			return photoDefault;
+		}
+		return item.photos?.[index];
+	};
+
 	return (
 		<div
 			ref={cardRef}
-			className={`flex-col bg-white/80 max-w-[350px] h-fit relative flex-1 flex rounded-3xl border border-primary-200 gap-5`}
+			className={`item__projeto rounded-xl max-sm:flex-col relative flex gap-5 max-sm:gap-2 ${
+				index % 2 === 0 ? "item__left " : "item__right"
+			}`}
+			key={place._id}
 		>
-			{/* Carrossel de imagens */}
-			<div className="relative">
-				<Carousel
-					opts={{
-						loop: true,
-					}}
-					className="w-full relative rounded-b-none"
-					setApi={setApi}
-				>
-					<CarouselContent>
-						{place.photos.map((photo, index) => (
-							<CarouselItem
-								className="relative overflow-hidden rounded-b-none rounded-t-2xl"
-								key={index}
-							>
-								<img
-									src={photo}
-									alt={`Imagem da acomodação ${index + 1}`}
-									className="aspect-square z-0 w-full *:rounded-2xl object-cover transition-transform rounded-t-2xl rounded-b-none"
-								/>
-							</CarouselItem>
-						))}
-					</CarouselContent>
-
-					{/* Navegação do carrossel */}
-					<div onClick={(e) => e.preventDefault()}>
-						<CarouselPrevious className="absolute border-none left-2 text-white bg-white/30 hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
-					</div>
-					<div onClick={(e) => e.preventDefault()}>
-						<CarouselNext className="absolute right-2 border-none bg-white/30 text-white hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
-					</div>
-
-					{/* Rating badge */}
-					<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
-						<Star size={14} fill="#FFC107" stroke="#FFC107" />
-						<span className="text-sm font-semibold">
-							{place.averageRating.toFixed(1)}
+			<div className="grid gap-2 max-sm:gap-x-2 grid-cols-8  grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2 ">
+				<img
+					src={getImageSrc(place, 0)}
+					onError={() => handleImageError(`${place._id}_0`)}
+					className="row-span-4 col-span-5 max-sm:col-span-5  h-full max-sm:w-full w-50 object-cover rounded-2xl"
+					alt={place.title}
+				/>
+				<img
+					src={getImageSrc(place, 1)}
+					onError={() => handleImageError(`${place._id}_1`)}
+					className="row-span-2 col-span-3  h-full w-40 object-cover rounded-2xl"
+					alt={place.title}
+				/>
+				<img
+					src={getImageSrc(place, 2)}
+					onError={() => handleImageError(`${place._id}_2`)}
+					className="row-span-2 col-span-3  h-full w-40 object-cover rounded-2xl"
+					alt={place.title}
+				/>
+			</div>
+			<div className="relative flex flex-col w-full justify-between gap-2">
+				<div className="flex flex-col">
+					<p className="absolute -top-6 max-sm:static text-primary-700 cursor-pointer uppercase font-light">
+						{place.city}
+					</p>
+					<Link
+						to={`/places/${place._id}`}
+						className="cursor-pointer hover:underline font-bold text-3xl text-[#0F172B] text-wrap max-w-md overflow-hidden"
+					>
+						{place.title}
+					</Link>
+					<span className="flex items-center gap-1">
+						<Star fill="black" stroke="black" size={20}></Star>
+						5.0{" "}
+						<span className="w-1 h-1 rounded-full bg-primary-500 mx-2"></span>
+						Favorito
+					</span>
+				</div>
+				<div className="flex items-end gap-10 w-full justify-between">
+					<div className="relative font-medium text-2xl flex-1  text-[#0F172B]">
+						R$ {place.price}
+						<span className="absolute font-normal text-sm pl-1 top-2">
+							/noite
 						</span>
 					</div>
-				</Carousel>
-
-				{/* Dot indicators */}
-				<div
-					className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"
-					onClick={(e) => e.preventDefault()}
-				>
-					{scrollSnaps.map((_, index) => (
-						<DotButton
-							key={`${place._id}-dot-${index}`}
-							selected={index === selectedIndex}
-							onClick={() => onDotButtonClick(index)}
-						/>
-					))}
-				</div>
-			</div>
-			<div className="px-4 mr-4 max-sm:py-0 flex flex-col justify-between w-full">
-				<div className="flex flex-col gap-3">
-					<div className="flex justify-between max-sm:mb-3 leading-5">
-						<p className="text-[1.2rem] font-light text-gray-900">
-							{place.title}
-						</p>
-					</div>
-					<div className="flex items-center gap-4">
-						<div className="flex items-center flex-1 gap-1 text-xs w-full text-gray-600">
-							<MapPin size={14} />
-							<span>{place.city}</span>
-						</div>
-					</div>
-				</div>
-				<div className="flex items-center mt-4 justify-between">
-					<div className=" flex flex-col max-sm:items-start items-end py-4">
-						<div className="flex items-center gap-2">
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<a
-										href={`/places/${place._id}`}
-										className="group cursor-pointer w-fit hover:bg-primary-600 hover:text-white px-3 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-xl text-center py-2.5 overflow-hidden"
-									>
-										<ExternalLink
-											size={18}
-											className="transition-transform text-primary-500 group-hover:text-white duration-300 group-hover:scale-110"
-										/>
-									</a>
-								</TooltipTrigger>
-								<TooltipContent className="bg-primary-600">
-									<p>Acessar acomodação</p>
-								</TooltipContent>
-							</Tooltip>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<a
-										href={`/account/places/new/${place._id}`}
-										className="edit__btn group cursor-pointer flex items-center hover:text-white justify-center transition-all duration-300 ease-in-out px-3 hover:bg-blue-600 gap-0 hover:gap-3 text-blue-500 rounded-xl text-center py-2.5 overflow-hidden"
-									>
-										<Edit
-											size={18}
-											className="transition-transform group-hover:text-white duration-300 group-hover:scale-110"
-										/>
-									</a>
-								</TooltipTrigger>
-								<TooltipContent className="bg-blue-600">
-									<p>Editar acomodação</p>
-								</TooltipContent>
-							</Tooltip>
-
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<a
-										href={`/account/places/r/${place._id}`}
-										className="edit__btn group cursor-pointer group-hover:text-white hover:text-white flex items-center justify-center transition-all duration-300 ease-in-out px-3 hover:bg-red-600 gap-0 hover:gap-3 text-red-500 rounded-xl text-center py-2.5 overflow-hidden"
-									>
-										<Trash2
-											size={18}
-											className="transition-transform duration-300 group-hover:scale-110"
-										/>
-									</a>
-								</TooltipTrigger>
-								<TooltipContent className="bg-red-600">
-									<p>Excluir acomodação</p>
-								</TooltipContent>
-							</Tooltip>
-						</div>
-					</div>
-					<p className="font-medium text-primary-600 rounded-xl p-2 absolute right-4">
-						R$ {place.price}/noite
-					</p>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Link
+								to={`/places/${place._id}`}
+								className="cursor-pointer group p-2 hover:bg-primary-100/50 rounded-2xl transition-all flex items-center gap-2 font-medium"
+							>
+								<ArrowRight size={18} className="group-hover:-rotate-12" />
+							</Link>
+						</TooltipTrigger>
+						<TooltipContent className="bg-primary-600">
+							<p>Acessar acomodação</p>
+						</TooltipContent>
+					</Tooltip>
 				</div>
 			</div>
 		</div>
@@ -240,8 +231,8 @@ const Places = ({ places }) => {
 
 	return (
 		<>
-			{currentPlaces.map((place) => (
-				<PlaceCard key={place._id} place={place} />
+			{currentPlaces.map((place, index) => (
+				<PlaceCard key={place._id} index={index} place={place} />
 			))}
 
 			{/* Componente de paginação reutilizável */}
