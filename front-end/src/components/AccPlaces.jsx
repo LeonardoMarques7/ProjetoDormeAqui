@@ -3,6 +3,7 @@ import {
 	HousePlus,
 	Plus,
 	PlusCircle,
+	PlusCircleIcon,
 	PlusSquare,
 	Trash2,
 } from "lucide-react";
@@ -127,17 +128,16 @@ const AccPlaces = () => {
 									className="grid gap-2 grid-cols-8 justify-center items-center grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2"
 									to="/account/places/new"
 								>
-									<div className="row-span-4 col-span-5 justify-center border border-dashed border-gray-400 flex items-center flex-1 text-center bg-gray-200 animate-pulse h-full w-40 object-cover rounded-2xl">
-										<HousePlus size={45} className="text-gray-400" />
+									<div className="row-span-4 hover:bg-primary-100/50 col-span-5 justify-center border border-dashed border-primary-900 flex items-center flex-1 text-center h-full w-40 object-cover rounded-2xl">
+										<HousePlus size={45} className="text-primary-900" />
 									</div>
 								</Link>
 							</TooltipTrigger>
-							<TooltipContent className="bg-primary-600">
+							<TooltipContent className="bg-primary-900">
 								<p>Anuncie uma acomodação</p>
 							</TooltipContent>
 						</Tooltip>
 					)}
-
 					<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]  gap-5 lg:max-w-7xl">
 						{loadingPlaces ? (
 							<>
