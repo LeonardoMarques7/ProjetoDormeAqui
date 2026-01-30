@@ -1,12 +1,5 @@
-import {
-	Tooltip,
-	TooltipTrigger,
-	TooltipContent,
-	TooltipProvider,
-} from "@/components/ui/tooltip";
-import { ChevronRight, ChevronLeftIcon } from "lucide-react";
 import { useState } from "react";
-import Preview from "./Preview";
+import Preview from "@/components/places/Preview";
 
 export function PreviewToggle({ formData }) {
 	const [showPreview, setShowPreview] = useState(true);

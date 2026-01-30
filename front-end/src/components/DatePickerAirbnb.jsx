@@ -21,7 +21,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-import { useMobileContext } from "./contexts/MobileContext";
+import { useMobileContext } from "@/components/contexts/MobileContext";
 import axios from "axios";
 
 // Funções auxiliares para datas

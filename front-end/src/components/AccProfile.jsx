@@ -12,7 +12,7 @@ import {
 import { Select } from "@mantine/core";
 import axios from "axios";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
-import { useUserContext } from "./contexts/UserContext";
+import { useUserContext } from "@/components/contexts/UserContext";
 import {
 	ArrowRight,
 	Heart,

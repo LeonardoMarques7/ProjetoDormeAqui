@@ -1,23 +1,13 @@
-import {
-	ExternalLink,
-	HousePlus,
-	Plus,
-	PlusCircle,
-	PlusCircleIcon,
-	PlusSquare,
-	Trash2,
-} from "lucide-react";
+import { HousePlus, Trash2 } from "lucide-react";
 import { Navigate, useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import NewPlace from "./NewPlace";
-import Places from "./Places";
-import "./Places.css";
-import { useMobileContext } from "./contexts/MobileContext";
-import Loading from "./Loading";
-import { useUserContext } from "./contexts/UserContext";
-import image from "../assets/image.png";
+import NewPlace from "@/components/places/NewPlace";
+import Places from "@/components/places/Places";
+import "@/components/places/Places.css";
+import { useMobileContext } from "@/components/contexts/MobileContext";
+import { useUserContext } from "@/components/contexts/UserContext";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import {
@@ -30,14 +20,10 @@ import {
 const AccPlaces = () => {
 	const { action } = useParams();
 	const { mobile } = useMobileContext();
-	const { user, ready } = useUserContext();
-	const [login, setLogin] = useState(false);
+	const { user } = useUserContext();
 	const [places, setPlaces] = useState([]);
 	const [redirect, setRedirect] = useState(false);
 	const [loadingPlaces, setLoadingPlaces] = useState(true);
-	const [imagePlace, setImagePlace] = useState("");
-	const { id } = useParams();
-
 	const { edit } = useParams();
 
 	useEffect(() => {

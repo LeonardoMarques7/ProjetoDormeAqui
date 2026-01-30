@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { useMessage } from "./contexts/MessageContext";
+import { useMessage } from "@/components/contexts/MessageContext";
 import { MilkdownProvider } from "@milkdown/react";
 import { nord } from "@milkdown/theme-nord";
 import { useUserContext } from "../components/contexts/UserContext";
@@ -37,7 +37,7 @@ import {
 	Wifi,
 } from "lucide-react";
 import Loading from "./Loading";
-import { MarkdownEditor } from "./ui/MarkdownEditor";
+import { MarkdownEditor } from "@/components/ui/MarkdownEditor";
 
 const EditProfile = ({ user }) => {
 	const id = user._id;

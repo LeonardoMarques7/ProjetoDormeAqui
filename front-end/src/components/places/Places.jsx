@@ -1,39 +1,10 @@
-import {
-	ArrowRight,
-	ChevronRight,
-	Edit,
-	Edit2,
-	Ellipsis,
-	ExternalLink,
-	HousePlus,
-	Icon,
-	MapPin,
-	Star,
-	Trash2,
-} from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { ArrowRight, Edit, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import ScrollReveal from "scrollreveal";
-import MarkdownIt from "markdown-it";
-import PaginationControls from "./PaginationControls";
+import PaginationControls from "@/components/PaginationControls";
 
 import { Link } from "react-router-dom";
 
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import {
-	Carousel,
-	CarouselContent,
-	CarouselItem,
-	CarouselNext,
-	CarouselPrevious,
-} from "@/components/ui/carousel";
 import { useRef } from "react";
 
 import {
@@ -43,38 +14,13 @@ import {
 	TooltipProvider,
 } from "@/components/ui/tooltip";
 
-const DotButton = ({ selected, onClick }) => (
-	<button
-		className={`w-2 h-2 rounded-full cursor-pointer transition-all duration-300 ${
-			selected ? "bg-white w-6" : "bg-white/50"
-		}`}
-		type="button"
-		onClick={onClick}
-	/>
-);
-
 // NOVO COMPONENTE: PlaceCard - cada card tem seus próprios estados
 const PlaceCard = ({ place, index }) => {
 	const [api, setApi] = useState(null);
 	const [selectedIndex, setSelectedIndex] = useState(0);
-	const [isHovered, setIsHovered] = useState(false);
 	const [imageErrors, setImageErrors] = useState({});
 	const [scrollSnaps, setScrollSnaps] = useState([]);
 	const cardRef = useRef(null);
-
-	const md = new MarkdownIt({
-		html: false,
-		breaks: true,
-		linkify: true,
-	});
-
-	const onDotButtonClick = useCallback(
-		(index) => {
-			if (!api) return;
-			api.scrollTo(index);
-		},
-		[api],
-	);
 
 	useEffect(() => {
 		if (!api) return;
@@ -92,27 +38,6 @@ const PlaceCard = ({ place, index }) => {
 			api.off("select", onSelect);
 		};
 	}, [api]);
-
-	const navItemsPlace = [
-		{
-			path: `/account/places/${place._id}`,
-			label: "Acessar",
-			icon: ExternalLink,
-			class: "text-blue-500",
-		},
-		{
-			path: `/account/places/new/${place._id}`,
-			label: "Editar",
-			icon: Edit,
-		},
-		{
-			path: `/account/places/r/${place._id}`,
-			label: "Deletar",
-			icon: Trash2,
-			class: "text-white",
-			classBg: "bg-red-500 text-white",
-		},
-	];
 
 	const handleImageError = (index) => {
 		setImageErrors((prev) => ({ ...prev, [index]: true }));
@@ -175,12 +100,12 @@ const PlaceCard = ({ place, index }) => {
 					<div className="flex items-center gap-2">
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<a
-									href={`/places/${place._id}`}
+								<Link
+									to={`/places/${place._id}`}
 									className="group cursor-pointer w-fit hover:bg-primary-600 hover:text-white px-3 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-xl text-center py-2.5 overflow-hidden"
 								>
 									<ArrowRight size={18} className="group-hover:-rotate-12" />
-								</a>
+								</Link>
 							</TooltipTrigger>
 							<TooltipContent className="bg-primary-600">
 								<p>Acessar acomodação</p>
@@ -188,15 +113,15 @@ const PlaceCard = ({ place, index }) => {
 						</Tooltip>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<a
-									href={`/account/places/new/${place._id}`}
+								<Link
+									to={`/account/places/new/${place._id}`}
 									className="edit__btn group cursor-pointer flex items-center hover:text-white justify-center transition-all duration-300 ease-in-out px-3 hover:bg-blue-600 gap-0 hover:gap-3 text-blue-500 rounded-xl text-center py-2.5 overflow-hidden"
 								>
 									<Edit
 										size={18}
 										className="transition-transform group-hover:text-white duration-300 group-hover:scale-110"
 									/>
-								</a>
+								</Link>
 							</TooltipTrigger>
 							<TooltipContent className="bg-blue-600">
 								<p>Editar acomodação</p>
@@ -205,15 +130,15 @@ const PlaceCard = ({ place, index }) => {
 
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<a
-									href={`/account/places/r/${place._id}`}
+								<Link
+									to={`/account/places/r/${place._id}`}
 									className="edit__btn group cursor-pointer group-hover:text-white hover:text-white flex items-center justify-center transition-all duration-300 ease-in-out px-3 hover:bg-red-600 gap-0 hover:gap-3 text-red-500 rounded-xl text-center py-2.5 overflow-hidden"
 								>
 									<Trash2
 										size={18}
 										className="transition-transform duration-300 group-hover:scale-110"
 									/>
-								</a>
+								</Link>
 							</TooltipTrigger>
 							<TooltipContent className="bg-red-600">
 								<p>Excluir acomodação</p>
