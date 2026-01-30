@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import AccProfile from "../components/AccProfile";
+import AccProfile from "@/components/profile/AccProfile";
 import AccPlaces from "@/components/places/AccPlaces";
 import AccBookings from "@/components/bookings/AccBookings";
 import { useUserContext } from "../components/contexts/UserContext";

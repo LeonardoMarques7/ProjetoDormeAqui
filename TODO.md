@@ -1,37 +1,56 @@
-# TODO: Implementar Controle de Usuário
-
-## Tarefas Pendentes
-
-- [ ] Modificar Account.jsx para verificar login em places e bookings
-- [ ] Importar AuthModalContext em Account.jsx
-- [ ] Adicionar lógica de verificação de usuário logado
-- [ ] Testar acesso às rotas sem login
-- [ ] Verificar se modal aparece corretamente
-
 ## Arquivos a Editar
 
-layout/: Header, Footer, MenuBar (layout components)
+- [x] **layout/**
+  - [x] Header
+  - [x] Footer
+  - [x] MenuBar
 
-auth/: AuthDialog, DeleteAccountDialog (authentication related)
+- [x] **auth/**
+  - [x] AuthDialog
+  - [x] DeleteAccountDialog
 
-bookings/: BookingAlert, BookingAll, AccBookings (booking management)
+- [x] **bookings/**
+  - [x] BookingAlert
+  - [x] BookingAll
+  - [x] AccBookings
 
-places/: Places, NewPlace, AccPlaces, ScrollPlace (place/accommodation related)
+- [x] **places/**
+  - [x] Places
+  - [x] NewPlace
+  - [x] AccPlaces
+  - [x] ScrollPlace
 
-profile/: EditProfile, AccProfile (user profile management)
+- [x] **profile/**
+  - [x] EditProfile
+  - [x] AccProfile
 
-common/: Loading, Message, Status, Counter, GridMotion, RotatingText, Item, PaginationControls, Preview, PreviewToggle (shared/common components)
+- [ ] **common/**
+  - [ ] Loading
+  - [ ] Message
+  - [ ] Status
+  - [ ] Counter
+  - [ ] GridMotion
+  - [ ] RotatingText
+  - [ ] Item
+  - [ ] PaginationControls
+  - [ ] Preview
+  - [ ] PreviewToggle
 
-forms/: DatePickerAirbnb, PhotosUploader, Perks, Perk, perksConfig (form-related components)
+- [ ] **forms/**
+  - [ ] DatePickerAirbnb
+  - [ ] PhotosUploader
+  - [ ] Perks
+  - [ ] Perk
+  - [ ] perksConfig
 
-reviews/: Review (review components)
+- [ ] **reviews/**
+  - [ ] Review
 
-contexts/: (already exists, context providers)
+- [x] **contexts/**
+  - [x] Já existe (context providers)
 
-schemas/: (already exists, schemas)
+- [x] **schemas/**
+  - [x] Já existe
 
-ui/: (already exists, UI library components)
-
-## Status
-
-Em andamento
+- [x] **ui/**
+  - [x] Já existe (UI library components)

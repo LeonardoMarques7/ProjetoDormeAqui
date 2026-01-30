@@ -1,42 +1,21 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useMessage } from "@/components/contexts/MessageContext";
-import { MilkdownProvider } from "@milkdown/react";
-import { nord } from "@milkdown/theme-nord";
-import { useUserContext } from "../components/contexts/UserContext";
-import verify from "../assets/verify.png";
 import { withMask } from "use-mask-input";
-import { Select } from "@base-ui-components/react/select";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 
-import "./EditProfile.css";
-
 import {
-	ArrowBigLeft,
 	ArrowLeft,
-	ArrowLeftSquare,
-	ArrowUpFromLine,
-	CalendarArrowDown,
-	CalendarArrowUp,
 	Camera,
-	ChevronLeft,
-	DollarSign,
-	Home,
 	ImagePlus,
 	Mail,
 	MapPin,
-	NotepadTextDashed,
 	Phone,
-	SaveAll,
-	SaveAllIcon,
-	Search,
 	Upload,
 	User,
 	Users,
-	Wifi,
 } from "lucide-react";
-import Loading from "./Loading";
 import { MarkdownEditor } from "@/components/ui/MarkdownEditor";
 
 const EditProfile = ({ user }) => {

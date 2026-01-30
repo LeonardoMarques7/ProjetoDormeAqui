@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import photoDefault from "../assets/photoDefault.jpg";
-import userDefault from "../assets/user__default.png";
+import photoDefault from "@/assets/photoDefault.jpg";
+import userDefault from "@/assets/user__default.png";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -37,16 +37,14 @@ import {
 	DrawerTrigger,
 } from "@/components/ui/drawer";
 
-import verify from "../assets/verify.png";
-import "./AccProfile.css";
 import Autoplay from "embla-carousel-autoplay";
 import { useRef } from "react";
 import { useEffect } from "react";
 import DeleteAccountDialog from "@/components/auth/DeleteAccountDialog";
-import EditProfile from "./EditProfile";
+import EditProfile from "@/components/profile/EditProfile";
 import { useLocation } from "react-router-dom";
-import Banner from "../assets/banner.jpg";
-import bannerDefault from "../assets/banner__default2.jpg";
+import Banner from "@/assets/banner.jpg";
+import bannerDefault from "@/assets/banner__default2.jpg";
 
 const AccProfile = () => {
 	const { user, setUser, ready: userContextReady } = useUserContext();
@@ -62,11 +60,8 @@ const AccProfile = () => {
 	const [api, setApi] = useState(null);
 	const [current, setCurrent] = useState(0);
 	const [count, setCount] = useState(0);
-	const [isPlaying, setIsPlaying] = useState(true);
 	const [places, setPlaces] = useState([]);
 	const [ready, setReady] = useState(false);
-	const [onDelete, setOnDelete] = useState(false);
-	const [initialValues, setInitialValues] = useState(null);
 	const [imageErrors, setImageErrors] = useState({});
 	const [totalGuestsSatisfied, setTotalGuestsSatisfied] = useState(0);
 	const [experienceTime, setExperienceTime] = useState("");
@@ -78,22 +73,11 @@ const AccProfile = () => {
 	const [ratingFilter, setRatingFilter] = useState("all");
 	const [commentFilter, setCommentFilter] = useState("all");
 	const [sheetRating, setSheetRating] = useState(0);
-	const [sheetHoverRating, setSheetHoverRating] = useState(0);
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [sortByTemp, setSortByTemp] = useState("recent");
 	const [tempRating, setTempRating] = useState(0);
 	const [tempHoverRating, setTempHoverRating] = useState(0);
 	const [tempCommentFilter, setTempCommentFilter] = useState("all");
-
-	const navigate = useNavigate();
-
-	const plugin = useRef(
-		Autoplay({
-			delay: 20000,
-			stopOnInteraction: false,
-			stopOnMouseEnter: false,
-		}),
-	);
 
 	useEffect(() => {
 		const fetchProfile = async () => {
@@ -338,17 +322,6 @@ const AccProfile = () => {
 		} catch (error) {
 			alert(JSON.stringify(error));
 		}
-	};
-
-	const toggleAutoplay = () => {
-		if (!api) return;
-
-		if (isPlaying) {
-			plugin.current.stop();
-		} else {
-			plugin.current.play();
-		}
-		setIsPlaying(!isPlaying);
 	};
 
 	const handleDelete = async () => {
