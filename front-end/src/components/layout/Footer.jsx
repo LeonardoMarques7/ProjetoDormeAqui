@@ -20,7 +20,7 @@ const Footer = () => {
 						</div>
 
 						<div>
-							<ul className="gap-4 list-none flex  items-center appearance-none ">
+							<ul className="gap-4 list-none flex max-sm:hidden items-center appearance-none ">
 								<li className="">
 									<Link
 										to="/"
