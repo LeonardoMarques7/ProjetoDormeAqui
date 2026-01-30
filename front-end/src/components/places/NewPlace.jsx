@@ -1,24 +1,22 @@
 import axios from "axios";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { PriceInput } from "./ui/PriceInput";
+import { PriceInput } from "@/components/ui/PriceInput";
 
-import { useMessage } from "./contexts/MessageContext";
-import { GuestsInput } from "./ui/GuestsInput";
+import { useMessage } from "@/components/contexts/MessageContext";
+import { GuestsInput } from "@/components/ui/GuestsInput";
 
-import { useMobileContext } from "./contexts/MobileContext";
-import { useUserContext } from "./contexts/UserContext";
+import { useUserContext } from "@/components/contexts/UserContext";
+import Loading from "@/components/Loading";
 
-import MarkdownIt from "markdown-it";
-
-import Perks from "./Perks";
+import Perks from "@/components/Perks";
 
 import "lightgallery/css/lightgallery.css";
 import "lightgallery/css/lg-zoom.css";
 import "lightgallery/css/lg-thumbnail.css";
 import "lightgallery/css/lg-fullscreen.css";
 
-import "./NewPlace.css";
+import "@/components/places/NewPlace.css";
 
 import {
 	ArrowLeft,
@@ -28,14 +26,17 @@ import {
 	MapPin,
 	SaveAllIcon,
 } from "lucide-react";
-import PhotosUploader from "./PhotosUploader";
-import { MarkdownEditor, MarkdownEditor2 } from "./ui/MarkdownEditor";
-import { PreviewToggle } from "./PreviewToggle";
-import { TimePicker } from "./ui/TimePicker";
-import { useAuthModalContext } from "./contexts/AuthModalContext";
+import PhotosUploader from "@/components/PhotosUploader";
+import {
+	MarkdownEditor,
+	MarkdownEditor2,
+} from "@/components/ui/MarkdownEditor";
+import { PreviewToggle } from "@/components/places/PreviewToggle";
+import { TimePicker } from "@/components/ui/TimePicker";
+import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 
 const NewPlace = () => {
-	const { user } = useUserContext();
+	const { user, ready } = useUserContext();
 	const { id } = useParams();
 	const { showMessage } = useMessage();
 	const { showAuthModal } = useAuthModalContext();
@@ -66,10 +67,6 @@ const NewPlace = () => {
 
 	console.log(id);
 
-	if (!user) {
-		return <Navigate to="/" />;
-	}
-
 	useEffect(() => {
 		if (id) {
 			const axiosGet = async () => {
@@ -90,6 +87,14 @@ const NewPlace = () => {
 			axiosGet();
 		}
 	}, []);
+
+	if (!ready) {
+		return <Loading />;
+	}
+
+	if (ready && !user) {
+		return <Navigate to="/" />;
+	}
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();

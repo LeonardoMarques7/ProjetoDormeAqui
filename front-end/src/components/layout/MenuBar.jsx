@@ -25,19 +25,14 @@ import {
 	TicketCheck,
 } from "lucide-react";
 import { Home, Briefcase, User, Mail, Settings } from "lucide-react";
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-import { useAuthModalContext } from "./contexts/AuthModalContext";
+import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 
-import ImageMail from "../assets/mailMinimal.png";
-import ImageGithub from "../assets/githubMinimal.png";
-import ImageLinkedin from "../assets/linkedinMinimal.png";
-
-import logo__primary from "../assets/logo__primary.png";
-import { useUserContext } from "./contexts/UserContext";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import logo__primary from "@/assets/logo__primary.png";
+import { useUserContext } from "@/components/contexts/UserContext";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function MenuBar({ active }) {

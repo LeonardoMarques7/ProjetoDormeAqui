@@ -1,17 +1,17 @@
-import { useRef, useState } from "react";
-import { useUserContext } from "./contexts/UserContext";
+import { useRef } from "react";
+import { useUserContext } from "@/components/contexts/UserContext";
 
-import { useMobileContext } from "./contexts/MobileContext";
+import { useMobileContext } from "@/components/contexts/MobileContext";
 
 import MarkdownIt from "markdown-it";
-import Perk from "../components/Perk";
+import Perk from "@/components/Perk";
 
 import "lightgallery/css/lightgallery.css";
 import "lightgallery/css/lg-zoom.css";
 import "lightgallery/css/lg-thumbnail.css";
 import "lightgallery/css/lg-fullscreen.css";
 
-import photoDefault from "../assets/photoDefault.jpg";
+import photoDefault from "@/assets/photoDefault.jpg";
 
 import {
 	AlarmClockCheck,
@@ -283,7 +283,7 @@ const Preview = ({ data }) => {
 										>
 											<Perk perk={perk} />
 										</div>
-									)
+									),
 							)}
 						</div>
 					</div>

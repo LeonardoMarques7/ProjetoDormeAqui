@@ -1,18 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
-import AccProfile from "../components/AccProfile";
-import AccPlaces from "../components/AccPlaces";
-import AccBookings from "../components/AccBookings";
+import { useEffect } from "react";
+import { useParams } from "react-router-dom";
+import AccProfile from "@/components/profile/AccProfile";
+import AccPlaces from "@/components/places/AccPlaces";
+import AccBookings from "@/components/bookings/AccBookings";
 import { useUserContext } from "../components/contexts/UserContext";
 import { useAuthModalContext } from "../components/contexts/AuthModalContext";
-import { Calendar, House, User } from "lucide-react";
-import Loading from "../components/Loading";
-import Teste2 from "./Teste2";
 import NotFound from "./NotFound";
 
 const Account = () => {
 	const { subpage, id, action } = useParams();
-	const [shouldRedirect, setShouldRedirect] = useState(false);
 	const { user, ready } = useUserContext();
 	const { showAuthModal } = useAuthModalContext();
 

@@ -1,13 +1,12 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { useUserContext } from "./contexts/UserContext";
-import { useAuthModalContext } from "./contexts/AuthModalContext";
+import { Link } from "react-router-dom";
+import { useUserContext } from "@/components/contexts/UserContext";
+import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 
 const Footer = () => {
 	const { showAuthModal } = useAuthModalContext();
 	const { user } = useUserContext();
 	return (
-		<footer className="bg-white px-6 py-0 max-w-7xl  mt-5 w-full mx-auto">
+		<footer className="bg-white px-6 py-0 max-w-7xl 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10  mt-5 w-full mx-auto">
 			<div className=" pt-16 pb-8 max-sm:pt-4 ">
 				<div className="flex flex-col gap-5">
 					{/* Logo e Descrição */}
@@ -21,7 +20,7 @@ const Footer = () => {
 						</div>
 
 						<div>
-							<ul className="gap-4 list-none flex  items-center appearance-none ">
+							<ul className="gap-4 list-none flex max-sm:hidden items-center appearance-none ">
 								<li className="">
 									<Link
 										to="/"

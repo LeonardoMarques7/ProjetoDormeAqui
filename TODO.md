@@ -1,17 +1,56 @@
-# TODO: Implementar Controle de Usuário
-
-## Tarefas Pendentes
-
-- [ ] Modificar Account.jsx para verificar login em places e bookings
-- [ ] Importar AuthModalContext em Account.jsx
-- [ ] Adicionar lógica de verificação de usuário logado
-- [ ] Testar acesso às rotas sem login
-- [ ] Verificar se modal aparece corretamente
-
 ## Arquivos a Editar
 
-- front-end/src/pages/Account.jsx
+- [x] **layout/**
+  - [x] Header
+  - [x] Footer
+  - [x] MenuBar
 
-## Status
+- [x] **auth/**
+  - [x] AuthDialog
+  - [x] DeleteAccountDialog
 
-Em andamento
+- [x] **bookings/**
+  - [x] BookingAlert
+  - [x] BookingAll
+  - [x] AccBookings
+
+- [x] **places/**
+  - [x] Places
+  - [x] NewPlace
+  - [x] AccPlaces
+  - [x] ScrollPlace
+
+- [x] **profile/**
+  - [x] EditProfile
+  - [x] AccProfile
+
+- [ ] **common/**
+  - [ ] Loading
+  - [ ] Message
+  - [ ] Status
+  - [ ] Counter
+  - [ ] GridMotion
+  - [ ] RotatingText
+  - [ ] Item
+  - [ ] PaginationControls
+  - [ ] Preview
+  - [ ] PreviewToggle
+
+- [ ] **forms/**
+  - [ ] DatePickerAirbnb
+  - [ ] PhotosUploader
+  - [ ] Perks
+  - [ ] Perk
+  - [ ] perksConfig
+
+- [ ] **reviews/**
+  - [ ] Review
+
+- [x] **contexts/**
+  - [x] Já existe (context providers)
+
+- [x] **schemas/**
+  - [x] Já existe
+
+- [x] **ui/**
+  - [x] Já existe (UI library components)

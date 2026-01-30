@@ -1,28 +1,15 @@
 import axios from "axios";
 import {
 	Bath,
-	BathIcon,
 	Bed,
-	BedDouble,
-	CalendarArrowDown,
-	CalendarArrowUp,
-	CalendarArrowUpIcon,
 	ChevronRight,
 	Clock,
-	Edit2,
 	Expand,
-	ExternalLink,
 	Home,
 	HomeIcon,
-	House,
-	ImagePlus,
-	LocateIcon,
 	MapPin,
 	Minus,
-	Plane,
 	Plus,
-	User,
-	Users,
 	Star,
 	Users2,
 } from "lucide-react";
@@ -40,20 +27,10 @@ import { useUserContext } from "../components/contexts/UserContext";
 import { useMessage } from "../components/contexts/MessageContext";
 import Perk from "../components/Perk";
 import "./Place.css";
-import imageQrCode from "../assets/qrcode_leonardomdev.png";
-import imageDormeAqui from "../assets/logo__primary.png";
-import { format, isBefore, addDays } from "date-fns";
-import { cn } from "@/lib/utils";
-import { Toaster } from "sonner";
-import { toast } from "sonner";
-import BookingAlert from "../components/BookingAlert";
+import { addDays } from "date-fns";
 import { useMobileContext } from "../components/contexts/MobileContext";
 import MarkdownIt from "markdown-it";
-import Perks from "../components/Perks";
-import Banner from "../assets/banner2.jpg";
 import { Skeleton } from "@/components/ui/skeleton";
-import RotatingText from "@/components/RotatingText";
-import { Timeline } from "@mantine/core";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import Counter from "@/components/Counter";
 import photoDefaultLoading from "../assets/loadingGif2.gif";
@@ -67,16 +44,13 @@ import {
 	TooltipContent,
 	TooltipProvider,
 } from "@/components/ui/tooltip";
-import { useAuthModalContext } from "../components/contexts/AuthModalContext";
-import Review from "../components/Review";
-import PaginationControls from "../components/PaginationControls";
+import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 import NotFound from "./NotFound";
 
 const Place = () => {
 	const { mobile } = useMobileContext();
 	const { id } = useParams();
 	const { user } = useUserContext();
-	const [login, setLogin] = useState(false);
 	const { showMessage } = useMessage();
 	const [place, setPlace] = useState(null);
 

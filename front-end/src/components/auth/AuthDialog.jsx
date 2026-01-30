@@ -1,5 +1,3 @@
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
 	Check,
 	CircleUserRound,
@@ -9,7 +7,6 @@ import {
 	Mail,
 	X,
 } from "lucide-react";
-import logo__primary from "../assets/logo__primary.png";
 import {
 	Dialog,
 	DialogContent,
@@ -29,12 +26,10 @@ import {
 	DrawerTrigger,
 } from "@/components/ui/drawer";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import axios from "axios";
-import { useUserContext } from "./contexts/UserContext";
+import { useUserContext } from "@/components/contexts/UserContext";
 const photoDefault =
 	"https://projeto-dorme-aqui.s3.us-east-2.amazonaws.com/1769633448464-848631051.png";
 

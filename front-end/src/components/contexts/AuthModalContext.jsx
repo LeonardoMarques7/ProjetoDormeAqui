@@ -7,7 +7,7 @@ import {
 	useCallback,
 	useMemo,
 } from "react";
-import { AuthDialog } from "../AuthDialog";
+import { AuthDialog } from "@/components/auth/AuthDialog";
 
 export const AuthModalContext = createContext({ showAuthModal: () => {} });
 

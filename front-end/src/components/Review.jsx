@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Star, Send } from "lucide-react";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-import { useMessage } from "./contexts/MessageContext";
+import { useMessage } from "@/components/contexts/MessageContext";
 
 const Review = ({ booking }) => {
 	const [rating, setRating] = useState(0);
@@ -123,9 +123,7 @@ const Review = ({ booking }) => {
 							Enviando...
 						</>
 					) : (
-						<>
-							Enviar avaliação
-						</>
+						<>Enviar avaliação</>
 					)}
 				</InteractiveHoverButton>
 			</form>

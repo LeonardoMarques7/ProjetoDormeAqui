@@ -12,24 +12,20 @@ import { Toaster } from "sonner";
 import { UserContextProvider } from "./components/contexts/UserContext";
 import { MessageProvider } from "./components/contexts/MessageContext";
 
-import Header from "./components/Header";
+import Header from "@/components/layout/Header";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Account from "./pages/Account";
 import Place from "./pages/Place";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import Footer from "@/components/layout/Footer";
 
 import "@mantine/core/styles.css";
 
 import { MantineProvider } from "@mantine/core";
 import { useEffect } from "react";
-import { useState } from "react";
-import { set } from "date-fns";
 import { MobileContextProvider } from "./components/contexts/MobileContext";
-import Footer from "./components/Footer";
-import Teste from "./pages/Teste";
+
 import { AuthModalContextProvider } from "./components/contexts/AuthModalContext";
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
@@ -63,7 +59,6 @@ function App() {
 								<Header active={isComponentActive} />
 								<Routes>
 									<Route path="/" element={<Home />} />
-									<Route path="/teste" element={<Teste />} />
 									<Route path="/reset-password" element={<ResetPassword />} />
 									<Route
 										path="/account/:subpage/:action?/:id?"
