@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { Menu } from "lucide-react";
-import logoPrimary from "../assets/logo__primary.png";
-import logoSecondary from "../assets/logo__secondary.png";
+import logoPrimary from "@/assets/logo__primary.png";
+import logoSecondary from "@/assets/logo__secondary.png";
 import { Link, useLocation } from "react-router-dom";
-import { useUserContext } from "./contexts/UserContext";
 import MenuBar from "./MenuBar";
 
 const Header = ({ active }) => {
@@ -11,8 +9,7 @@ const Header = ({ active }) => {
 	const location = useLocation();
 	const secondaryLogoRoutes = [
 		"/", // home
-		"/places/", // exemplo
-		// Adicione aqui as rotas que precisam da logo clara
+		"/places/",
 	];
 
 	// Verifica se a rota atual precisa da logo secondary

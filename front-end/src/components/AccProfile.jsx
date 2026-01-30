@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import photoDefault from "../assets/photoDefault.jpg";
 import userDefault from "../assets/user__default.png";
 import {
@@ -14,26 +14,11 @@ import axios from "axios";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
 import {
-	ArrowLeft,
 	ArrowRight,
-	Cog,
-	EllipsisVertical,
-	Globe,
 	Heart,
-	Loader,
-	LogOut,
-	Mail,
 	MapPin,
-	Pen,
-	Phone,
-	PhoneCall,
 	Star,
-	Sunrise,
-	Trash2,
-	ExternalLink,
-	ArrowRightSquare,
 	ChevronRight,
-	Menu,
 	Ellipsis,
 	Filter,
 } from "lucide-react";
@@ -58,16 +43,10 @@ import Autoplay from "embla-carousel-autoplay";
 import { useRef } from "react";
 import { useEffect } from "react";
 import DeleteAccountDialog from "@/components/DeleteAccountDialog";
-import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import EditProfile from "./EditProfile";
-import { Skeleton } from "@/components/ui/skeleton";
-import Loading from "./Loading";
-import { useTimeout } from "@mantine/hooks";
 import { useLocation } from "react-router-dom";
-import image from "../assets/image.png";
 import Banner from "../assets/banner.jpg";
 import bannerDefault from "../assets/banner__default2.jpg";
-import MenuBar from "./MenuBar";
 
 const AccProfile = () => {
 	const { user, setUser, ready: userContextReady } = useUserContext();
