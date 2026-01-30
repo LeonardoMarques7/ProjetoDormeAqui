@@ -1,5 +1,4 @@
-// src/components/DeleteAccountDialog.jsx
-import AlertDialog from "./ui/AlertDialog";
+import AlertDialog from "@/components/ui/AlertDialog";
 
 export default function DeleteAccountDialog({ onDelete, open, onOpenChange }) {
 	return (

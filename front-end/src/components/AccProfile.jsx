@@ -42,7 +42,7 @@ import "./AccProfile.css";
 import Autoplay from "embla-carousel-autoplay";
 import { useRef } from "react";
 import { useEffect } from "react";
-import DeleteAccountDialog from "@/components/DeleteAccountDialog";
+import DeleteAccountDialog from "@/components/auth/DeleteAccountDialog";
 import EditProfile from "./EditProfile";
 import { useLocation } from "react-router-dom";
 import Banner from "../assets/banner.jpg";
