@@ -1,8 +1,8 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import BookingAll from "./BookingAll";
+import BookingAll from "@/components/bookings/BookingAll";
 import { Skeleton } from "@/components/ui/skeleton";
-import "./Booking.css";
+import "@/components/bookings/Booking.css";
 import { useParams } from "react-router-dom";
 import { useUserContext } from "./contexts/UserContext";
 

@@ -1,31 +1,14 @@
-import {
-	CalendarArrowDown,
-	CalendarArrowUp,
-	DollarSign,
-	MapPin,
-	Moon,
-	TicketIcon,
-	User,
-	Users,
-} from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { MapPin } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import imageDormeAqui from "../assets/logo__primary.png";
-import imageQrCode from "../assets/qrcode_leonardomdev.png";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 
-import { useMobileContext } from "./contexts/MobileContext";
 import "./Booking.css";
 
-import Marquee from "react-fast-marquee";
-import Status from "./Status";
-import Review from "./Review";
+import Review from "@/components/Review";
 
 const BookingAll = ({ bookingsArray, bookingId }) => {
-	const [mobile, setIsMobile] = useState(window.innerWidth <= 768);
 	const [sortOrder, setSortOrder] = useState("closest"); // 'closest' or 'furthest'
 	const navigate = useNavigate();
 
