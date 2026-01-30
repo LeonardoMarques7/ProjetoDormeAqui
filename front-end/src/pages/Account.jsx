@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import AccProfile from "../components/AccProfile";
 import AccPlaces from "../components/AccPlaces";
-import AccBookings from "../components/AccBookings";
+import AccBookings from "@/components/bookings/AccBookings";
 import { useUserContext } from "../components/contexts/UserContext";
 import { useAuthModalContext } from "../components/contexts/AuthModalContext";
 import { Calendar, House, User } from "lucide-react";

@@ -1,14 +1,13 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import BookingAll from "@/components/bookings/BookingAll";
 import { Skeleton } from "@/components/ui/skeleton";
 import "@/components/bookings/Booking.css";
 import { useParams } from "react-router-dom";
-import { useUserContext } from "./contexts/UserContext";
+import { useUserContext } from "@/components/contexts/UserContext";
 
 const AccBookings = ({ bookingId }) => {
 	const [bookings, setBookings] = useState([]);
-	const { action } = useParams();
 	const [readyBookings, setReadyBookings] = useState(false);
 	const { user, ready: userReady } = useUserContext();
 
