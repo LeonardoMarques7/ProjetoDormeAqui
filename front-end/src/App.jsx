@@ -12,13 +12,18 @@ import { Toaster } from "sonner";
 import { UserContextProvider } from "./components/contexts/UserContext";
 import { MessageProvider } from "./components/contexts/MessageContext";
 
-import Header from "@/components/layout/Header";
 import Home from "./pages/Home";
 import Account from "./pages/Account";
 import Place from "./pages/Place";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Footer from "@/components/layout/Footer";
+import AppSidebar from "@/components/layout/Sidebar";
+import {
+	SidebarInset,
+	SidebarProvider,
+	SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 import "@mantine/core/styles.css";
 
@@ -54,21 +59,33 @@ function App() {
 					<AuthModalContextProvider>
 						<MessageProvider>
 							<Toaster position="top-right" />
-							<div className="flex flex-col ">
-								<ScrollToTop />
-								<Header active={isComponentActive} />
-								<Routes>
-									<Route path="/" element={<Home />} />
-									<Route path="/reset-password" element={<ResetPassword />} />
-									<Route
-										path="/account/:subpage/:action?/:id?"
-										element={<Account />}
-									/>
-									<Route path="/places/:id" element={<Place />} />
-									<Route path="/*" element={<NotFound />} />
-								</Routes>
-								<Footer active={isComponentActive} />
-							</div>
+							<SidebarProvider>
+								<AppSidebar active={isComponentActive} />
+								<SidebarInset>
+									<ScrollToTop />
+									<div className="flex flex-col min-h-screen">
+										<header className="flex shrink-0 absolute group transition-all hover:bg-sidebar bg-sidebar/90   top-3 left-3 rounded-xl p-2.5 z-50 items-center gap-2">
+											<SidebarTrigger className="cursor-pointer hover:bg-transparent text-gray-800 " />
+										</header>
+										<div className="flex flex-1 flex-col gap-4 p-2">
+											<Routes>
+												<Route path="/" element={<Home />} />
+												<Route
+													path="/reset-password"
+													element={<ResetPassword />}
+												/>
+												<Route
+													path="/account/:subpage/:action?/:id?"
+													element={<Account />}
+												/>
+												<Route path="/places/:id" element={<Place />} />
+												<Route path="/*" element={<NotFound />} />
+											</Routes>
+											<Footer active={isComponentActive} />
+										</div>
+									</div>
+								</SidebarInset>
+							</SidebarProvider>
 						</MessageProvider>
 					</AuthModalContextProvider>
 				</UserContextProvider>

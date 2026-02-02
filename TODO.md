@@ -4,6 +4,7 @@
   - [x] Header
   - [x] Footer
   - [x] MenuBar
+  - [x] Sidebar (transformed from Header + MenuBar using shadcn/ui)
 
 - [x] **auth/**
   - [x] AuthDialog

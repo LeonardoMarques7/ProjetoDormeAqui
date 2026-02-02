@@ -167,13 +167,13 @@ const Home = () => {
 	return (
 		<div>
 			<div className="relative flex justify-center w-full mb-12 ">
-				<div className="sm:banner__home max-sm:h-[25svh] max-w-7xl w-full xl:h-[30svh] h-[50svh] 2xl:max-w-full 2xl:px-20  max-sm:top-0   relative">
+				<div className="max-sm:h-[25svh] max-w-7xl w-full xl:h-[30svh] h-[50svh] 2xl:max-w-full 2xl:px-20  max-sm:top-0   relative">
 					<img
 						src={Banner}
 						alt=""
-						className="object-cover pointer-events-none h-full w-full xl:rounded-b-2xl shadow-2xl"
+						className="object-cover pointer-events-none h-full w-full xl:rounded-xl"
 					/>
-					<div className="absolute inset-0 2xl:mx-20 lg:max-w-7xl mx-auto bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
+					<div className="absolute inset-0 2xl:mx-20 lg:max-w-7xl mx-auto rounded-xl bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
 				</div>
 
 				{mobile ? (
