@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Item from "../components/Item";
+import Item from "@/components/places/Item";
 import axios from "axios";
 import {
 	Eraser,
@@ -26,7 +26,7 @@ import {
 import Banner from "../assets/banner2.jpg";
 
 import "./Home.css";
-import DatePickerAirbnb from "../components/DatePickerAirbnb";
+import DatePickerAirbnb from "@/components/places/DatePickerAirbnb";
 import searchSchema from "@/components/schemas/searchSchema.jsx";
 import { useMobileContext } from "../components/contexts/MobileContext";
 import { useLocation } from "react-router";

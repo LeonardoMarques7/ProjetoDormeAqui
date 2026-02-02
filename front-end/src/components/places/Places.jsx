@@ -1,7 +1,7 @@
 import { ArrowRight, Edit, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ScrollReveal from "scrollreveal";
-import PaginationControls from "@/components/PaginationControls";
+import PaginationControls from "@/components/ui/PaginationControls";
 
 import { Link } from "react-router-dom";
 

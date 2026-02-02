@@ -1,7 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import Perk from "./Perk";
-import { PERKS_CONFIG } from "./perksConfig";
-import PaginationControls from "./PaginationControls";
+import Perk from "@/components/common/Perk";
+import { PERKS_CONFIG } from "@/components/common/perksConfig";
+import PaginationControls from "@/components/ui/PaginationControls";
 import { useState } from "react";
 
 const Perks = ({ perks, setPerks }) => {

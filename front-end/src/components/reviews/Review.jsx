@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
-import { Star, Send } from "lucide-react";
+import { Star } from "lucide-react";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { useMessage } from "@/components/contexts/MessageContext";
 

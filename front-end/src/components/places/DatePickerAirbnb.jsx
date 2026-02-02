@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -6,12 +6,6 @@ import {
 	Calendar,
 	Check,
 	ArrowRight,
-	ScissorsLineDashed,
-	LineSquiggle,
-	LineChart,
-	Spline,
-	Minus,
-	SearchCheck,
 	Trash,
 } from "lucide-react";
 import {

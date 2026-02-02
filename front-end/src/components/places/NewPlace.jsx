@@ -7,9 +7,8 @@ import { useMessage } from "@/components/contexts/MessageContext";
 import { GuestsInput } from "@/components/ui/GuestsInput";
 
 import { useUserContext } from "@/components/contexts/UserContext";
-import Loading from "@/components/Loading";
 
-import Perks from "@/components/Perks";
+import Perks from "@/components/common/Perks";
 
 import "lightgallery/css/lightgallery.css";
 import "lightgallery/css/lg-zoom.css";
@@ -26,7 +25,7 @@ import {
 	MapPin,
 	SaveAllIcon,
 } from "lucide-react";
-import PhotosUploader from "@/components/PhotosUploader";
+import PhotosUploader from "@/components/places/PhotosUploader";
 import {
 	MarkdownEditor,
 	MarkdownEditor2,
@@ -87,10 +86,6 @@ const NewPlace = () => {
 			axiosGet();
 		}
 	}, []);
-
-	if (!ready) {
-		return <Loading />;
-	}
 
 	if (ready && !user) {
 		return <Navigate to="/" />;

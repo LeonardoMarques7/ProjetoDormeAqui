@@ -1,5 +1,5 @@
 import React from "react";
-import { PERKS_CONFIG } from "./perksConfig";
+import { PERKS_CONFIG } from "@/components/common/perksConfig";
 
 const Perk = ({ perk, minimal = null, width = 20 }) => {
 	// Gera o objPerk dinamicamente a partir da configuração

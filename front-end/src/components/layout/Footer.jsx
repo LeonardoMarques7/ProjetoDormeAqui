@@ -6,7 +6,7 @@ const Footer = () => {
 	const { showAuthModal } = useAuthModalContext();
 	const { user } = useUserContext();
 	return (
-		<footer className="bg-white px-6 py-0 max-w-7xl 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10  mt-5 w-full mx-auto">
+		<footer className="bg-white px-6 py-0 2xl:max-w-full 2xl:px-20 xl:max-w-7xl xl:px-10  mt-5 w-full mx-auto">
 			<div className=" pt-16 pb-8 max-sm:pt-4 ">
 				<div className="flex flex-col gap-5">
 					{/* Logo e Descrição */}
