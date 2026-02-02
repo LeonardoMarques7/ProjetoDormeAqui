@@ -25,18 +25,18 @@ import "lightgallery/css/lg-thumbnail.css";
 import "lightgallery/css/lg-fullscreen.css";
 import { useUserContext } from "../components/contexts/UserContext";
 import { useMessage } from "../components/contexts/MessageContext";
-import Perk from "../components/Perk";
+import Perk from "@/components/common/Perk";
 import "./Place.css";
 import { addDays } from "date-fns";
 import { useMobileContext } from "../components/contexts/MobileContext";
 import MarkdownIt from "markdown-it";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-import Counter from "@/components/Counter";
+import Counter from "@/components/common/Counter";
 import photoDefaultLoading from "../assets/loadingGif2.gif";
 import photoDefault from "../assets/photoDefault.jpg";
 
-import DatePickerAirbnb from "../components/DatePickerAirbnb";
+import DatePickerAirbnb from "@/components/places/DatePickerAirbnb";
 
 import {
 	Tooltip,

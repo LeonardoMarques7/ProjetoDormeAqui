@@ -2,10 +2,10 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
-import icon__default from "../assets/icons/icon__default.png";
-import icon__success from "../assets/icons/icon__success.png";
-import icon__warning from "../assets/icons/icon__warning.png";
-import icon__error from "../assets/icons/icon__error.png";
+import icon__default from "@/assets/icons/icon__default.png";
+import icon__success from "@/assets/icons/icon__success.png";
+import icon__warning from "@/assets/icons/icon__warning.png";
+import icon__error from "@/assets/icons/icon__error.png";
 
 const Message = ({ type, message, open, onOpenChange }) => {
 	useEffect(() => {
@@ -63,7 +63,7 @@ const Message = ({ type, message, open, onOpenChange }) => {
 				duration: 5000,
 				onDismiss: () => onOpenChange(false),
 				onAutoClose: () => onOpenChange(false),
-			}
+			},
 		);
 
 		// Reseta o estado após mostrar

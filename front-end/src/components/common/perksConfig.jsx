@@ -25,7 +25,7 @@ import {
 	Ham,
 } from "lucide-react";
 
-import iron from "../assets/icons/iron.png";
+import iron from "@/assets/icons/iron.png";
 
 // ============================================
 // CONFIGURAÇÃO CENTRALIZADA DOS PERKS

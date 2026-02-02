@@ -1,7 +1,7 @@
 // MessageContext.jsx
 import { createContext, useContext, useState } from "react";
 
-import Message from "../Message";
+import Message from "@/components/common/Message";
 
 const MessageContext = createContext();
 

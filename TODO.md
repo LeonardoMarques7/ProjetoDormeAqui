@@ -1,5 +1,5 @@
-## Arquivos a Editar
-
+- [ ] Ensure tmp directory exists before multer upload in production
+- [ ] Test the fix in production
 - [x] **layout/**
   - [x] Header
   - [x] Footer
@@ -29,7 +29,6 @@
   - [ ] Message
   - [ ] Status
   - [ ] Counter
-  - [ ] GridMotion
   - [ ] RotatingText
   - [ ] Item
   - [ ] PaginationControls

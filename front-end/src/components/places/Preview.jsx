@@ -4,7 +4,7 @@ import { useUserContext } from "@/components/contexts/UserContext";
 import { useMobileContext } from "@/components/contexts/MobileContext";
 
 import MarkdownIt from "markdown-it";
-import Perk from "@/components/Perk";
+import Perk from "@/components/common/Perk";
 
 import "lightgallery/css/lightgallery.css";
 import "lightgallery/css/lg-zoom.css";

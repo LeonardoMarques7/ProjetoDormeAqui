@@ -6,7 +6,7 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 
 import "./Booking.css";
 
-import Review from "@/components/Review";
+import Review from "@/components/reviews/Review";
 
 const BookingAll = ({ bookingsArray, bookingId }) => {
 	const [sortOrder, setSortOrder] = useState("closest"); // 'closest' or 'furthest'

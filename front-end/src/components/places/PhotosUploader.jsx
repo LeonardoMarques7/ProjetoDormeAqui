@@ -1,5 +1,5 @@
 import axios from "axios";
-import photoDefault from "../assets/photoDefault.jpg";
+import photoDefault from "@/assets/photoDefault.jpg";
 import { ArrowUpFromLine, Camera, Star, Trash } from "lucide-react";
 
 const PhotosUploader = ({
@@ -26,7 +26,7 @@ const PhotosUploader = ({
 		if (!validTypes.includes(file.type)) {
 			showMessage(
 				"Formato de arquivo inválido! Use: JPG, PNG, GIF, WEBP ou SVG",
-				"error"
+				"error",
 			);
 			return false;
 		}
@@ -101,7 +101,7 @@ const PhotosUploader = ({
 		if (validFilesCount === 0) {
 			showMessage(
 				"Nenhuma imagem válida encontrada. Usando imagem padrão.",
-				"warning"
+				"warning",
 			);
 			setPhotos((prevValue) => [...prevValue, photoDefault]);
 			return;
@@ -117,7 +117,7 @@ const PhotosUploader = ({
 				setPhotos((prevValue) => [...prevValue, ...urlArray]);
 				showMessage(
 					`${urlArray.length} imagem(ns) enviada(s) com sucesso!`,
-					"success"
+					"success",
 				);
 			} else {
 				throw new Error("Nenhuma URL retornada");

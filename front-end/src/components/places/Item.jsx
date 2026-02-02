@@ -1,11 +1,9 @@
 import { Link, Navigate } from "react-router-dom";
 import { Skeleton } from "@mantine/core";
-import MarkdownIt from "markdown-it";
 import Autoplay from "embla-carousel-autoplay";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
 
 import {
 	Carousel,
@@ -15,19 +13,7 @@ import {
 	CarouselPrevious,
 } from "@/components/ui/carousel";
 
-import {
-	Bath,
-	Bed,
-	Home,
-	MapPin,
-	Users2,
-	Wifi,
-	Waves,
-	Thermometer,
-	Star,
-	ArrowRight,
-	ChevronDown,
-} from "lucide-react";
+import { MapPin, Star, ChevronDown } from "lucide-react";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 const DotButton = ({ selected, onClick }) => (
 	<button
@@ -47,12 +33,6 @@ const Item = ({ place = null, placeHolder }) => {
 	const [isHovered, setIsHovered] = useState(false);
 	const [clickItem, setClickItem] = useState(false);
 	const cardRef = useRef(null);
-
-	const md = new MarkdownIt({
-		html: false,
-		breaks: true,
-		linkify: true,
-	});
 
 	const onDotButtonClick = useCallback(
 		(index) => {

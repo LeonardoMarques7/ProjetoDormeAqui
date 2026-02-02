@@ -59,7 +59,7 @@ const Header = ({ active }) => {
 
 	return (
 		<header
-			className={`fixed z-50 w-full mb-3 transition-all duration-500 delay-0 2xl:max-w-full 2xl:px-10 xl:max-w-full xl:px-5 ${
+			className={`fixed z-50 w-full mb-3 transition-all duration-500 delay-0 2xl:max-w-full 2xl:px-10 xl:max-w-full  ${
 				scrolled
 					? "bg-white  duration-75 !text-gray-900  backdrop-blur-2xl shadow-md shadow-white/10"
 					: "bg-transparent"
