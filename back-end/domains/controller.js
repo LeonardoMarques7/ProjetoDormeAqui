@@ -33,10 +33,15 @@ export const sendToS3 = async (filename, path, mimeType) => {
 }
 
 export const uploadImage = () => {
-    
+
     const storage = multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, `${__dirname}/tmp`)
+            const uploadPath = `${__dirname}/tmp`;
+            // Ensure the tmp directory exists
+            if (!fs.existsSync(uploadPath)) {
+                fs.mkdirSync(uploadPath, { recursive: true });
+            }
+            cb(null, uploadPath)
         },
         filename: function (req, file, cb) {
             const uniqueSuffix = Math.round(Math.random() * 1E9);
