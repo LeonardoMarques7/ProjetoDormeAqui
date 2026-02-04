@@ -67,7 +67,7 @@ function App() {
 										<header className="flex shrink-0 absolute group transition-all hover:bg-sidebar bg-sidebar/90   top-3 left-3 rounded-xl p-2.5 z-50 items-center gap-2">
 											<SidebarTrigger className="cursor-pointer hover:bg-transparent text-gray-800 " />
 										</header>
-										<div className="flex flex-1 flex-col gap-4 p-2">
+										<div className="flex flex-1 flex-col gap-0 p-4">
 											<Routes>
 												<Route path="/" element={<Home />} />
 												<Route

@@ -272,7 +272,7 @@ const Place = () => {
 							{/* Imagem principal - ocupa 2 colunas e 2 linhas */}
 							<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
 								<img
-									className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
+									className="w-full h-full border aspect-video rounded-2xl object-cover  transition-all"
 									src={photoDefaultLoading}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(0)}
@@ -282,7 +282,7 @@ const Place = () => {
 							{/* Imagem superior direita */}
 							<div className="col-span-1 row-span-1 max-sm:col-span-2 ">
 								<img
-									className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
+									className="w-full h-full border aspect-video rounded-2xl object-cover  transition-all"
 									src={photoDefaultLoading}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(1)}
@@ -292,7 +292,7 @@ const Place = () => {
 							{/* Imagem superior direita extrema */}
 							<div className="col-span-1 row-span-1 max-sm:col-span-2">
 								<img
-									className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
+									className="w-full h-full border aspect-video rounded-2xl object-cover  transition-all"
 									src={photoDefaultLoading}
 									alt="Imagem da acomodação"
 									onClick={() => handleImageClick(2)}
@@ -302,7 +302,7 @@ const Place = () => {
 								<>
 									<div className="col-span-1 row-span-1 max-sm:col-span-4">
 										<img
-											className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
+											className="w-full h-full border aspect-video rounded-2xl object-cover  transition-all"
 											src={photoDefaultLoading}
 											alt="Imagem da acomodação"
 											onClick={() => handleImageClick(3)}
@@ -311,7 +311,7 @@ const Place = () => {
 
 									<div className="col-span-1 row-span-1">
 										<img
-											className="w-full h-full border aspect-video rounded-2xl object-cover hover:saturate-150 transition-all"
+											className="w-full h-full border aspect-video rounded-2xl object-cover  transition-all"
 											src={photoDefaultLoading}
 											alt="Imagem da acomodação"
 											onClick={() => handleImageClick(4)}
@@ -504,79 +504,77 @@ const Place = () => {
 			{/* Place */}
 
 			<div className="container__infos mx-auto max-w-7xl flex flex-col gap-2">
-				<div className="bg-primary-900  max-sm:p-0 max-sm:shadow-none max-h-full  max-sm:mt-15 py-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
-					<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:mx-0 max-sm:rounded-none rounded-2xl cursor-pointer">
-						{/* Container do grid principal */}
-						<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2  max-sm:h-[50svh]">
-							{/* Imagem principal - ocupa 2 colunas e 2 linhas */}
-							<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
-								<img
-									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
-									src={getImageSrc(0)}
-									onError={() => handleImageError(0)}
-									alt="Imagem da acomodação"
-									onClick={() => handleImageClick(0)}
-								/>
-							</div>
-
-							{/* Imagem superior direita */}
-							<div className="col-span-1 row-span-1 max-sm:col-span-2 ">
-								<img
-									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
-									src={getImageSrc(1)}
-									onError={() => handleImageError(1)}
-									alt="Imagem da acomodação"
-									onClick={() => handleImageClick(1)}
-								/>
-							</div>
-
-							{/* Imagem superior direita extrema */}
-							<div className="col-span-1 row-span-1 max-sm:col-span-2">
-								<img
-									className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
-									src={getImageSrc(2)}
-									onError={() => handleImageError(2)}
-									alt="Imagem da acomodação"
-									onClick={() => handleImageClick(2)}
-								/>
-							</div>
-
-							{mobile ? null : (
-								<>
-									<div className="col-span-1 row-span-1 max-sm:col-span-4">
-										<img
-											className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
-											src={getImageSrc(3)}
-											onError={() => handleImageError(3)}
-											alt="Imagem da acomodação"
-											onClick={() => handleImageClick(3)}
-										/>
-									</div>
-
-									<div className="col-span-1 row-span-1">
-										<img
-											className="w-full h-full rounded-2xl object-cover cursor-pointer hover:saturate-150 transition-all"
-											src={getImageSrc(4)}
-											onError={() => handleImageError(4)}
-											alt="Imagem da acomodação"
-											onClick={() => handleImageClick(4)}
-										/>
-									</div>
-								</>
-							)}
-
-							<button
-								className="absolute bottom-4 right-4 max-sm:text-sm max-sm:opacity-70 max-sm:p-2 hover:max-sm:opacity-100 flex items-center px-4 py-2 rounded-lg gap-2 bg-white border border-gray-800 hover:bg-gray-50 transition-all cursor-pointer font-medium"
-								onClick={handleShowMoreClick}
-							>
-								<Expand size={18} />
-								<span className="max-sm:hidden">Mostrar todas as fotos</span>
-							</button>
+				<div className=" max-sm:p-0 max-sm:shadow-none max-h-full  max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center  relative overflow-hidden">
+					{/* Container do grid principal */}
+					<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2  max-sm:h-[50svh]">
+						{/* Imagem principal - ocupa 2 colunas e 2 linhas */}
+						<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
+							<img
+								className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+								src={getImageSrc(0)}
+								onError={() => handleImageError(0)}
+								alt="Imagem da acomodação"
+								onClick={() => handleImageClick(0)}
+							/>
 						</div>
+
+						{/* Imagem superior direita */}
+						<div className="col-span-1 row-span-1 max-sm:col-span-2 ">
+							<img
+								className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+								src={getImageSrc(1)}
+								onError={() => handleImageError(1)}
+								alt="Imagem da acomodação"
+								onClick={() => handleImageClick(1)}
+							/>
+						</div>
+
+						{/* Imagem superior direita extrema */}
+						<div className="col-span-1 row-span-1 max-sm:col-span-2">
+							<img
+								className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+								src={getImageSrc(2)}
+								onError={() => handleImageError(2)}
+								alt="Imagem da acomodação"
+								onClick={() => handleImageClick(2)}
+							/>
+						</div>
+
+						{mobile ? null : (
+							<>
+								<div className="col-span-1 row-span-1 max-sm:col-span-4">
+									<img
+										className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+										src={getImageSrc(3)}
+										onError={() => handleImageError(3)}
+										alt="Imagem da acomodação"
+										onClick={() => handleImageClick(3)}
+									/>
+								</div>
+
+								<div className="col-span-1 row-span-1">
+									<img
+										className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+										src={getImageSrc(4)}
+										onError={() => handleImageError(4)}
+										alt="Imagem da acomodação"
+										onClick={() => handleImageClick(4)}
+									/>
+								</div>
+							</>
+						)}
+
+						<button
+							className="absolute bottom-4 right-4 max-sm:text-sm max-sm:opacity-70 max-sm:p-2 hover:max-sm:opacity-100 flex items-center px-4 py-2 rounded-lg gap-2 bg-white border border-gray-800 hover:bg-gray-50 transition-all cursor-pointer font-medium"
+							onClick={handleShowMoreClick}
+						>
+							<Expand size={18} />
+							<span className="max-sm:hidden">Mostrar todas as fotos</span>
+						</button>
 					</div>
 				</div>
 				{/* Conteúdo da acomodação */}
-				<div className="grid grid-cols-1 max-sm:gap-5 gap-20 md:grid-cols-2 mt-2 max-sm:mx-2 max-sm:mt-0 mx-8 ">
+				<div className="grid grid-cols-1 max-sm:gap-5 gap-20 md:grid-cols-2 mt-2 max-sm:mx-2 max-sm:mt-0 mx-4 ">
 					<div className="leading-relaxed px-0 order-1 description ">
 						<div className="max-sm:py-0  w-full">
 							<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">

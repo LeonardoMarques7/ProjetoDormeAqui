@@ -476,7 +476,7 @@ const DatePickerAirbnb = ({
 
 			{/* Preview das datas selecionadas */}
 			{(checkinDate || checkoutDate) && !search && (
-				<div className="mt-4 border-primary-200 rounded-xl">
+				<div className="mt-4 rounded-xl">
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="text-sm font-semibold text-primary-900 mb-1">
@@ -491,7 +491,6 @@ const DatePickerAirbnb = ({
 						{nights > 0 && (
 							<div className="text-right">
 								<p className="text-lg font-bold relative text-primary-600">
-									<span className="border w-full absolute left-0" />
 									{nights} {nights === 1 ? "noite" : "noites"}
 								</p>
 								<p className="text-xs text-primary-700">
