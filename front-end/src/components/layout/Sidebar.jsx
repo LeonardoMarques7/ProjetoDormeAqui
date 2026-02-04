@@ -10,6 +10,14 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+import {
+	Tooltip,
+	TooltipTrigger,
+	TooltipContent,
+	TooltipProvider,
+} from "@/components/ui/tooltip";
+
 import {
 	ArrowRight,
 	ChevronRight,
@@ -166,16 +174,26 @@ const AppSidebar = () => {
 	return (
 		<ShadcnSidebar variant="inset" collapsible="icon">
 			<SidebarHeader className="w-full">
-				<Link to="/" className="flex items-center justify-start px-2 pt-4">
+				<Link
+					to="/"
+					className="flex items-center justify-start px-2 py-4 group-data-[collapsible=icon]:py-0"
+				>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<img
+								src={logoPrimaryIcon}
+								alt="Logo DormeAqui"
+								className="h-20 object-contain transition-all w-full duration-300 hidden group-data-[collapsible=icon]:flex"
+							/>
+						</TooltipTrigger>
+						<TooltipContent side="right" className="ml-2" align="center">
+							<p>Página inicial</p>
+						</TooltipContent>
+					</Tooltip>
 					<img
 						src={logoPrimary}
 						alt="Logo DormeAqui"
 						className="h-8 transition-all duration-300 group-data-[collapsible=icon]:hidden"
-					/>
-					<img
-						src={logoPrimaryIcon}
-						alt="Logo DormeAqui"
-						className="h-20 object-contain transition-all w-full duration-300 hidden group-data-[collapsible=icon]:flex"
 					/>
 				</Link>
 			</SidebarHeader>
