@@ -8,7 +8,17 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, ChevronRight, HotelIcon } from "lucide-react";
+import {
+	ArrowRight,
+	Calendar,
+	ChevronRight,
+	ChevronsUpDown,
+	Cog,
+	HotelIcon,
+	LogIn,
+	LogOut,
+	UserPlus,
+} from "lucide-react";
 import { Home, Briefcase, User, Mail, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -61,7 +71,9 @@ const AppSidebar = () => {
 			},
 		},
 		{
-			path: "/login",
+			function: () => {
+				showAuthModal("login");
+			},
 			label: "Torne-se um anfitrião",
 		},
 	];
@@ -90,6 +102,8 @@ const AppSidebar = () => {
 		}
 	};
 
+	const nameUser = user?.name ? user.name.split(" ") : ["", ""];
+
 	return (
 		<ShadcnSidebar variant="inset" collapsible="icon">
 			<SidebarHeader>
@@ -114,11 +128,22 @@ const AppSidebar = () => {
 											asChild
 											isActive={isActive}
 											tooltip={item.label}
-											className="py-2"
+											className="p-2 h-fit"
 										>
-											<Link className="py-2" to={item.path}>
+											<Link
+												className="w-full flex items-center justify-start gap-4 py-5 p-4 text-gray-700 hover:bg-purple-50 rounded-2xl transition-all [&:hover_.chevron]:opacity-100"
+												to={item.path}
+											>
 												<item.icon />
 												<span>{item.label}</span>
+												<ChevronRight
+													size={18}
+													className={`chevron ml-auto transition-opacity ${
+														isActive
+															? "opacity-100 text-primary-900"
+															: "opacity-0"
+													}`}
+												/>
 											</Link>
 										</SidebarMenuButton>
 									</SidebarMenuItem>
@@ -128,7 +153,7 @@ const AppSidebar = () => {
 					</SidebarGroupContent>
 				</SidebarGroup>
 
-				{user && (
+				{/* {user && (
 					<SidebarGroup className=" group-data-[collapsible=icon]:hidden">
 						<SidebarGroupLabel>Conta</SidebarGroupLabel>
 						<SidebarGroupContent>
@@ -145,7 +170,7 @@ const AppSidebar = () => {
 							</SidebarMenu>
 						</SidebarGroupContent>
 					</SidebarGroup>
-				)}
+				)} */}
 
 				{!user && (
 					<SidebarGroup>
@@ -170,10 +195,7 @@ const AppSidebar = () => {
 				{user ? (
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<SidebarMenuButton
-								size="lg"
-								className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-							>
+							<SidebarMenuButton className="data-[state=open]:bg-sidebar-accent !py-8 rounded-2xl cursor-pointer data-[state=open]:text-sidebar-accent-foreground">
 								<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
 									<img
 										src={user.photo}
@@ -181,11 +203,11 @@ const AppSidebar = () => {
 										alt="Foto do Usuário"
 									/>
 								</div>
-								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-semibold">{user.name}</span>
-									<span className="truncate text-xs">{user.bio}</span>
+								<div className="grid flex-1 text-left text-sm  leading-tight">
+									<span className="truncate font-semibold ">{nameUser[0]}</span>
+									<span className="truncate text-xs">{nameUser[1]}</span>
 								</div>
-								<ChevronRight className="ml-auto size-4" />
+								<ChevronsUpDown className="ml-auto size-4 mr-2" />
 							</SidebarMenuButton>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
@@ -194,41 +216,42 @@ const AppSidebar = () => {
 							align="end"
 							sideOffset={4}
 						>
-							<DropdownMenuLabel className="p-0 font-normal">
-								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-									<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
-										<img
-											src={user.photo}
-											className="w-8 h-8 aspect-square rounded-full object-cover"
-											alt="Foto do Usuário"
-										/>
-									</div>
-									<div className="grid flex-1 text-left text-sm leading-tight">
-										<span className="truncate font-semibold">{user.name}</span>
-									</div>
-								</div>
-							</DropdownMenuLabel>
-							<DropdownMenuSeparator />
 							<Link to="/account/profile">
-								<DropdownMenuItem>
-									<span>Ver perfil completo</span>
+								<DropdownMenuItem className=" text-primary-700  hover:bg-primary-100/50 cursor-pointer py-2">
+									<User className="mr-1" />
+									<span>Acessar perfil</span>
+								</DropdownMenuItem>
+							</Link>
+							<Link>
+								<DropdownMenuItem className=" text-primary-700  hover:bg-primary-100/50 cursor-pointer py-2">
+									<Cog className="mr-1" />
+									<span>Configurações</span>
+								</DropdownMenuItem>
+							</Link>
+							<DropdownMenuSeparator />
+							<Link onClick={() => logout()}>
+								<DropdownMenuItem className="text-red-500  hover:bg-red-100/50 cursor-pointer py-2">
+									<LogOut className="text-red-500 mr-1" />
+									<span>Sair</span>
 								</DropdownMenuItem>
 							</Link>
 						</DropdownMenuContent>
 					</DropdownMenu>
 				) : (
-					<div className="p-4 space-y-2 group-data-[collapsible=icon]:hidden">
+					<div className=" space-y-2 group-data-[collapsible=icon]:hidden">
 						<button
 							onClick={() => showAuthModal("login")}
-							className="w-full bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors"
+							className="w-full cursor-pointer flex items-center gap-2.5 bg-primary-900 text-white px-4 py-3 border-primary-900 border rounded-lg hover:bg-black transition-colors"
 						>
-							Entrar
+							<LogIn size={18} />
+							Entrar na conta
 						</button>
 						<button
 							onClick={() => showAuthModal("register")}
-							className="w-full bg-white text-primary-500 border border-primary-500 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+							className="w-full cursor-pointer flex items-center gap-2.5 bg-white text-primary-500 border border-primary-500 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors"
 						>
-							Criar Conta
+							<UserPlus size={18} />
+							Criar nova conta
 						</button>
 					</div>
 				)}

@@ -83,7 +83,15 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/profile", requireAuth, async (req, res) => {
-  res.json(req.user);
+  try {
+    const userDoc = await User.findById(req.user._id).select('-password');
+    if (!userDoc) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+    res.json(userDoc);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao buscar perfil" });
+  }
 });
 
 // REGISTRO

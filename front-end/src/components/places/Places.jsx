@@ -14,6 +14,8 @@ import {
 	TooltipProvider,
 } from "@/components/ui/tooltip";
 
+import photoDefault from "@/assets/photoDefault.jpg";
+
 // NOVO COMPONENTE: PlaceCard - cada card tem seus próprios estados
 const PlaceCard = ({ place, index }) => {
 	const [api, setApi] = useState(null);
