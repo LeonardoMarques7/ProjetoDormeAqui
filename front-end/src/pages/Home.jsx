@@ -459,9 +459,9 @@ const Home = () => {
 				) : (
 					// Caso 2: pesquisou mas não encontrou
 					<>
-						<div className="my-8 max-sm:my-4 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10 mx-auto  text-start w-full overflow-hidden">
+						<div className="max-sm:text-lg max-sm:mb-2.5 max-sm:pt-0 font-medium max-w-full mb-5 w-full flex justify-start items-start px-4 max-sm:px-3.5 text-start pt-5">
 							{/* Conteúdo */}
-							<div className="text-center flex-col mx-8 max-sm:mx-3.5 flex gap-2 items-start max-sm:text-start justify-start transition-all">
+							<div className="text-center flex-col max-sm:mx-3.5 flex gap-2 items-start max-sm:text-start justify-start transition-all">
 								<h1 className="max-sm:text-xl!">
 									<strong className="text-red-500">Ops!</strong> Não encontramos
 									acomodações que correspondam à sua busca.
@@ -480,10 +480,9 @@ const Home = () => {
 								</button>
 							</div>
 						</div>
-						<div className="mx-auto mb-5 font-medium max-sm:flex-col max-sm:px-3.5 max-sm:gap-1 max-sm:text-lg! max-w-full text-gray-700 gap-2 w-full flex justify-start items-start px-8 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10 text-xl text-start ">
-							<span>Mas não se preocupe!</span>{" "}
+						<div className="max-sm:text-lg text-lg max-sm:mb-2.5 max-sm:pt-0 font-medium max-w-full mb-5 w-full flex justify-start items-start px-4 max-sm:px-3.5 text-start pt-5">
 							<span className="max-sm:text-sm font-normal">
-								Confira abaixo outras opções disponíveis.
+								Confira abaixo outras opções disponíveis:
 							</span>
 						</div>
 					</>

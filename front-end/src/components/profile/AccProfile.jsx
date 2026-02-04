@@ -646,12 +646,12 @@ const AccProfile = () => {
 			{!isEditingProfile ? (
 				<>
 					<img
-						className="mt-0 max-w-7xl mx-auto w-full object-cover bg-center max-sm:h-[25svh] max-sm:rounded-none rounded-4xl h-[40svh] relative overflow-hidden"
+						className="mt-0 mx-auto w-full object-cover bg-center max-sm:h-[25svh] max-sm:rounded-none rounded-4xl h-[40svh] relative overflow-hidden"
 						src={displayUser?.banner || bannerDefault}
 					/>
 
 					{/* Container do conteúdo */}
-					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5  relative max-sm:-mt-30 -mt-35">
+					<div className="container__profile mx-auto w-full px-8 max-sm:px-3.5  relative max-sm:-mt-30 -mt-35">
 						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10 max-sm:mb-0">
 							{/* Header do perfil (avatar + botão) */}
 							<div className="avatar__btn flex  max-sm:gap-2 gap-5 items-center justify-start relative">

@@ -56,6 +56,7 @@ const Place = () => {
 
 	const lightGalleryRef = useRef(null);
 	const [redirect, setRedirect] = useState(false);
+	const [experienceTime, setExperienceTime] = useState("");
 	const today = new Date();
 	const fiveDaysAfter = addDays(today, 5);
 	const [checkin, setCheckin] = useState(today);
@@ -146,6 +147,8 @@ const Place = () => {
 				try {
 					const { data } = await axios.get(`/places/owner/${place.owner._id}`);
 					setOwner(data);
+					console.log("Owner data received:", data);
+					console.log("Owner createdAt:", data?.createdAt);
 				} catch (error) {
 					console.error("Erro ao buscar dono da acomodação:", error);
 					setOwner(null);
@@ -155,6 +158,12 @@ const Place = () => {
 			axiosGetOwner();
 		}
 	}, [id, place]);
+
+	useEffect(() => {
+		if (owner) {
+			calculateExperienceTime();
+		}
+	}, [owner]);
 
 	useEffect(() => {
 		if (id) {
@@ -182,6 +191,26 @@ const Place = () => {
 			axiosGetReviews();
 		}
 	}, [id]);
+
+	const calculateExperienceTime = () => {
+		const createdAt = owner?.createdAt || place?.owner?.createdAt;
+		if (!createdAt) return;
+
+		const createdDate = new Date(createdAt);
+		const now = new Date();
+		const diffTime = Math.abs(now - createdDate);
+		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+		if (diffDays < 30) {
+			setExperienceTime(`${diffDays} dia${diffDays !== 1 ? "s" : ""}`);
+		} else if (diffDays < 365) {
+			const months = Math.floor(diffDays / 30);
+			setExperienceTime(`${months} ${months !== 1 ? "meses" : "mês"}`);
+		} else {
+			const years = Math.floor(diffDays / 365);
+			setExperienceTime(`${years} ano${years !== 1 ? "s" : ""}`);
+		}
+	};
 
 	const handleImageClick = (index) => {
 		if (lightGalleryRef.current) {
@@ -265,7 +294,7 @@ const Place = () => {
 	if (loading) {
 		return (
 			<div className="container__infos mx-auto max-w-7xl flex flex-col gap-2">
-				<div className="shadow-none max-sm:p-0 max-sm:shadow-none max-h-full mt-25 max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
+				<div className="shadow-none max-sm:p-0 max-sm:shadow-none max-h-full max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
 					<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:mx-0 max-sm:rounded-none rounded-2xl cursor-pointer">
 						{/* Container do grid principal */}
 						<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2  max-sm:h-[50svh]">
@@ -332,7 +361,7 @@ const Place = () => {
 						</div>
 					</div>
 				</div>
-				<div className="grid grid-cols-1 max-sm:gap-5 gap-20 md:grid-cols-2 mt-2 max-sm:mx-2 mx-8 ">
+				<div className="grid grid-cols-1 max-sm:gap-5 justify-between md:grid-cols-2 mt-2 max-sm:mx-2 mx-8 ">
 					<div className="leading-relaxed px-0 order-1 description ">
 						<div className="max-sm:py-0  w-full">
 							<div className="flex gap-4 mb-5 max-sm:visible sm:hidden max-sm:text-xs! max-sm:gap-2! max-sm:w-fit justify-start max-w-auto">
@@ -503,7 +532,7 @@ const Place = () => {
 
 			{/* Place */}
 
-			<div className=" mx-auto  max-w-7xl flex flex-col gap-2">
+			<div className=" mx-auto m-0 flex xl:max-w-7xl flex-col gap-2">
 				<div className=" max-sm:p-0 max-sm:shadow-none max-h-full  max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center  relative overflow-hidden">
 					{/* Container do grid principal */}
 					<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2  max-sm:h-[50svh]">
@@ -630,7 +659,7 @@ const Place = () => {
 									</div>
 								</div>
 							</div>
-							<div className="flex flex-col  gap-2">
+							<div className="flex flex-col flex-1 gap-2">
 								<div className="text-[2rem] max-sm:text-[1.5rem] font-medium text-gray-700 ">
 									{place.title}
 								</div>
@@ -664,7 +693,7 @@ const Place = () => {
 								</div>
 							</div>
 							{!mobile && (
-								<div className="flex gap-4  !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
+								<div className="flex gap-4 w-full !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
 									<div className="flex gap-2 rounded-2xl items-center ">
 										<div className="flex items-center gap-2">
 											<Users2 size={15} className="max-sm:hidden" />
@@ -719,36 +748,34 @@ const Place = () => {
 								</div>
 							)}
 						</div>
-						<div className="flex gap-2 flex-col my-2.5 max-sm:mt-2  ">
+						<div className="flex gap-2 flex-col mt-2.5 max-sm:mt-2  ">
 							<div className="flex items-center gap-2 w-full">
-								<Link
-									to={`/account/profile/${place.owner._id}`}
-									className="flex items-center group max-sm:w-full hover:bg-primary-100  hover:px-5 py-5 max-sm:hover:bg-transparent max-sm:rounded-none max-sm:hover:px-0 transition-all w-full ransition-all rounded-2xl cursor-pointer gap-2.5 justify-between "
-								>
-									<div className="flex items-center font-normal  gap-2.5">
+								<div className="flex items-center group max-sm:w-full  py-5 max-sm:hover:bg-transparent max-sm:rounded-none max-sm:hover:px-0 transition-all w-full ransition-all rounded-2xl gap-2.5 justify-between ">
+									<Link
+										to={`/account/profile/${place.owner._id}`}
+										className="flex group rounded-2xl items-center font-normal  gap-2.5"
+									>
 										<img
 											src={place.owner.photo}
-											className="w-12 h-12  aspect-square rounded-full object-cover"
+											className="w-12 h-12 group-hover:size-15 transition-all duration-500 aspect-square rounded-full object-cover"
 											alt="Foto do Usuário"
 										/>
 										<div className="flex flex-col text-gray-700 ">
-											<p className="font-medium">{place.owner.name}</p>
-											<small>
-												Anfitrião desde{" "}
+											<div className="font-medium w-fit cursor-pointer ">
+												{place.owner.name}
+											</div>
+											<small className="flex items-center gap-1">
+												Anfitrião há{" "}
 												<span className="text-primary-600 font-medium">
-													10/04/2025
+													{experienceTime}
 												</span>
 											</small>
 										</div>
-									</div>
-									<ChevronRight
-										size={15}
-										className="group-hover:text-primary-900 group-hover:scale-150 text-primary-300 mr-1"
-									/>
-								</Link>
+									</Link>
+								</div>
 							</div>
 						</div>
-						<div className="border  border-r-0 py-5 mb-5 border-l-0">
+						<div className="border border-t-0 border-r-0 py-5 mb-5 border-l-0">
 							<p
 								className=""
 								dangerouslySetInnerHTML={{
@@ -792,47 +819,61 @@ const Place = () => {
 						</div>
 						<div className="my-4">
 							<p className="sm:text-2xl text-large font-medium">Avaliações</p>
-							<div className="my-2 space-y-4">
+							<div className="my-2 flex flex-wrap gap-2 space-y-4">
 								{reviews.length > 0 ? (
 									reviews.map((review) => (
 										<div
 											key={review._id}
-											className=" bg-primary-100/50 rounded-2xl p-4"
+											className="flex w-full items-center gap-4"
 										>
-											<div className="flex items-center gap-4">
+											<div className="flex flex-col w-full gap-4 p-6 bg-white rounded-2xl border border-gray-200 shadow-sm">
+												<div className="flex items-center gap-2">
+													<div className="flex items-center gap-1">
+														{[...Array(5)].map((_, index) => (
+															<Star
+																key={index}
+																fill={
+																	index < Math.floor(review.rating)
+																		? "black"
+																		: "none"
+																}
+																stroke="black"
+																size={20}
+															/>
+														))}
+													</div>
+												</div>
+												{review.comment ? (
+													<p className="text-gray-700 max-w-md leading-relaxed line-clamp-4">
+														"{review.comment}"
+													</p>
+												) : (
+													<p className=" max-w-md mt-auto items-center text-primary-500 leading-relaxed line-clamp-4">
+														Sem comentário
+													</p>
+												)}
 												<Link
-													className="cursor-pointer"
 													to={`/account/profile/${review.user._id}`}
+													className="flex items-center mt-auto gap-2"
 												>
 													<img
 														src={review.user.photo || photoDefault}
 														alt={review.user.name}
 														className="w-12 h-12 rounded-full object-cover"
 													/>
-												</Link>
-												<div>
-													<p className="font-medium">{review.user.name}</p>
-													<div className="flex items-center gap-2">
-														<div className="flex">
-															{[...Array(5)].map((_, i) => (
-																<Star
-																	key={i}
-																	size={16}
-																	className={`${
-																		i < review.rating
-																			? "text-yellow-500 fill-current"
-																			: "text-gray-300"
-																	}`}
-																/>
-															))}
-														</div>
-														<span className="text-sm text-gray-600">
-															{review.rating.toFixed(1)}
-														</span>
+													<div className="flex flex-col text-sm">
+														<Link
+															to={`/account/profile/${review.user._id}`}
+															className="font-semibold hover:underline text-gray-900"
+														>
+															{review.user.name}
+														</Link>
+														<p className="text-xs text-gray-500">
+															Hóspede Verificado
+														</p>
 													</div>
-												</div>
+												</Link>
 											</div>
-											<p className="mt-2 text-gray-700">{review.comment}</p>
 										</div>
 									))
 								) : (
@@ -960,7 +1001,7 @@ const Place = () => {
 								</div>
 							</div>
 						)}
-						<form className="form__place max-sm:relative max-sm:p-0  max-sm:w-full order-2   w-full  justify-self-end self-start sticky top-20 bottom-20 flex flex-col gap-4 rounded-2xl py-5">
+						<form className="form__place max-sm:relative max-w-md max-sm:p-0 max-sm:w-full order-2   w-full  justify-self-end self-start sticky top-20 bottom-20 flex flex-col gap-4 rounded-2xl py-5">
 							<div className="border-l-2 border-primary-400 p-4">
 								<div className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
 									<p className="uppercase text-sm">preço</p>
