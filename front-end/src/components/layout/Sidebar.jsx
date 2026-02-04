@@ -26,6 +26,8 @@ import {
 	BuildingOfficeIcon,
 	UserIcon,
 	Cog6ToothIcon,
+	ChatBubbleLeftIcon,
+	ChatBubbleOvalLeftIcon,
 } from "@heroicons/react/24/outline";
 import {
 	HomeIcon as HomeIconSolid,
@@ -33,6 +35,7 @@ import {
 	BuildingOfficeIcon as BuildingOfficeIconSolid,
 	UserIcon as UserIconSolid,
 	Cog6ToothIcon as Cog6ToothIconSolid,
+	ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconSolid,
 } from "@heroicons/react/24/solid";
 import { motion } from "framer-motion";
 
@@ -100,6 +103,12 @@ const AppSidebar = () => {
 			iconRegular: BuildingOfficeIcon,
 			label: "Acomodações",
 		},
+		{
+			path: "/account/message",
+			icon: ChatBubbleOvalLeftIconSolid,
+			iconRegular: ChatBubbleOvalLeftIcon,
+			label: "Mensagens",
+		},
 	];
 
 	const navItemsPerfil = [
@@ -157,7 +166,7 @@ const AppSidebar = () => {
 	return (
 		<ShadcnSidebar variant="inset" collapsible="icon">
 			<SidebarHeader className="w-full">
-				<Link to="/" className="flex items-center justify-start px-5 pt-4">
+				<Link to="/" className="flex items-center justify-start px-2 pt-4">
 					<img
 						src={logoPrimary}
 						alt="Logo DormeAqui"
@@ -170,7 +179,7 @@ const AppSidebar = () => {
 					/>
 				</Link>
 			</SidebarHeader>
-			<SidebarContent className="px-3 py-6">
+			<SidebarContent className=" py-6">
 				<SidebarMenu className="space-y-1">
 					{navItems.map((item) => {
 						const isActive = location.pathname === item.path;
@@ -193,6 +202,7 @@ const AppSidebar = () => {
 										to={item.path}
 									>
 										<Icon className="w-5 h-5 flex-shrink-0" />
+
 										<span
 											className={`text-sm group-data-[collapsible=icon]:hidden ${isActive && "font-medium "}`}
 										>

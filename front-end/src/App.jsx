@@ -65,10 +65,14 @@ function App() {
 								<SidebarInset>
 									<ScrollToTop />
 									<div className="flex flex-col min-h-screen">
-										<header className="flex shrink-0 absolute group transition-all hover:bg-sidebar bg-sidebar/90   top-3 left-3 rounded-xl p-2.5 z-50 items-center gap-2">
-											<SidebarTrigger className="cursor-pointer hover:bg-transparent text-gray-800 " />
+										<header
+											className="flex shrink-0 absolute group transition-all  rounded-tl-2xl bg-white top-0 left-0 rounded-r-3xl p-4 z-50 items-center gap-2 
+  before:content-[''] before:absolute before:bottom-6 before:-right-5  before:rotate-90 before:w-5 before:h-5 before:bg-transparent before:rounded-bl-[10px] before:shadow-[-10px_10px_0_0_white]
+  after:content-[''] after:absolute after:-bottom-5 after:left-4 after:w-5 after:h-5 after:bg-transparent after:rounded-tl-[10px] after:shadow-[-10px_-10px_0_0_white]"
+										>
+											<SidebarTrigger className="cursor-pointer hover:text-gray-900 text-gray-700" />
 										</header>
-										<div className="flex flex-1 flex-col gap-10 p-4">
+										<div className="flex flex-1 flex-col gap-5 p-4">
 											<Routes>
 												<Route path="/" element={<Home />} />
 												<Route
