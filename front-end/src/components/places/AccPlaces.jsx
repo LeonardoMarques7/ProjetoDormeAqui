@@ -49,7 +49,7 @@ const AccPlaces = () => {
 	return (
 		<>
 			<div className="flex w-full mx-auto max-w-full max-h-full h-full flex-col gap-8 relative justify-start items-start max-sm:my-0 max-sm:px-3.5">
-				<div className="mt-20 flex border-l-3 pl-4 justify-between items-center w-full ">
+				<div className="mt-15 flex border-l-3 pl-4 justify-between items-center w-full ">
 					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
 						<span className=" text-3xl max-sm:text-xl text-nowrap flex items-end gap-3 text-black">
 							{edit
@@ -106,7 +106,7 @@ const AccPlaces = () => {
 				)}
 
 				<div className="flex gap-5 items-start">
-					{!action && !mobile && (
+					{/* {!action && !mobile && (
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<Link
@@ -123,7 +123,7 @@ const AccPlaces = () => {
 								<p>Anuncie uma acomodação</p>
 							</TooltipContent>
 						</Tooltip>
-					)}
+					)} */}
 					<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
 						{loadingPlaces ? (
 							<>

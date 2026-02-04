@@ -646,7 +646,7 @@ const AccProfile = () => {
 			{!isEditingProfile ? (
 				<>
 					<img
-						className="mt-20 max-w-7xl mx-auto w-full object-cover bg-center max-sm:h-[25svh] max-sm:rounded-none rounded-4xl h-[40svh] relative overflow-hidden"
+						className="mt-0 max-w-7xl mx-auto w-full object-cover bg-center max-sm:h-[25svh] max-sm:rounded-none rounded-4xl h-[40svh] relative overflow-hidden"
 						src={displayUser?.banner || bannerDefault}
 					/>
 

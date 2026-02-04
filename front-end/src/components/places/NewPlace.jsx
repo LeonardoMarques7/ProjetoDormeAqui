@@ -30,9 +30,9 @@ import {
 	MarkdownEditor,
 	MarkdownEditor2,
 } from "@/components/ui/MarkdownEditor";
-import { PreviewToggle } from "@/components/places/PreviewToggle";
 import { TimePicker } from "@/components/ui/TimePicker";
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
+import Preview from "@/components/places/Preview";
 
 const NewPlace = () => {
 	const { user, ready } = useUserContext();
@@ -176,10 +176,10 @@ const NewPlace = () => {
 
 	return (
 		<div className="relative w-full ">
-			<div className="container__prev__form relative flex  rounded-2xl max-sm:px-4 max-w-7xl mx-auto flex-1 justify-between gap-5 h-full w-full">
+			<div className="container__prev__form relative flex  rounded-2xl max-sm:px-4  mx-auto flex-1 justify-between gap-5 h-full w-full">
 				<form
 					onSubmit={handleSubmit}
-					className="container__form max-w-3xl pb-5 min-w-auto flex grow flex-col gap-10 w-full"
+					className="container__form max-w-2xl pb-5 min-w-auto flex grow flex-col gap-10 w-full"
 				>
 					<div className="label__input text-start flex flex-col gap-4 w-full">
 						<label
@@ -370,7 +370,7 @@ const NewPlace = () => {
 				{/* Preview */}
 				{/* Toggle do preview */}
 
-				<PreviewToggle formData={formData} />
+				<Preview data={formData} />
 
 				{/* Preview aparece somente quando showPreview for true */}
 			</div>

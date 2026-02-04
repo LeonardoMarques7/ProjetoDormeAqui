@@ -72,7 +72,7 @@ function App() {
 										>
 											<SidebarTrigger className="cursor-pointer hover:text-gray-900 text-gray-700" />
 										</header>
-										<div className="flex flex-1 flex-col gap-5 p-4">
+										<div className="flex flex-1 flex-col p-4">
 											<Routes>
 												<Route path="/" element={<Home />} />
 												<Route

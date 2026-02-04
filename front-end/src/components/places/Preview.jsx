@@ -57,7 +57,7 @@ const Preview = ({ data }) => {
 		linkify: true,
 	});
 	return (
-		<div className="container__infos  !max-w-4xl max-sm:p-0 h-full px-2 overflow-y-auto ">
+		<div className="container__infos w-full !max-w-4xl max-sm:p-0 h-full px-2 py-0 overflow-y-auto ">
 			<div className="bg-primary-900  max-sm:p-0 max-sm:shadow-none h-fit max-sm:m-0 mt-5  py-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl max-sm:rounded-2xl  relative overflow-hidden">
 				<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:m-0 max-sm:rounded-none rounded-2xl">
 					{/* Container do grid principal */}
@@ -243,7 +243,7 @@ const Preview = ({ data }) => {
 								{" "}
 								<div className="flex items-center font-normal  gap-2.5">
 									<img
-										src={user.photo}
+										src={user?.photo}
 										className="w-12 h-12  aspect-square rounded-full object-cover"
 										alt="Foto do Usuário"
 									/>
