@@ -1,6 +1,6 @@
 import React from "react";
 import logoPrimary from "@/assets/logo__primary.png";
-import logoPrimaryIcon from "@/assets/logo__primary__icon.png";
+import logoPrimaryIcon from "@/assets/logo__primary__mobile.png";
 import { Link, useLocation } from "react-router-dom";
 import {
 	DropdownMenu,
@@ -55,6 +55,7 @@ import {
 	SidebarTrigger,
 	useSidebar,
 } from "@/components/ui/sidebar";
+import Footer from "./Footer";
 
 const AppSidebar = () => {
 	const { user, setUser } = useUserContext();
@@ -68,13 +69,13 @@ const AppSidebar = () => {
 			path: "/account/bookings",
 			icon: CalendarDaysIconSolid,
 			iconRegular: CalendarDaysIcon,
-			label: "Reservas",
+			label: "Minhas reservas",
 		},
 		{
 			path: "/account/places",
 			icon: BuildingOfficeIconSolid,
 			iconRegular: BuildingOfficeIcon,
-			label: "Acomodações",
+			label: "Minhas acomodações",
 		},
 	];
 
@@ -133,7 +134,7 @@ const AppSidebar = () => {
 	return (
 		<ShadcnSidebar variant="inset" collapsible="icon">
 			<SidebarHeader className="w-full">
-				<Link to="/" className="flex items-center justify-start px-1 pt-4">
+				<Link to="/" className="flex items-center justify-start px-2 pt-4">
 					<img
 						src={logoPrimary}
 						alt="Logo DormeAqui"
@@ -142,89 +143,46 @@ const AppSidebar = () => {
 					<img
 						src={logoPrimaryIcon}
 						alt="Logo DormeAqui"
-						className="h-full transition-all object-cover w-full duration-300 hidden group-data-[collapsible=icon]:block"
+						className="h-20 object-contain transition-all w-full duration-300 hidden group-data-[collapsible=icon]:flex"
 					/>
 				</Link>
 			</SidebarHeader>
-			<SidebarContent>
-				<SidebarGroup>
-					<SidebarGroupContent>
-						<SidebarMenu>
-							{navItems.map((item) => {
-								const isActive = location.pathname === item.path;
-								return (
-									<SidebarMenuItem key={item.path}>
-										<SidebarMenuButton
-											asChild
-											isActive={isActive}
-											tooltip={item.label}
-											className="p-2 h-fit"
-										>
-											<Link
-												className="w-full flex items-center justify-start gap-4 py-4  px-2 p-4 text-gray-700 hover:bg-primary-100/50 rounded-2xl transition-all [&:hover_.chevron]:opacity-100"
-												to={item.path}
-											>
-												{React.createElement(
-													isActive ? item.icon : item.iconRegular,
-													{
-														className: "w-6 h-6",
-													},
-												)}
-												<span>{item.label}</span>
-												<ChevronRightIcon
-													size={18}
-													className={`chevron ml-auto mr-2 transition-opacity size-5! ${
-														isActive
-															? "opacity-100 text-primary-900"
-															: "opacity-0"
-													}`}
-												/>
-											</Link>
-										</SidebarMenuButton>
-									</SidebarMenuItem>
-								);
-							})}
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
+			<SidebarContent className="px-3 py-6">
+				<SidebarMenu className="space-y-1">
+					{navItems.map((item) => {
+						const isActive = location.pathname === item.path;
+						const Icon = isActive ? item.icon : item.iconRegular;
 
-				{/* {user && (
-					<SidebarGroup className=" group-data-[collapsible=icon]:hidden">
-						<SidebarGroupLabel>Conta</SidebarGroupLabel>
-						<SidebarGroupContent>
-							<SidebarMenu>
-								{navItemsPerfil.map((item, index) => (
-									<SidebarMenuItem key={item.path || index}>
-										<SidebarMenuButton asChild tooltip={item.label}>
-											<Link to={item.path} onClick={item.function}>
-												<span>{item.label}</span>
-											</Link>
-										</SidebarMenuButton>
-									</SidebarMenuItem>
-								))}
-							</SidebarMenu>
-						</SidebarGroupContent>
-					</SidebarGroup>
-				)} */}
-
-				{!user && (
-					<SidebarGroup>
-						<SidebarGroupLabel>Menu</SidebarGroupLabel>
-						<SidebarGroupContent>
-							<SidebarMenu>
-								{navItemsNOPerfil.map((item) => (
-									<SidebarMenuItem key={item.path}>
-										<SidebarMenuButton asChild tooltip={item.label}>
-											<Link to={item.path} onClick={item.function}>
-												<span>{item.label}</span>
-											</Link>
-										</SidebarMenuButton>
-									</SidebarMenuItem>
-								))}
-							</SidebarMenu>
-						</SidebarGroupContent>
-					</SidebarGroup>
-				)}
+						return (
+							<SidebarMenuItem key={item.path}>
+								<SidebarMenuButton
+									asChild
+									isActive={isActive}
+									tooltip={item.label}
+									className="group/item py-2!"
+								>
+									<Link
+										className={`
+											w-full flex h-15 items-center gap-4 p-4!
+											rounded-2xl transition-all duration-200
+											${
+												isActive
+													? "bg-primary-600 text-white shadow-lg shadow-primary-200"
+													: "text-gray-700 hover:bg-gray-100/80"
+											}
+										`}
+										to={item.path}
+									>
+										<Icon className="w-5 h-5 flex-shrink-0" />
+										<span className="font-medium text-sm group-data-[collapsible=icon]:hidden">
+											{item.label}
+										</span>
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						);
+					})}
+				</SidebarMenu>
 			</SidebarContent>
 			<SidebarFooter>
 				{user ? (
@@ -265,7 +223,7 @@ const AppSidebar = () => {
 							</Link>
 							<DropdownMenuSeparator />
 							<Link onClick={() => logout()}>
-								<DropdownMenuItem className="text-red-500  hover:bg-red-100/50 cursor-pointer py-2">
+								<DropdownMenuItem className="text-red-500  hover:bg-red-100/50! hover:text-red-600! cursor-pointer py-2">
 									<LogOut className="text-red-500 mr-1" />
 									<span>Sair</span>
 								</DropdownMenuItem>
@@ -273,17 +231,23 @@ const AppSidebar = () => {
 						</DropdownMenuContent>
 					</DropdownMenu>
 				) : (
-					<div className=" space-y-2 group-data-[collapsible=icon]:hidden">
+					<div className=" space-y-2">
 						<button
 							onClick={() => showAuthModal("login")}
-							className="w-full cursor-pointer flex items-center gap-2.5 bg-primary-900 text-white px-4 py-3 border-primary-900 border rounded-lg hover:bg-black transition-colors"
+							className="w-full justify-center group-data-[collapsible=icon]:flex hidden  cursor-pointer  items-center gap-2.5 transition-colors"
+						>
+							<LogIn size={18} />
+						</button>
+						<button
+							onClick={() => showAuthModal("login")}
+							className="w-full  cursor-pointer group-data-[collapsible=icon]:hidden flex items-center gap-2.5 bg-primary-900 text-white px-4 py-3 border-primary-900 border rounded-lg hover:bg-black transition-colors"
 						>
 							<LogIn size={18} />
 							Entrar na conta
 						</button>
 						<button
 							onClick={() => showAuthModal("register")}
-							className="w-full cursor-pointer flex items-center gap-2.5 bg-white text-primary-500 border border-primary-500 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+							className=" group-data-[collapsible=icon]:hidden w-full cursor-pointer flex items-center gap-2.5 bg-white text-primary-500 border border-primary-500 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors"
 						>
 							<UserPlus size={18} />
 							Criar nova conta

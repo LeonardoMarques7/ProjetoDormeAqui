@@ -23,6 +23,7 @@ import {
 	SidebarInset,
 	SidebarProvider,
 	SidebarTrigger,
+	SidebarFooter,
 } from "@/components/ui/sidebar";
 
 import "@mantine/core/styles.css";
