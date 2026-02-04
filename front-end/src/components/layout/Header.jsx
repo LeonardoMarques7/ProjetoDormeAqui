@@ -61,7 +61,7 @@ const Header = ({ active }) => {
 		<header
 			className={`fixed z-50 w-full mb-3 transition-all duration-500 delay-0 2xl:max-w-full 2xl:px-10 xl:max-w-full `}
 		>
-			<div className="max-w-full flex max-sm:px-3.5 items-center mx-auto justify-between px-10 sm:px-8 py-5 lg:max-w-7xl 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10">
+			<div className="max-w-full flex max-sm:px-3.5 items-center mx-auto justify-between px-10 sm:px-8 py-5 ">
 				<Link to="/" className="flex items-center transition-all">
 					<img
 						src={getLogoSrc()}

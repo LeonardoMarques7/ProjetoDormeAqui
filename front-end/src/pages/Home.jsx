@@ -167,13 +167,13 @@ const Home = () => {
 	return (
 		<div>
 			<div className="relative flex justify-center w-full mb-12 ">
-				<div className="max-sm:h-[25svh] max-w-7xl w-full xl:h-[30svh] h-[50svh] 2xl:max-w-full 2xl:px-20  max-sm:top-0   relative">
+				<div className="max-sm:h-[25svh] w-full xl:h-[30svh] h-[50svh]  max-w-full max-sm:top-0   relative">
 					<img
 						src={Banner}
 						alt=""
 						className="object-cover pointer-events-none h-full w-full xl:rounded-xl"
 					/>
-					<div className="absolute inset-0 2xl:mx-20 lg:max-w-7xl mx-auto rounded-xl bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
+					<div className="absolute inset-0 mx-auto rounded-xl bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
 				</div>
 
 				{mobile ? (
@@ -490,7 +490,7 @@ const Home = () => {
 				)
 			) : (
 				// Caso 1: sem pesquisa
-				<span className="mx-auto text__section max-sm:text-lg max-sm:mb-2.5 max-sm:pt-0 font-medium max-w-full mb-5 w-full flex justify-start items-start px-8 max-sm:px-3.5 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10 text-2xl text-start pt-5">
+				<span className="mx-auto text__section max-sm:text-lg max-sm:mb-2.5 max-sm:pt-0 font-medium max-w-full mb-5 w-full flex justify-start items-start px-4 max-sm:px-3.5  text-2xl text-start pt-5">
 					Acomodações disponíveis
 				</span>
 			)}
@@ -537,7 +537,7 @@ const Home = () => {
 			)}
 			{/* GRID DE RESULTADOS */}
 			{city && placesSearch.length > 0 && (
-				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 mx-auto gap-8 px-8 max-sm:px-3.5 py-4 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10">
+				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 mx-auto gap-8 px-4 max-sm:px-3.5 py-4 ">
 					<>
 						{placesSearch.map((place) => (
 							<Item {...{ place }} key={place._id} />
@@ -548,7 +548,7 @@ const Home = () => {
 			)}
 			{(!city || placesSearch.length === 0) && (
 				<div className="relative mb-10">
-					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8 max-sm:px-3.5 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10">
+					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-4 max-sm:px-3.5">
 						{places.map((place) => (
 							<Item {...{ place }} key={place._id} />
 						))}

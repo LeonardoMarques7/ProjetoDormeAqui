@@ -1,4 +1,6 @@
+import React from "react";
 import logoPrimary from "@/assets/logo__primary.png";
+import logoPrimaryIcon from "@/assets/logo__primary__icon.png";
 import { Link, useLocation } from "react-router-dom";
 import {
 	DropdownMenu,
@@ -10,16 +12,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
 	ArrowRight,
-	Calendar,
 	ChevronRight,
 	ChevronsUpDown,
-	Cog,
-	HotelIcon,
 	LogIn,
 	LogOut,
 	UserPlus,
 } from "lucide-react";
-import { Home, Briefcase, User, Mail, Settings } from "lucide-react";
+import {
+	HomeIcon,
+	CalendarDaysIcon,
+	BuildingOfficeIcon,
+	UserIcon,
+	Cog6ToothIcon,
+} from "@heroicons/react/24/outline";
+import {
+	HomeIcon as HomeIconSolid,
+	CalendarDaysIcon as CalendarDaysIconSolid,
+	BuildingOfficeIcon as BuildingOfficeIconSolid,
+	UserIcon as UserIconSolid,
+	Cog6ToothIcon as Cog6ToothIconSolid,
+} from "@heroicons/react/24/solid";
 import { motion } from "framer-motion";
 
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
@@ -39,17 +51,29 @@ import {
 	SidebarMenuItem,
 	SidebarProvider,
 	SidebarTrigger,
+	useSidebar,
 } from "@/components/ui/sidebar";
 
 const AppSidebar = () => {
 	const { user, setUser } = useUserContext();
 	const location = useLocation();
 	const { showAuthModal } = useAuthModalContext();
+	const { state } = useSidebar();
 
 	const navItems = [
-		{ path: "/", icon: Home, label: "Home" },
-		{ path: "/account/bookings", icon: Calendar, label: "Reservas" },
-		{ path: "/account/places", icon: HotelIcon, label: "Acomodações" },
+		{ path: "/", icon: HomeIconSolid, iconRegular: HomeIcon, label: "Home" },
+		{
+			path: "/account/bookings",
+			icon: CalendarDaysIconSolid,
+			iconRegular: CalendarDaysIcon,
+			label: "Reservas",
+		},
+		{
+			path: "/account/places",
+			icon: BuildingOfficeIconSolid,
+			iconRegular: BuildingOfficeIcon,
+			label: "Acomodações",
+		},
 	];
 
 	const navItemsPerfil = [
@@ -106,12 +130,17 @@ const AppSidebar = () => {
 
 	return (
 		<ShadcnSidebar variant="inset" collapsible="icon">
-			<SidebarHeader>
-				<Link to="/" className="flex items-center justify-start px-1 py-4">
+			<SidebarHeader className="w-full">
+				<Link to="/" className="flex items-center justify-start py-4">
 					<img
 						src={logoPrimary}
 						alt="Logo DormeAqui"
 						className="h-8 transition-all duration-300 group-data-[collapsible=icon]:hidden"
+					/>
+					<img
+						src={logoPrimaryIcon}
+						alt="Logo DormeAqui"
+						className="h-12 transition-all object-cover w-full duration-300 hidden group-data-[collapsible=icon]:block"
 					/>
 				</Link>
 			</SidebarHeader>
@@ -134,7 +163,12 @@ const AppSidebar = () => {
 												className="w-full flex items-center justify-start gap-4 py-5 p-4 text-gray-700 hover:bg-purple-50 rounded-2xl transition-all [&:hover_.chevron]:opacity-100"
 												to={item.path}
 											>
-												<item.icon />
+												{React.createElement(
+													isActive ? item.icon : item.iconRegular,
+													{
+														className: "w-6 h-6",
+													},
+												)}
 												<span>{item.label}</span>
 												<ChevronRight
 													size={18}
@@ -212,19 +246,19 @@ const AppSidebar = () => {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-							side="bottom"
+							side={state === "collapsed" ? "right" : "bottom"}
 							align="end"
 							sideOffset={4}
 						>
 							<Link to="/account/profile">
 								<DropdownMenuItem className=" text-primary-700  hover:bg-primary-100/50 cursor-pointer py-2">
-									<User className="mr-1" />
+									<UserIcon className="w-4 h-4 mr-1" />
 									<span>Acessar perfil</span>
 								</DropdownMenuItem>
 							</Link>
 							<Link>
 								<DropdownMenuItem className=" text-primary-700  hover:bg-primary-100/50 cursor-pointer py-2">
-									<Cog className="mr-1" />
+									<Cog6ToothIcon className="w-4 h-4 mr-1" />
 									<span>Configurações</span>
 								</DropdownMenuItem>
 							</Link>

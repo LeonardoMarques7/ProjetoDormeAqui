@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "engines": {
-  "node": "18.x"
-},
+    "node": "18.x"
+  },
   "main": "index.js",
   "dependencies": {
     "asynckit": "^0.4.0",
@@ -65,8 +65,8 @@
     "url": "^0.11.4"
   },
   "scripts": {
-  "build": "npm install --prefix back-end && npm install --prefix front-end && npm run build --prefix front-end",
-  "start": "cd back-end && npm start"
+    "build": "npm install --prefix back-end && npm install --prefix front-end && npm run build --prefix front-end",
+    "start": "cd back-end && npm start"
   },
   "repository": {
     "type": "git",
