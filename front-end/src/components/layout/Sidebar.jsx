@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import logoPrimary from "@/assets/logo__primary.png";
 import logoPrimaryIcon from "@/assets/logo__primary__mobile.png";
 import { Link, useLocation } from "react-router-dom";
@@ -62,6 +62,28 @@ const AppSidebar = () => {
 	const location = useLocation();
 	const { showAuthModal } = useAuthModalContext();
 	const { state } = useSidebar();
+	const [bookings, setBookings] = useState([]);
+	const [readyBookings, setReadyBookings] = useState(false);
+
+	useEffect(() => {
+		if (!user) {
+			setBookings([]);
+			setReadyBookings(false);
+			return;
+		}
+
+		const axiosGet = async () => {
+			const { data } = await axios.get("/bookings/owner");
+			setTimeout(() => {
+				setBookings(data);
+				setReadyBookings(true);
+			}, 100);
+		};
+
+		axiosGet();
+	}, [user?._id]);
+
+	const qtdBookings = bookings.length;
 
 	const navItems = [
 		{ path: "/", icon: HomeIconSolid, iconRegular: HomeIcon, label: "Home" },
@@ -69,13 +91,14 @@ const AppSidebar = () => {
 			path: "/account/bookings",
 			icon: CalendarDaysIconSolid,
 			iconRegular: CalendarDaysIcon,
-			label: "Minhas reservas",
+			label: "Reservas",
+			notifications: qtdBookings,
 		},
 		{
 			path: "/account/places",
 			icon: BuildingOfficeIconSolid,
 			iconRegular: BuildingOfficeIcon,
-			label: "Minhas acomodações",
+			label: "Acomodações",
 		},
 	];
 
@@ -134,7 +157,7 @@ const AppSidebar = () => {
 	return (
 		<ShadcnSidebar variant="inset" collapsible="icon">
 			<SidebarHeader className="w-full">
-				<Link to="/" className="flex items-center justify-start px-2 pt-4">
+				<Link to="/" className="flex items-center justify-start px-5 pt-4">
 					<img
 						src={logoPrimary}
 						alt="Logo DormeAqui"
@@ -163,20 +186,25 @@ const AppSidebar = () => {
 								>
 									<Link
 										className={`
-											w-full flex h-15 items-center gap-4 p-4!
-											rounded-2xl transition-all duration-200
-											${
-												isActive
-													? "bg-primary-600 text-white shadow-lg shadow-primary-200"
-													: "text-gray-700 hover:bg-gray-100/80"
-											}
+											w-full flex h-15 items-center rounded-2xl! gap-4 p-5!
+											transition-all duration-200
+										
 										`}
 										to={item.path}
 									>
 										<Icon className="w-5 h-5 flex-shrink-0" />
-										<span className="font-medium text-sm group-data-[collapsible=icon]:hidden">
+										<span
+											className={`text-sm group-data-[collapsible=icon]:hidden ${isActive && "font-medium "}`}
+										>
 											{item.label}
 										</span>
+										{item.notifications && (
+											<div
+												className={`ml-auto text-xs font-light text-primary-500 flex justify-center items-center bg-white h-5 w-5 rounded-full ${isActive && "font-light"}`}
+											>
+												{item.notifications}
+											</div>
+										)}
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
@@ -187,8 +215,8 @@ const AppSidebar = () => {
 			<SidebarFooter>
 				{user ? (
 					<DropdownMenu>
-						<DropdownMenuTrigger className="!p-0 !m-0">
-							<SidebarMenuButton className="px-2!  group-data-[collapsible=icon]:bg-transparent! hover:bg-accent h-fit gap-3 rounded-2xl cursor-pointer">
+						<DropdownMenuTrigger className="!p-0 !m-0 rounded-2xl!">
+							<SidebarMenuButton className="px-4!  group-data-[collapsible=icon]:bg-transparent! hover:bg-accent h-fit gap-3 rounded-2xl! cursor-pointer">
 								<div className="flex aspect-square size-9 group-data-[collapsible=icon]:-ml-1 items-center justify-center rounded-full">
 									<img
 										src={user.photo}
@@ -198,7 +226,7 @@ const AppSidebar = () => {
 								</div>
 								<div className="grid flex-1 text-left text-sm  leading-tight">
 									<span className="truncate font-semibold ">{nameUser[0]}</span>
-									<span className="truncate text-xs">{nameUser[1]}</span>
+									<span className="truncate text-xs ">{user.pronouns}</span>
 								</div>
 								<ChevronsUpDownIcon size={18} className="size-4!" />
 							</SidebarMenuButton>
