@@ -13,7 +13,9 @@ import {
 import {
 	ArrowRight,
 	ChevronRight,
+	ChevronRightIcon,
 	ChevronsUpDown,
+	ChevronsUpDownIcon,
 	LogIn,
 	LogOut,
 	UserPlus,
@@ -131,7 +133,7 @@ const AppSidebar = () => {
 	return (
 		<ShadcnSidebar variant="inset" collapsible="icon">
 			<SidebarHeader className="w-full">
-				<Link to="/" className="flex items-center justify-start py-4">
+				<Link to="/" className="flex items-center justify-start px-1 pt-4">
 					<img
 						src={logoPrimary}
 						alt="Logo DormeAqui"
@@ -140,13 +142,12 @@ const AppSidebar = () => {
 					<img
 						src={logoPrimaryIcon}
 						alt="Logo DormeAqui"
-						className="h-12 transition-all object-cover w-full duration-300 hidden group-data-[collapsible=icon]:block"
+						className="h-full transition-all object-cover w-full duration-300 hidden group-data-[collapsible=icon]:block"
 					/>
 				</Link>
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
-					<SidebarGroupLabel>Navegação</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							{navItems.map((item) => {
@@ -160,7 +161,7 @@ const AppSidebar = () => {
 											className="p-2 h-fit"
 										>
 											<Link
-												className="w-full flex items-center justify-start gap-4 py-5 p-4 text-gray-700 hover:bg-purple-50 rounded-2xl transition-all [&:hover_.chevron]:opacity-100"
+												className="w-full flex items-center justify-start gap-4 py-4  px-2 p-4 text-gray-700 hover:bg-primary-100/50 rounded-2xl transition-all [&:hover_.chevron]:opacity-100"
 												to={item.path}
 											>
 												{React.createElement(
@@ -170,9 +171,9 @@ const AppSidebar = () => {
 													},
 												)}
 												<span>{item.label}</span>
-												<ChevronRight
+												<ChevronRightIcon
 													size={18}
-													className={`chevron ml-auto transition-opacity ${
+													className={`chevron ml-auto mr-2 transition-opacity size-5! ${
 														isActive
 															? "opacity-100 text-primary-900"
 															: "opacity-0"
@@ -228,12 +229,12 @@ const AppSidebar = () => {
 			<SidebarFooter>
 				{user ? (
 					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<SidebarMenuButton className="data-[state=open]:bg-sidebar-accent !py-8 rounded-2xl cursor-pointer data-[state=open]:text-sidebar-accent-foreground">
-								<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
+						<DropdownMenuTrigger className="!p-0 !m-0">
+							<SidebarMenuButton className="px-2!  group-data-[collapsible=icon]:bg-transparent! hover:bg-accent h-fit gap-3 rounded-2xl cursor-pointer">
+								<div className="flex aspect-square size-9 group-data-[collapsible=icon]:-ml-1 items-center justify-center rounded-full">
 									<img
 										src={user.photo}
-										className="w-8 h-8 aspect-square rounded-full object-cover"
+										className="w-9 h-9 aspect-square rounded-full object-cover"
 										alt="Foto do Usuário"
 									/>
 								</div>
@@ -241,7 +242,7 @@ const AppSidebar = () => {
 									<span className="truncate font-semibold ">{nameUser[0]}</span>
 									<span className="truncate text-xs">{nameUser[1]}</span>
 								</div>
-								<ChevronsUpDown className="ml-auto size-4 mr-2" />
+								<ChevronsUpDownIcon size={18} className="size-4!" />
 							</SidebarMenuButton>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
