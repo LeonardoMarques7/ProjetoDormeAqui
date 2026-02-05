@@ -324,7 +324,6 @@ const NewPlace = () => {
 								<div className="group__input relative flex w-full  justify-center items-center">
 									<CalendarArrowUp className="absolute left-4 text-gray-400 size-5" />
 									<TimePicker
-										defaultValue="14:00"
 										className="border border-gray-300 pl-10 pr-2.5 w-full py-3 rounded-2xl outline-primary-400"
 										value={checkin}
 										onChange={(e) => {
@@ -343,7 +342,6 @@ const NewPlace = () => {
 								<div className="group__input relative flex w-full justify-center items-center">
 									<CalendarArrowDown className="absolute left-4 text-gray-400 size-5" />
 									<TimePicker
-										defaultValue="14:00"
 										className="border border-gray-300 pl-10 w-full pr-2.5 py-3 rounded-2xl outline-primary-400"
 										value={checkout}
 										onChange={(e) => {

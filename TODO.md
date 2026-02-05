@@ -1,5 +1,6 @@
-- [x] Remove FontAwesome imports from Sidebar.jsx
-- [x] Add HeroIcons imports (outline and solid variants)
-- [x] Update navItems array to use HeroIcons components
-- [x] Update icon rendering in navigation menu
-- [x] Update icons in dropdown menu
+- [ ] Modify deletePhoto to take index and filter by index
+- [ ] Modify promotePhoto to take index and reorder by index (if needed)
+- [ ] Change uploadPhoto to accept files array instead of event
+- [ ] Add onDragOver and onDrop to the grid div for file drops
+- [ ] Update button onClick to pass idx to deletePhoto
+- [ ] Update input onChange to call uploadPhoto(e.target.files)

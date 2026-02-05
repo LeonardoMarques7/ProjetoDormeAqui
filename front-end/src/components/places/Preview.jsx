@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useUserContext } from "@/components/contexts/UserContext";
 
 import { useMobileContext } from "@/components/contexts/MobileContext";
@@ -28,11 +28,20 @@ const Preview = ({ data }) => {
 	const lightGalleryRef = useRef(null);
 	const { user } = useUserContext();
 	const { mobile } = useMobileContext();
+	const [imageErrors, setImageErrors] = useState({});
 
 	const handleImageClick = (index) => {
 		if (lightGalleryRef.current) {
 			lightGalleryRef.current.openGallery(index);
 		}
+	};
+
+	const handleImageError = (index) => {
+		setImageErrors((prev) => ({ ...prev, [index]: true }));
+	};
+
+	const getImageSrc = (index) => {
+		return imageErrors[index] ? photoDefault : photos[index] || photoDefault;
 	};
 
 	const {
@@ -248,7 +257,7 @@ const Preview = ({ data }) => {
 										alt="Foto do Usuário"
 									/>
 									<div className="flex flex-col text-gray-700 ">
-										<p className="font-medium">{user.name}</p>
+										<p className="font-medium">{user?.name}</p>
 										<small>
 											Anfitrião desde{" "}
 											<span className="text-primary-600 font-medium">

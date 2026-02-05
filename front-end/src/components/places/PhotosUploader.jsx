@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useState } from "react";
 import photoDefault from "@/assets/photoDefault.jpg";
 import { ArrowUpFromLine, Camera, Star, Trash } from "lucide-react";
 
@@ -9,6 +10,10 @@ const PhotosUploader = ({
 	photos,
 	showMessage,
 }) => {
+	const [draggedIndex, setDraggedIndex] = useState(null);
+	const [dragOverIndex, setDragOverIndex] = useState(null);
+	const [imageErrors, setImageErrors] = useState({});
+
 	// Função para validar se é uma imagem
 	const isValidImageFile = (file) => {
 		const validTypes = [
@@ -19,24 +24,34 @@ const PhotosUploader = ({
 			"image/webp",
 			"image/svg+xml",
 		];
-		const maxSize = 5 * 1024 * 1024; // 5MB
+		const validExtensions = /\.(jpg|jpeg|png|gif|webp|svg|bmp|tiff|jfif)$/i;
+		const maxSize = 5 * 1024 * 20000; // 5MB
 
 		if (!file) return false;
 
-		if (!validTypes.includes(file.type)) {
-			showMessage(
-				"Formato de arquivo inválido! Use: JPG, PNG, GIF, WEBP ou SVG",
-				"error",
-			);
-			return false;
+		// Check file type first
+		if (validTypes.includes(file.type)) {
+			if (file.size > maxSize) {
+				showMessage("Arquivo muito grande! Tamanho máximo: 5MB", "error");
+				return false;
+			}
+			return true;
 		}
 
-		if (file.size > maxSize) {
-			showMessage("Arquivo muito grande! Tamanho máximo: 5MB", "error");
-			return false;
+		// Fallback: check file extension if type is not recognized
+		if (validExtensions.test(file.name)) {
+			if (file.size > maxSize) {
+				showMessage("Arquivo muito grande! Tamanho máximo: 5MB", "error");
+				return false;
+			}
+			return true;
 		}
 
-		return true;
+		showMessage(
+			"Formato de arquivo inválido! Use: JPG, PNG, GIF, WEBP ou SVG",
+			"error",
+		);
+		return false;
 	};
 
 	// Função para validar URL de imagem
@@ -72,21 +87,17 @@ const PhotosUploader = ({
 		} catch (error) {
 			showMessage("Erro ao enviar imagem!", "error");
 			console.error("Erro ao enviar imagem:", error);
-
-			// Usa foto padrão em caso de erro
-			setPhotos((prevValue) => [...prevValue, photoDefault]);
 		}
 	};
 
-	const uploadPhoto = async (e) => {
-		const { files } = e.target;
-
+	const uploadPhoto = async (files) => {
 		if (!files || files.length === 0) {
 			showMessage("Nenhum arquivo selecionado!", "warning");
 			return;
 		}
 
-		const filesArray = [...files];
+		// Convert FileList to array if needed
+		const filesArray = Array.from(files);
 		const formData = new FormData();
 		let validFilesCount = 0;
 
@@ -97,13 +108,8 @@ const PhotosUploader = ({
 			}
 		});
 
-		// Se nenhum arquivo válido foi encontrado, usa a foto padrão
+		// Se nenhum arquivo válido foi encontrado
 		if (validFilesCount === 0) {
-			showMessage(
-				"Nenhuma imagem válida encontrada. Usando imagem padrão.",
-				"warning",
-			);
-			setPhotos((prevValue) => [...prevValue, photoDefault]);
 			return;
 		}
 
@@ -113,7 +119,6 @@ const PhotosUploader = ({
 			});
 
 			if (urlArray && urlArray.length > 0) {
-				console.log("Imagens enviadas:", urlArray);
 				setPhotos((prevValue) => [...prevValue, ...urlArray]);
 				showMessage(
 					`${urlArray.length} imagem(ns) enviada(s) com sucesso!`,
@@ -122,22 +127,14 @@ const PhotosUploader = ({
 			} else {
 				throw new Error("Nenhuma URL retornada");
 			}
-
-			// Limpa o input após o upload
-			e.target.value = "";
 		} catch (error) {
 			showMessage("Erro ao enviar imagem!", "error");
 			console.error("Erro ao enviar imagem para o S3:", error);
-
-			// Usa foto padrão em caso de erro
-			setPhotos((prevValue) => [...prevValue, photoDefault]);
 		}
 	};
 
-	const deletePhoto = (fileUrl) => {
-		if (!fileUrl) return;
-
-		const newPhotos = photos.filter((photo) => photo !== fileUrl);
+	const deletePhoto = (index) => {
+		const newPhotos = photos.filter((_, i) => i !== index);
 		setPhotos(newPhotos);
 		showMessage("Imagem removida!", "info");
 	};
@@ -150,6 +147,57 @@ const PhotosUploader = ({
 		showMessage("Imagem definida como principal!", "success");
 	};
 
+	const handleDragStart = (e, index) => {
+		setDraggedIndex(index);
+		e.dataTransfer.effectAllowed = "move";
+		e.dataTransfer.setDragImage(new Image(), 0, 0);
+	};
+
+	const handleDragOver = (e, index) => {
+		e.preventDefault();
+		setDragOverIndex(index);
+	};
+
+	const handleDrop = (e, dropIndex) => {
+		e.preventDefault();
+		const dragIndex = draggedIndex;
+
+		if (dragIndex === null || dragIndex === dropIndex) return;
+
+		const newPhotos = [...photos];
+		const draggedPhoto = newPhotos[dragIndex];
+		newPhotos.splice(dragIndex, 1);
+		newPhotos.splice(dropIndex, 0, draggedPhoto);
+
+		// Update imageErrors to match the new photo positions
+		const newImageErrors = {};
+		newPhotos.forEach((photo, index) => {
+			const oldIndex = photos.findIndex((p) => p === photo);
+			if (imageErrors[oldIndex]) {
+				newImageErrors[index] = true;
+			}
+		});
+
+		setPhotos(newPhotos);
+		setImageErrors(newImageErrors);
+		setDraggedIndex(null);
+		setDragOverIndex(null);
+		showMessage("Ordem das fotos atualizada!", "success");
+	};
+
+	const handleDragEnd = () => {
+		setDraggedIndex(null);
+		setDragOverIndex(null);
+	};
+
+	const handleImageError = (index) => {
+		setImageErrors((prev) => ({ ...prev, [index]: true }));
+	};
+
+	const getImageSrc = (index) => {
+		return imageErrors[index] ? photoDefault : photos[index] || photoDefault;
+	};
+
 	return (
 		<div className="label__input text-start flex flex-col gap-4 w-full">
 			<label
@@ -158,7 +206,7 @@ const PhotosUploader = ({
 			>
 				Fotos
 				<div className="text-sm font-normal">
-					Envie as fotos da acomodação por links ou arquivos do seu dispositivo.
+					Envie fotos por link ou arquivo. Arraste para ordenar.
 				</div>
 			</label>
 			<div className="group__input relative flex justify-center items-center group__link">
@@ -171,6 +219,7 @@ const PhotosUploader = ({
 					value={photolink}
 					onChange={(e) => setPhotoLink(e.target.value)}
 				/>
+
 				<button
 					onClick={uploadByLink}
 					className="absolute right-2 w-fit bg-primary-400 rounded-xl px-5 py-2.5 text-white cursor-pointer hover:bg-primary-500 ease-in-out duration-300"
@@ -178,36 +227,31 @@ const PhotosUploader = ({
 					Enviar foto
 				</button>
 			</div>
-			<div className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(150px,_.3fr))] gap-5">
+			<p className="text-gray-500 -mt-1 text-xs ml-1">SVG, PNG, JPG or GIF</p>
+			<div className="mt-2 grid grid-cols-3  gap-5">
 				{photos.length > 0 &&
 					photos.map((photo, idx) => (
-						<div key={idx} className="relative ">
+						<div
+							key={idx}
+							className={`relative rounded-2xl cursor-grab w-full ${draggedIndex === idx ? "opacity-50 cursor-grabbing" : ""} ${dragOverIndex === idx ? "cursor-grabbing border-2 border-primary-500" : ""}`}
+							draggable
+							onDragStart={(e) => handleDragStart(e, idx)}
+							onDragOver={(e) => handleDragOver(e, idx)}
+							onDrop={(e) => handleDrop(e, idx)}
+							onDragEnd={handleDragEnd}
+						>
 							<img
-								src={photo}
+								src={getImageSrc(idx)}
 								alt={`Imagem ${idx + 1} do lugar`}
-								className="aspect-square min-w-40 object-cover flex gap-2 justify-center items-center rounded-xl border border-gray-300 cursor-pointer hover:border-solid ease-in-out duration-300 hover:border-primary-300"
+								className="aspect-square object-cover flex gap-2 justify-center items-center rounded-xl border border-gray-300 hover:border-solid ease-in-out duration-300 hover:border-primary-300"
+								onError={() => handleImageError(idx)}
 							/>
 
 							<div className="actions__image absolute bottom-1 gap-1 flex right-1">
 								<button
 									onClick={(e) => {
 										e.preventDefault();
-										promotePhoto(photo);
-									}}
-									className="badge__action bg-white/70 rounded-[10px] p-1 cursor-pointer hover:bg-primary-200 transition-all duration-300 ease-in-out"
-									title="Definir como foto principal"
-								>
-									<Star
-										size={25}
-										className={
-											idx === 0 ? "fill-yellow-400 text-yellow-400" : ""
-										}
-									/>
-								</button>
-								<button
-									onClick={(e) => {
-										e.preventDefault();
-										deletePhoto(photo);
+										deletePhoto(idx);
 									}}
 									className="badge__action bg-white/70 rounded-[10px] p-1 cursor-pointer hover:bg-red-200 transition-all duration-300 ease-in-out"
 									title="Remover foto"
@@ -217,21 +261,33 @@ const PhotosUploader = ({
 							</div>
 						</div>
 					))}
-				<label
-					htmlFor="file"
+				<div
 					className="aspect-square min-w-40 flex gap-2 justify-center items-center rounded-xl border-dashed border border-gray-300 cursor-pointer hover:border-solid ease-in-out duration-300 hover:border-primary-300"
+					onDragOver={(e) => {
+						e.preventDefault();
+					}}
+					onDrop={(e) => {
+						e.preventDefault();
+						const files = e.dataTransfer.files;
+						console.log("Drag and drop files:", files);
+						if (files.length > 0) {
+							uploadPhoto(files);
+						}
+					}}
 				>
+					<label htmlFor="file">
+						<ArrowUpFromLine className="opacity-80" />
+						Upload
+					</label>
 					<input
 						type="file"
 						id="file"
 						className="hidden"
-						onChange={uploadPhoto}
+						onChange={(e) => uploadPhoto(e.target.files)}
 						multiple
 						accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml"
 					/>
-					<ArrowUpFromLine className="opacity-80" />
-					Upload
-				</label>
+				</div>
 			</div>
 		</div>
 	);

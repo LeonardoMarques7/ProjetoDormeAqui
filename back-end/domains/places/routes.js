@@ -108,10 +108,7 @@ router.put("/:id", async (req, res) => {
                 price,
                 checkin,
                 checkout,
-                guests,
-                rooms,
-                beds,
-                bathrooms
+                guests
             });
 
             res.json(updatePlaceDoc);
@@ -155,10 +152,7 @@ router.post("/", async (req, res) => {
                 price,
                 checkin,
                 checkout,
-                guests,
-                rooms,
-                beds,
-                bathrooms
+                guests
             });
 
             res.json(newPlaceDoc);
