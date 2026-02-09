@@ -87,17 +87,6 @@ function BaseMarkdownEditor({ onChange, initialValue }) {
 		<div className="bg-white rounded-2xl max-w-5xl min-lg:max-w-full w-full shadow-lg overflow-hidden">
 			{/* Toolbar */}
 			<div className="bg-gray-50 relative border-b border-gray-200 px-6 py-4">
-				<span className="absolute botto-5 right-5">
-					<button
-						className="bg-green-300 rounded-full cursor-pointer text-white hover:bg-green-600 transition-all px-4 py-2 font-bold"
-						onClick={(e) => {
-							e.preventDefault();
-							setEdit(true);
-						}}
-					>
-						Salvar
-					</button>
-				</span>
 				<div className="flex items-center gap-1 flex-wrap">
 					<ToolButton
 						onClick={(e) => {
@@ -181,16 +170,6 @@ function BaseMarkdownEditor({ onChange, initialValue }) {
 					</ToolButton>
 
 					<div className="w-px h-6 bg-gray-300 mx-2" />
-
-					<ToolButton
-						onClick={(e) => {
-							e.preventDefault();
-							editor.chain().focus().setHorizontalRule().run();
-						}}
-						title="Linha Horizontal"
-					>
-						<Minus size={18} />
-					</ToolButton>
 
 					<ToolButton
 						onClick={(e) => {

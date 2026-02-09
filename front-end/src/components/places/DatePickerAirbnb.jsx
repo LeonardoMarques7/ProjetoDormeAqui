@@ -325,7 +325,7 @@ const DatePickerAirbnb = ({
 
 							<div className="flex-1">
 								<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
-									Checkout
+									Check-out
 								</p>
 								<p className="text-sm md:text-base text-gray-800">
 									{checkoutDate

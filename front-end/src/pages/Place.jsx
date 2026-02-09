@@ -2,6 +2,7 @@ import axios from "axios";
 import {
 	Bath,
 	Bed,
+	CalendarX,
 	ChevronRight,
 	Clock,
 	Expand,
@@ -10,6 +11,8 @@ import {
 	MapPin,
 	Minus,
 	Plus,
+	ScrollText,
+	ShieldHalf,
 	Star,
 	Users2,
 } from "lucide-react";
@@ -55,6 +58,7 @@ const Place = () => {
 	const [place, setPlace] = useState(null);
 
 	const lightGalleryRef = useRef(null);
+	const datePickerRef = useRef(null);
 	const [redirect, setRedirect] = useState(false);
 	const [experienceTime, setExperienceTime] = useState("");
 	const today = new Date();
@@ -76,6 +80,7 @@ const Place = () => {
 	const [resetDates, setResetDates] = useState(false);
 	const [reviews, setReviews] = useState([]);
 	const [placeNotFound, setPlaceNotFound] = useState(false);
+	const [refundPolicy, setRefundPolicy] = useState(null);
 
 	const numberOfDays = (date1, date2) => {
 		const date1GMT = date1 + "GMT-03:00";
@@ -289,6 +294,24 @@ const Place = () => {
 	const handleDateSelect = ({ checkin: newCheckin, checkout: newCheckout }) => {
 		setCheckin(newCheckin);
 		setCheckout(newCheckout);
+		if (newCheckin) {
+			const daysBefore = Math.ceil(
+				(newCheckin - new Date()) / (1000 * 60 * 60 * 24),
+			);
+			if (daysBefore >= 7) {
+				setRefundPolicy(
+					"Cancelamento gratuito até 7 dias antes da data de check-in. Após esse período, a reserva não é reembolsável. Consulte a política completa deste anfitrião para saber mais.",
+				);
+			} else if (daysBefore >= 3) {
+				setRefundPolicy(
+					"Cancelamento gratuito até 3 dias antes da data de check-in, com 50% de reembolso entre 3 e 6 dias. Após esse período, a reserva não é reembolsável. Consulte a política completa deste anfitrião para saber mais.",
+				);
+			} else {
+				setRefundPolicy(
+					"Cancelamento não é possível com menos de 3 dias de antecedência. A reserva não é reembolsável. Consulte a política completa deste anfitrião para saber mais.",
+				);
+			}
+		}
 	};
 
 	if (loading) {
@@ -609,14 +632,12 @@ const Place = () => {
 							<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
 								<div className="flex gap-2 rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<Users2 size={15} className="max-sm:hidden" />
 										<div>{place.guests} hóspedes</div>
 									</div>
 								</div>
 								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 								<div className="flex gap-2  rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<HomeIcon size={15} className="max-sm:hidden" />
 										{place.rooms || rooms > 1 ? (
 											<p>
 												<span>{place.rooms}</span> quartos
@@ -631,8 +652,7 @@ const Place = () => {
 								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 								<div className="flex gap-2 rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<Bed size={15} className="max-sm:hidden" />
-										{place.beds || beds > 1 ? (
+										{place.beds && place.beds > 1 ? (
 											<p>
 												<span className="">{place.beds}</span> camas
 											</p>
@@ -646,7 +666,6 @@ const Place = () => {
 								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 								<div className="flex gap-2 rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<Bath size={15} className="max-sm:hidden" />
 										{place.bathrooms || bathrooms > 1 ? (
 											<p>
 												<span>{place.bathrooms}</span> banheiros
@@ -696,14 +715,12 @@ const Place = () => {
 								<div className="flex gap-4 w-full !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
 									<div className="flex gap-2 rounded-2xl items-center ">
 										<div className="flex items-center gap-2">
-											<Users2 size={15} className="max-sm:hidden" />
 											<div>{place.guests} hóspedes</div>
 										</div>
 									</div>
 									<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 									<div className="flex gap-2  rounded-2xl items-center ">
 										<div className="flex items-center gap-2">
-											<HomeIcon size={15} className="max-sm:hidden" />
 											{place.rooms || rooms > 1 ? (
 												<p>
 													<span>{place.rooms}</span> quartos
@@ -718,8 +735,7 @@ const Place = () => {
 									<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 									<div className="flex gap-2 rounded-2xl items-center ">
 										<div className="flex items-center gap-2">
-											<Bed size={15} className="max-sm:hidden" />
-											{place.beds || beds > 1 ? (
+											{place.beds && place.beds > 1 ? (
 												<p>
 													<span className="">{place.beds}</span> camas
 												</p>
@@ -733,7 +749,6 @@ const Place = () => {
 									<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 									<div className="flex gap-2 rounded-2xl items-center ">
 										<div className="flex items-center gap-2">
-											<Bath size={15} className="max-sm:hidden" />
 											{place.bathrooms || bathrooms > 1 ? (
 												<p>
 													<span>{place.bathrooms}</span> banheiros
@@ -775,7 +790,7 @@ const Place = () => {
 								</div>
 							</div>
 						</div>
-						<div className="border border-t-0 border-r-0 py-5 mb-5 border-l-0">
+						<div className="border  border-r-0 py-7 border-l-0">
 							<p
 								className=""
 								dangerouslySetInnerHTML={{
@@ -783,42 +798,66 @@ const Place = () => {
 								}}
 							></p>
 						</div>
-						<div className="my-4">
+						<div className="py-7 border-b">
 							<p className="sm:text-2xl text-large font-medium">
 								O que esse lugar oferece
 							</p>
-							<div className="my-4">
-								<div className="flex flex-wrap gap-3 mt-8 max-w-7xl mx-auto">
+							<div className="mt-2">
+								<div className="grid grid-cols-2 gap-3 mt-5 max-w-7xl mx-auto">
 									{place.perks.map(
 										(perk, index) =>
 											perk && (
 												<div
 													key={index}
-													className="flex border-gray-300 border w-fit items-center px-4 py-2 rounded-2xl gap-2.5"
+													className="flex w-fit items-center  rounded-2xl gap-2.5"
 												>
-													<Perk perk={perk} />
+													<Perk place={true} perk={perk} />
 												</div>
 											),
 									)}
 								</div>
 							</div>
 						</div>
-						<div className="my-4">
-							<p className="sm:text-2xl text-large font-medium">
-								Horário e Restrições
+						<div className="py-7 border-b">
+							<p className="sm:text-2xl text-large mb-2 font-medium">
+								O que você deve saber
 							</p>
-							<div className="my-2 flex  max-sm:text-sm items-center gap-5 max-sm:gap-1">
-								<div className="flex bg-gray-50 w-fit max-sm:p-3 items-center px-8 py-4 rounded-2xl gap-2.5">
-									<Clock size={15} color="gray" /> Check-in: {place.checkin}
+							<div className="my-4 space-y-6">
+								<div>
+									<CalendarX size={18} />
+									<p className="font-semibold mt-2">Política de cancelamento</p>
+									<p className="text-gray-600 mb-3">
+										{refundPolicy
+											? refundPolicy
+											: "Adicione as datas de viagem para obter as informações de cancelamento dessa reserva."}
+									</p>
 								</div>
-								<div className="flex bg-gray-50 w-fit items-center max-sm:p-3  px-8 py-4  rounded-2xl gap-2.5">
-									<Clock size={15} color="gray" />
-									Check-out: {place.checkout}
+								<div>
+									<ScrollText size={18} />
+									<p className="font-semibold mt-2">Regras da casa</p>
+									<div className="flex flex-col text-gray-700">
+										<span>Check-in após {place.checkin}</span>
+										<span>Checkout antes das {place.checkout}</span>
+										<span>
+											Máximo de {place.guests > 1 ? "hóspedes" : "hóspede"}{" "}
+										</span>
+									</div>
+								</div>
+								<div>
+									<ShieldHalf size={18} />
+									<p className="font-semibold mt-2">Segurança e propriedade</p>
+									<div className="flex flex-col text-gray-700">
+										<span>Alarme de monóxido de carbono não informado</span>
+										<span>Detector de fumaça não informado</span>
+										<span>
+											Câmeras de segurança na parte externa da propriedade
+										</span>
+									</div>
 								</div>
 							</div>
 						</div>
-						<div className="my-4">
-							<p className="sm:text-2xl text-large font-medium">Avaliações</p>
+						<div className="my-4 mt-7">
+							<p className="sm:text-2xl text-large font-medium">Avaliações </p>
 							<div className="my-2 flex flex-wrap gap-2 space-y-4">
 								{reviews.length > 0 ? (
 									reviews.map((review) => (
@@ -1013,7 +1052,7 @@ const Place = () => {
 							</div>
 
 							{/* NOVO CALENDÁRIO AIRBNB STYLE */}
-							<div className="w-full">
+							<div className="w-full" ref={datePickerRef}>
 								<DatePickerAirbnb
 									onDateSelect={handleDateSelect}
 									initialCheckin={checkin}
