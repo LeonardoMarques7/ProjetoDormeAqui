@@ -11,12 +11,14 @@
 		<title>DormeAqui</title>
     <meta http-equiv="Content-Security-Policy" content="
           default-src 'self'; 
-          connect-src 'self' http://localhost:3000 http://localhost:5173 https://projetodormeaqui.onrender.com; 
+          connect-src 'self' http://localhost:3000 http://localhost:5173 https://projetodormeaqui.onrender.com https://accounts.google.com https://oauth2.googleapis.com; 
           font-src 'self' https://fonts.gstatic.com data:; 
           style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
           img-src 'self' data: https:; 
-          script-src 'self' 'unsafe-inline' 'unsafe-eval';
+          script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com;
         ">
+		<!-- Google Sign-In Library -->
+		<script src="https://accounts.google.com/gsi/client" async defer></script>
 	</head>
 	<body>
 		<div id="root" class="text-gray-800 min-h-svh font-dormeaqui"></div>
