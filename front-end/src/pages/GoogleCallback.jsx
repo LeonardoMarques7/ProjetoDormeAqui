@@ -49,7 +49,10 @@ export const GoogleCallback = () => {
         }
       } catch (err) {
         console.error('❌ Erro ao processar callback do Google:', err);
-        setError(err.response?.data?.error || 'Erro ao fazer login com Google');
+        console.error('   Status:', err.response?.status);
+        console.error('   Dados:', err.response?.data);
+        console.error('   API URL:', API_URL);
+        setError(err.response?.data?.error || 'Erro ao fazer login com Google: ' + err.message);
       } finally {
         setLoading(false);
       }

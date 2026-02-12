@@ -103,8 +103,15 @@ export const authenticateWithGoogleCode = async (code) => {
 
     // Determinar URL correta baseado no ambiente
     const isProduction = process.env.NODE_ENV === 'production';
-    const frontendUrl = isProduction ? process.env.PROD_DOMAIN : process.env.FRONTEND_URL;
+    const frontendUrl = isProduction 
+      ? `https://${process.env.PROD_DOMAIN}` 
+      : process.env.FRONTEND_URL;
     const redirectUri = `${frontendUrl}/auth/google/callback`;
+
+    console.log('🔐 Autenticando com Google Code:');
+    console.log('   Client ID:', process.env.GOOGLE_CLIENT_ID);
+    console.log('   Redirect URI:', redirectUri);
+    console.log('   Ambiente:', isProduction ? 'PRODUÇÃO' : 'DESENVOLVIMENTO');
 
     // 1. Trocar código por access token com Google
     const tokenResponse = await axios.post(
@@ -118,11 +125,14 @@ export const authenticateWithGoogleCode = async (code) => {
       }
     );
 
-    const { access_token, error } = tokenResponse.data;
+    const { access_token, error, error_description } = tokenResponse.data;
 
     if (error || !access_token) {
-      throw new Error('Falha ao obter token do Google');
+      console.error('❌ Erro ao obter token do Google:', { error, error_description });
+      throw new Error(`Google token error: ${error} - ${error_description}`);
     }
+
+    console.log('✅ Token do Google obtido com sucesso');
 
     // 2. Obter dados do usuário usando o access_token
     const userResponse = await axios.get(
