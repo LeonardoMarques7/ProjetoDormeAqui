@@ -59,6 +59,8 @@ import {
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 import NotFound from "./NotFound";
 
+const API_URL = import.meta.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
 const Place = () => {
 	const { mobile } = useMobileContext();
 	const { id } = useParams();
@@ -657,10 +659,10 @@ const Place = () => {
 
 			{/* Place */}
 
-			<div className=" mx-auto m-0 flex w-full 2xl:max-w-11/12 flex-col gap-2">
+			<div className=" m-0 flex w-full 2xl:max-w-7xl flex-col gap-2">
 				<div className=" max-sm:p-0 max-sm:shadow-none max-h-full  max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center  relative overflow-hidden">
 					{/* Container do grid principal */}
-					<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2  max-sm:h-[50svh]">
+					<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2 2xl:h-130 max-sm:h-[50svh]">
 						{/* Imagem principal - ocupa 2 colunas e 2 linhas */}
 						<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
 							<img
@@ -728,7 +730,7 @@ const Place = () => {
 					</div>
 				</div>
 				{/* Conteúdo da acomodação */}
-				<div className="grid grid-cols-1  max-sm:gap-5 gap-20 md:grid-cols-2 mt-2 max-sm:mx-2 max-sm:mt-0 mx-0 ">
+				<div className="grid grid-cols-1  max-sm:gap-5 gap-20 md:grid-cols-2 mt-2 max-sm:mx-2 max-sm:mt-0 mx-4 ">
 					<div className="leading-relaxed px-0 order-1 description ">
 						<div className="max-sm:py-0  w-full">
 							<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
@@ -919,6 +921,29 @@ const Place = () => {
 											),
 									)}
 								</div>
+							</div>
+						</div>
+						<div className="py-7 border-b">
+							<p className="text-primary-500 uppercase font-light">
+								Localização
+							</p>
+							<p className="text-3xl font-bold">Onde você vai ficar</p>
+							<div className="mt-5">
+								{place.city ? (
+									<iframe
+										src={`https://www.google.com/maps/embed/v1/place?key=${API_URL}&q=${encodeURIComponent(place.city)}&zoom=12`}
+										className="w-full h-64 rounded-2xl border-0 shadow-sm"
+										allowFullScreen
+										loading="lazy"
+										referrerPolicy="no-referrer-when-downgrade"
+										title={`Mapa de ${place.city}`}
+									></iframe>
+								) : (
+									<div className="w-full h-64 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-500">
+										<MapPin size={48} className="mb-2" />
+										<p>Mapa não disponível</p>
+									</div>
+								)}
 							</div>
 						</div>
 						<div className="py-7 border-b">
