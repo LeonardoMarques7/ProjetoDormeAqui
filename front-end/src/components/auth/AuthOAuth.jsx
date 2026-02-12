@@ -55,13 +55,17 @@ export const AuthOAuth = ({ onSuccess, variant = 'login' }) => {
       return;
     }
 
-    // Usar origin dinâmico (localhost em dev, production URL em prod)
-    const redirectUri = `${window.location.origin}/auth/github/callback`;
+    // Determinar redirect URI baseado no host
+    let redirectUri = `${window.location.origin}/auth/github/callback`;
     
-    console.log('🔗 GitHub redirect URI:', redirectUri);
+    // Se estiver em localhost, pode ter porta diferente, então tenta as duas principais
+    if (window.location.hostname === 'localhost') {
+      console.log('🔗 DEV: GitHub redirect URI:', redirectUri);
+    } else {
+      console.log('🔗 PROD: GitHub redirect URI:', redirectUri);
+    }
     
-    // Redirecionar para GitHub OAuth
-    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`;
   };
 
   return (
