@@ -48,8 +48,9 @@ import {
 import { motion } from "framer-motion";
 
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
-
+import { useMessage } from "@/components/contexts/MessageContext";
 import { useUserContext } from "@/components/contexts/UserContext";
+
 import axios from "axios";
 import {
 	Sidebar as ShadcnSidebar,
@@ -66,11 +67,12 @@ import {
 	SidebarTrigger,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import Footer from "./Footer";
 
 const AppSidebar = () => {
 	const { user, setUser } = useUserContext();
 	const location = useLocation();
+	const { showMessage } = useMessage();
+	const [logoutActive, setLogoutActive] = useState(false);
 	const { showAuthModal } = useAuthModalContext();
 	const { state } = useSidebar();
 	const [bookings, setBookings] = useState([]);
@@ -164,12 +166,18 @@ const AppSidebar = () => {
 
 			console.log(data);
 			setUser(null);
+			setLogoutActive(true);
 		} catch (error) {
 			alert(JSON.stringify(error));
 		}
 	};
 
 	const nameUser = user?.name ? user.name.split(" ") : ["", ""];
+
+	if (logoutActive) {
+		showMessage("Logout realizado com sucesso!", "info");
+		setLogoutActive(false);
+	}
 
 	return (
 		<ShadcnSidebar variant="inset" collapsible="icon">

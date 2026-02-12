@@ -47,7 +47,7 @@ const Message = ({ type, message, open, onOpenChange }) => {
 							<img src={icon} className="w-8 h-8" alt="Icon da notificação" />
 						</div>
 						<div className="flex-1 text-gray-500">
-							<h6>{title}</h6>
+							<h4>{title}</h4>
 							<p className="text-sm ">{message}</p>
 						</div>
 						<button
