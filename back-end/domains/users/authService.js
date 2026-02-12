@@ -9,6 +9,25 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const DEFAULT_PHOTO_URL = `https://${process.env.BUCKET}.s3.us-east-2.amazonaws.com/user__default.png`;
 const DEFAULT_BANNER_URL = `https://${process.env.BUCKET}.s3.us-east-2.amazonaws.com/banner__default2.jpg`;
 
+// ========== FUNÇÃO PARA OBTER GITHUB CREDENTIALS CORRETAS ==========
+const getGithubCredentials = () => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  if (isProduction) {
+    return {
+      clientId: process.env.GITHUB_CLIENT_ID_PROD,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET_PROD,
+      environment: 'PRODUÇÃO'
+    };
+  } else {
+    return {
+      clientId: process.env.GITHUB_CLIENT_ID_DEV,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET_DEV,
+      environment: 'DESENVOLVIMENTO'
+    };
+  }
+};
+
 // ========== GOOGLE OAUTH ==========
 export const authenticateWithGoogle = async (tokenId) => {
   try {
@@ -82,6 +101,11 @@ export const authenticateWithGoogleCode = async (code) => {
       throw new Error('Código do Google não fornecido');
     }
 
+    // Determinar URL correta baseado no ambiente
+    const isProduction = process.env.NODE_ENV === 'production';
+    const frontendUrl = isProduction ? process.env.PROD_DOMAIN : process.env.FRONTEND_URL;
+    const redirectUri = `${frontendUrl}/auth/google/callback`;
+
     // 1. Trocar código por access token com Google
     const tokenResponse = await axios.post(
       'https://oauth2.googleapis.com/token',
@@ -90,7 +114,7 @@ export const authenticateWithGoogleCode = async (code) => {
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/google/callback`
+        redirect_uri: redirectUri
       }
     );
 
@@ -242,12 +266,20 @@ export const authenticateWithGithub = async (code) => {
       throw new Error('Código do GitHub não fornecido');
     }
 
+    // Obter credenciais corretas baseado no ambiente
+    const { clientId, clientSecret, environment } = getGithubCredentials();
+
+    console.log('🔐 Autenticando com GitHub:');
+    console.log('   Client ID:', clientId);
+    console.log('   Ambiente:', environment);
+    console.log('🔄 Processando código do GitHub...');
+
     // 1. Trocar código por access token com GitHub
     const tokenResponse = await axios.post(
       'https://github.com/login/oauth/access_token',
       {
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        client_id: clientId,
+        client_secret: clientSecret,
         code
       },
       {
@@ -258,8 +290,11 @@ export const authenticateWithGithub = async (code) => {
     const { access_token, error } = tokenResponse.data;
 
     if (error || !access_token) {
-      throw new Error('Falha ao obter token do GitHub');
+      console.error('❌ Erro ao obter token do GitHub:', error);
+      throw new Error(`Falha ao obter token do GitHub: ${error}`);
     }
+
+    console.log('✅ Token do GitHub obtido com sucesso');
 
     // 2. Obter dados do usuário GitHub
     const userResponse = await axios.get(
