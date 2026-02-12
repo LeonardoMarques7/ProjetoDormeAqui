@@ -17,9 +17,10 @@ export const AuthOAuth = ({ onSuccess, variant = 'login' }) => {
       setError('');
 
       try {
+        // credentialResponse.code vem do authorization_code flow
         const response = await axios.post(
           `${API_URL}/users/oauth/google`,
-          { tokenId: credentialResponse.access_token },
+          { code: credentialResponse.code },
           { withCredentials: true }
         );
 
@@ -40,14 +41,13 @@ export const AuthOAuth = ({ onSuccess, variant = 'login' }) => {
       setError('Erro ao conectar com Google');
       setLoading(false);
     },
-    flow: 'implicit'
+    flow: 'auth-code'
   });
 
   // ========== LOGIN GITHUB ==========
   const handleGithubLogin = () => {
     setLoading(true);
     const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-    const redirectUri = `${window.location.origin}/auth/github/callback`;
     
     if (!clientId) {
       setError('GitHub Client ID não configurado');
@@ -55,6 +55,11 @@ export const AuthOAuth = ({ onSuccess, variant = 'login' }) => {
       return;
     }
 
+    // Usar origin dinâmico (localhost em dev, production URL em prod)
+    const redirectUri = `${window.location.origin}/auth/github/callback`;
+    
+    console.log('🔗 GitHub redirect URI:', redirectUri);
+    
     // Redirecionar para GitHub OAuth
     window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
   };

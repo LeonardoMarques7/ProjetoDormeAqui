@@ -82,6 +82,11 @@ export const authenticateWithGoogleCode = async (code) => {
       throw new Error('Código do Google não fornecido');
     }
 
+    // Determinar URL correta baseado no ambiente
+    const isProduction = process.env.NODE_ENV === 'production';
+    const frontendUrl = isProduction ? process.env.PROD_DOMAIN : process.env.FRONTEND_URL;
+    const redirectUri = `${frontendUrl}/auth/google/callback`;
+
     // 1. Trocar código por access token com Google
     const tokenResponse = await axios.post(
       'https://oauth2.googleapis.com/token',
@@ -90,7 +95,7 @@ export const authenticateWithGoogleCode = async (code) => {
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/google/callback`
+        redirect_uri: redirectUri
       }
     );
 
@@ -241,6 +246,8 @@ export const authenticateWithGithub = async (code) => {
     if (!code) {
       throw new Error('Código do GitHub não fornecido');
     }
+
+    console.log('🔄 Processando código do GitHub...', { isProduction: process.env.NODE_ENV === 'production' });
 
     // 1. Trocar código por access token com GitHub
     const tokenResponse = await axios.post(
