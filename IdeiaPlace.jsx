@@ -659,80 +659,80 @@ const Place = () => {
 
 			{/* Place */}
 
-			<div className=" mb-2.5 flex w-full max-w-full flex-col gap-2">
-				<div className=" max-sm:p-0 max-sm:shadow-none max-h-full  max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center  relative overflow-hidden">
+			<div className=" mb-2.5 flex w-full max-w-full flex-col gap-y-0">
+				<div className=" max-sm:p-0 border-10 border-primary-900 bg-white p-2 rounded-3xl max-sm:shadow-none max-h-full  max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center  relative overflow-hidden">
 					{/* <div className="grid relative  grid-cols-5 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2 2xl:h-130 max-sm:h-[50svh]">
-						<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
-							<img
-								className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-								src={getImageSrc(0)}
-								onError={() => handleImageError(0)}
-								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(0)}
-							/>
-						</div>
+                        <div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
+                            <img
+                                className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                src={getImageSrc(0)}
+                                onError={() => handleImageError(0)}
+                                alt="Imagem da acomodação"
+                                onClick={() => handleImageClick(0)}
+                            />
+                        </div>
 
-						<div className="col-span-1 row-span-2 max-sm:col-span-2 ">
-							<img
-								className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-								src={getImageSrc(1)}
-								onError={() => handleImageError(1)}
-								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(1)}
-							/>
-						</div>
+                        <div className="col-span-1 row-span-2 max-sm:col-span-2 ">
+                            <img
+                                className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                src={getImageSrc(1)}
+                                onError={() => handleImageError(1)}
+                                alt="Imagem da acomodação"
+                                onClick={() => handleImageClick(1)}
+                            />
+                        </div>
 
-						<div className="col-span-1 row-span-1 max-sm:col-span-2">
-							<img
-								className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-								src={getImageSrc(2)}
-								onError={() => handleImageError(2)}
-								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(2)}
-							/>
-						</div>
+                        <div className="col-span-1 row-span-1 max-sm:col-span-2">
+                            <img
+                                className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                src={getImageSrc(2)}
+                                onError={() => handleImageError(2)}
+                                alt="Imagem da acomodação"
+                                onClick={() => handleImageClick(2)}
+                            />
+                        </div>
 
-						{mobile ? null : (
-							<>
-								<div className="col-span-1 row-span-1">
-									<img
-										className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-										src={getImageSrc(3)}
-										onError={() => handleImageError(3)}
-										alt="Imagem da acomodação"
-										onClick={() => handleImageClick(3)}
-									/>
-								</div>
+                        {mobile ? null : (
+                            <>
+                                <div className="col-span-1 row-span-1">
+                                    <img
+                                        className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                        src={getImageSrc(3)}
+                                        onError={() => handleImageError(3)}
+                                        alt="Imagem da acomodação"
+                                        onClick={() => handleImageClick(3)}
+                                    />
+                                </div>
 
-								<div className="col-span-1 row-span-1">
-									<img
-										className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-										src={getImageSrc(4)}
-										onError={() => handleImageError(4)}
-										alt="Imagem da acomodação"
-										onClick={() => handleImageClick(4)}
-									/>
-								</div>
-								<div className="col-span-1 row-span-1">
-									<img
-										className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-										src={getImageSrc(1)}
-										onError={() => handleImageError(4)}
-										alt="Imagem da acomodação"
-										onClick={() => handleImageClick(4)}
-									/>
-								</div>
-							</>
-						)}
+                                <div className="col-span-1 row-span-1">
+                                    <img
+                                        className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                        src={getImageSrc(4)}
+                                        onError={() => handleImageError(4)}
+                                        alt="Imagem da acomodação"
+                                        onClick={() => handleImageClick(4)}
+                                    />
+                                </div>
+                                <div className="col-span-1 row-span-1">
+                                    <img
+                                        className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                        src={getImageSrc(1)}
+                                        onError={() => handleImageError(4)}
+                                        alt="Imagem da acomodação"
+                                        onClick={() => handleImageClick(4)}
+                                    />
+                                </div>
+                            </>
+                        )}
 
-						<button
-							className="absolute bottom-4 right-4 max-sm:text-sm max-sm:opacity-70 max-sm:p-2 hover:max-sm:opacity-100 flex items-center px-4 py-2 rounded-lg gap-2 bg-white border border-gray-800 hover:bg-gray-50 transition-all cursor-pointer font-medium"
-							onClick={handleShowMoreClick}
-						>
-							<Expand size={18} />
-							<span className="max-sm:hidden">Mostrar todas as fotos</span>
-						</button>
-					</div> */}
+                        <button
+                            className="absolute bottom-4 right-4 max-sm:text-sm max-sm:opacity-70 max-sm:p-2 hover:max-sm:opacity-100 flex items-center px-4 py-2 rounded-lg gap-2 bg-white border border-gray-800 hover:bg-gray-50 transition-all cursor-pointer font-medium"
+                            onClick={handleShowMoreClick}
+                        >
+                            <Expand size={18} />
+                            <span className="max-sm:hidden">Mostrar todas as fotos</span>
+                        </button>
+                    </div> */}
 					<div className="grid relative  grid-cols-5 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2 2xl:h-150 max-sm:h-[50svh]">
 						{/* Imagem principal - ocupa 2 colunas e 2 linhas */}
 						<div className="col-span-3 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
@@ -801,8 +801,8 @@ const Place = () => {
 					</div>
 				</div>
 				{/* Conteúdo da acomodação */}
-				<div className="grid grid-cols-5 max-sm:gap-5 mt-2 gap-5 max-sm:mx-2 max-sm:mt-0 mx-4 ">
-					<div className="leading-relaxed col-span-3  order-1 description ">
+				<div className="grid grid-cols-5 gap-2 max-sm:mx-2 max-sm:mt-0 mx-4 ">
+					<div className="leading-relaxed py-5 col-span-3 px-0 order-1 max-w-4xl sm:max-w-3xl description ">
 						<div className="max-sm:py-0  w-full">
 							<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
 								<div className="flex gap-2 rounded-2xl items-center ">
@@ -1453,10 +1453,10 @@ const Place = () => {
 					</div>
 
 					{console.log("Este é log: ", booking)}
-					<div className="order-1 col-span-2 ">
+					<div className="order-1 col-span-2 flex justify-self-end mx-4 ">
 						{/* Booking */}
 						{booking && (
-							<div className="section__booking  h-fit order-2 w-full ml-auto max-sm:mb-5  lg:max-w-5xl">
+							<div className="section__bookin h-fit order-2 w-full  max-sm:mb-5  lg:max-w-5xl">
 								<div className=" relative shadow-gray-200 max-sm:rounded-2xl!  bg-gray-50 rounded-3xl overflow-hidden">
 									{/* Boarding Pass Style Container */}
 									<div className="flex flex-col md:flex-row ">
@@ -1505,7 +1505,7 @@ const Place = () => {
 												<div className="flex flex-col items-center px-4">
 													<div className="flex items-center gap-2">
 														<div className="w-15 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
-														<Home className="text-primary-400" size={20} />
+														<Home className="text-primary-900" size={20} />
 														<div className="w-15 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
 													</div>
 												</div>
@@ -1572,9 +1572,9 @@ const Place = () => {
 						)}
 						<form
 							ref={formRef}
-							className="form__place 2xl:justify-self-center max-sm:relative max-w-md max-sm:p-0 max-sm:w-full order-2   w-full  self-start flex flex-col gap-4 rounded-2xl py-5"
+							className="form__place border-4 border-t-0  border-primary-900 max-sm:relative max-w-md max-sm:p-0 max-sm:w-full order-2   w-full  self-start flex flex-col gap-4 rounded-b-2xl p-5"
 						>
-							<div className="border-l-2 border-primary-400 p-4">
+							<div className=" p-4">
 								<div className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
 									<p className="uppercase text-sm">preço</p>
 									<span className="font-light text-5xl text-primary-500">
