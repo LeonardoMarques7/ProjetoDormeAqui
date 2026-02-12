@@ -135,6 +135,31 @@ const Place = () => {
 		return filtered;
 	}, [reviews, sortBy, ratingFilter, commentFilter]);
 
+	const formatDate = (date, format = "dd/MM/yyyy") => {
+		const day = String(date.getDate()).padStart(2, "0");
+		const month = String(date.getMonth() + 1).padStart(2, "0");
+		const year = date.getFullYear();
+
+		const monthNames = [
+			"Jan",
+			"Fev",
+			"Mar",
+			"Abr",
+			"Mai",
+			"Jun",
+			"Jul",
+			"Ago",
+			"Set",
+			"Out",
+			"Nov",
+			"Dez",
+		];
+
+		if (format === "dd de MMM")
+			return `${day} de ${monthNames[date.getMonth()]}`;
+		return `${day}/${month}/${year}`;
+	};
+
 	const numberOfDays = (date1, date2) => {
 		const date1GMT = date1 + "GMT-03:00";
 		const date2GMT = date2 + "GMT-03:00";
@@ -146,6 +171,17 @@ const Place = () => {
 			(dateCheckout.getTime() - dateCheckin.getTime()) / (1000 * 60 * 60 * 24)
 		);
 	};
+
+	const nights = useMemo(() => {
+		if (checkin && checkout) {
+			return numberOfDays(checkin, checkout);
+		}
+		return 0;
+	}, [checkin, checkout]);
+
+	const totalPrice = useMemo(() => {
+		return place ? place.price * nights : 0;
+	}, [place, nights]);
 
 	const dataAtual = new Date();
 
@@ -649,7 +685,7 @@ const Place = () => {
 								)}
 							</div>
 							<div className="text-lg font-semibold">
-								R$ {place.price}{" "}
+								R$ {place?.price}{" "}
 								<span className="text-sm font-normal">por noite</span>
 							</div>
 						</button>
@@ -1572,102 +1608,70 @@ const Place = () => {
 						)}
 						<form
 							ref={formRef}
-							className="form__place 2xl:justify-self-center max-sm:relative max-w-md max-sm:p-0 max-sm:w-full order-2   w-full  self-start flex flex-col gap-4 rounded-2xl py-5"
+							className="w-full max-w-md bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-sm"
 						>
-							<div className="border-l-2 border-primary-400 p-4">
-								<div className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
-									<p className="uppercase text-sm">preço</p>
-									<span className="font-light text-5xl text-primary-500">
-										R$ {place.price}
-									</span>{" "}
-									<p className="text-sm">por noite</p>
+							{/* Preço */}
+							<div className="mb-6">
+								<div className="flex items-baseline gap-1">
+									<span className="text-4xl font-bold text-gray-900">
+										R$ {place?.price}
+									</span>
+									<span className="text-gray-600">por noite</span>
 								</div>
 							</div>
 
 							{/* NOVO CALENDÁRIO AIRBNB STYLE */}
-							<div className="w-full" ref={datePickerRef}>
+							<div className="w-full mb-6" ref={datePickerRef}>
 								<DatePickerAirbnb
 									onDateSelect={handleDateSelect}
 									initialCheckin={checkin}
 									initialCheckout={checkout}
-									price={place.price}
+									price={place?.price}
 									placeId={id}
 									bookings={bookingsPlace}
 								/>
 							</div>
 
 							{/* Hóspedes */}
-							<div className="py-2 flex flex-col gap-4 justify-center sm:mx-auto sm:w-full ">
-								<div>
-									<p className="font-bold px-3 sm:px-0">Hóspedes</p>
-									{!limiteGuests ? (
-										<p className="text-sm text-gray-500 px-3 sm:px-0">
-											Hospedagem para até {place.guests} pessoas.
-										</p>
-									) : (
-										<p className="text-sm text-red-500 px-3 sm:px-0">
-											{limiteGuests}
-										</p>
-									)}
+							<div className="mb-6">
+								<div className="text-sm font-semibold text-gray-900 mb-3">
+									Hóspedes
 								</div>
-								<div className="flex items-center text-center justify-center p-0 h-full w-fit border rounded-2xl">
-									<div className="rounded-l-2xl px-5 flex items-center justify-center bg-white">
-										<Counter value={guests} fontSize={25} />
-									</div>
-									<div className="flex items-center">
-										<button
-											className="border-l py-2.5 hover:bg-gray-100 px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
-											onClick={(e) => {
-												e.preventDefault();
-												if (guests < place.guests) {
-													setGuests(guests + 1);
-													setLimiteGuests("");
-												} else {
-													setLimiteGuests(
-														"Atingiu o limite máximo de hóspedes!",
-													);
-												}
-											}}
-											disabled={guests >= place.guests}
-										>
-											<Plus />
-										</button>
-										<button
-											className="border-l min-h-full py-2.5 hover:bg-gray-100 rounded-r-2xl px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
-											onClick={(e) => {
-												e.preventDefault();
-												if (guests > 1) {
-													setGuests(guests - 1);
-													setLimiteGuests("");
-												} else {
-													setLimiteGuests("Mínimo de 1 hóspede!");
-												}
-											}}
-											disabled={guests <= 1}
-										>
-											<Minus />
-										</button>
-									</div>
+								<div className="text-sm text-gray-600 mb-3">
+									Hospedagem para até 2 pessoas.
+								</div>
+								<div className="flex items-center justify-between border rounded-xl p-3">
+									<button
+										onClick={() => setGuests(Math.max(1, guests - 1))}
+										className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+										disabled={guests <= 1}
+									>
+										<Minus className="w-4 h-4" />
+									</button>
+									<span className="text-lg font-medium">{guests}</span>
+									<button
+										onClick={() => setGuests(Math.min(10, guests + 1))}
+										className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+									>
+										<Plus className="w-4 h-4" />
+									</button>
 								</div>
 							</div>
-							{user ? (
-								<InteractiveHoverButton
-									className="w-fit"
-									onClick={handleBooking}
-								>
-									Reservar comodidade
-								</InteractiveHoverButton>
-							) : (
-								<InteractiveHoverButton
-									className=""
-									onClick={(e) => {
-										e.preventDefault();
-										showAuthModal("login");
-									}}
-								>
-									Entre para continuar
-								</InteractiveHoverButton>
-							)}
+
+							{/* Botão */}
+							<button
+								className="w-full bg-gray-900 text-white py-4 rounded-xl font-medium hover:bg-gray-800 transition-colors"
+								onClick={
+									user
+										? handleBooking
+										: (e) => {
+												e.preventDefault();
+												showAuthModal("login");
+											}
+								}
+							>
+								Entre para continuar
+							</button>
 						</form>
 					</div>
 				</div>
