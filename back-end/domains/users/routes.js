@@ -299,32 +299,43 @@ router.post("/oauth/google", async (req, res) => {
   try {
     const { tokenId, accessToken, code } = req.body;
 
+    console.log('📍 [Google OAuth Route] Recebido:', { hasCode: !!code, hasAccessToken: !!accessToken, hasTokenId: !!tokenId });
+
     let result;
     
     // Suportar os 3 métodos: code (authorization_code flow), accessToken (implicit flow), tokenId (legacy)
     if (code) {
+      console.log('   → Usando flow: authorization_code');
       result = await authenticateWithGoogleCode(code);
     } else if (accessToken) {
+      console.log('   → Usando flow: implicit (access_token)');
       result = await authenticateWithGoogleAccessToken(accessToken);
     } else if (tokenId) {
+      console.log('   → Usando flow: legacy (tokenId)');
       result = await authenticateWithGoogle(tokenId);
     } else {
       return res.status(400).json({ error: "Token do Google não fornecido" });
     }
 
     if (!result.success) {
+      console.error('❌ [Google OAuth Route] Falha na autenticação:', result.error);
       return res.status(401).json({ error: result.error });
     }
 
     const { user, token } = result;
 
+    console.log('✅ [Google OAuth Route] Usuário autenticado:', user.email);
+    console.log('   Token gerado:', token ? 'SIM' : 'NÃO');
+
     res
       .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
       .json({ ...user, token }); // Retornar token junto com usuário
 
+    console.log('✅ [Google OAuth Route] Resposta enviada com sucesso');
+
   } catch (error) {
-    console.error("❌ Erro em /oauth/google:", error);
-    res.status(500).json({ error: "Erro ao autenticar com Google" });
+    console.error("❌ Erro em /oauth/google:", error.message);
+    res.status(500).json({ error: "Erro ao autenticar com Google: " + error.message });
   }
 });
 
