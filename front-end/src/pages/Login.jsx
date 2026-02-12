@@ -98,7 +98,7 @@ const Login = () => {
 						</button>
 					</form>
 
-					<p>
+					<p className="mt-6">
 						Ainda não tem uma conta?{" "}
 						<Link to="/register" className="underline font-semibold">
 							Registre-se Aqui!

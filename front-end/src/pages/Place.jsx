@@ -2,18 +2,30 @@ import axios from "axios";
 import {
 	Bath,
 	Bed,
+	CalendarX,
 	ChevronRight,
 	Clock,
 	Expand,
+	Filter,
 	Home,
 	HomeIcon,
 	MapPin,
 	Minus,
 	Plus,
+	ScrollText,
+	ShieldHalf,
 	Star,
 	Users2,
 } from "lucide-react";
-import React, { useEffect, useState, useRef, useContext } from "react";
+import { Select } from "@mantine/core";
+import {
+	Drawer,
+	DrawerContent,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "@/components/ui/drawer";
+import React, { useEffect, useState, useRef, useContext, useMemo } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import lgThumbnail from "lightgallery/plugins/thumbnail";
 import lgZoom from "lightgallery/plugins/zoom";
@@ -55,6 +67,7 @@ const Place = () => {
 	const [place, setPlace] = useState(null);
 
 	const lightGalleryRef = useRef(null);
+	const datePickerRef = useRef(null);
 	const [redirect, setRedirect] = useState(false);
 	const [experienceTime, setExperienceTime] = useState("");
 	const today = new Date();
@@ -76,6 +89,49 @@ const Place = () => {
 	const [resetDates, setResetDates] = useState(false);
 	const [reviews, setReviews] = useState([]);
 	const [placeNotFound, setPlaceNotFound] = useState(false);
+	const [refundPolicy, setRefundPolicy] = useState(null);
+	const [sortBy, setSortBy] = useState("recent");
+	const [ratingFilter, setRatingFilter] = useState("all");
+	const [commentFilter, setCommentFilter] = useState("all");
+	const [sheetRating, setSheetRating] = useState(0);
+	const [sheetOpen, setSheetOpen] = useState(false);
+	const [sortByTemp, setSortByTemp] = useState("recent");
+	const [tempRating, setTempRating] = useState(0);
+	const [tempHoverRating, setTempHoverRating] = useState(0);
+	const [tempCommentFilter, setTempCommentFilter] = useState("all");
+	const [showFixedBar, setShowFixedBar] = useState(false);
+	const formRef = useRef(null);
+
+	const filteredReviews = useMemo(() => {
+		let filtered = [...reviews];
+
+		// Filter by rating
+		if (ratingFilter !== "all") {
+			filtered = filtered.filter(
+				(review) => review.rating === parseInt(ratingFilter),
+			);
+		}
+
+		// Filter by comment presence
+		if (commentFilter === "with") {
+			filtered = filtered.filter(
+				(review) => review.comment && review.comment.trim() !== "",
+			);
+		} else if (commentFilter === "without") {
+			filtered = filtered.filter(
+				(review) => !review.comment || review.comment.trim() === "",
+			);
+		}
+
+		// Sort by date
+		filtered.sort((a, b) => {
+			const dateA = new Date(a.createdAt || 0);
+			const dateB = new Date(b.createdAt || 0);
+			return sortBy === "recent" ? dateB - dateA : dateA - dateB;
+		});
+
+		return filtered;
+	}, [reviews, sortBy, ratingFilter, commentFilter]);
 
 	const numberOfDays = (date1, date2) => {
 		const date1GMT = date1 + "GMT-03:00";
@@ -192,6 +248,26 @@ const Place = () => {
 		}
 	}, [id]);
 
+	useEffect(() => {
+		if (place && formRef.current) {
+			const observer = new IntersectionObserver(
+				(entries) => {
+					const entry = entries[0];
+					setShowFixedBar(!entry.isIntersecting);
+				},
+				{
+					root: null,
+					rootMargin: "0px",
+					threshold: 0,
+				},
+			);
+
+			observer.observe(formRef.current);
+
+			return () => observer.disconnect();
+		}
+	}, [place]);
+
 	const calculateExperienceTime = () => {
 		const createdAt = owner?.createdAt || place?.owner?.createdAt;
 		if (!createdAt) return;
@@ -289,6 +365,24 @@ const Place = () => {
 	const handleDateSelect = ({ checkin: newCheckin, checkout: newCheckout }) => {
 		setCheckin(newCheckin);
 		setCheckout(newCheckout);
+		if (newCheckin) {
+			const daysBefore = Math.ceil(
+				(newCheckin - new Date()) / (1000 * 60 * 60 * 24),
+			);
+			if (daysBefore >= 7) {
+				setRefundPolicy(
+					"Cancelamento gratuito até 7 dias antes da data de check-in. Após esse período, a reserva não é reembolsável. Consulte a política completa deste anfitrião para saber mais.",
+				);
+			} else if (daysBefore >= 3) {
+				setRefundPolicy(
+					"Cancelamento gratuito até 3 dias antes da data de check-in, com 50% de reembolso entre 3 e 6 dias. Após esse período, a reserva não é reembolsável. Consulte a política completa deste anfitrião para saber mais.",
+				);
+			} else {
+				setRefundPolicy(
+					"Cancelamento não é possível com menos de 3 dias de antecedência. A reserva não é reembolsável. Consulte a política completa deste anfitrião para saber mais.",
+				);
+			}
+		}
 	};
 
 	if (loading) {
@@ -530,9 +624,40 @@ const Place = () => {
 				}))}
 			/>
 
+			{/* Fixed Bar */}
+
+			{showFixedBar && (
+				<div className="fixed top-0 left-0 right-0 z-50">
+					<div className="w-fit mx-auto px-4 py-3">
+						<button
+							onClick={() => {
+								formRef.current?.scrollIntoView({ behavior: "smooth" });
+							}}
+							className="w-full flex items-center justify-between bg-primary-900 text-white px-6 py-3 rounded-lg hover:bg-primary-800 transition-colors"
+						>
+							<div className="flex items-center gap-4">
+								<div className="text-lg font-semibold">Reservar</div>
+								{place.averageRating > 0 && (
+									<div className="flex items-center gap-1">
+										<Star size={16} className="text-yellow-400 fill-current" />
+										<span className="text-sm font-medium">
+											{place.averageRating.toFixed(1)}
+										</span>
+									</div>
+								)}
+							</div>
+							<div className="text-lg font-semibold">
+								R$ {place.price}{" "}
+								<span className="text-sm font-normal">por noite</span>
+							</div>
+						</button>
+					</div>
+				</div>
+			)}
+
 			{/* Place */}
 
-			<div className=" mx-auto m-0 flex xl:max-w-7xl flex-col gap-2">
+			<div className=" mx-auto m-0 flex w-full 2xl:max-w-11/12 flex-col gap-2">
 				<div className=" max-sm:p-0 max-sm:shadow-none max-h-full  max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center  relative overflow-hidden">
 					{/* Container do grid principal */}
 					<div className="grid relative  grid-cols-4 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2  max-sm:h-[50svh]">
@@ -603,20 +728,18 @@ const Place = () => {
 					</div>
 				</div>
 				{/* Conteúdo da acomodação */}
-				<div className="grid grid-cols-1 max-sm:gap-5 gap-20 md:grid-cols-2 mt-2 max-sm:mx-2 max-sm:mt-0 mx-4 ">
+				<div className="grid grid-cols-1  max-sm:gap-5 gap-20 md:grid-cols-2 mt-2 max-sm:mx-2 max-sm:mt-0 mx-0 ">
 					<div className="leading-relaxed px-0 order-1 description ">
 						<div className="max-sm:py-0  w-full">
 							<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
 								<div className="flex gap-2 rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<Users2 size={15} className="max-sm:hidden" />
 										<div>{place.guests} hóspedes</div>
 									</div>
 								</div>
 								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 								<div className="flex gap-2  rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<HomeIcon size={15} className="max-sm:hidden" />
 										{place.rooms || rooms > 1 ? (
 											<p>
 												<span>{place.rooms}</span> quartos
@@ -631,8 +754,7 @@ const Place = () => {
 								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 								<div className="flex gap-2 rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<Bed size={15} className="max-sm:hidden" />
-										{place.beds || beds > 1 ? (
+										{place.beds && place.beds > 1 ? (
 											<p>
 												<span className="">{place.beds}</span> camas
 											</p>
@@ -646,7 +768,6 @@ const Place = () => {
 								<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 								<div className="flex gap-2 rounded-2xl items-center ">
 									<div className="flex items-center gap-2">
-										<Bath size={15} className="max-sm:hidden" />
 										{place.bathrooms || bathrooms > 1 ? (
 											<p>
 												<span>{place.bathrooms}</span> banheiros
@@ -660,7 +781,7 @@ const Place = () => {
 								</div>
 							</div>
 							<div className="flex flex-col flex-1 gap-2">
-								<div className="text-[2rem] max-sm:text-[1.5rem] font-medium text-gray-700 ">
+								<div className="text-3xl font-bold max-sm:text-[1.5rem] text-gray-700 ">
 									{place.title}
 								</div>
 								{place.averageRating > 0 && (
@@ -696,14 +817,12 @@ const Place = () => {
 								<div className="flex gap-4 w-full !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">
 									<div className="flex gap-2 rounded-2xl items-center ">
 										<div className="flex items-center gap-2">
-											<Users2 size={15} className="max-sm:hidden" />
 											<div>{place.guests} hóspedes</div>
 										</div>
 									</div>
 									<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 									<div className="flex gap-2  rounded-2xl items-center ">
 										<div className="flex items-center gap-2">
-											<HomeIcon size={15} className="max-sm:hidden" />
 											{place.rooms || rooms > 1 ? (
 												<p>
 													<span>{place.rooms}</span> quartos
@@ -718,8 +837,7 @@ const Place = () => {
 									<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 									<div className="flex gap-2 rounded-2xl items-center ">
 										<div className="flex items-center gap-2">
-											<Bed size={15} className="max-sm:hidden" />
-											{place.beds || beds > 1 ? (
+											{place.beds && place.beds > 1 ? (
 												<p>
 													<span className="">{place.beds}</span> camas
 												</p>
@@ -733,7 +851,6 @@ const Place = () => {
 									<div className="w-1 rounded-full h-1 bg-gray-500"></div>
 									<div className="flex gap-2 rounded-2xl items-center ">
 										<div className="flex items-center gap-2">
-											<Bath size={15} className="max-sm:hidden" />
 											{place.bathrooms || bathrooms > 1 ? (
 												<p>
 													<span>{place.bathrooms}</span> banheiros
@@ -775,7 +892,7 @@ const Place = () => {
 								</div>
 							</div>
 						</div>
-						<div className="border border-t-0 border-r-0 py-5 mb-5 border-l-0">
+						<div className="border  border-r-0 py-7 border-l-0">
 							<p
 								className=""
 								dangerouslySetInnerHTML={{
@@ -783,50 +900,396 @@ const Place = () => {
 								}}
 							></p>
 						</div>
-						<div className="my-4">
-							<p className="sm:text-2xl text-large font-medium">
-								O que esse lugar oferece
+						<div className="py-7 border-b">
+							<p className="text-primary-500 uppercase font-light">
+								Comodidades
 							</p>
-							<div className="my-4">
-								<div className="flex flex-wrap gap-3 mt-8 max-w-7xl mx-auto">
+							<p className="text-3xl font-bold">O que esse lugar oferece</p>
+							<div className="mt-2">
+								<div className="grid grid-cols-2 gap-3 mt-5 max-w-7xl mx-auto">
 									{place.perks.map(
 										(perk, index) =>
 											perk && (
 												<div
 													key={index}
-													className="flex border-gray-300 border w-fit items-center px-4 py-2 rounded-2xl gap-2.5"
+													className="flex w-fit items-center  rounded-2xl gap-2.5"
 												>
-													<Perk perk={perk} />
+													<Perk place={true} perk={perk} />
 												</div>
 											),
 									)}
 								</div>
 							</div>
 						</div>
-						<div className="my-4">
-							<p className="sm:text-2xl text-large font-medium">
-								Horário e Restrições
+						<div className="py-7 border-b">
+							<p className="text-primary-500 uppercase font-light">
+								Políticas e Regras
 							</p>
-							<div className="my-2 flex  max-sm:text-sm items-center gap-5 max-sm:gap-1">
-								<div className="flex bg-gray-50 w-fit max-sm:p-3 items-center px-8 py-4 rounded-2xl gap-2.5">
-									<Clock size={15} color="gray" /> Check-in: {place.checkin}
+							<p className="text-3xl font-bold">O que você deve saber</p>
+							<div className="my-4 space-y-6">
+								<div>
+									<CalendarX size={18} />
+									<p className="font-semibold mt-2">Política de cancelamento</p>
+									<p className="text-gray-600 mb-3">
+										{refundPolicy
+											? refundPolicy
+											: "Adicione as datas de viagem para obter as informações de cancelamento dessa reserva."}
+									</p>
 								</div>
-								<div className="flex bg-gray-50 w-fit items-center max-sm:p-3  px-8 py-4  rounded-2xl gap-2.5">
-									<Clock size={15} color="gray" />
-									Check-out: {place.checkout}
+								<div>
+									<ScrollText size={18} />
+									<p className="font-semibold mt-2">Regras da casa</p>
+									<div className="flex flex-col text-gray-700">
+										<span>Check-in após {place.checkin}</span>
+										<span>Checkout antes das {place.checkout}</span>
+										<span>
+											Máximo de {place.guests > 1 ? "hóspedes" : "hóspede"}{" "}
+										</span>
+									</div>
+								</div>
+								<div>
+									<ShieldHalf size={18} />
+									<p className="font-semibold mt-2">Segurança e propriedade</p>
+									<div className="flex flex-col text-gray-700">
+										<span>Alarme de monóxido de carbono não informado</span>
+										<span>Detector de fumaça não informado</span>
+										<span>
+											Câmeras de segurança na parte externa da propriedade
+										</span>
+									</div>
 								</div>
 							</div>
 						</div>
-						<div className="my-4">
-							<p className="sm:text-2xl text-large font-medium">Avaliações</p>
-							<div className="my-2 flex flex-wrap gap-2 space-y-4">
-								{reviews.length > 0 ? (
-									reviews.map((review) => (
-										<div
-											key={review._id}
-											className="flex w-full items-center gap-4"
+						<div className="my-4 mt-7">
+							<div
+								id="avaliacoes"
+								className="flex scroll-m-25 flex-col w-full relative "
+							>
+								<p className="text-primary-500 uppercase font-light">
+									Avaliações
+								</p>
+								<div className="flex items-center justify-between">
+									<div className="">
+										<p className="text-3xl font-bold">O que Dizem</p>
+									</div>
+									{/* Mobile Filter Button */}
+									{mobile && (
+										<Drawer
+											open={sheetOpen}
+											onOpenChange={setSheetOpen}
+											modal={true}
 										>
-											<div className="flex flex-col w-full gap-4 p-6 bg-white rounded-2xl border border-gray-200 shadow-sm">
+											<DrawerContent className="rounded-tl-3xl h-auto p-5 py-6 max-h-[80vh]">
+												<p className="text-xl font-medium text-gray-900 mb-2">
+													Filtros de Avaliações
+												</p>
+												<div className="flex flex-col gap-6 mt-6">
+													<div className="flex flex-col gap-2">
+														<label className="text-sm font-medium text-gray-700">
+															Ordenar por:
+														</label>
+														<div className="flex flex-col gap-4">
+															<label
+																htmlFor="recent"
+																className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																	sortByTemp === "recent"
+																		? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																		: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																}`}
+															>
+																<input
+																	type="checkbox"
+																	id="recent"
+																	name="sortBy"
+																	value="recent"
+																	checked={sortByTemp === "recent"}
+																	onChange={(e) => {
+																		if (e.target.checked) {
+																			setSortByTemp("recent");
+																		}
+																	}}
+																	className="hidden"
+																/>
+																Mais recente
+																<span
+																	className={`w-2 h-2 ml-auto rounded-full bg-transparent ${sortByTemp === "recent" && "!bg-primary-900"}`}
+																></span>
+															</label>
+															<label
+																htmlFor="oldest"
+																className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																	sortByTemp === "oldest"
+																		? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																		: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																}`}
+															>
+																<input
+																	type="checkbox"
+																	id="oldest"
+																	name="sortBy"
+																	value="oldest"
+																	checked={sortByTemp === "oldest"}
+																	onChange={(e) => {
+																		if (e.target.checked) {
+																			setSortByTemp("oldest");
+																		}
+																	}}
+																	className="hidden"
+																/>
+																Mais antigo
+																<span
+																	className={`w-2 h-2 ml-auto rounded-full bg-transparent ${sortByTemp === "oldest" && "!bg-primary-900"}`}
+																></span>
+															</label>
+														</div>
+													</div>
+													<div className="flex flex-col gap-2">
+														<label className="text-sm font-medium text-gray-700">
+															Estrelas:
+														</label>
+														<div className="flex gap-1">
+															{[1, 2, 3, 4, 5].map((star) => (
+																<button
+																	key={star}
+																	type="button"
+																	className={`p-3 hover:scale-110 rounded-2xl bg-primary-100/50 transition-all ${
+																		star <= (tempHoverRating || tempRating) &&
+																		"bg-primary-900"
+																	}`}
+																	onMouseEnter={() => setTempHoverRating(star)}
+																	onMouseLeave={() => setTempHoverRating(0)}
+																	onClick={() => {
+																		setTempRating(star);
+																	}}
+																>
+																	<Star
+																		size={24}
+																		className={`${
+																			star <= (tempHoverRating || tempRating)
+																				? "fill-white cursor-pointer text-white"
+																				: "text-gray-300"
+																		} transition-colors`}
+																	/>
+																</button>
+															))}
+														</div>
+													</div>
+													<div className="flex flex-col gap-2">
+														<label className="text-sm font-medium text-gray-700">
+															Comentários:
+														</label>
+														<div className="flex flex-col gap-4">
+															<label
+																htmlFor="all_comments"
+																className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																	tempCommentFilter === "all"
+																		? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																		: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																}`}
+															>
+																<input
+																	type="checkbox"
+																	id="all_comments"
+																	name="commentFilter"
+																	value="all"
+																	checked={tempCommentFilter === "all"}
+																	onChange={(e) => {
+																		if (e.target.checked) {
+																			setTempCommentFilter("all");
+																		}
+																	}}
+																	className="hidden"
+																/>
+																Todos
+																<span
+																	className={`w-2 h-2 ml-auto rounded-full bg-transparent ${tempCommentFilter === "all" && "!bg-primary-900"}`}
+																></span>
+															</label>
+															<label
+																htmlFor="with_comments"
+																className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																	tempCommentFilter === "with"
+																		? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																		: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																}`}
+															>
+																<input
+																	type="checkbox"
+																	id="with_comments"
+																	name="commentFilter"
+																	value="with"
+																	checked={tempCommentFilter === "with"}
+																	onChange={(e) => {
+																		if (e.target.checked) {
+																			setTempCommentFilter("with");
+																		}
+																	}}
+																	className="hidden"
+																/>
+																Com comentário
+																<span
+																	className={`w-2 h-2 ml-auto rounded-full bg-transparent ${tempCommentFilter === "with" && "!bg-primary-900"}`}
+																></span>
+															</label>
+															<label
+																htmlFor="without_comments"
+																className={`flex items-center gap-2 cursor-pointer px-3 py-2 border-l-1 text-primary-600 border-transparent transition-colors ${
+																	tempCommentFilter === "without"
+																		? "border-l-primary-900 text-primary-900 bg-primary-100/50"
+																		: " text-gray-800 hover:bg-primary-100/50 hover:border-l-primary-300"
+																}`}
+															>
+																<input
+																	type="checkbox"
+																	id="without_comments"
+																	name="commentFilter"
+																	value="without"
+																	checked={tempCommentFilter === "without"}
+																	onChange={(e) => {
+																		if (e.target.checked) {
+																			setTempCommentFilter("without");
+																		}
+																	}}
+																	className="hidden"
+																/>
+																Sem comentário
+																<span
+																	className={`w-2 h-2 ml-auto rounded-full bg-transparent ${tempCommentFilter === "without" && "!bg-primary-900"}`}
+																></span>
+															</label>
+														</div>
+													</div>
+												</div>
+												<div className="flex justify-end gap-4 mt-6">
+													<button
+														type="button"
+														onClick={(e) => {
+															e.preventDefault();
+															// Clear filters
+															setSortBy("recent");
+															setRatingFilter("all");
+															setCommentFilter("all");
+															setSheetRating(0);
+															setSortByTemp("recent");
+															setTempRating(0);
+															setTempCommentFilter("all");
+														}}
+														className="px-4 py-2 cursor-pointer hover:bg-primary-100 rounded-lg border hover:text-primary-900 transition-colors font-medium"
+													>
+														Limpar
+													</button>
+													<button
+														type="button"
+														onClick={() => {
+															// Apply filters and close sheet
+															setSortBy(sortByTemp);
+															setRatingFilter(
+																tempRating > 0 ? tempRating.toString() : "all",
+															);
+															setCommentFilter(tempCommentFilter);
+															setSheetOpen(false);
+															// Scroll to "Avaliações" section
+															document
+																.getElementById("avaliacoes")
+																?.scrollIntoView({ behavior: "smooth" });
+														}}
+														className="px-6 py-2 bg-primary-900 cursor-pointer text-white rounded-lg hover:bg-primary-800 transition-colors font-medium"
+													>
+														Aplicar Filtros
+													</button>
+												</div>
+											</DrawerContent>
+										</Drawer>
+									)}
+								</div>
+								{/* External Filter Button */}
+
+								{/* Desktop Filter Controls */}
+								{!mobile && (
+									<div className="flex flex-wrap gap-4 mt-5 mb-5">
+										<div className="flex flex-col gap-2">
+											<label className="text-sm font-medium text-gray-700">
+												Ordenar por:
+											</label>
+											<Select
+												value={sortBy}
+												onChange={setSortBy}
+												data={[
+													{ value: "recent", label: "Mais recente" },
+													{ value: "oldest", label: "Mais antigo" },
+												]}
+												placeholder="Ordenar por"
+												className="w-[180px]"
+												styles={{
+													input: {
+														borderRadius: "12px",
+													},
+													dropdown: {
+														borderRadius: "12px",
+													},
+												}}
+											/>
+										</div>
+										<div className="flex flex-col gap-2">
+											<label className="text-sm font-medium text-gray-700">
+												Estrelas:
+											</label>
+											<Select
+												value={ratingFilter}
+												onChange={setRatingFilter}
+												data={[
+													{ value: "all", label: "Todas" },
+													{ value: "5", label: "5 estrelas" },
+													{ value: "4", label: "4 estrelas" },
+													{ value: "3", label: "3 estrelas" },
+													{ value: "2", label: "2 estrelas" },
+													{ value: "1", label: "1 estrela" },
+												]}
+												placeholder="Estrelas"
+												className="w-[180px]"
+												styles={{
+													input: {
+														borderRadius: "12px",
+													},
+													dropdown: {
+														borderRadius: "12px",
+													},
+												}}
+											/>
+										</div>
+										<div className="flex flex-col gap-2">
+											<label className="text-sm font-medium text-gray-700">
+												Comentários:
+											</label>
+											<Select
+												value={commentFilter}
+												onChange={setCommentFilter}
+												data={[
+													{ value: "all", label: "Todos" },
+													{ value: "with", label: "Com comentário" },
+													{ value: "without", label: "Sem comentário" },
+												]}
+												placeholder="Comentários"
+												className="w-[180px]"
+												styles={{
+													input: {
+														borderRadius: "12px",
+													},
+													dropdown: {
+														borderRadius: "12px",
+													},
+												}}
+											/>
+										</div>
+									</div>
+								)}
+								<div className="grid grid-cols-1 gap-4 mt-5 mb-15 max-sm:mb-0">
+									{filteredReviews.length > 0 ? (
+										filteredReviews.map((review) => (
+											<div
+												key={review._id}
+												className="flex flex-col gap-4 p-6 bg-white rounded-2xl border border-gray-200 shadow-sm"
+											>
 												<div className="flex items-center gap-2">
 													<div className="flex items-center gap-1">
 														{[...Array(5)].map((_, index) => (
@@ -862,22 +1325,29 @@ const Place = () => {
 														className="w-12 h-12 rounded-full object-cover"
 													/>
 													<div className="flex flex-col text-sm">
-														<Link
-															to={`/account/profile/${review.user._id}`}
-															className="font-semibold hover:underline text-gray-900"
-														>
+														<p className="font-semibold text-gray-900">
 															{review.user.name}
-														</Link>
+														</p>
 														<p className="text-xs text-gray-500">
 															Hóspede Verificado
 														</p>
 													</div>
 												</Link>
 											</div>
-										</div>
-									))
-								) : (
-									<p className="text-gray-500">Nenhuma avaliação disponível.</p>
+										))
+									) : (
+										<p className="text-gray-500 text-center py-0">
+											Ainda não há avaliações para este filtro.
+										</p>
+									)}
+								</div>
+								{mobile && (
+									<button
+										onClick={() => setSheetOpen(true)}
+										className="sticky bottom-2.5 ml-auto text-center -mt-7.5 cursor-pointer justify-center text-xl p-4 w-fit shadow-sm flex flex-1 items-center gap-2 bg-primary-900 hover:bg-primary-black transition-colors rounded-full text-white font-medium"
+									>
+										<Filter size={18} />
+									</button>
 								)}
 							</div>
 						</div>
@@ -1001,7 +1471,10 @@ const Place = () => {
 								</div>
 							</div>
 						)}
-						<form className="form__place max-sm:relative max-w-md max-sm:p-0 max-sm:w-full order-2   w-full  justify-self-end self-start sticky top-20 bottom-20 flex flex-col gap-4 rounded-2xl py-5">
+						<form
+							ref={formRef}
+							className="form__place max-sm:relative max-w-md max-sm:p-0 max-sm:w-full order-2   w-full  justify-self-end self-start flex flex-col gap-4 rounded-2xl py-5"
+						>
 							<div className="border-l-2 border-primary-400 p-4">
 								<div className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
 									<p className="uppercase text-sm">preço</p>
@@ -1013,7 +1486,7 @@ const Place = () => {
 							</div>
 
 							{/* NOVO CALENDÁRIO AIRBNB STYLE */}
-							<div className="w-full">
+							<div className="w-full" ref={datePickerRef}>
 								<DatePickerAirbnb
 									onDateSelect={handleDateSelect}
 									initialCheckin={checkin}

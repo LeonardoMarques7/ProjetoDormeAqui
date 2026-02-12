@@ -21,6 +21,7 @@ import {
 	ChevronRight,
 	Ellipsis,
 	Filter,
+	User,
 } from "lucide-react";
 
 import {
@@ -29,6 +30,7 @@ import {
 	TooltipContent,
 	TooltipProvider,
 } from "@/components/ui/tooltip";
+import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import {
 	Drawer,
 	DrawerContent,
@@ -1240,78 +1242,67 @@ const AccProfile = () => {
 												</div>
 											</div>
 										)}
-										<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5 mb-15 max-sm:mb-0">
+										<BentoGrid className="grid w-full auto-rows-[22rem] grid-cols-3 gap-4 mt-5 mb-15 max-sm:mb-0">
 											{filteredReviews.length > 0 ? (
-												(() => {
-													const columns = mobile ? 2 : 4;
-													const columnReviews = Array.from(
-														{ length: columns },
-														() => [],
-													);
-													filteredReviews.forEach((review, index) => {
-														columnReviews[index % columns].push(review);
-													});
-													return columnReviews.map((column, colIndex) => (
-														<div key={colIndex} className="grid gap-4">
-															{column.map((review) => (
-																<div
-																	key={review._id}
-																	className="flex flex-col gap-4 p-6 bg-white rounded-2xl border border-gray-200 shadow-sm"
-																>
-																	<div className="flex items-center gap-2">
-																		<div className="flex items-center gap-1">
-																			{[...Array(5)].map((_, index) => (
-																				<Star
-																					key={index}
-																					fill={
-																						index < Math.floor(review.rating)
-																							? "black"
-																							: "none"
-																					}
-																					stroke="black"
-																					size={20}
-																				/>
-																			))}
-																		</div>
+												filteredReviews.map((review, index) => {
+													const bentoClasses = [
+														"col-span-1 row-span-1",
+														"col-span-2 row-span-1",
+														"col-span-1 row-span-2",
+														"col-span-2 row-span-2",
+														"col-span-1 row-span-1",
+														"col-span-1 row-span-1",
+														"col-span-2 row-span-1",
+														"col-span-1 row-span-2",
+													];
+													const className =
+														bentoClasses[index % bentoClasses.length];
+													const stars = [...Array(5)].map((_, i) => (
+														<Star
+															key={i}
+															fill={
+																i < Math.floor(review.rating) ? "black" : "none"
+															}
+															stroke="black"
+															size={16}
+														/>
+													));
+													return (
+														<BentoCard
+															key={review._id}
+															name={review.user.name}
+															className={className}
+															background={
+																<div className="absolute inset-0 bg-gradient-to-br from-primary-100 to-primary-200" />
+															}
+															Icon={User}
+															description={
+																<div>
+																	<div className="flex items-center gap-1 mb-2">
+																		{stars}
 																	</div>
 																	{review.comment ? (
-																		<p className="text-gray-700 max-w-md leading-relaxed line-clamp-4">
+																		<p className="text-gray-700 leading-relaxed">
 																			"{review.comment}"
 																		</p>
 																	) : (
-																		<p className=" max-w-md mt-auto items-center text-primary-500 leading-relaxed line-clamp-4">
+																		<p className="text-primary-500 leading-relaxed">
 																			Sem comentário
 																		</p>
 																	)}
-																	<Link
-																		to={`/account/profile/${review.user._id}`}
-																		className="flex items-center mt-auto gap-2"
-																	>
-																		<img
-																			src={review.user.photo || photoDefault}
-																			alt={review.user.name}
-																			className="w-12 h-12 rounded-full object-cover"
-																		/>
-																		<div className="flex flex-col text-sm">
-																			<p className="font-semibold text-gray-900">
-																				{review.user.name}
-																			</p>
-																			<p className="text-xs text-gray-500">
-																				Hóspede Verificado
-																			</p>
-																		</div>
-																	</Link>
 																</div>
-															))}
-														</div>
-													));
-												})()
+															}
+															href={`/account/profile/${review.user._id}`}
+															cta="Ver perfil"
+														/>
+													);
+												})
 											) : (
 												<p className="text-gray-500 text-center py-0 col-span-full">
 													Ainda não há avaliações para este filtro.
 												</p>
 											)}
-										</div>
+										</BentoGrid>
 										{mobile && (
 											<button
 												onClick={() => setSheetOpen(true)}

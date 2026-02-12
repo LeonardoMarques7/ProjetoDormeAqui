@@ -6,12 +6,10 @@ import { useState } from "react";
 
 const Perks = ({ perks, setPerks }) => {
 	const [currentPage, setCurrentPage] = useState(1);
-	const itemsPerPage = 10; // 8 perks por página
+	const itemsPerPage = 10;
 
-	// Calcular total de páginas baseado no PERKS_CONFIG
 	const totalPages = Math.ceil(PERKS_CONFIG.length / itemsPerPage);
 
-	// Obter itens da página atual do PERKS_CONFIG
 	const indexOfLastItem = currentPage * itemsPerPage;
 	const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 	const currentPerks = PERKS_CONFIG.slice(indexOfFirstItem, indexOfLastItem);
@@ -25,8 +23,8 @@ const Perks = ({ perks, setPerks }) => {
 	};
 
 	return (
-		<div className="flex flex-col gap-10">
-			<div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
+		<div className="flex flex-col gap-4 max-w-4xl w-full">
+			<div className="grid gap-4 w-full grid-cols-3">
 				{currentPerks.map((perkConfig) => {
 					const isSelected = perks.includes(perkConfig.id);
 
@@ -34,12 +32,14 @@ const Perks = ({ perks, setPerks }) => {
 						<label
 							key={perkConfig.id}
 							htmlFor={perkConfig.id}
-							className={`flex items-center gap-2 cursor-pointer px-3 hover:bg-primary-300 hover:text-white py-2 rounded-xl border-1 border-gray-300 transition-colors ${
+							className={`relative flex flex-col items-start font-medium justify-start gap-3 cursor-pointer px-4 py-6 rounded-2xl border-2 transition-all ${
 								isSelected
-									? "bg-primary-500 text-white border-transparent"
-									: "bg-white text-gray-800"
+									? "border-primary-900 bg-primary-100/50"
+									: "border-gray-200 bg-white hover:border-gray-300"
 							}`}
 						>
+							<Perk perk={perkConfig.id} />
+
 							<Checkbox
 								id={perkConfig.id}
 								name={perkConfig.id}
@@ -48,14 +48,13 @@ const Perks = ({ perks, setPerks }) => {
 								onCheckedChange={(checked) =>
 									handlePerkToggle(perkConfig.id, checked)
 								}
+								className="absolute top-3 right-3"
 							/>
-							<Perk perk={perkConfig.id} />
 						</label>
 					);
 				})}
 			</div>
 
-			{/* Paginação - só aparece se tiver mais de 8 perks */}
 			<PaginationControls
 				currentPage={currentPage}
 				totalPages={totalPages}

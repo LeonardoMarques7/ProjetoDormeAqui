@@ -51,6 +51,8 @@ const NewPlace = () => {
 	const [checkout, setCheckout] = useState("");
 	const [guests, setGuests] = useState("");
 	const [redirect, setRedirect] = useState(false);
+	const [currentStep, setCurrentStep] = useState(1);
+	const totalSteps = 7;
 
 	const photosPlaceholder = [
 		{
@@ -161,6 +163,18 @@ const NewPlace = () => {
 		setRedirect(true);
 	};
 
+	const handleNext = () => {
+		if (currentStep < totalSteps) {
+			setCurrentStep(currentStep + 1);
+		}
+	};
+
+	const handleBack = () => {
+		if (currentStep > 1) {
+			setCurrentStep(currentStep - 1);
+		}
+	};
+
 	const formData = {
 		title,
 		city,
@@ -175,202 +189,237 @@ const NewPlace = () => {
 	};
 
 	return (
-		<div className="relative w-full ">
-			<div className="container__prev__form relative flex  rounded-2xl max-sm:px-4  mx-auto flex-1 justify-between gap-5 h-full w-full">
-				<form
-					onSubmit={handleSubmit}
-					className="container__form max-w-2xl pb-5 min-w-auto flex grow flex-col gap-10 w-full"
-				>
-					<div className="label__input text-start flex flex-col gap-4 w-full">
-						<label
-							htmlFor="title"
-							className="text-2xl ml-2 font-medium text-gray-600"
-						>
-							Título
-							<div className="text-sm font-normal">
-								Título Informe o título da acomodação.
+		<div className="min-h-screen bg-white flex flex-col pb-5">
+			{/* Step Content */}
+			<div className="flex-1 flex items-center justify-start px-4">
+				<div className="max-w-2xl w-full">
+					{currentStep === 1 && (
+						<div className="space-y-8">
+							<div className="text-start">
+								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
+									Informações básicas
+								</h1>
+								<p className="text-gray-600">
+									Dê um título atraente e informe a localização da sua
+									acomodação.
+								</p>
 							</div>
-						</label>
-						<div className="group__input relative flex w-full justify-center items-center">
-							<Home className="absolute left-4 text-gray-400 size-6" />
-							<input
-								id="title"
-								type="text"
-								placeholder="Digite o título do seu anúncio"
-								className="border border-gray-300 px-14  py-4 rounded-2xl min-w-full outline-primary-400"
-								value={title}
-								onChange={(e) => {
-									setTitle(e.target.value);
-								}}
+							<div className="space-y-6">
+								<div className="space-y-2">
+									<label className="block text-lg font-medium text-gray-700">
+										Título
+									</label>
+									<div className="relative">
+										<Home className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 size-6" />
+										<input
+											type="text"
+											placeholder="Digite o título do seu anúncio"
+											className="w-full pl-14 pr-4 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-400"
+											value={title}
+											onChange={(e) => setTitle(e.target.value)}
+										/>
+									</div>
+								</div>
+								<div className="space-y-2">
+									<label className="block text-lg font-medium text-gray-700">
+										Cidade e Estado
+									</label>
+									<div className="relative">
+										<MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 size-6" />
+										<input
+											type="text"
+											placeholder="Digite a cidade e estado"
+											className="w-full pl-14 pr-4 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-400"
+											value={city}
+											onChange={(e) => setCity(e.target.value)}
+										/>
+									</div>
+								</div>
+							</div>
+						</div>
+					)}
+
+					{currentStep === 2 && (
+						<div className="space-y-8">
+							<div className="text-start">
+								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
+									Fotos da acomodação
+								</h1>
+								<p className="text-gray-600">
+									Adicione fotos de alta qualidade para atrair mais hóspedes.
+								</p>
+							</div>
+							<PhotosUploader
+								{...{ photolink, setPhotoLink, photos, setPhotos, showMessage }}
 							/>
 						</div>
-					</div>
-					<div className="label__input text-start flex flex-col gap-4 w-full">
-						<label
-							htmlFor="city"
-							className="text-2xl ml-2 font-medium text-gray-600"
-						>
-							Cidade e Estado
-							<div className="text-sm font-normal">
-								Informe a cidade e o estado da acomodação.
-							</div>
-						</label>
-						<div className="group__input relative flex justify-center items-center">
-							<MapPin className="absolute left-4 text-gray-400 size-6" />
-							<input
-								id="city"
-								type="text"
-								placeholder="Digite o cidade e país do seu anúncio"
-								className="border border-gray-300 px-14 py-4 rounded-2xl min-w-full outline-primary-400"
-								value={city}
-								onChange={(e) => {
-									setCity(e.target.value);
-								}}
-							/>
-						</div>
-					</div>
+					)}
 
-					<PhotosUploader
-						{...{ photolink, setPhotoLink, photos, setPhotos, showMessage }}
-					/>
-
-					<div className="label__input text-start justify-start flex flex-col  gap-5 w-full">
-						<label
-							htmlFor="description"
-							className="text-2xl ml-2 font-medium text-gray-600"
-						>
-							Descrição
-							<div className="text-sm font-normal">
-								Descreva o espaço de forma clara, destacando o que ele oferece e
-								o que o torna especial.
+					{currentStep === 3 && (
+						<div className="space-y-8">
+							<div className="text-start">
+								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
+									Descrição do espaço
+								</h1>
+								<p className="text-gray-600">
+									Descreva o espaço de forma clara, destacando o que ele
+									oferece.
+								</p>
 							</div>
-						</label>
-						<div classsame="group__input">
 							<MarkdownEditor
 								onChange={(descriptionText) => setDescription(descriptionText)}
 								initialValue={description}
 							/>
 						</div>
-					</div>
-					<div className="label__input text-start flex flex-col  gap-5 w-full">
-						<label
-							htmlFor="perks"
-							className="text-2xl ml-2 font-medium text-gray-600"
-						>
-							Comodidades
-							<p className="text-sm font-normal">
-								Selecione os items da comodidade
-							</p>
-						</label>
+					)}
 
-						<Perks perks={perks} setPerks={setPerks} />
-					</div>
-					<div className="label__input text-start flex flex-col gap-5 w-full">
-						<label
-							htmlFor="extras"
-							className="text-2xl ml-2 font-medium text-gray-600"
-						>
-							Informações Extras
-							<p className="text-sm font-normal">
-								Descreva as informações extras da acomodação
-							</p>
-						</label>
-						<div className="group__input relative w-full flex justify-start items-center">
+					{currentStep === 4 && (
+						<div className="space-y-8">
+							<div className="text-start">
+								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
+									Comodidades
+								</h1>
+								<p className="text-gray-600">
+									Selecione as comodidades disponíveis na sua acomodação.
+								</p>
+							</div>
+							<Perks perks={perks} setPerks={setPerks} />
+						</div>
+					)}
+
+					{currentStep === 5 && (
+						<div className="space-y-8">
+							<div className="text-start">
+								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
+									Informações extras
+								</h1>
+								<p className="text-gray-600">
+									Adicione regras, horários e outras informações importantes.
+								</p>
+							</div>
 							<MarkdownEditor2
 								onChange={(extrasText) => setExtras(extrasText)}
 								initialValue={extras}
 							/>
 						</div>
-					</div>
-					<h2 className="text-2xl text-start  ml-2 font-medium text-gray-600">
-						Restrições e Preço
-						<p className="text-sm font-normal">
-							Defina o preço, horários de check-in e check-out e também o número
-							máximo de hóspedes.
-						</p>
-					</h2>
-					<div className="flex-col flex gap-4">
-						<div className="flex items-center max-sm:flex-wrap  gap-4">
-							<PriceInput
-								id="price"
-								className="max-sm:w-full flex-1"
-								label="Preço por noite"
-								placeholder="130,00"
-								value={price}
-								onChange={(e) => setPrice(e.target.value)}
-							/>
-							<div className="label__input text-start w-full flex-1 flex flex-col  gap-2">
-								<GuestsInput
-									id="guests"
-									label="Número máximo de hóspedes"
-									min={1}
-									className="max-sm:w-full"
-									max={20}
-									value={guests}
-									onChange={(e) => {
-										setGuests(e.target.value);
-									}}
-								/>
+					)}
+
+					{currentStep === 6 && (
+						<div className="space-y-8">
+							<div className="text-start">
+								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
+									Preço e capacidade
+								</h1>
+								<p className="text-gray-600">
+									Defina o preço, horários e número máximo de hóspedes.
+								</p>
 							</div>
-						</div>
-						<div className="flex items-center max-sm:flex-wrap gap-4">
-							<div className="label__input text-start w-full flex flex-col gap-2">
-								<label
-									htmlFor="checkin"
-									className="text-[1rem] ml-2  font-medium text-gray-600"
-								>
-									Check-in
-								</label>
-								<div className="group__input relative flex w-full  justify-center items-center">
-									<CalendarArrowUp className="absolute left-4 text-gray-400 size-5" />
-									<TimePicker
-										className="border border-gray-300 pl-10 pr-2.5 w-full py-3 rounded-2xl outline-primary-400"
-										value={checkin}
-										onChange={(e) => {
-											setCheckin(e.target.value);
-										}}
+							<div className="space-y-6">
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<PriceInput
+										label="Preço por noite"
+										placeholder="130,00"
+										value={price}
+										onChange={(e) => setPrice(e.target.value)}
+									/>
+									<GuestsInput
+										label="Número máximo de hóspedes"
+										min={1}
+										max={20}
+										value={guests}
+										onChange={(e) => setGuests(e.target.value)}
 									/>
 								</div>
-							</div>
-							<div className="label__input text-start  w-full flex flex-col gap-2 ">
-								<label
-									htmlFor="checkout"
-									className="text-[1rem] ml-2  font-medium text-gray-600"
-								>
-									Check-out
-								</label>
-								<div className="group__input relative flex w-full justify-center items-center">
-									<CalendarArrowDown className="absolute left-4 text-gray-400 size-5" />
-									<TimePicker
-										className="border border-gray-300 pl-10 w-full pr-2.5 py-3 rounded-2xl outline-primary-400"
-										value={checkout}
-										onChange={(e) => {
-											setCheckout(e.target.value);
-										}}
-									/>
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<label className="block text-lg font-medium text-gray-700">
+											Check-in
+										</label>
+										<div className="relative">
+											<CalendarArrowUp className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 size-5" />
+											<TimePicker
+												className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-400"
+												value={checkin}
+												onChange={(e) => setCheckin(e.target.value)}
+											/>
+										</div>
+									</div>
+									<div className="space-y-2">
+										<label className="block text-lg font-medium text-gray-700">
+											Check-out
+										</label>
+										<div className="relative">
+											<CalendarArrowDown className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 size-5" />
+											<TimePicker
+												className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-400"
+												value={checkout}
+												onChange={(e) => setCheckout(e.target.value)}
+											/>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>
-					<div className="flex items-center max-sm:justify-center max-sm:text-sm gap-5">
-						<Link
-							to="../account/profile"
-							className="flex items-center gap-5 group hover:text-primary-500 transition-all"
-							onClick={handlePageChange}
+					)}
+
+					{currentStep === 7 && (
+						<div className="space-y-8">
+							<div className="text-start">
+								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
+									Revisão final
+								</h1>
+								<p className="text-gray-600">
+									Confira todas as informações antes de publicar.
+								</p>
+							</div>
+							<Preview data={formData} />
+							<form onSubmit={handleSubmit} className="flex justify-center">
+								<button
+									type="submit"
+									className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-full font-medium transition-colors"
+								>
+									<SaveAllIcon className="inline mr-2" />
+									Salvar acomodação
+								</button>
+							</form>
+						</div>
+					)}
+				</div>
+			</div>
+
+			{/* Progress Bar and Navigation */}
+			<div className="">
+				{/* Progress Bar */}
+				<div className="flex w-full h-2 gap-2  mb-4">
+					<div
+						className={`h-full transition-all duration-300 ${currentStep >= 1 ? "bg-primary-600" : "bg-gray-100"}`}
+						style={{ width: "33.33%" }}
+					></div>
+					<div
+						className={`h-full transition-all duration-300 ${currentStep >= 3 ? "bg-primary-600" : "bg-gray-100"}`}
+						style={{ width: "33.33%" }}
+					></div>
+					<div
+						className={`h-full transition-all duration-300 ${currentStep >= 5 ? "bg-primary-600" : "bg-gray-100"}`}
+						style={{ width: "33.34%" }}
+					></div>
+				</div>
+				<div className="max-w-2xl mx-auto flex justify-between items-center">
+					<button
+						onClick={currentStep === 1 ? handlePageChange : handleBack}
+						className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+					>
+						{currentStep === 1 ? "Cancelar" : "Voltar"}
+					</button>
+					{currentStep < totalSteps && (
+						<button
+							onClick={handleNext}
+							className="bg-primary-700 hover:bg-primary-900 cursor-pointer text-white px-6 py-2 rounded-full font-medium transition-colors"
 						>
-							<ArrowLeft size={18} className="max-sm:size-4" /> Cancelar
-						</Link>
-						<button className="flex w-fit gap-4 max-sm:py-3 bg-primary-600 cursor-pointer hover:bg-primary-700 ease-in-out duration-300 text-white px-10 py-2.5 rounded-full">
-							<SaveAllIcon className="max-sm:hidden" /> Salvar acomodação
+							Próximo
 						</button>
-					</div>
-				</form>
-				{/* Preview */}
-				{/* Toggle do preview */}
-
-				<Preview data={formData} />
-
-				{/* Preview aparece somente quando showPreview for true */}
+					)}
+				</div>
 			</div>
 		</div>
 	);

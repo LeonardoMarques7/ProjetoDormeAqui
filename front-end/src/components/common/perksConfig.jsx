@@ -55,11 +55,7 @@ export const PERKS_CONFIG = [
 		label: "Estacionamento gratuito",
 		icon: Car,
 	},
-	{
-		id: "entrada_privada",
-		label: "Entrada privada",
-		icon: DoorOpen,
-	},
+
 	{
 		id: "acessibilidade",
 		label: "Acessível para cadeirantes",
@@ -77,11 +73,6 @@ export const PERKS_CONFIG = [
 		label: "Serviços de streaming",
 		icon: Clapperboard,
 	},
-	{
-		id: "radio",
-		label: "Rádio",
-		icon: Radio,
-	},
 
 	// Cozinha
 	{
@@ -93,11 +84,6 @@ export const PERKS_CONFIG = [
 		id: "geladeira",
 		label: "Geladeira",
 		icon: Refrigerator,
-	},
-	{
-		id: "microondas",
-		label: "Micro-ondas",
-		icon: Microwave,
 	},
 
 	// Lavanderia
@@ -140,11 +126,7 @@ export const PERKS_CONFIG = [
 		label: "Churrasqueira",
 		icon: Ham,
 	},
-	{
-		id: "varanda",
-		label: "Varanda",
-		icon: Landmark,
-	},
+
 	{
 		id: "jardim",
 		label: "Jardim",
@@ -152,29 +134,12 @@ export const PERKS_CONFIG = [
 	},
 
 	// Para pets
-	{
-		id: "pets",
-		label: "Aceita pets",
-		icon: PawPrint,
-	},
 
 	// Trabalho
 	{
 		id: "workspace",
 		label: "Espaço de trabalho dedicado",
 		icon: Laptop,
-	},
-
-	// Conforto adicional
-	{
-		id: "roupas_cama",
-		label: "Roupas de cama",
-		icon: BedDouble,
-	},
-	{
-		id: "toalhas",
-		label: "Toalhas",
-		icon: Sparkles,
 	},
 	{
 		id: "agua_quente",

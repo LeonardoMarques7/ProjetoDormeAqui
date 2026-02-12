@@ -10,6 +10,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { JWTSign, JWTVerify } from "../../ultis/jwt.js";
 import { sendToS3, uploadImage } from "../controller.js";
+import { authenticateWithGoogle, authenticateWithGoogleCode, authenticateWithGoogleAccessToken, authenticateWithGithub } from "./authService.js";
 
 const router = Router();
 const bcryptSalt = bcrypt.genSaltSync();
@@ -107,6 +108,7 @@ router.post("/", async (req, res) => {
       photo: photo || DEFAULT_PHOTO_URL,
       banner: DEFAULT_BANNER_URL,
       password: encryptedPassword,
+      authMethod: 'local'
     });
 
     const { _id } = newUserDoc;
@@ -287,6 +289,73 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: "Erro no servidor" });
   }
 });
+
+// ============================================
+// ⭐ ROTAS OAUTH2 ⭐
+// ============================================
+
+// LOGIN/REGISTRO COM GOOGLE
+router.post("/oauth/google", async (req, res) => {
+  try {
+    const { tokenId, accessToken, code } = req.body;
+
+    let result;
+    
+    // Suportar os 3 métodos: code (authorization_code flow), accessToken (implicit flow), tokenId (legacy)
+    if (code) {
+      result = await authenticateWithGoogleCode(code);
+    } else if (accessToken) {
+      result = await authenticateWithGoogleAccessToken(accessToken);
+    } else if (tokenId) {
+      result = await authenticateWithGoogle(tokenId);
+    } else {
+      return res.status(400).json({ error: "Token do Google não fornecido" });
+    }
+
+    if (!result.success) {
+      return res.status(401).json({ error: result.error });
+    }
+
+    const { user, token } = result;
+
+    res
+      .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
+      .json({ ...user, token }); // Retornar token junto com usuário
+
+  } catch (error) {
+    console.error("❌ Erro em /oauth/google:", error);
+    res.status(500).json({ error: "Erro ao autenticar com Google" });
+  }
+});
+
+// LOGIN/REGISTRO COM GITHUB
+router.post("/oauth/github", async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({ error: "Código do GitHub não fornecido" });
+    }
+
+    const result = await authenticateWithGithub(code);
+
+    if (!result.success) {
+      return res.status(401).json({ error: result.error });
+    }
+
+    const { user, token } = result;
+
+    res
+      .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
+      .json({ ...user, token }); // Retornar token junto com usuário
+
+  } catch (error) {
+    console.error("❌ Erro em /oauth/github:", error);
+    res.status(500).json({ error: "Erro ao autenticar com GitHub" });
+  }
+});
+
+// ============================================
 
 // FORGOT PASSWORD
 router.post("/forgot-password", async (req, res) => {

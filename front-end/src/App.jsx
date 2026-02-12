@@ -28,6 +28,9 @@ import {
 
 import "@mantine/core/styles.css";
 
+import GithubCallback from "./pages/GithubCallback";
+import GoogleCallback from "./pages/GoogleCallback";
+
 import { MantineProvider } from "@mantine/core";
 import { useEffect } from "react";
 import { MobileContextProvider } from "./components/contexts/MobileContext";
@@ -85,6 +88,14 @@ function App() {
 												/>
 												<Route path="/places/:id" element={<Place />} />
 												<Route path="/*" element={<NotFound />} />
+												<Route
+													path="/auth/github/callback"
+													element={<GithubCallback />}
+												/>
+												<Route
+													path="/auth/google/callback"
+													element={<GoogleCallback />}
+												/>
 											</Routes>
 											<Footer active={isComponentActive} />
 										</div>
