@@ -30,6 +30,8 @@ import { motion } from "framer-motion";
 
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 
+import { useMessage } from "@/components/contexts/MessageContext";
+
 import logo__primary from "@/assets/logo__primary.png";
 import { useUserContext } from "@/components/contexts/UserContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -39,6 +41,7 @@ function MenuBar({ active }) {
 	const navigate = useNavigate();
 	const { user, setUser } = useUserContext();
 	const location = useLocation();
+	const { showMessage } = useMessage();
 	const [activeSection, setActiveSection] = useState("Home");
 	const [redirect, setRedirect] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
@@ -110,6 +113,7 @@ function MenuBar({ active }) {
 			console.log(data);
 			setUser(null);
 			setSidebarOpen(false);
+			showMessage("Logout realizado com sucesso!", "success");
 		} catch (error) {
 			alert(JSON.stringify(error));
 		}

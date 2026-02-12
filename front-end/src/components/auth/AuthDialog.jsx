@@ -150,29 +150,29 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 		try {
 			// Usar a biblioteca Google Sign-In do Google diretamente
 			if (!window.google) {
-				throw new Error('Google Sign-In library not loaded');
+				throw new Error("Google Sign-In library not loaded");
 			}
 
 			// Obter o cliente OAuth
 			const result = await window.google.accounts.oauth2.initCodeClient({
 				client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-				scope: 'openid email profile',
-				ux_mode: 'redirect',
+				scope: "openid email profile",
+				ux_mode: "redirect",
 				redirect_uri: `${window.location.origin}/auth/google/callback`,
 				callback: (response) => {
 					console.log("✅ Google OAuth Code received:", response.code);
 				},
 				error_callback: (error) => {
 					console.error("❌ Google OAuth Error:", error);
-					setMessage('Erro ao conectar com Google');
+					setMessage("Erro ao conectar com Google");
 					setLoadingOAuth(false);
-				}
+				},
 			});
 
 			result.requestCode();
 		} catch (error) {
 			console.error("❌ Erro ao fazer login com Google:", error);
-			setMessage('Erro ao conectar com Google: ' + error.message);
+			setMessage("Erro ao conectar com Google: " + error.message);
 			setLoadingOAuth(false);
 		}
 	};
@@ -521,12 +521,6 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 									GitHub
 								</button>
 							</div>
-
-							{loadingOAuth && (
-								<div className="text-center text-sm text-gray-500 mt-3">
-									⏳ Conectando...
-								</div>
-							)}
 						</div>
 					</form>
 

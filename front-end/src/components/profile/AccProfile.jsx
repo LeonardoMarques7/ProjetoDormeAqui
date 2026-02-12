@@ -14,6 +14,7 @@ import { Select } from "@mantine/core";
 import axios from "axios";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useUserContext } from "@/components/contexts/UserContext";
+import { useMessage } from "@/components/contexts/MessageContext";
 import {
 	ArrowRight,
 	Heart,
@@ -51,6 +52,7 @@ import bannerDefault from "@/assets/banner__default2.jpg";
 
 const AccProfile = () => {
 	const { user, setUser, ready: userContextReady } = useUserContext();
+	const { showMessage } = useMessage();
 	const { state } = useLocation();
 	const params = useParams();
 
@@ -322,6 +324,7 @@ const AccProfile = () => {
 			const { data } = await axios.post("/users/logout");
 			console.log(data);
 			setUser(null);
+			showMessage("Logout realizado com sucesso!", "success");
 		} catch (error) {
 			alert(JSON.stringify(error));
 		}
