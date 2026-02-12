@@ -50,7 +50,10 @@ export const GithubCallback = () => {
         }
       } catch (err) {
         console.error('❌ Erro ao processar callback do GitHub:', err);
-        setError(err.response?.data?.error || 'Erro ao fazer login com GitHub');
+        console.error('   Status:', err.response?.status);
+        console.error('   Dados:', err.response?.data);
+        console.error('   API URL:', API_URL);
+        setError(err.response?.data?.error || 'Erro ao fazer login com GitHub: ' + err.message);
       } finally {
         setLoading(false);
       }

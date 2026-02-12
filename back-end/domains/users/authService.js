@@ -358,13 +358,18 @@ export const authenticateWithGithub = async (code) => {
 
     const token = await JWTSign(userObj);
 
+    console.log('✅ [authService] GitHub auth completo:');
+    console.log('   User:', userObj.email);
+    console.log('   Token válido:', !!token);
+
     return {
       success: true,
       user: userObj,
       token
     };
   } catch (error) {
-    console.error('❌ Erro ao autenticar com GitHub:', error.message);
+    console.error('❌ [authService] Erro ao autenticar com GitHub:', error.message);
+    console.error('   Stack:', error.stack);
     return {
       success: false,
       error: `Falha ao autenticar com GitHub: ${error.message}`

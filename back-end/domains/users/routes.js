@@ -337,21 +337,30 @@ router.post("/oauth/github", async (req, res) => {
       return res.status(400).json({ error: "Código do GitHub não fornecido" });
     }
 
+    console.log('📍 [GitHub OAuth Route] Recebido código:', code.substring(0, 10) + '...');
+
     const result = await authenticateWithGithub(code);
 
     if (!result.success) {
+      console.error('❌ [GitHub OAuth Route] Falha na autenticação:', result.error);
       return res.status(401).json({ error: result.error });
     }
 
     const { user, token } = result;
 
+    console.log('✅ [GitHub OAuth Route] Usuário autenticado:', user.email);
+    console.log('   Token gerado:', token ? 'SIM' : 'NÃO');
+    console.log('   Cookie options:', COOKIE_OPTIONS);
+
     res
       .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
       .json({ ...user, token }); // Retornar token junto com usuário
 
+    console.log('✅ [GitHub OAuth Route] Resposta enviada com sucesso');
+
   } catch (error) {
-    console.error("❌ Erro em /oauth/github:", error);
-    res.status(500).json({ error: "Erro ao autenticar com GitHub" });
+    console.error("❌ Erro em /oauth/github:", error.message);
+    res.status(500).json({ error: "Erro ao autenticar com GitHub: " + error.message });
   }
 });
 
