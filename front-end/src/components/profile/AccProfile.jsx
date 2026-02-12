@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import photoDefault from "@/assets/photoDefault.jpg";
 import userDefault from "@/assets/user__default.png";
+import MarkdownIt from "markdown-it";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -643,6 +644,12 @@ const AccProfile = () => {
 		);
 	}
 
+	const md = new MarkdownIt({
+		html: false,
+		breaks: true,
+		linkify: true,
+	});
+
 	return (
 		<>
 			{!isEditingProfile ? (
@@ -774,11 +781,14 @@ const AccProfile = () => {
 									{totalReviews} Avaliaç{totalReviews !== 1 ? "ões" : "ão"}
 								</p>
 							</div>
-							{displayUser?.bio && (
-								<div className="text__bio max-w-xl flex flex-col gap-2 leading-relaxed text-gray-600 my-2">
-									{displayUser.bio}
-								</div>
-							)}{" "}
+							<p
+								className=" max-w-xl "
+								dangerouslySetInnerHTML={{
+									__html: md.render(
+										displayUser?.bio || "" || profileUser?.bio || "",
+									),
+								}}
+							></p>
 							{/* Informações de contato */}
 							<div className="flex flex-wrap max-sm:flex-col max-sm:gap-1 gap-4 text-gray-600 mt-0">
 								{displayUser?.city && (
