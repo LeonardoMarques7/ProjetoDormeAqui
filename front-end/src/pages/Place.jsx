@@ -2,7 +2,9 @@ import axios from "axios";
 import {
 	Bath,
 	Bed,
+	Calendar,
 	CalendarX,
+	ChevronDown,
 	ChevronRight,
 	Clock,
 	Expand,
@@ -15,7 +17,9 @@ import {
 	ScrollText,
 	ShieldHalf,
 	Star,
+	Users,
 	Users2,
+	ArrowRight,
 } from "lucide-react";
 import { Select } from "@mantine/core";
 import {
@@ -102,6 +106,7 @@ const Place = () => {
 	const [tempHoverRating, setTempHoverRating] = useState(0);
 	const [tempCommentFilter, setTempCommentFilter] = useState("all");
 	const [showFixedBar, setShowFixedBar] = useState(false);
+	const [isBookingExpanded, setIsBookingExpanded] = useState(false);
 	const formRef = useRef(null);
 
 	const filteredReviews = useMemo(() => {
@@ -1497,110 +1502,94 @@ const Place = () => {
 
 					{console.log("Este é log: ", booking)}
 					<div className="order-1 col-span-2 flex-1  ">
-						{/* Booking */}
+						{/* Booking - New Collapsible Card Style */}
 						{booking && (
-							<div className="section__booking mb-5  h-fit order-2 w-full ml-auto max-sm:mb-5  lg:max-w-5xl">
-								<div className=" relative shadow-gray-200 max-sm:rounded-2xl!  bg-gray-50 rounded-3xl overflow-hidden">
-									{/* Boarding Pass Style Container */}
-									<div className="flex flex-col ">
-										{/* QR Code Section */}
-
-										{mobile ? (
-											<div className="bg-gray-900 text-white h-15 flex items-center justify-center border-b-2 md:border-b-0  border-r-0 md:border-r-2 border-dashed border-gray-200 relative">
-												<p className="text-xs font-medium -rotate-0 md:-rotate-90 whitespace-nowrap tracking-wider">
-													RESERVA CONFIRMADA
-												</p>
-												{/* Semi-circle cutouts */}
-												<div className="absolute -left-4 -bottom-4 w-8 h-8 backdrop-blur-3xl bg-white  rounded-full"></div>
-												<div className="absolute -right-4 -bottom-4 w-8 h-8 backdrop-blur-3xl bg-white  rounded-full"></div>
-											</div>
-										) : (
-											<div className="bg-gray-100 p-4 max-sm:h-10 md:p-8 flex items-center justify-center border-b-2 md:border-b-0 max-sm:rounded-2xl border-r-0 md:border-r-2 border-dashed border-gray-200 relative">
-												{/* Semi-circle cutouts */}
-												<div className="absolute -bottom-4 -left-4 w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
-												<div className="absolute -bottom-4 -right-4 max-sm:-left-8 max-sm:-right-auto w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
-											</div>
-										)}
-
-										{/* Main Content */}
-										<div className="flex-1 p-8">
-											{/* Route Information */}
-											<div className="flex items-center justify-between max-sm:my-4 mb-8">
-												<div className="flex-1">
-													<p className="text-primary-500 uppercase font-light">
-														Check-in
-													</p>
-													<p className="text-xl font-bold">
-														{formatDate(booking.checkin)}
-													</p>
-													<p className="text-sm font-medium text-gray-700">
-														{place.checkin}
-													</p>
+							<div className="mb-4 w-full transition-all duration-700 ml-auto max-sm:mb-5 lg:max-w-5xl">
+								<div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+									{/* Collapsed View */}
+									<div
+										className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+										onClick={() => setIsBookingExpanded(!isBookingExpanded)}
+									>
+										<div className="flex items-center justify-between">
+											<div className="flex items-center gap-3">
+												<div
+													className={`w-3 h-3 rounded-full bg-green-500`}
+												></div>
+												<div>
+													<div className="text-sm font-semibold text-gray-900">
+														Reserva Confirmada
+													</div>
+													<div className="text-xs text-gray-500">
+														#{booking._id.slice(-6).toUpperCase()}
+													</div>
 												</div>
+											</div>
+											<div className="flex items-center gap-3">
+												<div className="text-right">
+													<div className="text-sm font-semibold text-gray-900">
+														{formatDate(booking.checkin)}
+													</div>
+													<div className="text-xs text-gray-500">Check-in</div>
+												</div>
+												<ChevronDown
+													className={`w-5 h-5 text-gray-400 transition-transform ${isBookingExpanded ? "rotate-180" : ""}`}
+												/>
+											</div>
+										</div>
+									</div>
 
-												<div className="flex flex-col items-center px-4">
-													<div className="flex items-center pt-2 gap-2">
-														<div className="w-10 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
-														<div className="w-10 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
+									{/* Expanded View */}
+									{isBookingExpanded && (
+										<div className="px-4 pb-4 transition-all duration-700 border-t border-gray-100">
+											{/* Detailed Dates */}
+											<div className="grid grid-cols-2 gap-4 my-4">
+												<div className="bg-gray-50 rounded-lg p-3">
+													<div className="flex items-center gap-2 mb-2">
+														<span className="text-xs text-gray-500 uppercase">
+															Check-in
+														</span>
+													</div>
+													<div className="text-base font-semibold text-gray-900 mb-1">
+														{formatDate(booking.checkin)}
+													</div>
+													<div className="text-sm text-gray-600 flex items-center gap-1">
+														{place.checkin}
 													</div>
 												</div>
 
-												<div className="flex-1 text-right">
-													<p className="text-primary-500 uppercase font-light">
-														Check-out
-													</p>
-													<p className="text-xl font-bold">
+												<div className="bg-gray-50 rounded-lg p-3">
+													<div className="flex items-center gap-2 mb-2">
+														<Calendar className="w-4 h-4 text-gray-500" />
+														<span className="text-xs text-gray-500 uppercase">
+															Check-out
+														</span>
+													</div>
+													<div className="text-base font-semibold text-gray-900 mb-1">
 														{formatDate(booking.checkout)}
-													</p>
-													<p className="text-sm font-medium text-gray-700">
+													</div>
+													<div className="text-sm text-gray-600 flex items-center gap-1">
+														<Clock className="w-3 h-3" />
 														{place.checkout}
-													</p>
+													</div>
 												</div>
 											</div>
 
-											{/* Booking Details */}
-											<div className="grid grid-cols-2 md:grid-cols-4 max-sm:gap-2 gap-6 pt-6 border-t max-sm:border-none border-gray-200">
-												<div>
-													<p className="text-xs text-gray-500 mb-1">Código</p>
-													<p className="text-sm font-semibold text-primary-600">
-														#{booking._id.slice(-6).toUpperCase()}
-													</p>
-												</div>
-
-												<div>
-													<p className="text-xs text-gray-500 mb-1">Ações</p>
-													<Tooltip>
-														<TooltipTrigger asChild>
-															<Link
-																to={`../account/bookings/${booking._id}`}
-																className="inline-flex text-nowrap text-gray-900 items-center gap-1 text-sm font-semibold  hover:text-gray-700"
-															>
-																Acessar reserva
-															</Link>
-														</TooltipTrigger>
-														<TooltipContent className="bg-primary-600">
-															<p>Acessar reserva completa</p>
-														</TooltipContent>
-													</Tooltip>
-												</div>
-											</div>
+											{/* Action Button */}
+											<Link
+												to={`../account/bookings/${booking._id}`}
+												className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+											>
+												Acessar Reserva
+											</Link>
 										</div>
-
-										{/* Sidebar */}
-										{!mobile && (
-											<div className="bg-primary-900 text-white p-4 flex max-sm:absolute max-sm:bottom-0 max-sm:w-full max-sm:left-0 max-sm:h-10 md:flex-col items-center justify-center gap-3 min-w-[60px] max-sm:min-w-[50px] relative">
-												<p className="text-xs font-medium whitespace-nowrap tracking-wider">
-													RESERVA CONFIRMADA
-												</p>
-											</div>
-										)}
-									</div>
+									)}
 								</div>
 							</div>
 						)}
 						<form
 							ref={formRef}
-							className="w-full max-w-md bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-sm"
+							className="w-full max-w-md bg-white rounded-2xl border border-gray-200 p-6"
 						>
 							{/* Preço */}
 							<div className="mb-6">
