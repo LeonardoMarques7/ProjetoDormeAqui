@@ -72,10 +72,23 @@ export const createPaymentPreference = async (req, res, next) => {
         }
         
         // Determina URL do frontend baseado no ambiente
-        const frontendUrl = process.env.NODE_ENV === "production" 
+        let frontendUrl = process.env.NODE_ENV === "production" 
             ? process.env.FRONTEND_URL || "https://projetodormeaqui.onrender.com"
             : "http://localhost:5173";
         
+        // Validação crucial: garante que frontendUrl está definido
+        if (!frontendUrl) {
+            console.error("❌ FRONTEND_URL não definido!");
+            return res.status(500).json({
+                success: false,
+                message: "Configuração de URL do frontend ausente"
+            });
+        }
+        
+        // Remove trailing slash se existir
+        frontendUrl = frontendUrl.replace(/\/$/, '');
+        
+        console.log("🔗 Frontend URL configurada:", frontendUrl);
         console.log("⏱️ [CONTROLLER] Tempo até chamada do service:", Date.now() - requestStartTime, "ms");
         
         // Cria a preferência de pagamento

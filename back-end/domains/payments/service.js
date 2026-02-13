@@ -1,4 +1,4 @@
-import { preferenceClient, paymentClient, testToken, validateToken } from "../../config/mercadopago.js";
+import { preferenceClient, paymentClient, testToken, validateToken, createPreferenceWithBackUrls } from "../../config/mercadopago.js";
 import Place from "../places/model.js";
 
 
@@ -68,9 +68,10 @@ export const createCheckoutPreference = async ({
     guests,
     frontendUrl
 }) => {
-    console.log("🔍 Iniciando criação de preferência:", {
+    console.log("🔍 [SERVICE] Iniciando criação de preferência");
+    console.log("🔍 [SERVICE] Parâmetros:", {
         accommodationId,
-        userId,
+        userId: userId?.toString?.() || userId,
         checkIn: checkIn?.toISOString?.(),
         checkOut: checkOut?.toISOString?.(),
         guests,
@@ -79,27 +80,48 @@ export const createCheckoutPreference = async ({
 
     // Validações de entrada
     if (!accommodationId || !userId || !checkIn || !checkOut || !guests) {
-        console.error("❌ Dados incompletos:", { accommodationId, userId, checkIn, checkOut, guests });
+        console.error("❌ [SERVICE] Dados incompletos:", { accommodationId, userId, checkIn, checkOut, guests });
         const error = new Error("Dados incompletos para criar preferência");
         error.statusCode = 400;
         throw error;
     }
 
+    // Validação do frontendUrl
+    if (!frontendUrl) {
+        console.error("❌ [SERVICE] frontendUrl não fornecido!");
+        const error = new Error("URL do frontend não configurada");
+        error.statusCode = 500;
+        throw error;
+    }
+
+    // Garante que a URL começa com http:// ou https://
+    let baseUrl = frontendUrl.trim();
+    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        console.error("❌ [SERVICE] URL do frontend inválida:", baseUrl);
+        const error = new Error("URL do frontend inválida - deve começar com http:// ou https://");
+        error.statusCode = 500;
+        throw error;
+    }
+
+    // Remove trailing slash se existir
+    baseUrl = baseUrl.replace(/\/$/, '');
+    console.log("🔗 [SERVICE] Base URL:", baseUrl);
+
     // Busca acomodação e valida
     let place;
     try {
         place = await getAccommodationDetails(accommodationId);
-        console.log("✅ Acomodação encontrada:", place.title, "Preço:", place.price);
+        console.log("✅ [SERVICE] Acomodação:", place.title, "- R$", place.price);
     } catch (error) {
-        console.error("❌ Erro ao buscar acomodação:", error.message);
+        console.error("❌ [SERVICE] Erro ao buscar acomodação:", error.message);
         throw error;
     }
     
-    // Calcula noites e preço total (backend sempre recalcula - nunca confia no frontend)
+    // Calcula noites e preço total
     const nights = calculateNights(checkIn, checkOut);
     const totalPrice = calculateTotalPrice(place.price, nights);
     
-    console.log("💰 Cálculo de preço:", { nights, pricePerNight: place.price, totalPrice });
+    console.log("💰 [SERVICE] Cálculo:", { nights, pricePerNight: place.price, totalPrice });
     
     // Validações de negócio
     if (nights <= 0) {
@@ -114,15 +136,27 @@ export const createCheckoutPreference = async ({
         throw error;
     }
 
-    // Verifica se MERCADO_PAGO_WEBHOOK_URL está configurado
+    // Verifica webhook URL
     if (!process.env.MERCADO_PAGO_WEBHOOK_URL) {
-        console.error("❌ MERCADO_PAGO_WEBHOOK_URL não configurado!");
+        console.error("❌ [SERVICE] MERCADO_PAGO_WEBHOOK_URL não configurado!");
         const error = new Error("Configuração de webhook ausente");
         error.statusCode = 500;
         throw error;
     }
     
+    // Configura as URLs de retorno - formato exato exigido pelo Mercado Pago
+    const successUrl = `${baseUrl}/payment/success`;
+    const failureUrl = `${baseUrl}/payment/failure`;
+    const pendingUrl = `${baseUrl}/payment/pending`;
+
+    console.log("🔗 [SERVICE] Back URLs:");
+    console.log("  success:", successUrl);
+    console.log("  failure:", failureUrl);
+    console.log("  pending:", pendingUrl);
+
     // Cria a preferência no Mercado Pago
+    // NOTA: O Mercado Pago SDK pode não estar passando back_urls corretamente
+    // Vamos tentar diferentes formatos
     const preferenceData = {
         items: [
             {
@@ -135,14 +169,20 @@ export const createCheckoutPreference = async ({
                 picture_url: place.photos?.[0] || undefined
             }
         ],
+        // Formato 1: back_urls direto no objeto raiz
         back_urls: {
-            success: `${frontendUrl}/payment/success`,
-            pending: `${frontendUrl}/payment/pending`,
-            failure: `${frontendUrl}/payment/failure`
+            success: successUrl,
+            failure: failureUrl,
+            pending: pendingUrl
         },
-        // auto_return desabilitado temporariamente - requer back_urls.success válido
-        // auto_return: "approved",
-
+        // Formato 2: navigation.back_urls (algumas versões do SDK usam isso)
+        navigation: {
+            back_urls: {
+                success: successUrl,
+                failure: failureUrl,
+                pending: pendingUrl
+            }
+        },
         notification_url: process.env.MERCADO_PAGO_WEBHOOK_URL,
         external_reference: `booking_${Date.now()}_${accommodationId}`,
         metadata: {
@@ -157,16 +197,28 @@ export const createCheckoutPreference = async ({
         }
     };
 
-    console.log("📦 Dados da preferência:", JSON.stringify(preferenceData, null, 2));
+    console.log("📦 [SERVICE] Enviando para Mercado Pago:");
+    console.log("📦 [SERVICE] back_urls:", JSON.stringify(preferenceData.back_urls, null, 2));
     
     try {
-        console.log("🚀 Chamando Mercado Pago API...");
-        const response = await preferenceClient.create({ body: preferenceData });
+        console.log("🚀 [SERVICE] Chamando API do Mercado Pago...");
         
-        console.log("✅ Preferência criada com sucesso:", {
-            preferenceId: response.id,
-            initPoint: response.init_point
-        });
+        // Usa a função auxiliar que tem logs detalhados
+        const response = await createPreferenceWithBackUrls(preferenceData);
+        
+        console.log("✅ [SERVICE] Resposta recebida:");
+        console.log("✅ [SERVICE] Preference ID:", response.id);
+        console.log("✅ [SERVICE] init_point:", response.init_point);
+        
+        // Verifica se as back_urls foram salvas
+        const responseBackUrls = response.back_urls || response.navigation?.back_urls;
+        console.log("✅ [SERVICE] back_urls na resposta:", JSON.stringify(responseBackUrls, null, 2));
+        
+        // Se as back_urls estiverem vazias, loga um aviso
+        if (!responseBackUrls || !responseBackUrls.success) {
+            console.warn("⚠️ [SERVICE] ATENÇÃO: back_urls não foram salvas na preferência!");
+            console.warn("⚠️ [SERVICE] Isso pode ser um problema com o token ou a conta do Mercado Pago");
+        }
         
         return {
             preferenceId: response.id,
@@ -175,43 +227,18 @@ export const createCheckoutPreference = async ({
             totalPrice,
             nights,
             pricePerNight: place.price,
-            accommodationTitle: place.title
+            accommodationTitle: place.title,
+            backUrls: responseBackUrls // Retorna para o controller verificar
         };
     } catch (error) {
-        console.error("❌ Erro detalhado ao criar preferência Mercado Pago:");
-        console.error("Mensagem:", error.message);
-        console.error("Stack:", error.stack);
-        
-        // Captura detalhes completos do erro
-        const errorDetails = {
-            message: error.message,
-            status: error.status || error.statusCode,
-            code: error.code,
-            responseData: error.response?.data,
-            responseBody: error.response?.body,
-            cause: error.cause,
-            name: error.name
-        };
-        
-        console.error("Detalhes completos do erro:", JSON.stringify(errorDetails, null, 2));
-        
-        // Análise específica do erro 403 UNAUTHORIZED
-        if (error.status === 403 || error.message?.includes("UNAUTHORIZED")) {
-            console.error("🔴 ERRO DE AUTENTICAÇÃO DETECTADO");
-            console.error("Possíveis causas:");
-            console.error("1. Token inválido ou expirado");
-            console.error("2. Token truncado durante cópia");
-            console.error("3. Conta do Mercado Pago com restrições");
-            console.error("4. Token de produção sendo usado em ambiente de teste");
-            
-            // Valida o token novamente
-            const tokenValidation = validateToken();
-            console.error("Validação do token:", tokenValidation);
-        }
+        console.error("❌ [SERVICE] Erro ao criar preferência:");
+        console.error("❌ [SERVICE] Mensagem:", error.message);
+        console.error("❌ [SERVICE] Status:", error.status);
+        console.error("❌ [SERVICE] Response:", error.response?.data);
         
         const newError = new Error(`Erro ao criar preferência: ${error.message}`);
         newError.statusCode = error.status || 500;
-        newError.originalError = errorDetails;
+        newError.originalError = error;
         throw newError;
     }
 

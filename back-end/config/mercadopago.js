@@ -78,6 +78,33 @@ export const preferenceClient = new Preference(mercadopagoConfig);
 export const paymentClient = new Payment(mercadopagoConfig);
 
 /**
+ * Cria uma preferência com back_urls (função auxiliar para debug)
+ * @param {Object} preferenceData - Dados da preferência
+ * @returns {Promise<Object>} Resposta da API
+ */
+export const createPreferenceWithBackUrls = async (preferenceData) => {
+    console.log("🚀 [SDK] Criando preferência com back_urls");
+    console.log("🚀 [SDK] Dados enviados:", JSON.stringify(preferenceData, null, 2));
+    
+    try {
+        const response = await preferenceClient.create({ body: preferenceData });
+        
+        console.log("✅ [SDK] Preferência criada:");
+        console.log("✅ [SDK] ID:", response.id);
+        console.log("✅ [SDK] back_urls na resposta:", JSON.stringify(response.back_urls, null, 2));
+        console.log("✅ [SDK] navigation:", JSON.stringify(response.navigation, null, 2));
+        
+        return response;
+    } catch (error) {
+        console.error("❌ [SDK] Erro ao criar preferência:");
+        console.error("❌ [SDK] Mensagem:", error.message);
+        console.error("❌ [SDK] Status:", error.status);
+        console.error("❌ [SDK] Response data:", error.response?.data);
+        throw error;
+    }
+};
+
+/**
  * Testa se o token do Mercado Pago está funcionando
  * Faz uma chamada simples à API para verificar autenticação
  * @returns {Promise<Object>} Resultado do teste

@@ -1,304 +1,92 @@
-# Resumo da Implementação - Mercado Pago Checkout Pro
+# Resumo da Implementação - Rotas de Resposta ao Pagamento
 
-## 🎯 Objetivo Alcançado
+## Rotas de Back URLs Implementadas
 
-Sistema completo de pagamentos integrado com Mercado Pago Checkout Pro para a aplicação DormeAqui, permitindo reservas seguras com múltiplos métodos de pagamento.
+O sistema agora possui rotas completas para receber o usuário de volta após o pagamento no Mercado Pago:
 
-## 📁 Arquivos Criados/Modificados
+### Backend (back-end/domains/payments/service.js)
 
-### Backend (Node.js + Express)
+- **back_urls configuradas dinamicamente** baseadas no `frontendUrl` recebido:
+  - `success`: `{frontendUrl}/payment/success`
+  - `failure`: `{frontendUrl}/payment/failure`
+  - `pending`: `{frontendUrl}/payment/pending`
+- **Validação robusta** do `frontendUrl` antes de criar a preferência
+- **Logs detalhados** das URLs configuradas para debug
+- **auto_return desabilitado** temporariamente para evitar erros de validação
 
-#### 1. Modelo Atualizado
+### Frontend - Rotas (front-end/src/App.jsx)
 
-**Arquivo**: `back-end/domains/bookings/model.js`
-
-- ✅ Adicionado `paymentStatus` (pending, approved, rejected)
-- ✅ Adicionado `mercadopagoPaymentId` com índice
-- ✅ Renomeado campos para padrão camelCase (checkIn, checkOut, pricePerNight, totalPrice)
-- ✅ Adicionado timestamps
-
-#### 2. Configuração Mercado Pago
-
-**Arquivo**: `back-end/config/mercadopago.js`
-
-- ✅ Inicialização do SDK com access token
-- ✅ Configuração de timeout e idempotency key
-- ✅ Export de preferenceClient e paymentClient
-
-#### 3. Serviço de Pagamentos
-
-**Arquivo**: `back-end/domains/payments/service.js`
-
-- ✅ Cálculo de noites e preço total (backend recalcula - segurança)
-- ✅ Criação de preferência de checkout
-- ✅ Busca de informações de pagamento
-- ✅ Processamento de notificações webhook
-- ✅ Validações de negócio (hóspedes, datas, etc.)
-
-#### 4. Controller de Pagamentos
-
-**Arquivo**: `back-end/domains/payments/controller.js`
-
-- ✅ Endpoint POST /create para criar preferência
-- ✅ Validação completa de dados de entrada
-- ✅ Tratamento de erros específicos (400, 401, 404, 500)
-- ✅ Endpoint GET /status/:paymentId para consulta
-
-#### 5. Rotas de Pagamentos
-
-**Arquivo**: `back-end/domains/payments/routes.js`
-
-- ✅ Middleware de autenticação JWT
-- ✅ Rota POST /create protegida
-- ✅ Rota GET /status/:paymentId protegida
-
-#### 6. Webhook Handler
-
-**Arquivo**: `back-end/webhooks/mercadopago.js`
-
-- ✅ Endpoint POST /webhook/mercadopago
-- ✅ Processamento de notificações de pagamento
-- ✅ Criação de reservas baseada no status
-- ✅ **Idempotência**: verificação de pagamentoId duplicado
-- ✅ Sempre retorna 200 para evitar reenvios
-- ✅ Mapeamento de status do MP para status interno
-
-#### 7. Error Handler Middleware
-
-**Arquivo**: `back-end/middleware/errorHandler.js`
-
-- ✅ Tratamento centralizado de erros
-- ✅ Mensagens amigáveis para usuário
-- ✅ Stack trace apenas em desenvolvimento
-- ✅ Helper asyncHandler para controllers
-
-#### 8. Rotas Principais Atualizadas
-
-**Arquivo**: `back-end/routes/index.js`
-
-- ✅ Adicionado rotas de pagamento
-- ✅ Adicionado webhook do Mercado Pago (rota pública)
-- ✅ Endpoint de verificação GET /webhook/mercadopago
-
-#### 9. Servidor Atualizado
-
-**Arquivo**: `back-end/server.js`
-
-- ✅ Import do errorHandler e notFoundHandler
-- ✅ Middleware de 404 para rotas de API
-- ✅ Middleware de tratamento de erros (último na cadeia)
-
-#### 10. Rotas de Bookings Atualizadas
-
-**Arquivo**: `back-end/domains/bookings/routes.js`
-
-- ✅ Atualizado para usar novos nomes de campos (checkIn, checkOut, etc.)
-- ✅ Compatibilidade mantida com código existente
-
-### Frontend (React + Vite)
-
-#### 11. Serviço de Pagamentos
-
-**Arquivo**: `front-end/src/services/paymentService.js`
-
-- ✅ Função createCheckoutPreference
-- ✅ Função checkPaymentStatus
-- ✅ Função redirectToCheckout
-- ✅ Tratamento de erros específicos por status HTTP
-
-#### 12. Página de Place Atualizada
-
-**Arquivo**: `front-end/src/pages/Place.jsx`
-
-- ✅ Import do paymentService
-- ✅ handleBooking modificado para usar novo fluxo
-- ✅ Remove envio de preço (segurança)
-- ✅ Redirecionamento para checkout Mercado Pago
-- ✅ Tratamento de erro de autenticação
-
-#### 13. Página de Sucesso
-
-**Arquivo**: `front-end/src/pages/PaymentSuccess.jsx`
-
-- ✅ Design moderno com ícone de sucesso
-- ✅ Exibição de detalhes do pagamento
-- ✅ Próximos passos para o usuário
-- ✅ Links para minhas reservas e home
-
-#### 14. Página Pendente
-
-**Arquivo**: `front-end/src/pages/PaymentPending.jsx`
-
-- ✅ Design informativo sobre processamento
-- ✅ Explicação de métodos que podem ficar pendentes
-- ✅ Prazos de processamento (boleto, etc.)
-- ✅ Links para acompanhamento
-
-#### 15. Página de Falha
-
-**Arquivo**: `front-end/src/pages/PaymentFailure.jsx`
-
-- ✅ Design amigável para falha
-- ✅ Possíveis causas listadas
-- ✅ Opções de ação (tentar novamente, outros métodos)
-- ✅ Garantia de que não houve cobrança
-
-#### 16. App.jsx Atualizado
-
-**Arquivo**: `front-end/src/App.jsx`
-
-- ✅ Import das novas páginas de pagamento
-- ✅ Rotas /payment/success, /payment/pending, /payment/failure
-
-## 🔒 Segurança Implementada
-
-### 1. Backend Recalcula Preço
-
-```javascript
-// O frontend NUNCA envia o preço total
-// Backend busca acomodação e calcula:
-const nights = calculateNights(checkIn, checkOut);
-const totalPrice = calculateTotalPrice(place.price, nights);
+```jsx
+<Route path="/payment/success" element={<PaymentSuccess />} />
+<Route path="/payment/pending" element={<PaymentPending />} />
+<Route path="/payment/failure" element={<PaymentFailure />} />
 ```
 
-### 2. Access Token Apenas no Backend
+### Frontend - Componentes de Resposta
 
-- Token armazenado em variável de ambiente
-- Nunca exposto ao frontend
-- SDK inicializado apenas no servidor
+#### 1. PaymentSuccess.jsx
 
-### 3. Autenticação JWT Obrigatória
+- Exibe confirmação de pagamento aprovado
+- Mostra ID do pagamento, status e referência externa
+- Links para "Ver Minhas Reservas" e "Voltar para Home"
+- Mensagem informativa sobre confirmação por email
 
-```javascript
-// Todas as rotas de pagamento protegidas
-router.post("/create", authenticateUser, createPaymentPreference);
-```
+#### 2. PaymentPending.jsx
 
-### 4. Idempotência no Webhook
+- Exibe status de processamento
+- Explicação sobre boletos e processamento de cartão
+- Prazo de processamento (até 3 dias úteis para boletos)
+- Links para acompanhar reserva e voltar à home
 
-```javascript
-// Verifica se já existe reserva com este paymentId
-const existingBooking = await Booking.findOne({
-	mercadopagoPaymentId: paymentId.toString(),
-});
-```
+#### 3. PaymentFailure.jsx
 
-## 🔄 Fluxo Completo
+- Exibe motivos possíveis de falha (saldo, dados incorretos, bloqueio)
+- Opção para tentar novamente
+- Sugestão de outros métodos de pagamento (Pix, Boleto)
+- Garantia de que nenhuma cobrança foi realizada
 
-### 1. Usuário Inicia Reserva
+## Fluxo Completo do Pagamento
 
-```
-Place.jsx → handleBooking()
-  ↓
-Envia: accommodationId, checkIn, checkOut, guests
-  ↓
-POST /api/payments/create
-```
+1. **Usuário clica em "Reservar"** no frontend
+2. **Frontend chama** `POST /api/payments/create`
+3. **Backend cria preferência** no Mercado Pago com back_urls configuradas
+4. **Frontend redireciona** usuário para `init_point` (checkout Mercado Pago)
+5. **Usuário completa pagamento** no Mercado Pago
+6. **Mercado Pago redireciona** de volta para uma das rotas:
+   - `/payment/success` - Pagamento aprovado
+   - `/payment/pending` - Pagamento em processamento
+   - `/payment/failure` - Pagamento rejeitado
+7. **Componente exibe** feedback apropriado ao usuário
 
-### 2. Backend Processa
+## Parâmetros Recebidos nas URLs
 
-```
-Controller → validate data
-  ↓
-Service → getAccommodationDetails()
-  ↓
-Service → calculateNights() + calculateTotalPrice()
-  ↓
-Mercado Pago API → create preference
-  ↓
-Retorna: init_point (URL de checkout)
-```
+Todas as rotas de pagamento recebem parâmetros do Mercado Pago via query string:
 
-### 3. Redirecionamento
+- `payment_id`: ID do pagamento no Mercado Pago
+- `status`: Status do pagamento (approved, pending, rejected)
+- `external_reference`: Referência externa (booking ID)
+- `collection_id`: ID da cobrança (opcional)
 
-```
-Frontend → redirectToCheckout(initPoint)
-  ↓
-Usuário → Mercado Pago Checkout
-  ↓
-Escolhe método: Cartão, Pix, Boleto, etc.
-```
+## Próximos Passos para Testar
 
-### 4. Retorno do Pagamento
+1. **Reinicie o servidor backend**
+2. **Faça uma reserva** em uma acomodação
+3. **Complete o pagamento** no Mercado Pago (use dados de teste)
+4. **Verifique o redirecionamento** para a página de sucesso
+5. **Confirme que os parâmetros** (payment_id, status) aparecem na URL
 
-```
-Mercado Pago → back_urls (success/pending/failure)
-  ↓
-Frontend → PaymentSuccess / PaymentPending / PaymentFailure
-```
+## Dados de Teste do Mercado Pago
 
-### 5. Webhook (Assíncrono)
+Para testar pagamentos aprovados:
 
-```
-Mercado Pago → POST /api/webhook/mercadopago
-  ↓
-Webhook Handler → processPaymentNotification()
-  ↓
-Busca pagamento na API do MP
-  ↓
-Verifica idempotência
-  ↓
-Cria/Atualiza reserva no banco
-  ↓
-Retorna 200 (sempre)
-```
+- **Cartão**: 5031 4332 1540 6351
+- **CVV**: 123
+- **Validade**: 11/30
+- **Nome**: APROVADO
 
-## 🧪 Testes Recomendados
+Para testar pagamentos rejeitados:
 
-### Cartões de Teste
-
-- **Aprovado**: `5031 4332 1540 6351` + Nome: `APRO`
-- **Recusado**: `5031 4332 1540 6351` + Nome: `OTHE`
-- **Pendente**: `5031 4332 1540 6351` + Nome: `CONT`
-
-### Cenários de Teste
-
-1. ✅ Pagamento com cartão aprovado
-2. ❌ Pagamento com cartão recusado
-3. ⏳ Pagamento com boleto (pendente)
-4. 🔄 Teste de idempotência (webhook duplicado)
-5. 🔒 Teste sem autenticação (deve falhar 401)
-6. 📅 Teste com datas inválidas (deve falhar 400)
-
-## 📚 Documentação
-
-### Arquivos de Documentação Criados
-
-1. **MERCADO_PAGO_SETUP.md** - Guia completo de configuração
-2. **TODO.md** - Checklist de implementação
-3. **IMPLEMENTATION_SUMMARY.md** - Este resumo
-
-## 🚀 Próximos Passos
-
-1. Configurar credenciais no `.env`
-2. Configurar webhook no Dashboard Mercado Pago
-3. Testar fluxo completo em ambiente de teste
-4. Deploy para produção com credenciais de produção
-5. Monitorar logs e métricas
-
-## ✅ Checklist de Conclusão
-
-- [x] Backend: Modelo de reserva atualizado
-- [x] Backend: Configuração Mercado Pago
-- [x] Backend: Serviço de pagamentos
-- [x] Backend: Controller e rotas
-- [x] Backend: Webhook com idempotência
-- [x] Backend: Error handler
-- [x] Frontend: Serviço de pagamentos
-- [x] Frontend: Páginas de status
-- [x] Frontend: Integração na Place.jsx
-- [x] Segurança: Backend recalcula preço
-- [x] Segurança: Token apenas no backend
-- [x] Segurança: Autenticação JWT
-- [x] Documentação completa
-
-## 🎉 Resultado
-
-Sistema de pagamentos **100% funcional** e **pronto para produção** com:
-
-- Múltiplos métodos de pagamento (Cartão, Pix, Boleto, Saldo MP)
-- Segurança robusta (backend controla preços)
-- Idempotência garantida (sem reservas duplicadas)
-- Tratamento de erros completo
-- UX otimizada (páginas de status amigáveis)
-- Documentação detalhada
+- **Cartão**: 5031 4332 1540 6351
+- **CVV**: 123
+- **Validade**: 11/30
+- **Nome**: REJEITADO
