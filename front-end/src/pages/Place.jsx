@@ -1027,13 +1027,13 @@ const Place = () => {
 							</p>
 							<p className="text-3xl font-bold">O que esse lugar oferece</p>
 							<div className="mt-2">
-								<div className="grid grid-cols-2 gap-3 mt-5 max-w-7xl mx-auto">
+								<div className="sm:grid sm:grid-cols-2 max-sm:flex max-sm:flex-wrap gap-3 max-sm:gap-2.5 mt-5 max-w-7xl mx-auto">
 									{place.perks.map(
 										(perk, index) =>
 											perk && (
 												<div
 													key={index}
-													className="flex w-fit items-center  rounded-2xl gap-2.5"
+													className={`flex w-fit items-center text-sm  rounded-2xl gap-2.5 ${mobile ? "border border-primary-100 px-3 py-2 rounded-xl" : ""}`}
 												>
 													<Perk place={true} perk={perk} />
 												</div>
