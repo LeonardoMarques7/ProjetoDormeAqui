@@ -2,9 +2,7 @@ import axios from "axios";
 import {
 	Bath,
 	Bed,
-	Calendar,
 	CalendarX,
-	ChevronDown,
 	ChevronRight,
 	Clock,
 	Expand,
@@ -17,9 +15,7 @@ import {
 	ScrollText,
 	ShieldHalf,
 	Star,
-	Users,
 	Users2,
-	ArrowRight,
 } from "lucide-react";
 import { Select } from "@mantine/core";
 import {
@@ -106,7 +102,6 @@ const Place = () => {
 	const [tempHoverRating, setTempHoverRating] = useState(0);
 	const [tempCommentFilter, setTempCommentFilter] = useState("all");
 	const [showFixedBar, setShowFixedBar] = useState(false);
-	const [isBookingExpanded, setIsBookingExpanded] = useState(false);
 	const formRef = useRef(null);
 
 	const filteredReviews = useMemo(() => {
@@ -140,38 +135,6 @@ const Place = () => {
 		return filtered;
 	}, [reviews, sortBy, ratingFilter, commentFilter]);
 
-	const formatDate = (date, format = "dd/MM/yyyy") => {
-		// Validação: converte string para Date ou retorna vazio se inválido
-		if (!date) return "";
-
-		const dateObj = date instanceof Date ? date : new Date(date);
-
-		// Verifica se a data é válida
-		if (isNaN(dateObj.getTime())) return "";
-
-		const day = String(dateObj.getDate()).padStart(2, "0");
-		const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-		const year = dateObj.getFullYear();
-		const monthNames = [
-			"Jan",
-			"Fev",
-			"Mar",
-			"Abr",
-			"Mai",
-			"Jun",
-			"Jul",
-			"Ago",
-			"Set",
-			"Out",
-			"Nov",
-			"Dez",
-		];
-
-		if (format === "dd de MMM")
-			return `${day} de ${monthNames[dateObj.getMonth()]}`;
-		return `${day}/${month}/${year}`;
-	};
-
 	const numberOfDays = (date1, date2) => {
 		const date1GMT = date1 + "GMT-03:00";
 		const date2GMT = date2 + "GMT-03:00";
@@ -183,17 +146,6 @@ const Place = () => {
 			(dateCheckout.getTime() - dateCheckin.getTime()) / (1000 * 60 * 60 * 24)
 		);
 	};
-
-	const nights = useMemo(() => {
-		if (checkin && checkout) {
-			return numberOfDays(checkin, checkout);
-		}
-		return 0;
-	}, [checkin, checkout]);
-
-	const totalPrice = useMemo(() => {
-		return place ? place.price * nights : 0;
-	}, [place, nights]);
 
 	const dataAtual = new Date();
 
@@ -677,7 +629,7 @@ const Place = () => {
 			{/* Fixed Bar */}
 
 			{showFixedBar && (
-				<div className="fixed top-0 hidden left-0 right-0 z-50">
+				<div className="fixed top-0 left-0 right-0 z-50">
 					<div className="w-fit mx-auto px-4 py-3">
 						<button
 							onClick={() => {
@@ -697,7 +649,7 @@ const Place = () => {
 								)}
 							</div>
 							<div className="text-lg font-semibold">
-								R$ {place?.price}{" "}
+								R$ {place.price}{" "}
 								<span className="text-sm font-normal">por noite</span>
 							</div>
 						</button>
@@ -707,80 +659,80 @@ const Place = () => {
 
 			{/* Place */}
 
-			<div className=" mb-2.5 flex w-full max-w-full flex-col gap-2">
-				<div className=" max-sm:p-0 max-sm:shadow-none max-h-full  max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center  relative overflow-hidden">
+			<div className=" mb-2.5 flex w-full max-w-full flex-col gap-y-0">
+				<div className=" max-sm:p-0 border-10 border-primary-900 bg-white p-2 rounded-3xl max-sm:shadow-none max-h-full  max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center  relative overflow-hidden">
 					{/* <div className="grid relative  grid-cols-5 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2 2xl:h-130 max-sm:h-[50svh]">
-						<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
-							<img
-								className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-								src={getImageSrc(0)}
-								onError={() => handleImageError(0)}
-								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(0)}
-							/>
-						</div>
+                        <div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
+                            <img
+                                className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                src={getImageSrc(0)}
+                                onError={() => handleImageError(0)}
+                                alt="Imagem da acomodação"
+                                onClick={() => handleImageClick(0)}
+                            />
+                        </div>
 
-						<div className="col-span-1 row-span-2 max-sm:col-span-2 ">
-							<img
-								className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-								src={getImageSrc(1)}
-								onError={() => handleImageError(1)}
-								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(1)}
-							/>
-						</div>
+                        <div className="col-span-1 row-span-2 max-sm:col-span-2 ">
+                            <img
+                                className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                src={getImageSrc(1)}
+                                onError={() => handleImageError(1)}
+                                alt="Imagem da acomodação"
+                                onClick={() => handleImageClick(1)}
+                            />
+                        </div>
 
-						<div className="col-span-1 row-span-1 max-sm:col-span-2">
-							<img
-								className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-								src={getImageSrc(2)}
-								onError={() => handleImageError(2)}
-								alt="Imagem da acomodação"
-								onClick={() => handleImageClick(2)}
-							/>
-						</div>
+                        <div className="col-span-1 row-span-1 max-sm:col-span-2">
+                            <img
+                                className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                src={getImageSrc(2)}
+                                onError={() => handleImageError(2)}
+                                alt="Imagem da acomodação"
+                                onClick={() => handleImageClick(2)}
+                            />
+                        </div>
 
-						{mobile ? null : (
-							<>
-								<div className="col-span-1 row-span-1">
-									<img
-										className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-										src={getImageSrc(3)}
-										onError={() => handleImageError(3)}
-										alt="Imagem da acomodação"
-										onClick={() => handleImageClick(3)}
-									/>
-								</div>
+                        {mobile ? null : (
+                            <>
+                                <div className="col-span-1 row-span-1">
+                                    <img
+                                        className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                        src={getImageSrc(3)}
+                                        onError={() => handleImageError(3)}
+                                        alt="Imagem da acomodação"
+                                        onClick={() => handleImageClick(3)}
+                                    />
+                                </div>
 
-								<div className="col-span-1 row-span-1">
-									<img
-										className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-										src={getImageSrc(4)}
-										onError={() => handleImageError(4)}
-										alt="Imagem da acomodação"
-										onClick={() => handleImageClick(4)}
-									/>
-								</div>
-								<div className="col-span-1 row-span-1">
-									<img
-										className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
-										src={getImageSrc(1)}
-										onError={() => handleImageError(4)}
-										alt="Imagem da acomodação"
-										onClick={() => handleImageClick(4)}
-									/>
-								</div>
-							</>
-						)}
+                                <div className="col-span-1 row-span-1">
+                                    <img
+                                        className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                        src={getImageSrc(4)}
+                                        onError={() => handleImageError(4)}
+                                        alt="Imagem da acomodação"
+                                        onClick={() => handleImageClick(4)}
+                                    />
+                                </div>
+                                <div className="col-span-1 row-span-1">
+                                    <img
+                                        className="w-full h-full rounded-2xl object-cover cursor-pointer  transition-all"
+                                        src={getImageSrc(1)}
+                                        onError={() => handleImageError(4)}
+                                        alt="Imagem da acomodação"
+                                        onClick={() => handleImageClick(4)}
+                                    />
+                                </div>
+                            </>
+                        )}
 
-						<button
-							className="absolute bottom-4 right-4 max-sm:text-sm max-sm:opacity-70 max-sm:p-2 hover:max-sm:opacity-100 flex items-center px-4 py-2 rounded-lg gap-2 bg-white border border-gray-800 hover:bg-gray-50 transition-all cursor-pointer font-medium"
-							onClick={handleShowMoreClick}
-						>
-							<Expand size={18} />
-							<span className="max-sm:hidden">Mostrar todas as fotos</span>
-						</button>
-					</div> */}
+                        <button
+                            className="absolute bottom-4 right-4 max-sm:text-sm max-sm:opacity-70 max-sm:p-2 hover:max-sm:opacity-100 flex items-center px-4 py-2 rounded-lg gap-2 bg-white border border-gray-800 hover:bg-gray-50 transition-all cursor-pointer font-medium"
+                            onClick={handleShowMoreClick}
+                        >
+                            <Expand size={18} />
+                            <span className="max-sm:hidden">Mostrar todas as fotos</span>
+                        </button>
+                    </div> */}
 					<div className="grid relative  grid-cols-5 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2 2xl:h-150 max-sm:h-[50svh]">
 						{/* Imagem principal - ocupa 2 colunas e 2 linhas */}
 						<div className="col-span-3 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
@@ -849,8 +801,8 @@ const Place = () => {
 					</div>
 				</div>
 				{/* Conteúdo da acomodação */}
-				<div className="sm:grid sm:grid-cols-5 max-sm:gap-5 max-sm:flex max-sm:flex-col mt-2 gap-5 max-sm:mx-2 max-sm:mt-0 mx-4 ">
-					<div className="leading-relaxed col-span-3 order-1 description ">
+				<div className="grid grid-cols-5 gap-2 max-sm:mx-2 max-sm:mt-0 mx-4 ">
+					<div className="leading-relaxed py-5 col-span-3 px-0 order-1 max-w-4xl sm:max-w-3xl description ">
 						<div className="max-sm:py-0  w-full">
 							<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
 								<div className="flex gap-2 rounded-2xl items-center ">
@@ -1027,13 +979,13 @@ const Place = () => {
 							</p>
 							<p className="text-3xl font-bold">O que esse lugar oferece</p>
 							<div className="mt-2">
-								<div className="sm:grid sm:grid-cols-2 max-sm:flex max-sm:flex-wrap gap-3 max-sm:gap-2.5 mt-5 max-w-7xl mx-auto">
+								<div className="grid grid-cols-2 gap-3 mt-5 max-w-7xl mx-auto">
 									{place.perks.map(
 										(perk, index) =>
 											perk && (
 												<div
 													key={index}
-													className={`flex w-fit items-center text-sm  rounded-2xl gap-2.5 ${mobile ? "border border-primary-100 px-3 py-2 rounded-xl" : ""}`}
+													className="flex w-fit items-center  rounded-2xl gap-2.5"
 												>
 													<Perk place={true} perk={perk} />
 												</div>
@@ -1501,158 +1453,221 @@ const Place = () => {
 					</div>
 
 					{console.log("Este é log: ", booking)}
-					<div className="order-2 col-span-2 flex-1  ">
-						{/* Booking - New Collapsible Card Style */}
+					<div className="order-1 col-span-2 flex justify-self-end mx-4 ">
+						{/* Booking */}
 						{booking && (
-							<div className="mb-4 w-full transition-all duration-700 ml-auto max-sm:mb-5 lg:max-w-5xl">
-								<div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-									{/* Collapsed View */}
-									<div
-										className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-										onClick={() => setIsBookingExpanded(!isBookingExpanded)}
-									>
-										<div className="flex items-center justify-between">
-											<div className="flex items-center gap-3">
-												<div
-													className={`w-3 h-3 rounded-full bg-green-500`}
-												></div>
-												<div>
-													<div className="text-sm font-semibold text-gray-900">
-														Reserva Confirmada
-													</div>
-													<div className="text-xs text-gray-500">
-														#{booking._id.slice(-6).toUpperCase()}
-													</div>
-												</div>
-											</div>
-											<div className="flex items-center gap-3">
-												<div className="text-right">
-													<div className="text-sm font-semibold text-gray-900">
-														{formatDate(booking.checkin)}
-													</div>
-													<div className="text-xs text-gray-500">Check-in</div>
-												</div>
-												<ChevronDown
-													className={`w-5 h-5 text-gray-400 transition-transform ${isBookingExpanded ? "rotate-180" : ""}`}
-												/>
-											</div>
-										</div>
-									</div>
+							<div className="section__bookin h-fit order-2 w-full  max-sm:mb-5  lg:max-w-5xl">
+								<div className=" relative shadow-gray-200 max-sm:rounded-2xl!  bg-gray-50 rounded-3xl overflow-hidden">
+									{/* Boarding Pass Style Container */}
+									<div className="flex flex-col md:flex-row ">
+										{/* QR Code Section */}
 
-									{/* Expanded View */}
-									{isBookingExpanded && (
-										<div className="px-4 pb-4 transition-all duration-700 border-t border-gray-100">
-											{/* Detailed Dates */}
-											<div className="grid grid-cols-2 gap-4 my-4">
-												<div className="bg-gray-50 rounded-lg p-3">
-													<div className="flex items-center gap-2 mb-2">
-														<span className="text-xs text-gray-500 uppercase">
-															Check-in
-														</span>
-													</div>
-													<div className="text-base font-semibold text-gray-900 mb-1">
-														{formatDate(booking.checkin)}
-													</div>
-													<div className="text-sm text-gray-600 flex items-center gap-1">
+										{mobile ? (
+											<div className="bg-gray-900 text-white h-15 flex items-center justify-center border-b-2 md:border-b-0  border-r-0 md:border-r-2 border-dashed border-gray-200 relative">
+												<p className="text-xs font-medium -rotate-0 md:-rotate-90 whitespace-nowrap tracking-wider">
+													RESERVA CONFIRMADA
+												</p>
+												{/* Semi-circle cutouts */}
+												<div className="absolute -left-4 -bottom-4 w-8 h-8 backdrop-blur-3xl bg-white  rounded-full"></div>
+												<div className="absolute -right-4 -bottom-4 w-8 h-8 backdrop-blur-3xl bg-white  rounded-full"></div>
+											</div>
+										) : (
+											<div className="bg-gray-100 p-4 max-sm:h-10 md:p-8 flex items-center justify-center border-b-2 md:border-b-0 max-sm:rounded-2xl border-r-0 md:border-r-2 border-dashed border-gray-200 relative">
+												{/* Semi-circle cutouts */}
+												<div className="absolute sm:-top-4 sm:-right-4 max-sm:-right-8 max-sm:-bottom-4 w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
+												<div className="absolute -bottom-4 -right-4 max-sm:-left-8 max-sm:-right-auto w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
+											</div>
+										)}
+
+										{/* Main Content */}
+										<div className="flex-1 p-6 md:p-8">
+											{/* Route Information */}
+											<div className="flex items-center justify-between max-sm:my-4 mb-8">
+												<div className="flex-1">
+													<p className="text-2xl max-sm:text-sm font-bold text-primary-900">
+														CHECK-IN
+													</p>
+													<p className="text-xs text-gray-600 mt-1">
+														{new Date(booking.checkin).toLocaleDateString(
+															"pt-br",
+															{
+																weekday: "short",
+																day: "numeric",
+																month: "short",
+															},
+														)}
+													</p>
+													<p className="text-sm font-medium text-gray-700">
 														{place.checkin}
+													</p>
+												</div>
+
+												<div className="flex flex-col items-center px-4">
+													<div className="flex items-center gap-2">
+														<div className="w-15 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
+														<Home className="text-primary-900" size={20} />
+														<div className="w-15 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
 													</div>
 												</div>
 
-												<div className="bg-gray-50 rounded-lg p-3">
-													<div className="flex items-center gap-2 mb-2">
-														<Calendar className="w-4 h-4 text-gray-500" />
-														<span className="text-xs text-gray-500 uppercase">
-															Check-out
-														</span>
-													</div>
-													<div className="text-base font-semibold text-gray-900 mb-1">
-														{formatDate(booking.checkout)}
-													</div>
-													<div className="text-sm text-gray-600 flex items-center gap-1">
-														<Clock className="w-3 h-3" />
+												<div className="flex-1 text-right">
+													<p className="text-2xl  max-sm:text-sm font-bold text-primary-900">
+														CHECK-OUT
+													</p>
+													<p className="text-xs text-gray-600 mt-1">
+														{new Date(booking.checkout).toLocaleDateString(
+															"pt-br",
+															{
+																weekday: "short",
+																day: "numeric",
+																month: "short",
+															},
+														)}
+													</p>
+													<p className="text-sm font-medium text-gray-700">
 														{place.checkout}
-													</div>
+													</p>
 												</div>
 											</div>
 
-											{/* Action Button */}
-											<Link
-												to={`../account/bookings/${booking._id}`}
-												className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
-											>
-												Acessar Reserva
-											</Link>
+											{/* Booking Details */}
+											<div className="grid grid-cols-2 md:grid-cols-4 max-sm:gap-2 gap-6 pt-6 border-t max-sm:border-none border-gray-200">
+												<div>
+													<p className="text-xs text-gray-500 mb-1">Código</p>
+													<p className="text-sm font-semibold text-primary-600">
+														#{booking._id.slice(-6).toUpperCase()}
+													</p>
+												</div>
+
+												<div>
+													<p className="text-xs text-gray-500 mb-1">Ações</p>
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<Link
+																to={`../account/bookings/${booking._id}`}
+																className="inline-flex text-nowrap text-gray-900 items-center gap-1 text-sm font-semibold  hover:text-gray-700"
+															>
+																Acessar reserva
+															</Link>
+														</TooltipTrigger>
+														<TooltipContent className="bg-primary-600">
+															<p>Acessar reserva completa</p>
+														</TooltipContent>
+													</Tooltip>
+												</div>
+											</div>
 										</div>
-									)}
+
+										{/* Sidebar */}
+										{!mobile && (
+											<div className="bg-primary-900 text-white p-4 flex max-sm:absolute max-sm:bottom-0 max-sm:w-full max-sm:left-0 max-sm:h-10 md:flex-col items-center justify-center gap-3 min-w-[60px] max-sm:min-w-[50px] relative">
+												<p className="text-xs font-medium -rotate-0 md:-rotate-90 whitespace-nowrap tracking-wider">
+													RESERVA CONFIRMADA
+												</p>
+											</div>
+										)}
+									</div>
 								</div>
 							</div>
 						)}
 						<form
 							ref={formRef}
-							className="w-full max-w-md bg-white rounded-2xl border border-gray-200 p-6"
+							className="form__place border-4 border-t-0  border-primary-900 max-sm:relative max-w-md max-sm:p-0 max-sm:w-full order-2   w-full  self-start flex flex-col gap-4 rounded-b-2xl p-5"
 						>
-							{/* Preço */}
-							<div className="mb-6">
-								<div className="flex items-baseline gap-1">
-									<span className="text-4xl font-bold text-gray-900">
-										R$ {place?.price}
-									</span>
-									<span className="text-gray-600">por noite</span>
+							<div className=" p-4">
+								<div className="max-sm:text-xl text-2xl sm:text-start text-gray-600">
+									<p className="uppercase text-sm">preço</p>
+									<span className="font-light text-5xl text-primary-500">
+										R$ {place.price}
+									</span>{" "}
+									<p className="text-sm">por noite</p>
 								</div>
 							</div>
 
 							{/* NOVO CALENDÁRIO AIRBNB STYLE */}
-							<div className="w-full mb-6" ref={datePickerRef}>
+							<div className="w-full" ref={datePickerRef}>
 								<DatePickerAirbnb
 									onDateSelect={handleDateSelect}
 									initialCheckin={checkin}
 									initialCheckout={checkout}
-									price={place?.price}
+									price={place.price}
 									placeId={id}
 									bookings={bookingsPlace}
 								/>
 							</div>
 
 							{/* Hóspedes */}
-							<div className="mb-6">
-								<div className="text-sm font-semibold text-gray-900 mb-3">
-									Hóspedes
+							<div className="py-2 flex flex-col gap-4 justify-center sm:mx-auto sm:w-full ">
+								<div>
+									<p className="font-bold px-3 sm:px-0">Hóspedes</p>
+									{!limiteGuests ? (
+										<p className="text-sm text-gray-500 px-3 sm:px-0">
+											Hospedagem para até {place.guests} pessoas.
+										</p>
+									) : (
+										<p className="text-sm text-red-500 px-3 sm:px-0">
+											{limiteGuests}
+										</p>
+									)}
 								</div>
-								<div className="text-sm text-gray-600 mb-3">
-									Hospedagem para até 2 pessoas.
-								</div>
-								<div className="flex items-center justify-between border rounded-xl p-3">
-									<button
-										onClick={() => setGuests(Math.max(1, guests - 1))}
-										className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-										disabled={guests <= 1}
-									>
-										<Minus className="w-4 h-4" />
-									</button>
-									<span className="text-lg font-medium">{guests}</span>
-									<button
-										onClick={() => setGuests(Math.min(10, guests + 1))}
-										className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-									>
-										<Plus className="w-4 h-4" />
-									</button>
+								<div className="flex items-center text-center justify-center p-0 h-full w-fit border rounded-2xl">
+									<div className="rounded-l-2xl px-5 flex items-center justify-center bg-white">
+										<Counter value={guests} fontSize={25} />
+									</div>
+									<div className="flex items-center">
+										<button
+											className="border-l py-2.5 hover:bg-gray-100 px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
+											onClick={(e) => {
+												e.preventDefault();
+												if (guests < place.guests) {
+													setGuests(guests + 1);
+													setLimiteGuests("");
+												} else {
+													setLimiteGuests(
+														"Atingiu o limite máximo de hóspedes!",
+													);
+												}
+											}}
+											disabled={guests >= place.guests}
+										>
+											<Plus />
+										</button>
+										<button
+											className="border-l min-h-full py-2.5 hover:bg-gray-100 rounded-r-2xl px-2.5 h-full cursor-pointer disabled:opacity-25 disabled:cursor-auto"
+											onClick={(e) => {
+												e.preventDefault();
+												if (guests > 1) {
+													setGuests(guests - 1);
+													setLimiteGuests("");
+												} else {
+													setLimiteGuests("Mínimo de 1 hóspede!");
+												}
+											}}
+											disabled={guests <= 1}
+										>
+											<Minus />
+										</button>
+									</div>
 								</div>
 							</div>
-
-							{/* Botão */}
-							<button
-								className="w-full bg-gray-900 text-white py-4 rounded-xl font-medium hover:bg-gray-800 transition-colors"
-								onClick={
-									user
-										? handleBooking
-										: (e) => {
-												e.preventDefault();
-												showAuthModal("login");
-											}
-								}
-							>
-								{user ? "Reservar Agora" : "Faça login para reservar"}
-							</button>
+							{user ? (
+								<InteractiveHoverButton
+									className="w-fit"
+									onClick={handleBooking}
+								>
+									Reservar comodidade
+								</InteractiveHoverButton>
+							) : (
+								<InteractiveHoverButton
+									className=""
+									onClick={(e) => {
+										e.preventDefault();
+										showAuthModal("login");
+									}}
+								>
+									Entre para continuar
+								</InteractiveHoverButton>
+							)}
 						</form>
 					</div>
 				</div>

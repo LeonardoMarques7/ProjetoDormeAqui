@@ -266,74 +266,36 @@ const DatePickerAirbnb = ({
 			<button
 				type="button"
 				onClick={() => setIsOpen(true)}
-				className={`w-full group cursor-pointer ${
-					!search &&
-					"border-2 shadow-sm hover:shadow-md border-gray-300 rounded-2xl p-4 md:p-5 hover:border-primary-500"
-				} transition-all !text-left bg-white flex !justify-start`}
+				className={`${search && "border-none p-0 !text-gray-500"} w-full border rounded-xl overflow-hidden cursor-pointer hover:bg-gray-50 transition-all flex items-center gap-4`}
 			>
-				{search ? (
-					<div className="flex group-hover:text-primary-700 max-sm:justify-start max-sm:flex-1 items-center text-gray-400 gap-2 justify-center">
-						{!checkinDate && !checkoutDate && (
-							<Calendar className=" left-0 mr-2 size-5" />
-						)}
-						{checkinDate ? (
-							<div className="group__input relative w-full max-sm:flex-1 max-sm:w-fit px-4 flex justify-center items-center">
-								<p className="text-sm md:text-base flex gap-2 ">
-									<span className="text-primary-700">
-										{checkinDate
-											? formatDate(checkinDate, "dd de MMM")
-											: "Adicionar data"}
-										.
-									</span>
-								</p>
-							</div>
-						) : (
-							"Quando?"
-						)}
-						{checkinDate && checkoutDate && (
-							<span className="w-5 h-0.5 bg-primary-300"></span>
-						)}
-						{checkoutDate ? (
-							<div className="group__input relative px-4 max-sm:flex-1 flex justify-center items-center">
-								<p className="text-sm md:text-base flex gap-2">
-									<span className="text-primary-700">
-										{formatDate(checkoutDate, "dd de MMM")}.
-									</span>
-								</p>
-							</div>
-						) : null}
+				<div
+					className={`grid grid-cols-2 divide-x w-full ${search ? "hidden" : "flex"}`}
+				>
+					<div className="p-4 flex flex-col items-start justify-start">
+						<div className="text-xs  font-semibold text-gray-700 uppercase mb-1">
+							Check-in
+						</div>
+						<div className="text-sm font-medium">
+							{checkinDate
+								? formatDate(checkinDate, "dd de MMM")
+								: "Adicionar data"}
+						</div>
 					</div>
-				) : (
-					<div className="flex items-center w-full justify-between">
-						<div className="flex items-center max-sm:hidden mx-8 md:mx-6 gap-5">
-							<Calendar className=" text-primary-500 " size={24} />
+					<div className="p-4 flex flex-col items-start justify-start">
+						<div className="text-xs font-semibold text-gray-700 uppercase mb-1">
+							Check-out
 						</div>
-
-						<div className="flex items-center w-full max-sm:justify-center mx-6 gap-2">
-							<div className="flex-1 ">
-								<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
-									Check-in
-								</p>
-								<p className="text-sm md:text-base text-gray-800">
-									{checkinDate
-										? formatDate(checkinDate, "dd de MMM")
-										: "Adicionar data"}
-								</p>
-							</div>
-
-							<div className="w-px h-12 md:h-14 bg-gray-300 mx-4 md:mx-6" />
-
-							<div className="flex-1">
-								<p className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
-									Check-out
-								</p>
-								<p className="text-sm md:text-base text-gray-800">
-									{checkoutDate
-										? formatDate(checkoutDate, "dd de MMM")
-										: "Adicionar data"}
-								</p>
-							</div>
+						<div className="text-sm font-medium">
+							{checkoutDate
+								? formatDate(checkoutDate, "dd de MMM")
+								: "Adicionar data"}
 						</div>
+					</div>
+				</div>
+				{search && (
+					<div className={`flex items-center gap-4 !text-gray-500`}>
+						<Calendar size={18} className="text-gray-500" />
+						Quando?
 					</div>
 				)}
 			</button>
