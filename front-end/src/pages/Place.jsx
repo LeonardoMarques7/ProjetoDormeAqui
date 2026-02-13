@@ -849,8 +849,8 @@ const Place = () => {
 					</div>
 				</div>
 				{/* Conteúdo da acomodação */}
-				<div className="grid grid-cols-5 max-sm:gap-5 mt-2 gap-5 max-sm:mx-2 max-sm:mt-0 mx-4 ">
-					<div className="leading-relaxed col-span-3  order-1 description ">
+				<div className="sm:grid sm:grid-cols-5 max-sm:gap-5 max-sm:flex max-sm:flex-col mt-2 gap-5 max-sm:mx-2 max-sm:mt-0 mx-4 ">
+					<div className="leading-relaxed col-span-3 order-1 description ">
 						<div className="max-sm:py-0  w-full">
 							<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
 								<div className="flex gap-2 rounded-2xl items-center ">
@@ -1501,7 +1501,7 @@ const Place = () => {
 					</div>
 
 					{console.log("Este é log: ", booking)}
-					<div className="order-1 col-span-2 flex-1  ">
+					<div className="order-2 col-span-2 flex-1  ">
 						{/* Booking - New Collapsible Card Style */}
 						{booking && (
 							<div className="mb-4 w-full transition-all duration-700 ml-auto max-sm:mb-5 lg:max-w-5xl">
