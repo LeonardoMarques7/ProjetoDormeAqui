@@ -70,20 +70,21 @@ router.get("/place/:id/booked-dates", async (req, res) => {
 
   try {
     const bookingDocs = await Booking.find({ place: id })
-      .select('checkin checkout')
-      .sort({ checkin: 1 });
+      .select('checkIn checkOut')
+      .sort({ checkIn: 1 });
 
-    // Extrair todas as datas ocupadas (de checkin até checkout, incluindo checkout)
+    // Extrair todas as datas ocupadas (de checkIn até checkOut, incluindo checkOut)
     const bookedDates = [];
     bookingDocs.forEach(booking => {
-      const checkin = booking.checkin;
-      const checkout = booking.checkout;
+      const checkIn = booking.checkIn;
+      const checkOut = booking.checkOut;
 
-      // Adicionar todas as datas entre checkin e checkout (incluindo checkout)
-      for (let date = new Date(checkin); date <= checkout; date.setDate(date.getDate() + 1)) {
+      // Adicionar todas as datas entre checkIn e checkOut (incluindo checkOut)
+      for (let date = new Date(checkIn); date <= checkOut; date.setDate(date.getDate() + 1)) {
         bookedDates.push(date.toISOString().split('T')[0]); // YYYY-MM-DD
       }
     });
+
 
     // Remover duplicatas
     const uniqueBookedDates = [...new Set(bookedDates)];
@@ -96,7 +97,8 @@ router.get("/place/:id/booked-dates", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-    const { place, user, price, priceTotal, checkin, checkout, guests, nights } = req.body;
+    const { place, user, pricePerNight, totalPrice, checkIn, checkOut, guests, nights } = req.body;
+
 
     // Iniciar sessão de transação para garantir atomicidade e prevenir conflitos de concorrência
     // Isso garante que apenas uma reserva seja criada por vez, mesmo com múltiplas requisições simultâneas
@@ -130,8 +132,8 @@ router.post("/", async (req, res) => {
             return res.status(404).json({ message: "Lugar não encontrado." });
         }
 
-        const checkinDate = new Date(checkin);
-        const checkoutDate = new Date(checkout);
+        const checkInDate = new Date(checkIn);
+        const checkOutDate = new Date(checkOut);
 
         // Verificar se há reservas conflitantes dentro da transação
         // Esta verificação é feita atomicamente com a criação da reserva
@@ -139,8 +141,8 @@ router.post("/", async (req, res) => {
             place: place,
             $or: [
                 {
-                    checkin: { $lt: checkoutDate },
-                    checkout: { $gt: checkinDate }
+                    checkIn: { $lt: checkOutDate },
+                    checkOut: { $gt: checkInDate }
                 }
             ]
         }).session(session);
@@ -153,10 +155,10 @@ router.post("/", async (req, res) => {
 
         // Validar intervalo mínimo entre check-out e check-in
         // Se o check-out for no mesmo dia ou próximo, verificar os horários
-        const lastBooking = await Booking.findOne({ place: place }).sort({ checkout: -1 }).session(session);
+        const lastBooking = await Booking.findOne({ place: place }).sort({ checkOut: -1 }).session(session);
         if (lastBooking) {
-            const lastCheckout = lastBooking.checkout;
-            const timeDiff = checkinDate.getTime() - lastCheckout.getTime();
+            const lastCheckout = lastBooking.checkOut;
+            const timeDiff = checkInDate.getTime() - lastCheckout.getTime();
             const hoursDiff = timeDiff / (1000 * 60 * 60);
 
             // Intervalo mínimo de 3 horas (ajustável)
@@ -171,8 +173,10 @@ router.post("/", async (req, res) => {
 
         // Criar a reserva dentro da transação
         const newBookingDoc = await Booking.create([{
-            place, user, price, priceTotal, checkin: checkinDate, checkout: checkoutDate, guests, nights
+            place, user, pricePerNight, totalPrice, checkIn: checkInDate, checkOut: checkOutDate, guests, nights
         }], { session });
+
+
 
         // Confirmar a transação
         await session.commitTransaction();

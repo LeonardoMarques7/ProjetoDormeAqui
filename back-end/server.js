@@ -5,6 +5,8 @@ import routes from "./routes/index.js";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
 import fs from "fs";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+
 
 export const app = express();
 
@@ -20,6 +22,20 @@ if (!fs.existsSync(tmpDir)) {
 
 app.use(cookieParser());
 app.use(express.json());
+
+// Middleware de logging para debugar requisições
+app.use((req, res, next) => {
+  const start = Date.now();
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - Iniciando...`);
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
+  });
+  
+  next();
+});
+
 
 app.use(
   cors({
@@ -58,4 +74,16 @@ app.use((req, res, next) => {
   } else {
     next();
   }
+});
+
+// Handler para rotas de API não encontradas (404)
+app.use("/api", notFoundHandler);
+
+// Middleware de tratamento de erros (DEVE ser o último)
+app.use(errorHandler);
+
+// Configuração para evitar ERR_CONNECTION_RESET
+app.use((req, res, next) => {
+  res.setHeader('Connection', 'keep-alive');
+  next();
 });

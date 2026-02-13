@@ -21,6 +21,11 @@ import {
 	Users2,
 	ArrowRight,
 } from "lucide-react";
+import {
+	createCheckoutPreference,
+	redirectToCheckout,
+} from "../services/paymentService";
+
 import { Select } from "@mantine/core";
 import {
 	Drawer,
@@ -354,24 +359,31 @@ const Place = () => {
 		e.preventDefault();
 
 		if (checkin && checkout && guests) {
-			const nights = numberOfDays(checkin, checkout);
-
-			const objBooking = {
-				place: id,
-				user: user._id,
-				price: place.price,
-				priceTotal: place.price * nights,
-				checkin,
-				checkout,
-				guests,
-				nights,
+			// Prepara os dados para o pagamento (apenas dados essenciais, sem preço)
+			const bookingData = {
+				accommodationId: id,
+				checkIn: checkin.toISOString(),
+				checkOut: checkout.toISOString(),
+				guests: guests,
 			};
 
 			try {
-				const { data } = await axios.post("/bookings", objBooking);
-				setRedirect(true);
+				setLoading(true);
+
+				// Cria a preferência de checkout no Mercado Pago
+				const preferenceData = await createCheckoutPreference(bookingData);
+
+				// Redireciona para o checkout do Mercado Pago
+				redirectToCheckout(preferenceData.initPoint);
 			} catch (error) {
-				if (error.response?.status === 409) {
+				setLoading(false);
+
+				if (
+					error.message.includes("autenticado") ||
+					error.message.includes("logado")
+				) {
+					showAuthModal("login");
+				} else if (error.response?.status === 409) {
 					// Datas conflitantes - mostrar mensagem e resetar datas
 					showMessage(
 						"Datas conflitantes com reservas existentes. As datas selecionadas não estão disponíveis.",
@@ -387,7 +399,10 @@ const Place = () => {
 					});
 				} else {
 					// Outros erros
-					showMessage("Erro ao criar reserva. Tente novamente.", "error");
+					showMessage(
+						error.message || "Erro ao processar pagamento. Tente novamente.",
+						"error",
+					);
 				}
 			}
 		} else {

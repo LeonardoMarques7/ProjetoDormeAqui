@@ -1,19 +1,61 @@
-# TODO: Transform NewPlace into Full-Screen Wizard
+# TODO - Correção Erro de Conexão Mercado Pago
 
-- [x] Add state for current step (useState for step, set to 1-7)
-- [x] Create progress bar component at top (shows (step/7)\*100% width)
-- [x] Create navigation buttons (Back and Next/Save) at bottom
-- [x] Implement handleNext and handleBack functions
-- [x] Replace form layout with full-screen wizard structure
-- [x] Step 1: Basic info (title, city) - centered content
-- [x] Step 2: Photos (PhotosUploader) - full screen
-- [x] Step 3: Description (MarkdownEditor) - full screen
-- [x] Step 4: Amenities (Perks) - full screen
-- [x] Step 5: Extra info (MarkdownEditor2) - full screen
-- [x] Step 6: Price & capacity (price, guests, checkin, checkout) - full screen
-- [x] Step 7: Final review (Preview component full-screen, with submit button)
-- [x] Remove side preview from main layout; only in step 7
-- [x] Keep edit mode logic (loading data via id)
-- [x] Ensure responsive design (mobile-friendly)
-- [x] Test navigation and submission
-- [x] Move progress bar to bottom with border-t, split into 3 sections
+## Problema
+
+Erro `ERR_CONNECTION_RESET` ao tentar criar preferência de pagamento no endpoint `POST http://localhost:3000/api/payments/create`
+
+## Causas Possíveis
+
+- [x] Timeout muito curto (10s) - **CORRIGIDO: Aumentado para 30s**
+- [x] CORS bloqueando requisições - **VERIFICADO: Configuração OK**
+- [x] Erro no processamento que fecha conexão abruptamente - **CORRIGIDO: Adicionado tratamento de erro**
+- [ ] Problema de autenticação (JWT/cookie) - **PENDENTE VERIFICAÇÃO**
+
+## Tarefas Concluídas ✅
+
+### 1. back-end/config/mercadopago.js ✅
+
+- [x] Aumentar timeout de 10s para 30s
+- [x] Adicionar logs detalhados de conexão
+
+### 2. back-end/server.js ✅
+
+- [x] Adicionar middleware de logging para debugar requisições
+- [x] Verificar configuração CORS
+- [x] Adicionar tratamento de erros de conexão
+
+### 3. back-end/domains/payments/controller.js ✅
+
+- [x] Adicionar try-catch global no controller
+- [x] Adicionar logs de entrada/saída
+- [x] Garantir que resposta sempre seja enviada
+
+### 4. front-end/src/services/paymentService.js ✅
+
+- [x] Adicionar timeout explícito de 30s
+- [x] Melhorar tratamento de erros de rede
+- [x] Adicionar logs de debug
+
+## Próximos Passos para Testar 🔧
+
+1. **Reinicie o servidor backend:**
+
+   ```bash
+   cd back-end
+   npm start
+   ```
+
+2. **Teste o endpoint de configuração:**
+
+   ```bash
+   curl http://localhost:3000/api/payments/test-config
+   ```
+
+3. **Verifique os logs do backend** ao tentar criar uma preferência
+
+4. **Teste a criação de preferência** pelo frontend
+
+## Status
+
+- [x] Correções aplicadas
+- [ ] Testes pendentes
