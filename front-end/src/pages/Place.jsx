@@ -136,10 +136,17 @@ const Place = () => {
 	}, [reviews, sortBy, ratingFilter, commentFilter]);
 
 	const formatDate = (date, format = "dd/MM/yyyy") => {
-		const day = String(date.getDate()).padStart(2, "0");
-		const month = String(date.getMonth() + 1).padStart(2, "0");
-		const year = date.getFullYear();
+		// Validação: converte string para Date ou retorna vazio se inválido
+		if (!date) return "";
 
+		const dateObj = date instanceof Date ? date : new Date(date);
+
+		// Verifica se a data é válida
+		if (isNaN(dateObj.getTime())) return "";
+
+		const day = String(dateObj.getDate()).padStart(2, "0");
+		const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+		const year = dateObj.getFullYear();
 		const monthNames = [
 			"Jan",
 			"Fev",
@@ -156,7 +163,7 @@ const Place = () => {
 		];
 
 		if (format === "dd de MMM")
-			return `${day} de ${monthNames[date.getMonth()]}`;
+			return `${day} de ${monthNames[dateObj.getMonth()]}`;
 		return `${day}/${month}/${year}`;
 	};
 
@@ -665,7 +672,7 @@ const Place = () => {
 			{/* Fixed Bar */}
 
 			{showFixedBar && (
-				<div className="fixed top-0 left-0 right-0 z-50">
+				<div className="fixed top-0 hidden left-0 right-0 z-50">
 					<div className="w-fit mx-auto px-4 py-3">
 						<button
 							onClick={() => {
@@ -1489,13 +1496,13 @@ const Place = () => {
 					</div>
 
 					{console.log("Este é log: ", booking)}
-					<div className="order-1 col-span-2 ">
+					<div className="order-1 col-span-2 flex-1  ">
 						{/* Booking */}
 						{booking && (
-							<div className="section__booking  h-fit order-2 w-full ml-auto max-sm:mb-5  lg:max-w-5xl">
+							<div className="section__booking mb-5  h-fit order-2 w-full ml-auto max-sm:mb-5  lg:max-w-5xl">
 								<div className=" relative shadow-gray-200 max-sm:rounded-2xl!  bg-gray-50 rounded-3xl overflow-hidden">
 									{/* Boarding Pass Style Container */}
-									<div className="flex flex-col md:flex-row ">
+									<div className="flex flex-col ">
 										{/* QR Code Section */}
 
 										{mobile ? (
@@ -1510,28 +1517,21 @@ const Place = () => {
 										) : (
 											<div className="bg-gray-100 p-4 max-sm:h-10 md:p-8 flex items-center justify-center border-b-2 md:border-b-0 max-sm:rounded-2xl border-r-0 md:border-r-2 border-dashed border-gray-200 relative">
 												{/* Semi-circle cutouts */}
-												<div className="absolute sm:-top-4 sm:-right-4 max-sm:-right-8 max-sm:-bottom-4 w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
+												<div className="absolute -bottom-4 -left-4 w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
 												<div className="absolute -bottom-4 -right-4 max-sm:-left-8 max-sm:-right-auto w-8 h-8 backdrop-blur-3xl bg-white border border-gray-200 rounded-full"></div>
 											</div>
 										)}
 
 										{/* Main Content */}
-										<div className="flex-1 p-6 md:p-8">
+										<div className="flex-1 p-8">
 											{/* Route Information */}
 											<div className="flex items-center justify-between max-sm:my-4 mb-8">
 												<div className="flex-1">
-													<p className="text-2xl max-sm:text-sm font-bold text-primary-900">
-														CHECK-IN
+													<p className="text-primary-500 uppercase font-light">
+														Check-in
 													</p>
-													<p className="text-xs text-gray-600 mt-1">
-														{new Date(booking.checkin).toLocaleDateString(
-															"pt-br",
-															{
-																weekday: "short",
-																day: "numeric",
-																month: "short",
-															},
-														)}
+													<p className="text-xl font-bold">
+														{formatDate(booking.checkin)}
 													</p>
 													<p className="text-sm font-medium text-gray-700">
 														{place.checkin}
@@ -1539,26 +1539,18 @@ const Place = () => {
 												</div>
 
 												<div className="flex flex-col items-center px-4">
-													<div className="flex items-center gap-2">
-														<div className="w-15 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
-														<Home className="text-primary-400" size={20} />
-														<div className="w-15 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
+													<div className="flex items-center pt-2 gap-2">
+														<div className="w-10 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
+														<div className="w-10 max-sm:w-5 border-t-2 border-dashed border-gray-300"></div>
 													</div>
 												</div>
 
 												<div className="flex-1 text-right">
-													<p className="text-2xl  max-sm:text-sm font-bold text-primary-900">
-														CHECK-OUT
+													<p className="text-primary-500 uppercase font-light">
+														Check-out
 													</p>
-													<p className="text-xs text-gray-600 mt-1">
-														{new Date(booking.checkout).toLocaleDateString(
-															"pt-br",
-															{
-																weekday: "short",
-																day: "numeric",
-																month: "short",
-															},
-														)}
+													<p className="text-xl font-bold">
+														{formatDate(booking.checkout)}
 													</p>
 													<p className="text-sm font-medium text-gray-700">
 														{place.checkout}
@@ -1597,7 +1589,7 @@ const Place = () => {
 										{/* Sidebar */}
 										{!mobile && (
 											<div className="bg-primary-900 text-white p-4 flex max-sm:absolute max-sm:bottom-0 max-sm:w-full max-sm:left-0 max-sm:h-10 md:flex-col items-center justify-center gap-3 min-w-[60px] max-sm:min-w-[50px] relative">
-												<p className="text-xs font-medium -rotate-0 md:-rotate-90 whitespace-nowrap tracking-wider">
+												<p className="text-xs font-medium whitespace-nowrap tracking-wider">
 													RESERVA CONFIRMADA
 												</p>
 											</div>
@@ -1670,7 +1662,7 @@ const Place = () => {
 											}
 								}
 							>
-								Entre para continuar
+								{user ? "Reservar Agora" : "Faça login para reservar"}
 							</button>
 						</form>
 					</div>

@@ -266,11 +266,13 @@ const DatePickerAirbnb = ({
 			<button
 				type="button"
 				onClick={() => setIsOpen(true)}
-				className={`${search && "border-none p-0 !text-gray-500"}w-full border rounded-xl overflow-hidden cursor-pointer hover:bg-gray-50 transition-all flex items-center gap-4 justify-between`}
+				className={`${search && "border-none p-0 !text-gray-500"} w-full border rounded-xl overflow-hidden cursor-pointer hover:bg-gray-50 transition-all flex items-center gap-4`}
 			>
-				<div className={`grid grid-cols-2 divide-x  ${search && "hidden"}`}>
-					<div className="p-4">
-						<div className="text-xs font-semibold text-gray-700 uppercase mb-1">
+				<div
+					className={`grid grid-cols-2 divide-x w-full ${search ? "hidden" : "flex"}`}
+				>
+					<div className="p-4 flex flex-col items-start justify-start">
+						<div className="text-xs  font-semibold text-gray-700 uppercase mb-1">
 							Check-in
 						</div>
 						<div className="text-sm font-medium">
@@ -279,7 +281,7 @@ const DatePickerAirbnb = ({
 								: "Adicionar data"}
 						</div>
 					</div>
-					<div className="p-4">
+					<div className="p-4 flex flex-col items-start justify-start">
 						<div className="text-xs font-semibold text-gray-700 uppercase mb-1">
 							Check-out
 						</div>
@@ -290,12 +292,12 @@ const DatePickerAirbnb = ({
 						</div>
 					</div>
 				</div>
-				<div
-					className={`flex items-center gap-4  ${search && "flex !text-gray-500"}`}
-				>
-					<Calendar size={18} className="text-gray-500" />
-					Quando?
-				</div>
+				{search && (
+					<div className={`flex items-center gap-4 !text-gray-500`}>
+						<Calendar size={18} className="text-gray-500" />
+						Quando?
+					</div>
+				)}
 			</button>
 
 			{/* Modal com Calendário */}
