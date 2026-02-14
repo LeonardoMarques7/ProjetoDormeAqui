@@ -77,6 +77,7 @@ const AppSidebar = () => {
 	const { state } = useSidebar();
 	const [bookings, setBookings] = useState([]);
 	const [readyBookings, setReadyBookings] = useState(false);
+	const [qtdBookings, setQtdBookings] = useState(0);
 
 	useEffect(() => {
 		if (!user) {
@@ -96,7 +97,9 @@ const AppSidebar = () => {
 		axiosGet();
 	}, [user?._id]);
 
-	const qtdBookings = bookings.length;
+	useEffect(() => {
+		setQtdBookings(bookings.length);
+	}, [bookings.updateAt, bookings.length]);
 
 	const navItems = [
 		{ path: "/", icon: HomeIconSolid, iconRegular: HomeIcon, label: "Home" },
