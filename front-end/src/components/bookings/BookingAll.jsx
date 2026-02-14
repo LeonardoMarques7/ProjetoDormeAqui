@@ -116,7 +116,7 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 							<div className="flex flex-col max-sm:pb-4 flex-1">
 								<div className="flex items-baseline flex-col gap-1">
 									<span className="text-2xl font-normal text-gray-900">
-										R$ {booking.price},00
+										R$ {booking.price || booking.priceTotal},00
 									</span>
 									<div className="flex items-center gap-2">
 										<p className="font-light text-gray-700">

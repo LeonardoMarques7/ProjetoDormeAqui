@@ -3,14 +3,14 @@ import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle, Calendar, Home, ArrowRight } from "lucide-react";
 import axios from "axios";
 import { useMessage } from "../components/contexts/MessageContext";
-
 const PaymentSuccess = () => {
 	const [searchParams] = useSearchParams();
 	const [bookingDetails, setBookingDetails] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const { showMessage } = useMessage();
-
+	// Flags para garantir idempotência no frontend
 	const hasShownMessage = useRef(false);
+	const hasCreatedBooking = useRef(false);
 
 	// Parâmetros retornados pelo Mercado Pago
 	const paymentId = searchParams.get("payment_id");
@@ -37,6 +37,73 @@ const PaymentSuccess = () => {
 		if (!hasShownMessage.current) {
 			showMessage("Pagamento aprovado! Sua reserva foi confirmada.", "success");
 			hasShownMessage.current = true;
+		}
+
+		// Tenta criar/confirmar a reserva automaticamente quando o pagamento estiver aprovado.
+		// Estratégia:
+		// 1) Verifica se o webhook já criou a booking consultando /bookings/owner (idempotente).
+		// 2) Caso não exista, delega ao backend a criação a partir do paymentId via POST /bookings/from-payment.
+		//    (o endpoint /bookings/from-payment deve implementar criação idempotente/segura; se não existir,
+		//     a chamada cairá em erro e será exibida mensagem informativa).
+		const createBookingFromPayment = async () => {
+			if (!paymentId) return;
+			if (hasCreatedBooking.current) return;
+
+			try {
+				// 1) Tenta obter reserva já criada pelo webhook (se o webhook já rodou)
+				try {
+					const { data: ownerBookings } = await axios.get("/bookings/owner");
+					const existing = Array.isArray(ownerBookings)
+						? ownerBookings.find(
+								(b) => String(b.mercadopagoPaymentId) === String(paymentId),
+							)
+						: null;
+					if (existing) {
+						setBookingDetails(existing);
+						hasCreatedBooking.current = true;
+						return;
+					}
+				} catch (err) {
+					// ignora erro ao listar reservas do dono (ex: usuário não autenticado)
+				}
+
+				// 2) Pede ao backend para criar a booking a partir do paymentId (delegar lógica de criação e idempotência)
+				// Endpoint esperado: POST /bookings/from-payment { paymentId }
+				// (O backend pode usar esse endpoint para buscar metadata/payment info e criar a booking de forma segura)
+				const resp = await axios.post("/bookings/from-payment", { paymentId });
+				if (resp?.data) {
+					setBookingDetails(resp.data);
+					showMessage("Reserva criada com sucesso.", "success");
+					hasCreatedBooking.current = true;
+				}
+			} catch (err) {
+				const httpStatus = err?.response?.status;
+				const msg =
+					err?.response?.data?.message ||
+					err.message ||
+					"Erro ao criar reserva.";
+				if (httpStatus === 409) {
+					// Conflito de datas
+					showMessage(msg || "Conflito: datas indisponíveis.", "error");
+					hasCreatedBooking.current = true; // marca como tentado para evitar retrys infinitos
+				} else {
+					// Se endpoint não existir ou outro erro, apenas informa ao usuário e loga
+					console.error("Erro criando booking a partir do pagamento:", err);
+					showMessage(
+						"Reserva está sendo processada; se não aparecer em alguns instantes verifique sua página de reservas.",
+						"info",
+					);
+				}
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		if (
+			(status || "").toLowerCase() === "approved" ||
+			(status || "").toLowerCase() === "authorized"
+		) {
+			createBookingFromPayment();
 		}
 	}, []); // ← roda apenas uma vez
 
@@ -141,7 +208,8 @@ const PaymentSuccess = () => {
 				<div className="flex flex-col sm:flex-row gap-4">
 					<Link
 						to="/account/bookings"
-						className="flex-1 bg-primary-900 text-white py-4 px-6 rounded-xl font-medium hover:bg-primary-800 transition-colors flex items-center justify-center gap-2"
+						className="flex-1 bg-primary-900 text-white py-4 px-6 rounded-xl font-medium hover:bg-primary-800 transition-colors
+   flex items-center justify-center gap-2"
 					>
 						Ver Minhas Reservas
 						<ArrowRight className="w-5 h-5" />
@@ -149,7 +217,8 @@ const PaymentSuccess = () => {
 
 					<Link
 						to="/"
-						className="flex-1 bg-gray-100 text-gray-700 py-4 px-6 rounded-xl font-medium hover:bg-gray-200 transition-colors text-center"
+						className="flex-1 bg-gray-100 text-gray-700 py-4 px-6 rounded-xl font-medium hover:bg-gray-200 transition-colors
+  text-center"
 					>
 						Voltar para Home
 					</Link>
@@ -168,5 +237,4 @@ const PaymentSuccess = () => {
 		</div>
 	);
 };
-
 export default PaymentSuccess;
