@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { AlertCircle, CreditCard, Lock } from "lucide-react";
 import QRCode from "qrcode";
@@ -62,18 +62,32 @@ function luhnCheck(num) {
    VALIDADE
 ====================================================== */
 function validExpiry(value) {
+	// Expect MM/YY
 	const m = value.match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
 	if (!m) return false;
 
 	const month = parseInt(m[1], 10);
-	const year = parseInt(m[2], 10);
+	const year = parseInt(m[2], 10); // two-digit year
 
 	const now = new Date();
-	const cy = now.getFullYear() % 100;
-	const cm = now.getMonth() + 1;
+	const currentFullYear = now.getFullYear();
+	const currentTwoDigit = currentFullYear % 100;
+	const currentMonth = now.getMonth() + 1;
 
-	if (year < cy) return false;
-	if (year === cy && month < cm) return false;
+	// Build full year (2000 + yy). This will be valid for cards in reasonable range
+	const fullYear = 2000 + year;
+
+	// Month already ensured by regex (01-12)
+	if (month < 1 || month > 12) return false;
+
+	// Year must be current year or in the future
+	if (fullYear < currentFullYear) return false;
+
+	// If same year, month must be current or later
+	if (fullYear === currentFullYear && month < currentMonth) return false;
+
+	// Prevent unrealistically far future expiration (e.g., > 20 years)
+	if (fullYear > currentFullYear + 20) return false;
 
 	return true;
 }
@@ -96,7 +110,7 @@ const cardSchema = z.object({
 
 	cardExpiry: z.string().refine(validExpiry, "Validade inválida"),
 
-	cardCvv: z.string().regex(/^\d{3}$/, "CVV inválido"),
+	cardCvv: z.string().regex(/^\d{3,4}$/, "CVV inválido (3 ou 4 dígitos)"),
 
 	email: z.string().email("Email inválido"),
 });
@@ -148,6 +162,7 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 	const [pixResult, setPixResult] = useState(null);
 	const [generatedQr, setGeneratedQr] = useState(null);
 	const [loading, setLoading] = useState(false);
+	const isSubmittingRef = useRef(false);
 
 	/* ============================= */
 	const handleCardNumber = (value) => {
@@ -200,6 +215,17 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 	const onConfirm = async () => {
 		if (paymentMethod !== "card") return;
 
+		// Prevent sending if form invalid
+		if (!isFormValid) {
+			onError("Dados do cartão inválidos.");
+			return;
+		}
+
+		// prevent double submission
+		if (isSubmittingRef.current) return;
+		isSubmittingRef.current = true;
+		setLoading(true);
+
 		const clean = cardNumber.replace(/\s+/g, "");
 
 		const parsed = cardSchema.safeParse({
@@ -212,10 +238,10 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 
 		if (!parsed.success) {
 			onError(parsed.error.issues.map((i) => i.message).join(", "));
+			isSubmittingRef.current = false;
+			setLoading(false);
 			return;
 		}
-
-		setLoading(true);
 
 		try {
 			if (!window.MercadoPago) {
@@ -245,8 +271,37 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 				identificationNumber: "00000000000",
 			});
 
-			const token = tokenResponse?.id;
+				const token = tokenResponse?.id;
 			if (!token) throw new Error("Token não gerado");
+
+			// Additional defensive validation: ensure token card info matches user input when available
+			const cardInfo = tokenResponse?.card || tokenResponse?.cardholder || tokenResponse?.cardholder_info || null;
+			if (cardInfo) {
+				const expMonthRaw = cardInfo.expiration_month || cardInfo.exp_month || cardInfo.expirationMonth || cardInfo.exp_months;
+				const expYearRaw = cardInfo.expiration_year || cardInfo.exp_year || cardInfo.expirationYear || cardInfo.exp_years;
+				const expMonth = expMonthRaw ? Number(expMonthRaw) : null;
+				let expYear = null;
+				if (expYearRaw) {
+					const s = String(expYearRaw);
+					expYear = s.length === 4 ? Number(s.slice(-2)) : Number(s);
+				}
+
+				const inputMonth = Number(month);
+				const inputYear = Number(year);
+
+				if (expMonth && expMonth !== inputMonth) {
+					throw new Error("Validade do cartão (mês) não corresponde ao token gerado");
+				}
+				if (expYear && expYear !== inputYear) {
+					throw new Error("Validade do cartão (ano) não corresponde ao token gerado");
+				}
+
+				const last4 = clean.slice(-4);
+				const tokenLast4 = cardInfo.last_four || cardInfo.last4 || cardInfo.lastDigits;
+				if (tokenLast4 && String(tokenLast4) !== String(last4)) {
+					throw new Error("Últimos dígitos do cartão não correspondem ao token gerado");
+				}
+			}
 
 			const bin = clean.slice(0, 6);
 			const pm = await mp.getPaymentMethods({ bin });
@@ -267,8 +322,12 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 
 			const { data } = await axios.post("/payments/transparent", payload);
 
-			if (data.success) onSuccess(data);
-			else onError(data.message || "Pagamento não aprovado");
+			// Trust backend status: only navigate to success when backend confirms approved
+			if (data && data.success === true && data.status === "approved") {
+				onSuccess(data);
+			} else {
+				onError(data?.message || "Pagamento não aprovado");
+			}
 		} catch (err) {
 			onError(
 				err?.response?.data?.message ||
@@ -277,6 +336,7 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 			);
 		} finally {
 			setLoading(false);
+			isSubmittingRef.current = false;
 		}
 	};
 	/* ======================================================

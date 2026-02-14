@@ -121,7 +121,7 @@ const Place = () => {
 		setTransparentBookingData(null);
 		const paymentId = data.paymentId || "";
 		const status = (data.status || "").toLowerCase();
-		if (status === "approved" || status === "authorized") {
+		if (status === "approved") {
 			showMessage("Pagamento aprovado! Sua reserva foi confirmada.", "success");
 			navigate(
 				`/payment/success?payment_id=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`,

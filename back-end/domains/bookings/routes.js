@@ -243,8 +243,10 @@ router.post("/from-payment", async (req, res) => {
             return res.status(200).json(existingBooking);
         }
 
-        if (paymentStatus === "rejected") {
-            return res.status(400).json({ message: "Pagamento não aprovado, reserva não criada", paymentStatus });
+        // Only create booking when Mercado Pago reports explicit approval
+        const mpRawStatus = (paymentInfo.status || paymentInfo.payment?.status || "").toLowerCase();
+        if (mpRawStatus !== "approved") {
+            return res.status(400).json({ message: "Pagamento não aprovado ou não confirmado. Apenas pagamentos aprovados geram reserva.", paymentStatus: mpRawStatus });
         }
 
         // Delega criação ao modelo (que encapsula a transação e validações)
