@@ -21,10 +21,7 @@ import {
 	Users2,
 	ArrowRight,
 } from "lucide-react";
-import {
-	createCheckoutPreference,
-	redirectToCheckout,
-} from "../services/paymentService";
+import TransparentCheckoutForm from "../components/payments/TransparentCheckoutForm";
 
 import { Select } from "@mantine/core";
 import {
@@ -34,8 +31,9 @@ import {
 	DrawerTitle,
 	DrawerTrigger,
 } from "@/components/ui/drawer";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import React, { useEffect, useState, useRef, useContext, useMemo } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams, useNavigate } from "react-router-dom";
 import lgThumbnail from "lightgallery/plugins/thumbnail";
 import lgZoom from "lightgallery/plugins/zoom";
 import lgFullscreen from "lightgallery/plugins/fullscreen";
@@ -113,6 +111,39 @@ const Place = () => {
 	const [showFixedBar, setShowFixedBar] = useState(false);
 	const [isBookingExpanded, setIsBookingExpanded] = useState(false);
 	const formRef = useRef(null);
+
+	const [showTransparentCheckout, setShowTransparentCheckout] = useState(false);
+	const [transparentBookingData, setTransparentBookingData] = useState(null);
+	const navigate = useNavigate();
+
+	const handlePaymentSuccess = (data) => {
+		setShowTransparentCheckout(false);
+		setTransparentBookingData(null);
+		const paymentId = data.paymentId || "";
+		const status = (data.status || "").toLowerCase();
+		if (status === "approved" || status === "authorized") {
+			showMessage("Pagamento aprovado! Sua reserva foi confirmada.", "success");
+			navigate(
+				`/payment/success?payment_id=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`,
+			);
+		} else if (status === "pending" || status === "in_process") {
+			showMessage("Pagamento pendente. Aguardando confirmação.", "info");
+			navigate(
+				`/payment/pending?payment_id=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`,
+			);
+		} else {
+			showMessage("Pagamento não aprovado.", "error");
+			navigate(
+				`/payment/failure?payment_id=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`,
+			);
+		}
+	};
+
+	const handlePaymentError = (message) => {
+		setShowTransparentCheckout(false);
+		setTransparentBookingData(null);
+		showMessage(message || "Erro ao processar pagamento. No Place", "error");
+	};
 
 	const filteredReviews = useMemo(() => {
 		let filtered = [...reviews];
@@ -355,56 +386,18 @@ const Place = () => {
 		}
 	};
 
-	const handleBooking = async (e) => {
+	const handleBooking = (e) => {
 		e.preventDefault();
 
 		if (checkin && checkout && guests) {
-			// Prepara os dados para o pagamento (apenas dados essenciais, sem preço)
 			const bookingData = {
 				accommodationId: id,
 				checkIn: checkin.toISOString(),
 				checkOut: checkout.toISOString(),
 				guests: guests,
 			};
-
-			try {
-				setLoading(true);
-
-				// Cria a preferência de checkout no Mercado Pago
-				const preferenceData = await createCheckoutPreference(bookingData);
-
-				// Redireciona para o checkout do Mercado Pago
-				redirectToCheckout(preferenceData.initPoint);
-			} catch (error) {
-				setLoading(false);
-
-				if (
-					error.message.includes("autenticado") ||
-					error.message.includes("logado")
-				) {
-					showAuthModal("login");
-				} else if (error.response?.status === 409) {
-					// Datas conflitantes - mostrar mensagem e resetar datas
-					showMessage(
-						"Datas conflitantes com reservas existentes. As datas selecionadas não estão disponíveis.",
-						"error",
-					);
-					// Resetar as datas selecionadas
-					setCheckin(today);
-					setCheckout(fiveDaysAfter);
-					// Também resetar o estado do DatePicker se necessário
-					setDate({
-						from: today,
-						to: fiveDaysAfter,
-					});
-				} else {
-					// Outros erros
-					showMessage(
-						error.message || "Erro ao processar pagamento. Tente novamente.",
-						"error",
-					);
-				}
-			}
+			setTransparentBookingData(bookingData);
+			setShowTransparentCheckout(true);
 		} else {
 			showMessage("Insira todas as informações!", "warning");
 		}
@@ -1669,6 +1662,117 @@ const Place = () => {
 								{user ? "Reservar Agora" : "Faça login para reservar"}
 							</button>
 						</form>
+						{showTransparentCheckout && transparentBookingData && (
+							<>
+								<Dialog
+									open={showTransparentCheckout}
+									onOpenChange={setShowTransparentCheckout}
+								>
+									<DialogContent className="!max-w-7xl w-full p-0 lg:p-6">
+										<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+											{/* Left: payment form */}
+											<div className="border-r border-gray-100 w-full p-6">
+												<TransparentCheckoutForm
+													bookingData={transparentBookingData}
+													onSuccess={(data) => {
+														handlePaymentSuccess(data);
+														setShowTransparentCheckout(false);
+													}}
+													onError={handlePaymentError}
+												/>
+											</div>
+											{/* Right: booking preview */}
+											<div className="p-6 bg-gray-50 rounded-2xl">
+												<div className="max-w-md mx-auto w-full">
+													<h3 className="text-lg font-semibold text-gray-900 mb-2">
+														Resumo da Reserva
+													</h3>
+													<p className="text-sm text-gray-600 mb-4">
+														Confira os detalhes antes de confirmar o pagamento.
+													</p>
+													<div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+														<div className="text-gray-800 font-medium">
+															{place?.title}
+														</div>
+														<div className="text-sm text-gray-600">
+															{place?.city}
+														</div>
+														<div className="mt-3 text-sm text-gray-700">
+															<div>
+																Check-in:{" "}
+																<span className="font-medium">
+																	{formatDate(transparentBookingData.checkIn)}
+																</span>
+															</div>
+															<div>
+																Check-out:{" "}
+																<span className="font-medium">
+																	{formatDate(transparentBookingData.checkOut)}
+																</span>
+															</div>
+															<div>
+																Hóspedes:{" "}
+																<span className="font-medium">
+																	{transparentBookingData.guests}
+																</span>
+															</div>
+															<div>
+																Noites:{" "}
+																<span className="font-medium">{nights}</span>
+															</div>
+														</div>
+													</div>
+													<div className="bg-white rounded-xl border border-gray-200 p-4">
+														<div className="flex justify-between text-sm text-gray-600 mb-2">
+															<span>Preço por noite</span>
+															<span>R$ {place?.price?.toFixed(2)}</span>
+														</div>
+														<div className="flex justify-between text-lg font-semibold text-gray-900">
+															<span>Total</span>
+															<span>
+																R$ {(place?.price * nights)?.toFixed(2)}
+															</span>
+														</div>
+													</div>
+													<div className="mt-4 text-center">
+														<button
+															type="button"
+															className="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 mr-2"
+															onClick={() => {
+																setShowTransparentCheckout(false);
+																setTransparentBookingData(null);
+															}}
+														>
+															Voltar
+														</button>
+														<button
+															type="button"
+															className="px-4 py-2 rounded-lg bg-gray-900 text-white"
+															onClick={() => {
+																/* focus form confirm */ (function () {
+																	const pixContinue = document.getElementById(
+																		"transparent-pix-continue",
+																	);
+																	if (pixContinue) {
+																		pixContinue.click();
+																	} else {
+																		document
+																			.getElementById("transparent-confirm-btn")
+																			?.click();
+																	}
+																})();
+															}}
+														>
+															Pagar
+														</button>
+													</div>
+												</div>
+											</div>
+										</div>
+									</DialogContent>
+								</Dialog>
+							</>
+						)}
 					</div>
 				</div>
 			</div>

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { CheckCircle, Calendar, Users, Home, ArrowRight } from "lucide-react";
+import { CheckCircle, Calendar, Home, ArrowRight } from "lucide-react";
 import axios from "axios";
 import { useMessage } from "../components/contexts/MessageContext";
 
@@ -10,17 +10,20 @@ const PaymentSuccess = () => {
 	const [loading, setLoading] = useState(true);
 	const { showMessage } = useMessage();
 
+	const hasShownMessage = useRef(false);
+
 	// Parâmetros retornados pelo Mercado Pago
 	const paymentId = searchParams.get("payment_id");
 	const status = searchParams.get("status");
 	const externalReference = searchParams.get("external_reference");
 
 	useEffect(() => {
-		// Opcional: Buscar detalhes da reserva criada
 		const fetchBookingDetails = async () => {
 			try {
-				// Aqui você pode buscar a reserva recém-criada
-				// Por exemplo, usando o external_reference ou payment_id
+				// Caso queira buscar detalhes reais depois:
+				// const { data } = await axios.get(`/bookings/by-payment/${paymentId}`);
+				// setBookingDetails(data);
+
 				setLoading(false);
 			} catch (error) {
 				console.error("Erro ao buscar detalhes:", error);
@@ -30,9 +33,12 @@ const PaymentSuccess = () => {
 
 		fetchBookingDetails();
 
-		// Mostra mensagem de sucesso
-		showMessage("Pagamento aprovado! Sua reserva foi confirmada.", "success");
-	}, [showMessage]);
+		// 🔥 Garante que a mensagem só aparece UMA vez
+		if (!hasShownMessage.current) {
+			showMessage("Pagamento aprovado! Sua reserva foi confirmada.", "success");
+			hasShownMessage.current = true;
+		}
+	}, []); // ← roda apenas uma vez
 
 	const formatDate = (dateString) => {
 		if (!dateString) return "";
@@ -44,23 +50,33 @@ const PaymentSuccess = () => {
 		});
 	};
 
+	if (loading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<p className="text-gray-600">Carregando...</p>
+			</div>
+		);
+	}
+
 	return (
 		<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
 			<div className="max-w-2xl w-full bg-white rounded-3xl shadow-lg p-8 md:p-12">
-				{/* Header com ícone de sucesso */}
+				{/* Header */}
 				<div className="text-center mb-8">
 					<div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
 						<CheckCircle className="w-10 h-10 text-green-600" />
 					</div>
+
 					<h1 className="text-3xl font-bold text-gray-900 mb-2">
 						Pagamento Aprovado!
 					</h1>
+
 					<p className="text-gray-600">
 						Sua reserva foi confirmada com sucesso.
 					</p>
 				</div>
 
-				{/* Detalhes do pagamento */}
+				{/* Detalhes */}
 				<div className="bg-gray-50 rounded-2xl p-6 mb-8">
 					<h2 className="text-lg font-semibold text-gray-900 mb-4">
 						Detalhes do Pagamento
@@ -73,12 +89,14 @@ const PaymentSuccess = () => {
 								{paymentId || "N/A"}
 							</span>
 						</div>
+
 						<div className="flex justify-between items-center">
 							<span className="text-gray-600">Status:</span>
 							<span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-								Aprovado
+								{status || "Aprovado"}
 							</span>
 						</div>
+
 						<div className="flex justify-between items-center">
 							<span className="text-gray-600">Referência:</span>
 							<span className="font-medium text-gray-900 text-sm">
@@ -113,14 +131,13 @@ const PaymentSuccess = () => {
 						<div>
 							<p className="font-medium text-gray-900">Prepare sua estadia</p>
 							<p className="text-sm text-gray-600">
-								Entre em contato com o anfitrião para combinar os detalhes do
-								check-in.
+								Entre em contato com o anfitrião para combinar o check-in.
 							</p>
 						</div>
 					</div>
 				</div>
 
-				{/* Botões de ação */}
+				{/* Ações */}
 				<div className="flex flex-col sm:flex-row gap-4">
 					<Link
 						to="/account/bookings"
@@ -138,7 +155,6 @@ const PaymentSuccess = () => {
 					</Link>
 				</div>
 
-				{/* Informação adicional */}
 				<p className="text-center text-sm text-gray-500 mt-6">
 					Dúvidas? Entre em contato com nosso suporte em{" "}
 					<a

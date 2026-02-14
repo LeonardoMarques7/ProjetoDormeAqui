@@ -47,4 +47,9 @@ router.get("/status/:paymentId", authenticateUser, checkPaymentStatus);
  */
 router.get("/test-config", testMercadoPagoConfig);
 
+import transparentRoutes from "./transparentRoutes.js";
+import pixRoutes from "./pixRoutes.js";
+router.use(transparentRoutes);
+router.use(pixRoutes);
+
 export default router;
