@@ -17,6 +17,7 @@ export const processTransparentPayment = async (data, user) => {
     identificationNumber,
   } = data;
 
+  // Valida campos obrigatórios
   if (
     !accommodationId ||
     !checkIn ||
@@ -29,6 +30,7 @@ export const processTransparentPayment = async (data, user) => {
     return { success: false, message: "Dados incompletos para pagamento." };
   }
 
+  // Busca a acomodação
   const place = await Place.findById(accommodationId);
   if (!place) {
     return { success: false, message: "Acomodação não encontrada." };
@@ -42,15 +44,12 @@ export const processTransparentPayment = async (data, user) => {
   }
 
   const nights = Math.ceil((checkoutDate - checkinDate) / (1000 * 60 * 60 * 24)) || 1;
-
   const totalPrice = place.price * nights;
 
   // Verifica conflitos de reservas antes de criar o pagamento
   const conflicting = await Booking.find({
     place: accommodationId,
-    $or: [
-      { checkin: { $lt: checkoutDate }, checkout: { $gt: checkinDate } }
-    ]
+    $or: [{ checkin: { $lt: checkoutDate }, checkout: { $gt: checkinDate } }],
   }).limit(1);
 
   if (conflicting && conflicting.length > 0) {
@@ -62,13 +61,14 @@ export const processTransparentPayment = async (data, user) => {
   }
 
   try {
+    // Prepara dados para pagamento
     const paymentData = {
       transaction_amount: Number(totalPrice),
-      token: token, // 🔥 token vindo do frontend
+      token,
       description: `Reserva em ${place.title}`,
       installments: Number(installments) || 1,
-      payment_method_id: paymentMethodId, // 🔥 vindo do frontend
-      issuer_id: issuerId, // 🔥 vindo do frontend
+      payment_method_id: paymentMethodId,
+      issuer_id: issuerId,
       payer: {
         email,
         identification: {
@@ -97,36 +97,72 @@ export const processTransparentPayment = async (data, user) => {
         totalPrice: totalPrice.toString(),
         pricePerNight: place.price.toString(),
       },
+      capture: true, // captura automática
     };
 
     console.log(
-      "🔁 Enviando paymentData para Mercado Pago:",
+      "🔁 Enviando paymentData para Mercado Pago (pre-autorização):",
       JSON.stringify(paymentData, null, 2)
     );
 
+    // Cria pagamento
     const response = await paymentClient.create({ body: paymentData });
+    const paymentStatus = String(response.status).toLowerCase();
 
-    // Only consider payment successful when Mercado Pago explicitly returns "approved"
-    if (response && response.status === "approved") {
+    // Pagamento aprovado -> cria booking imediatamente
+    if (paymentStatus === "approved") {
+      let booking;
+      try {
+        booking = await Booking.createFromPayment({
+          place: accommodationId,
+          user: user?._id,
+          pricePerNight: place.price,
+          priceTotal: totalPrice,
+          checkin: checkIn,
+          checkout: checkOut,
+          guests,
+          nights,
+          mercadopagoPaymentId: response.id,
+          paymentStatus: "approved", // já aprovado!
+        });
+      } catch (createErr) {
+        console.error("❌ Erro ao criar booking após autorização:", createErr);
+        return {
+          success: false,
+          message: "Erro ao criar reserva após autorização de pagamento.",
+          error: createErr.message || createErr,
+        };
+      }
+
       return {
         success: true,
-        message: "Pagamento realizado com sucesso.",
-        paymentId: response.id,
-        status: response.status,
-        status_detail: response.status_detail,
+        booking,
+        status: response?.status || "approved",
+        payment: response,
       };
     }
 
-    // Any other status (including in_process, rejected, or errors) must be treated as failure
+    // Pagamento pendente
+    if (paymentStatus === "pending") {
+      return {
+        success: false,
+        message: "Pagamento pendente. Reserva ainda não criada.",
+        status: paymentStatus,
+        payment: response,
+      };
+    }
+
+    // Pagamento rejeitado ou outro status
     return {
       success: false,
-      message: "Pagamento não aprovado.",
-      status: response?.status,
-      status_detail: response?.status_detail,
+      message: "Pagamento não autorizado. Reserva não criada.",
+      status: paymentStatus,
+      status_detail: response.status_detail,
+      payment: response,
     };
   } catch (error) {
     console.error(
-      "❌ Erro ao criar pagamento:",
+      "❌ Erro ao criar pagamento (pre-autorização):",
       error.response?.data || error.message
     );
 

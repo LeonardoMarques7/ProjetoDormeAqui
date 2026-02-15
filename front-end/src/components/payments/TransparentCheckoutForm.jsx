@@ -271,14 +271,26 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 				identificationNumber: "00000000000",
 			});
 
-				const token = tokenResponse?.id;
+			const token = tokenResponse?.id;
 			if (!token) throw new Error("Token não gerado");
 
 			// Additional defensive validation: ensure token card info matches user input when available
-			const cardInfo = tokenResponse?.card || tokenResponse?.cardholder || tokenResponse?.cardholder_info || null;
+			const cardInfo =
+				tokenResponse?.card ||
+				tokenResponse?.cardholder ||
+				tokenResponse?.cardholder_info ||
+				null;
 			if (cardInfo) {
-				const expMonthRaw = cardInfo.expiration_month || cardInfo.exp_month || cardInfo.expirationMonth || cardInfo.exp_months;
-				const expYearRaw = cardInfo.expiration_year || cardInfo.exp_year || cardInfo.expirationYear || cardInfo.exp_years;
+				const expMonthRaw =
+					cardInfo.expiration_month ||
+					cardInfo.exp_month ||
+					cardInfo.expirationMonth ||
+					cardInfo.exp_months;
+				const expYearRaw =
+					cardInfo.expiration_year ||
+					cardInfo.exp_year ||
+					cardInfo.expirationYear ||
+					cardInfo.exp_years;
 				const expMonth = expMonthRaw ? Number(expMonthRaw) : null;
 				let expYear = null;
 				if (expYearRaw) {
@@ -290,16 +302,23 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 				const inputYear = Number(year);
 
 				if (expMonth && expMonth !== inputMonth) {
-					throw new Error("Validade do cartão (mês) não corresponde ao token gerado");
+					throw new Error(
+						"Validade do cartão (mês) não corresponde ao token gerado",
+					);
 				}
 				if (expYear && expYear !== inputYear) {
-					throw new Error("Validade do cartão (ano) não corresponde ao token gerado");
+					throw new Error(
+						"Validade do cartão (ano) não corresponde ao token gerado",
+					);
 				}
 
 				const last4 = clean.slice(-4);
-				const tokenLast4 = cardInfo.last_four || cardInfo.last4 || cardInfo.lastDigits;
+				const tokenLast4 =
+					cardInfo.last_four || cardInfo.last4 || cardInfo.lastDigits;
 				if (tokenLast4 && String(tokenLast4) !== String(last4)) {
-					throw new Error("Últimos dígitos do cartão não correspondem ao token gerado");
+					throw new Error(
+						"Últimos dígitos do cartão não correspondem ao token gerado",
+					);
 				}
 			}
 
@@ -322,8 +341,8 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 
 			const { data } = await axios.post("/payments/transparent", payload);
 
-			// Trust backend status: only navigate to success when backend confirms approved
-			if (data && data.success === true && data.status === "approved") {
+			// Use backend authoritative response: success + booking indicate success
+			if (data && data.success === true && data.booking) {
 				onSuccess(data);
 			} else {
 				onError(data?.message || "Pagamento não aprovado");
