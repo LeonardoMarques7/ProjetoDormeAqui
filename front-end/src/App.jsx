@@ -17,6 +17,10 @@ import Account from "./pages/Account";
 import Place from "./pages/Place";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentPending from "./pages/PaymentPending";
+import PaymentFailure from "./pages/PaymentFailure";
+
 import Footer from "@/components/layout/Footer";
 import AppSidebar from "@/components/layout/Sidebar";
 import {
@@ -87,7 +91,20 @@ function App() {
 													element={<Account />}
 												/>
 												<Route path="/places/:id" element={<Place />} />
+												<Route
+													path="/payment/success"
+													element={<PaymentSuccess />}
+												/>
+												<Route
+													path="/payment/pending"
+													element={<PaymentPending />}
+												/>
+												<Route
+													path="/payment/failure"
+													element={<PaymentFailure />}
+												/>
 												<Route path="/*" element={<NotFound />} />
+
 												<Route
 													path="/auth/github/callback"
 													element={<GithubCallback />}

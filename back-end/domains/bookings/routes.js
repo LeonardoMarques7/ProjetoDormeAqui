@@ -85,6 +85,7 @@ router.get("/place/:id/booked-dates", async (req, res) => {
       }
     });
 
+
     // Remover duplicatas
     const uniqueBookedDates = [...new Set(bookedDates)];
 
@@ -96,7 +97,8 @@ router.get("/place/:id/booked-dates", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-    const { place, user, price, priceTotal, checkin, checkout, guests, nights } = req.body;
+    const { place, user, pricePerNight, priceTotal, checkin, checkout, guests, nights } = req.body;
+
 
     // Iniciar sessão de transação para garantir atomicidade e prevenir conflitos de concorrência
     // Isso garante que apenas uma reserva seja criada por vez, mesmo com múltiplas requisições simultâneas
@@ -171,8 +173,10 @@ router.post("/", async (req, res) => {
 
         // Criar a reserva dentro da transação
         const newBookingDoc = await Booking.create([{
-            place, user, price, priceTotal, checkin: checkinDate, checkout: checkoutDate, guests, nights
+            place, user, pricePerNight, priceTotal, checkin: checkinDate, checkout: checkoutDate, guests, nights
         }], { session });
+
+
 
         // Confirmar a transação
         await session.commitTransaction();
@@ -188,5 +192,92 @@ router.post("/", async (req, res) => {
     }
 });
 
+
+// Endpoint para criar/confirmar booking a partir de um paymentId (idempotente)
+router.post("/from-payment", async (req, res) => {
+    const { paymentId } = req.body;
+
+    if (!paymentId) {
+        return res.status(400).json({ message: "paymentId é obrigatório." });
+    }
+
+    try {
+        const { getPaymentInfo } = await import("../payments/service.js");
+        const paymentInfo = await getPaymentInfo(paymentId);
+
+        if (!paymentInfo || !paymentInfo.metadata) {
+            return res.status(400).json({ message: "Não foi possível obter informações do pagamento." });
+        }
+
+        const metadata = paymentInfo.metadata;
+
+        // Normaliza campos da metadata (suporte a diferentes formatos)
+        const userId = metadata.userId || metadata.user_id || (metadata.payer && metadata.payer.id);
+        const accommodationId = metadata.accommodationId || metadata.accommodation_id || metadata.id;
+        const checkin = metadata.checkin || metadata.checkin || metadata.check_in;
+        const checkout = metadata.checkout || metadata.checkout || metadata.check_out;
+        const guests = parseInt(metadata.guests || metadata.guest_count || "1", 10) || 1;
+        const nights = parseInt(metadata.nights || Math.max(1, Math.ceil((new Date(checkout) - new Date(checkin)) / (1000*60*60*24))), 10);
+        const priceTotal = parseFloat(metadata.priceTotal || metadata.total_price || 0) || 0;
+        const pricePerNight = parseFloat(metadata.pricePerNight || metadata.price_per_night || 0) || 0;
+
+        const mapPaymentStatus = (mpStatus) => {
+            const statusMap = {
+                "approved": "approved",
+                "pending": "pending",
+                "in_process": "pending",
+                "in_mediation": "pending",
+                "rejected": "rejected",
+                "cancelled": "rejected",
+                "refunded": "rejected",
+                "charged_back": "rejected"
+            };
+            return statusMap[(mpStatus || "").toLowerCase()] || "pending";
+        };
+
+        const paymentStatus = mapPaymentStatus(paymentInfo.status || paymentInfo.payment?.status || "");
+
+        // IDEMPOTÊNCIA: verifica se existe reserva com esse paymentId
+        const existingBooking = await Booking.findOne({ mercadopagoPaymentId: String(paymentId) });
+        if (existingBooking) {
+            return res.status(200).json(existingBooking);
+        }
+
+        // Only create booking when Mercado Pago reports explicit approval
+        const mpRawStatus = (paymentInfo.status || paymentInfo.payment?.status || "").toLowerCase();
+        if (mpRawStatus !== "approved") {
+            return res.status(400).json({ message: "Pagamento não aprovado ou não confirmado. Apenas pagamentos aprovados geram reserva.", paymentStatus: mpRawStatus });
+        }
+
+        // Delega criação ao modelo (que encapsula a transação e validações)
+        const newBooking = await Booking.createFromPayment({
+            place: accommodationId,
+            user: userId,
+            pricePerNight: pricePerNight,
+            priceTotal: priceTotal,
+            checkin,
+            checkout,
+            guests,
+            nights,
+            mercadopagoPaymentId: String(paymentId),
+            paymentStatus
+        });
+
+        return res.status(200).json(newBooking);
+    } catch (error) {
+        // Propaga statusCode se definido na lógica do modelo
+        if (error && error.statusCode) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+
+        // Conflito de datas detectado no modelo
+        if (error && error.message && error.message.toLowerCase().includes("datas conflitantes")) {
+            return res.status(409).json({ message: error.message });
+        }
+
+        console.error("Erro ao criar reserva a partir do pagamento:", error);
+        return res.status(500).json({ message: "Erro interno ao criar reserva a partir do pagamento." });
+    }
+});
 
 export default router;

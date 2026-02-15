@@ -1,0 +1,163 @@
+import React, { useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import {
+	Clock,
+	Calendar,
+	AlertCircle,
+	ArrowRight,
+	RefreshCw,
+} from "lucide-react";
+import { useMessage } from "../components/contexts/MessageContext";
+
+const PaymentPending = () => {
+	const [searchParams] = useSearchParams();
+	const { showMessage } = useMessage();
+
+	// Parâmetros retornados pelo Mercado Pago
+	const paymentId = searchParams.get("payment_id");
+	const externalReference = searchParams.get("external_reference");
+
+	useEffect(() => {
+		showMessage(
+			"Pagamento em processamento. Aguardando confirmação...",
+			"info",
+		);
+	}, [showMessage]);
+
+	return (
+		<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+			<div className="max-w-2xl w-full bg-white rounded-3xl shadow-lg p-8 md:p-12">
+				{/* Header com ícone de pending */}
+				<div className="text-center mb-8">
+					<div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+						<Clock className="w-10 h-10 text-yellow-600" />
+					</div>
+					<h1 className="text-3xl font-bold text-gray-900 mb-2">
+						Pagamento em Processamento
+					</h1>
+					<p className="text-gray-600">
+						Estamos aguardando a confirmação do seu pagamento.
+					</p>
+				</div>
+
+				{/* Alerta informativo */}
+				<div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 mb-8">
+					<div className="flex items-start gap-3">
+						<AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+						<div>
+							<h3 className="font-semibold text-yellow-800 mb-1">
+								O que isso significa?
+							</h3>
+							<p className="text-yellow-700 text-sm leading-relaxed">
+								Seu pagamento está sendo processado. Isso pode acontecer quando
+								você paga com boleto bancário ou quando a operadora do cartão
+								precisa de mais tempo para aprovar a transação.
+							</p>
+						</div>
+					</div>
+				</div>
+
+				{/* Detalhes do pagamento */}
+				<div className="bg-gray-50 rounded-2xl p-6 mb-8">
+					<h2 className="text-lg font-semibold text-gray-900 mb-4">
+						Detalhes do Pagamento
+					</h2>
+
+					<div className="space-y-3">
+						<div className="flex justify-between items-center">
+							<span className="text-gray-600">ID do Pagamento:</span>
+							<span className="font-medium text-gray-900">
+								{paymentId || "N/A"}
+							</span>
+						</div>
+						<div className="flex justify-between items-center">
+							<span className="text-gray-600">Status:</span>
+							<span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
+								Pendente
+							</span>
+						</div>
+						<div className="flex justify-between items-center">
+							<span className="text-gray-600">Referência:</span>
+							<span className="font-medium text-gray-900 text-sm">
+								{externalReference || "N/A"}
+							</span>
+						</div>
+					</div>
+				</div>
+
+				{/* Próximos passos */}
+				<div className="space-y-4 mb-8">
+					<h3 className="text-lg font-semibold text-gray-900">
+						O que acontece agora?
+					</h3>
+
+					<div className="flex items-start gap-4">
+						<div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+							<RefreshCw className="w-5 h-5 text-primary-600" />
+						</div>
+						<div>
+							<p className="font-medium text-gray-900">
+								Aguardando confirmação
+							</p>
+							<p className="text-sm text-gray-600">
+								Assim que o pagamento for confirmado, você receberá um email com
+								a confirmação da reserva.
+							</p>
+						</div>
+					</div>
+
+					<div className="flex items-start gap-4">
+						<div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+							<Calendar className="w-5 h-5 text-primary-600" />
+						</div>
+						<div>
+							<p className="font-medium text-gray-900">
+								Prazo de processamento
+							</p>
+							<p className="text-sm text-gray-600">
+								Boletos podem levar até 3 dias úteis para compensar. Pagamentos
+								com cartão geralmente são aprovados em poucos minutos.
+							</p>
+						</div>
+					</div>
+				</div>
+
+				{/* Botões de ação */}
+				<div className="flex flex-col sm:flex-row gap-4">
+					<Link
+						to="/account/bookings"
+						className="flex-1 bg-primary-900 text-white py-4 px-6 rounded-xl font-medium hover:bg-primary-800 transition-colors flex items-center justify-center gap-2"
+					>
+						Ver Minhas Reservas
+						<ArrowRight className="w-5 h-5" />
+					</Link>
+
+					<Link
+						to="/"
+						className="flex-1 bg-gray-100 text-gray-700 py-4 px-6 rounded-xl font-medium hover:bg-gray-200 transition-colors text-center"
+					>
+						Voltar para Home
+					</Link>
+				</div>
+
+				{/* Informação adicional */}
+				<div className="mt-8 pt-6 border-t border-gray-200">
+					<p className="text-center text-sm text-gray-500 mb-2">
+						Se você pagou com boleto, aguarde a compensação bancária.
+					</p>
+					<p className="text-center text-sm text-gray-500">
+						Dúvidas? Entre em contato com nosso suporte em{" "}
+						<a
+							href="mailto:suporte@dormeaqui.com"
+							className="text-primary-600 hover:underline"
+						>
+							suporte@dormeaqui.com
+						</a>
+					</p>
+				</div>
+			</div>
+		</div>
+	);
+};
+
+export default PaymentPending;
