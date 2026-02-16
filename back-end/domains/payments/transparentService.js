@@ -97,7 +97,7 @@ export const processTransparentPayment = async (data, user) => {
         totalPrice: totalPrice.toString(),
         pricePerNight: place.price.toString(),
       },
-      capture: true, // captura automática
+      capture: false, // captura automática
     };
 
     console.log(
@@ -105,12 +105,36 @@ export const processTransparentPayment = async (data, user) => {
       JSON.stringify(paymentData, null, 2)
     );
 
-    // Cria pagamento
+    console.log("=== MP CREATE INPUT CHECK ===");
+  console.log({
+    paymentMethodId,
+    issuerId,
+    installments,
+    capture: false,
+    tokenPresent: !!token
+  });
+
     const response = await paymentClient.create({ body: paymentData });
+
+    console.log("=== MP CREATE RESULT ===");
+    console.log({
+      id: response.id,
+      status: response.status,
+      status_detail: response.status_detail,
+      captured: response.captured,
+      capture_requested: paymentData.capture,
+      payment_method_id: response.payment_method_id,
+      issuer_id: response.issuer_id
+    });
+
+    console.log("MP RAW RESPONSE:", JSON.stringify(response, null, 2));
+
     const paymentStatus = String(response.status).toLowerCase();
 
     // Pagamento aprovado -> cria booking imediatamente
     if (paymentStatus === "approved") {
+      console.log("=== PAYMENT APPROVED → CREATING BOOKING ===");
+
       let booking;
       try {
         booking = await Booking.createFromPayment({
