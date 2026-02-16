@@ -131,46 +131,31 @@ export const processTransparentPayment = async (data, user) => {
 
     const paymentStatus = String(response.status).toLowerCase();
 
-    // Pagamento aprovado -> cria booking imediatamente
+    // Não criar reserva de forma síncrona aqui — confirmação e criação ficam a cargo do webhook do Mercado Pago
+
     if (paymentStatus === "approved") {
-      console.log("=== PAYMENT APPROVED → CREATING BOOKING ===");
-
-      let booking;
-      try {
-        booking = await Booking.createFromPayment({
-          place: accommodationId,
-          user: user?._id,
-          pricePerNight: place.price,
-          priceTotal: totalPrice,
-          checkin: checkIn,
-          checkout: checkOut,
-          guests,
-          nights,
-          mercadopagoPaymentId: response.id,
-          paymentStatus: "approved", // já aprovado!
-        });
-      } catch (createErr) {
-        console.error("❌ Erro ao criar booking após autorização:", createErr);
-        return {
-          success: false,
-          message: "Erro ao criar reserva após autorização de pagamento.",
-          error: createErr.message || createErr,
-        };
-      }
-
+      // Retornar sucesso informando que pagamento está aprovado, mas a reserva será criada quando o webhook confirmar e persistir o paymentId
       return {
         success: true,
-        booking,
+        message: "Pagamento aprovado. Reserva será criada após confirmação via webhook.",
         status: response?.status || "approved",
         payment: response,
       };
     }
 
-    // Pagamento pendente
+    if (["authorized","pending_capture"].includes(paymentStatus)) {
+      return {
+        success: false,
+        message: "Pagamento autorizado, pendente de captura. Reserva será criada somente após confirmação via webhook.",
+        status: paymentStatus,
+        payment: response,
+      };
+    }
+
     if (paymentStatus === "pending") {
       return {
         success: false,
-        message: "Pagamento pendente. Reserva ainda não criada.",
+        message: "Pagamento pendente. Reserva será criada somente após confirmação via webhook.",
         status: paymentStatus,
         payment: response,
       };

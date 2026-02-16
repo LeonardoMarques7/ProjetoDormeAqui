@@ -243,27 +243,15 @@ router.post("/from-payment", async (req, res) => {
             return res.status(200).json(existingBooking);
         }
 
-        // Only create booking when Mercado Pago reports explicit approval
+        // Não criar reserva de forma síncrona aqui. A confirmação e criação devem ser feitas pelo webhook do Mercado Pago para garantir idempotência e consistência.
         const mpRawStatus = (paymentInfo.status || paymentInfo.payment?.status || "").toLowerCase();
+
         if (mpRawStatus !== "approved") {
-            return res.status(400).json({ message: "Pagamento não aprovado ou não confirmado. Apenas pagamentos aprovados geram reserva.", paymentStatus: mpRawStatus });
+            return res.status(400).json({ message: "Pagamento não aprovado ou não confirmado. Aguarde a confirmação via webhook.", paymentStatus: mpRawStatus });
         }
 
-        // Delega criação ao modelo (que encapsula a transação e validações)
-        const newBooking = await Booking.createFromPayment({
-            place: accommodationId,
-            user: userId,
-            pricePerNight: pricePerNight,
-            priceTotal: priceTotal,
-            checkin,
-            checkout,
-            guests,
-            nights,
-            mercadopagoPaymentId: String(paymentId),
-            paymentStatus
-        });
-
-        return res.status(200).json(newBooking);
+        // Pagamento aprovado — mas NÃO criaremos a reserva aqui. O webhook do Mercado Pago é responsável por criar a reserva e persistir o paymentId de forma idempotente.
+        return res.status(200).json({ message: "Pagamento aprovado. A confirmação da reserva será realizada automaticamente pelo webhook do Mercado Pago.", paymentStatus: mpRawStatus, paymentInfo });
     } catch (error) {
         // Propaga statusCode se definido na lógica do modelo
         if (error && error.statusCode) {

@@ -11,7 +11,7 @@
 2. Adicione as variáveis de ambiente no `.env`:
    ```
    MERCADO_PAGO_ACCESS_TOKEN=SEU_TOKEN
-   MERCADO_PAGO_WEBHOOK_URL=https://suaapi.com/api/webhook/mercadopago
+   MERCADO_PAGO_WEBHOOK_URL=https://suaapi.com/api/webhooks/mercadopago (rota pública que o Mercado Pago deve chamar)
    FRONTEND_URL=http://localhost:5173
    NODE_ENV=development
    ```
@@ -47,6 +47,29 @@
 - **Backend:** `mercadopago`
 - **Frontend:** `axios` (já utilizado)
 - **Frontend:** `qrcode` (para gerar QR Codes no cliente)
+
+---
+
+## Fluxo Authorize / Capture (Mercado Pago)
+
+Este projeto suporta o fluxo authorize/capture do Mercado Pago (pagamentos criados com capture=false). Resumo do comportamento implementado:
+
+- Pagamento criado (capture=false) → status inicial: "authorized" ou "pending_capture". O payment_id retornado pelo Mercado Pago é persistido (mercadopagoPaymentId) quando a reserva é confirmada via webhook.
+- Endpoint backend adicionado: POST /api/payments/capture/:paymentId — captura um pagamento previamente autorizado usando a API Mercado Pago (/v1/payments/{id}/capture).
+- Fluxo seguro: A confirmação final da reserva e sua criação no banco de dados ocorrem apenas no webhook do Mercado Pago. O webhook tentará capturar pagamentos em estado 'authorized' ou 'pending_capture' quando apropriado e, somente se o status final for 'approved', a reserva será criada.
+- Idempotência: Se uma reserva já existir para o payment_id, o webhook ignora a criação adicional e atualiza status quando necessário.
+- Erros: Se a captura falhar, a criação da reserva é interrompida e um log/retorno será gerado; o cliente deve aguardar nova notificação do Mercado Pago.
+
+Rotas relevantes:
+
+- POST /api/payments/capture/:paymentId — Captura pagamento autorizado (autenticado).
+- POST /api/bookings/from-payment — Endpoint para consulta/integração manual que valida o pagamento, mas NÃO cria reservas; a criação é delegada ao webhook do Mercado Pago.
+- POST /api/webhooks/mercadopago — Rota pública que o Mercado Pago chama para confirmar pagamentos e criar reservas idempotentemente.
+
+Notas de implementação:
+
+- O serviço de captura foi corrigido para usar o método correto do client REST (paymentClient.capture).
+- A criação de reservas foi removida dos fluxos síncronos (transparent/pix/from-payment) e centralizada no webhook para evitar reservas com status 'authorized' ou 'pending_capture'.
 
 ---
 

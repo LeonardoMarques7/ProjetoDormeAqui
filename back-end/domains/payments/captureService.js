@@ -4,10 +4,7 @@ export const capturePayment = async (paymentId) => {
   try {
     console.log("=== MP CAPTURE REQUEST ===", paymentId);
 
-    const response = await paymentClient.update({
-      id: paymentId,
-      body: { capture: true },
-    });
+    const response = await paymentClient.capture({ id: paymentId });
 
     console.log("=== MP CAPTURE RESULT ===", {
       id: response.id,
