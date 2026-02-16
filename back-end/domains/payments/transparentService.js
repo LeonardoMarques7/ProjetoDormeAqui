@@ -97,7 +97,7 @@ export const processTransparentPayment = async (data, user) => {
         totalPrice: totalPrice.toString(),
         pricePerNight: place.price.toString(),
       },
-      capture: true, // captura automática
+      capture: false, // captura automática
     };
 
     console.log(
@@ -105,48 +105,57 @@ export const processTransparentPayment = async (data, user) => {
       JSON.stringify(paymentData, null, 2)
     );
 
-    // Cria pagamento
+    console.log("=== MP CREATE INPUT CHECK ===");
+  console.log({
+    paymentMethodId,
+    issuerId,
+    installments,
+    capture: false,
+    tokenPresent: !!token
+  });
+
     const response = await paymentClient.create({ body: paymentData });
+
+    console.log("=== MP CREATE RESULT ===");
+    console.log({
+      id: response.id,
+      status: response.status,
+      status_detail: response.status_detail,
+      captured: response.captured,
+      capture_requested: paymentData.capture,
+      payment_method_id: response.payment_method_id,
+      issuer_id: response.issuer_id
+    });
+
+    console.log("MP RAW RESPONSE:", JSON.stringify(response, null, 2));
+
     const paymentStatus = String(response.status).toLowerCase();
 
-    // Pagamento aprovado -> cria booking imediatamente
-    if (paymentStatus === "approved") {
-      let booking;
-      try {
-        booking = await Booking.createFromPayment({
-          place: accommodationId,
-          user: user?._id,
-          pricePerNight: place.price,
-          priceTotal: totalPrice,
-          checkin: checkIn,
-          checkout: checkOut,
-          guests,
-          nights,
-          mercadopagoPaymentId: response.id,
-          paymentStatus: "approved", // já aprovado!
-        });
-      } catch (createErr) {
-        console.error("❌ Erro ao criar booking após autorização:", createErr);
-        return {
-          success: false,
-          message: "Erro ao criar reserva após autorização de pagamento.",
-          error: createErr.message || createErr,
-        };
-      }
+    // Não criar reserva de forma síncrona aqui — confirmação e criação ficam a cargo do webhook do Mercado Pago
 
+    if (paymentStatus === "approved") {
+      // Retornar sucesso informando que pagamento está aprovado, mas a reserva será criada quando o webhook confirmar e persistir o paymentId
       return {
         success: true,
-        booking,
+        message: "Pagamento aprovado. Reserva será criada após confirmação via webhook.",
         status: response?.status || "approved",
         payment: response,
       };
     }
 
-    // Pagamento pendente
+    if (["authorized","pending_capture"].includes(paymentStatus)) {
+      return {
+        success: false,
+        message: "Pagamento autorizado, pendente de captura. Reserva será criada somente após confirmação via webhook.",
+        status: paymentStatus,
+        payment: response,
+      };
+    }
+
     if (paymentStatus === "pending") {
       return {
         success: false,
-        message: "Pagamento pendente. Reserva ainda não criada.",
+        message: "Pagamento pendente. Reserva será criada somente após confirmação via webhook.",
         status: paymentStatus,
         payment: response,
       };

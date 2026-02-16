@@ -85,8 +85,8 @@ export const handleMercadoPagoWebhook = async (req, res) => {
         }
         
         // Mapeia o status do Mercado Pago para nosso status interno
-        const paymentStatus = mapPaymentStatus(status);
-        
+        let paymentStatus = mapPaymentStatus(status);
+
         // Se o pagamento foi rejeitado, não cria a reserva
         if (paymentStatus === "rejected") {
             console.log(`Pagamento ${paymentId} rejeitado. Reserva não será criada.`);
@@ -96,8 +96,31 @@ export const handleMercadoPagoWebhook = async (req, res) => {
                 paymentStatus: "rejected"
             });
         }
-        
-        // Cria a reserva (para approved ou pending)
+
+        // Se não estiver aprovado, tentar captura automática para pagamentos em 'authorized' / 'pending_capture' quando possível
+        if (status && ["authorized", "pending_capture"].includes(String(status).toLowerCase())) {
+            try {
+                console.log(`Pagamento ${paymentId} em estado '${status}'. Tentando captura automática antes de criar reserva.`);
+                const { capturePayment } = await import("../domains/payments/captureService.js");
+                const captureResult = await capturePayment(paymentId);
+                if (captureResult) {
+                    console.log("Resultado da captura:", captureResult.status);
+                    // Atualiza status e paymentInfo para usar dados mais recentes
+                    paymentStatus = mapPaymentStatus(captureResult.status);
+                }
+            } catch (err) {
+                console.error("Falha ao tentar capturar pagamento no webhook:", err?.message || err);
+                return res.status(200).json({ received: true, message: "Notificação recebida mas captura falhou; reserva não criada", error: err?.message || err });
+            }
+        }
+
+        // Somente cria reserva quando o status final for 'approved'
+        if (paymentStatus !== "approved") {
+            console.log(`Pagamento ${paymentId} não está aprovado (status: ${paymentStatus}). Reserva não criada.`);
+            return res.status(200).json({ received: true, message: "Pagamento não aprovado - aguardando confirmação via webhook", paymentStatus });
+        }
+
+        // Cria a reserva somente quando pagamento estiver aprovado
         const newBooking = new Booking({
             place: accommodationId,
             user: userId,
@@ -107,19 +130,19 @@ export const handleMercadoPagoWebhook = async (req, res) => {
             checkOut: checkOut,
             guests: guests,
             nights: nights,
-            paymentStatus: paymentStatus,
+            paymentStatus: "approved",
             mercadopagoPaymentId: paymentId.toString()
         });
-        
+
         await newBooking.save();
-        
-        console.log(`Reserva criada com sucesso: ${newBooking._id} (Status: ${paymentStatus})`);
-        
+
+        console.log(`Reserva criada com sucesso: ${newBooking._id} (Status: approved)`);
+
         return res.status(200).json({ 
             received: true, 
             message: "Reserva criada com sucesso",
             bookingId: newBooking._id,
-            paymentStatus: paymentStatus
+            paymentStatus: "approved"
         });
         
     } catch (error) {

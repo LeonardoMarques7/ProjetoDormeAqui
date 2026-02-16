@@ -37,4 +37,9 @@ const optionalAuthenticate = async (req, res, next) => {
 // Use authentication optional para permitir pagamentos sem sessão (ex.: checkout rápido)
 router.post("/transparent", optionalAuthenticate, createTransparentPayment);
 
+import { captureAuthorizedPayment } from "./controller.js";
+
+router.post("/capture/:paymentId", captureAuthorizedPayment);
+
+
 export default router;

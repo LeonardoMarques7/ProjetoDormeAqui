@@ -1,5 +1,8 @@
 import { createCheckoutPreference, verifyMercadoPagoConfig } from "./service.js";
 
+import { capturePayment } from "./captureService.js";
+
+
 
 /**
  * Controller de Pagamentos
@@ -209,4 +212,40 @@ export const checkPaymentStatus = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+};
+
+
+/**
+ * Captura um pagamento previamente autorizado
+ * POST /api/payments/capture/:paymentId
+ */
+export const captureAuthorizedPayment = async (req, res, next) => {
+  try {
+    const { paymentId } = req.params;
+
+    if (!paymentId) {
+      return res.status(400).json({
+        success: false,
+        message: "paymentId é obrigatório",
+      });
+    }
+
+    console.log("🚀 [CONTROLLER] Capturando pagamento:", paymentId);
+
+    const result = await capturePayment(paymentId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Pagamento capturado com sucesso",
+      data: {
+        id: result.id,
+        status: result.status,
+        status_detail: result.status_detail,
+        captured: result.captured,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Erro ao capturar pagamento:", error);
+    next(error);
+  }
 };

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createPaymentPreference, checkPaymentStatus, testMercadoPagoConfig } from "./controller.js";
+import { createPaymentPreference, checkPaymentStatus, testMercadoPagoConfig, captureAuthorizedPayment } from "./controller.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 
 
@@ -39,6 +39,11 @@ router.post("/create", authenticateUser, createPaymentPreference);
  * Requer autenticação
  */
 router.get("/status/:paymentId", authenticateUser, checkPaymentStatus);
+
+/**
+ * Captura pagamento autorizado
+ */
+router.post("/capture/:paymentId", authenticateUser, captureAuthorizedPayment);
 
 /**
  * GET /api/payments/test-config

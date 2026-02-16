@@ -170,7 +170,7 @@ export const createCheckoutPreference = async ({
             }
         ],
         // Formato 1: back_urls direto no objeto raiz
-        back_urls: {
+          back_urls: {
             success: successUrl,
             failure: failureUrl,
             pending: pendingUrl
