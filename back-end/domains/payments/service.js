@@ -66,7 +66,8 @@ export const createCheckoutPreference = async ({
     checkIn,
     checkOut,
     guests,
-    frontendUrl
+    frontendUrl,
+    payerEmail
 }) => {
     console.log("🔍 [SERVICE] Iniciando criação de preferência");
     console.log("🔍 [SERVICE] Parâmetros:", {
@@ -169,6 +170,7 @@ export const createCheckoutPreference = async ({
                 picture_url: place.photos?.[0] || undefined
             }
         ],
+        payer: payerEmail ? { email: payerEmail } : undefined,
         // Formato 1: back_urls direto no objeto raiz
           back_urls: {
             success: successUrl,

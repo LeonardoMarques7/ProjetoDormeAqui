@@ -1,5 +1,7 @@
 import { processPaymentNotification } from "../domains/payments/service.js";
 import Booking from "../domains/bookings/model.js";
+import fs from "fs";
+import path from "path";
 
 /**
  * Webhook Handler - Mercado Pago
@@ -14,6 +16,13 @@ import Booking from "../domains/bookings/model.js";
 export const handleMercadoPagoWebhook = async (req, res) => {
     try {
         console.log("Webhook recebido:", JSON.stringify(req.body, null, 2));
+        // Salva notificação em log para auditoria / conciliação financeira
+        try {
+            const logPath = path.resolve("tmp", "mp_notifications.log");
+            fs.appendFileSync(logPath, JSON.stringify({ timestamp: new Date().toISOString(), notification: req.body }) + "\n");
+        } catch (logErr) {
+            console.error("Falha ao gravar log de notificação:", logErr?.message || logErr);
+        }
         
         const { type, data } = req.body;
         

@@ -101,7 +101,8 @@ export const createPaymentPreference = async (req, res, next) => {
             checkIn: checkInDate,
             checkOut: checkOutDate,
             guests: guestsNumber,
-            frontendUrl
+            frontendUrl,
+            payerEmail: req.user?.email
         });
         
         console.log("✅ [CONTROLLER] Preferência criada com sucesso:", preference.preferenceId);
