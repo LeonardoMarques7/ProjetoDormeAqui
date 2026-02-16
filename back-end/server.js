@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import routes from "./routes/index.js";
+import PaymentRoutes from "./domains/payments/routes.js";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
 import fs from "fs";
@@ -58,6 +59,8 @@ app.use("/tmp", express.static(__dirname + "/tmp"));
 app.use(express.static(path.join(__dirname, "../front-end/dist")));
 
 // Rotas da API
+// Mount payments explicitly to ensure /api/payments/create is available during migration/testing
+app.use("/api/payments", PaymentRoutes);
 app.use("/api", routes);
 
 // Handler para 404 em rotas de API

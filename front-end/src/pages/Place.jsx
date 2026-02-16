@@ -21,7 +21,10 @@ import {
 	Users2,
 	ArrowRight,
 } from "lucide-react";
-import TransparentCheckoutForm from "../components/payments/TransparentCheckoutForm";
+import MercadoPagoProvider from "../components/MercadoPagoProvider";
+import PaymentBrick from "../components/PaymentBrick2";
+import PixBrick from "../components/PixBrick";
+import BoletoBrick from "../components/BoletoBrick";
 
 import { Select } from "@mantine/core";
 import {
@@ -143,6 +146,33 @@ const Place = () => {
 		setShowTransparentCheckout(false);
 		setTransparentBookingData(null);
 		showMessage(message || "Erro ao processar pagamento. No Place", "error");
+	};
+
+	// Backwards-compatible wrapper: keep the variable TransparentCheckoutForm but render Bricks
+	const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
+		// expose bookingData globally so the PaymentBrick can request a backend preference if needed
+		React.useEffect(() => {
+			if (bookingData) {
+				window.__TRANSPARENT_BOOKING_DATA__ = bookingData;
+				return () => { window.__TRANSPARENT_BOOKING_DATA__ = null; };
+			}
+			return () => {};
+		}, [bookingData]);
+
+		return (
+			<MercadoPagoProvider publicKey={import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY}>
+				<PaymentBrick
+					amount={(place?.price * nights) || 0}
+					reservationId={bookingData?.accommodationId || bookingData?.reservationId}
+					onSuccess={(data) => {
+						onSuccess && onSuccess(data);
+					}}
+					onError={(err) => {
+						onError && onError(err);
+					}}
+				/>
+			</MercadoPagoProvider>
+		);
 	};
 
 	const filteredReviews = useMemo(() => {

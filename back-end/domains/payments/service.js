@@ -158,44 +158,37 @@ export const createCheckoutPreference = async ({
     // NOTA: O Mercado Pago SDK pode não estar passando back_urls corretamente
     // Vamos tentar diferentes formatos
     const preferenceData = {
-        items: [
-            {
-                id: accommodationId,
-                title: place.title || "Estadia DormeAqui",
-                description: `Estadia em ${place.city || 'Local não especificado'} - ${nights} noite(s)`,
-                quantity: 1,
-                currency_id: "BRL",
-                unit_price: Number(totalPrice),
-                picture_url: place.photos?.[0] || undefined
-            }
-        ],
-        // Formato 1: back_urls direto no objeto raiz
-        back_urls: {
-            success: successUrl,
-            failure: failureUrl,
-            pending: pendingUrl
-        },
-        // Formato 2: navigation.back_urls (algumas versões do SDK usam isso)
-        navigation: {
-            back_urls: {
-                success: successUrl,
-                failure: failureUrl,
-                pending: pendingUrl
-            }
-        },
-        notification_url: process.env.MERCADO_PAGO_WEBHOOK_URL,
-        external_reference: `booking_${Date.now()}_${accommodationId}`,
-        metadata: {
-            userId: userId.toString(),
-            accommodationId: accommodationId.toString(),
-            checkIn: checkIn.toISOString(),
-            checkOut: checkOut.toISOString(),
-            guests: guests.toString(),
-            nights: nights.toString(),
-            totalPrice: totalPrice.toString(),
-            pricePerNight: place.price.toString()
+    items: [
+        {
+            id: accommodationId,
+            title: place.title,
+            description: `Estadia em ${place.city} - ${nights} noite(s)`,
+            quantity: 1,
+            currency_id: "BRL",
+            unit_price: Number(totalPrice)
         }
-    };
+    ],
+
+    payment_methods: {
+        excluded_payment_types: [],
+        excluded_payment_methods: []
+    },
+
+    notification_url: process.env.MERCADO_PAGO_WEBHOOK_URL,
+    external_reference: `booking_${Date.now()}_${accommodationId}`,
+    metadata: {
+        userId: userId.toString(),
+        accommodationId: accommodationId.toString(),
+        checkIn: checkIn.toISOString(),
+        checkOut: checkOut.toISOString(),
+        guests: guests.toString(),
+        nights: nights.toString(),
+        totalPrice: totalPrice.toString(),
+        pricePerNight: place.price.toString()
+    }
+};
+
+
 
     console.log("📦 [SERVICE] Enviando para Mercado Pago:");
     console.log("📦 [SERVICE] back_urls:", JSON.stringify(preferenceData.back_urls, null, 2));
@@ -222,14 +215,12 @@ export const createCheckoutPreference = async ({
         
         return {
             preferenceId: response.id,
-            initPoint: response.init_point,
-            sandboxInitPoint: response.sandbox_init_point,
             totalPrice,
             nights,
             pricePerNight: place.price,
-            accommodationTitle: place.title,
-            backUrls: responseBackUrls // Retorna para o controller verificar
+            accommodationTitle: place.title
         };
+
     } catch (error) {
         console.error("❌ [SERVICE] Erro ao criar preferência:");
         console.error("❌ [SERVICE] Mensagem:", error.message);
