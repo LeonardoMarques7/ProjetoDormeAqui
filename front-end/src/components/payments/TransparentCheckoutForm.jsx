@@ -339,7 +339,7 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 				email,
 			};
 
-			const { data } = await axios.post("/payments/transparent", payload);
+			const { data } = await axios.post("/api/payments/transparent", payload);
 
 			// Use backend authoritative response: success + booking indicate success
 			if (data && data.success === true && data.booking) {
