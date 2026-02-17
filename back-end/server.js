@@ -6,7 +6,6 @@ import { fileURLToPath } from "url";
 import path, { dirname } from "path";
 import fs from "fs";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
-import { handleMercadoPagoWebhook, verifyWebhook } from "./webhooks/mercadopago.js";
 
 
 export const app = express();
@@ -95,5 +94,3 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post("/webhook-mercadopago", handleMercadoPagoWebhook);
-app.get("/webhook-mercadopago", verifyWebhook);
