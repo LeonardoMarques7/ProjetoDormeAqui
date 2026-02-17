@@ -32,6 +32,24 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 	const isSubmittingRef = useRef(false);
 	const cardFormRef = useRef(null);
 
+	// Adicionar estilos globais para iframes do Mercado Pago
+	useEffect(() => {
+		const style = document.createElement("style");
+		style.textContent = `
+			#form-checkout__cardNumber iframe,
+			#form-checkout__expirationDate iframe,
+			#form-checkout__securityCode iframe {
+				width: 100% !important;
+				height: 48px !important;
+				border: none !important;
+				display: block !important;
+				visibility: visible !important;
+			}
+		`;
+		document.head.appendChild(style);
+		return () => document.head.removeChild(style);
+	}, []);
+
 	useEffect(() => {
 		if (!pixResult?.qr_code) return setGeneratedQr(null);
 
@@ -65,8 +83,31 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 					return;
 				}
 
+				// Aguardar elementos estarem no DOM
+				await new Promise((resolve) => setTimeout(resolve, 100));
+
+				// Verificar se elementos existem
+				const requiredElements = [
+					"form-checkout__cardNumber",
+					"form-checkout__expirationDate",
+					"form-checkout__securityCode",
+					"form-checkout__installments",
+				];
+
+				const missingElements = requiredElements.filter(
+					(id) => !document.getElementById(id),
+				);
+
+				if (missingElements.length > 0) {
+					console.error("Elementos faltando no DOM:", missingElements);
+					setFormError("Formulario nao carregado completamente.");
+					return;
+				}
+
 				const mp = new window.MercadoPago(publicKey, { locale: "pt-BR" });
 				const amount = String(amountValue);
+
+				console.log("Inicializando cardForm com amount:", amount);
 
 				cardFormRef.current = mp.cardForm({
 					amount,
@@ -115,6 +156,22 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 									error?.message ||
 										"Falha ao carregar os campos seguros do cartao.",
 								);
+							} else {
+								console.log("CardForm montado com sucesso!");
+								// Verificar se iframes foram criados
+								setTimeout(() => {
+									const cardNumberIframe = document.querySelector('#form-checkout__cardNumber iframe');
+									const expirationIframe = document.querySelector('#form-checkout__expirationDate iframe');
+									const securityCodeIframe = document.querySelector('#form-checkout__securityCode iframe');
+									console.log("Iframes detectados:", {
+										cardNumber: !!cardNumberIframe,
+										expiration: !!expirationIframe,
+										securityCode: !!securityCodeIframe
+									});
+									if (cardNumberIframe) {
+										console.log("CardNumber iframe:", cardNumberIframe.style.cssText);
+									}
+								}, 500);
 							}
 						},
 						onSubmit: async (event) => {
@@ -180,6 +237,7 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 						},
 					},
 				});
+
 			} catch (error) {
 				console.error("Erro ao configurar o checkout:", error);
 				setFormError(error?.message || "Erro ao configurar o checkout.");
@@ -253,9 +311,11 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 					<label className="block text-sm font-medium text-gray-700">
 						Numero do cartao
 					</label>
-					<div
+					<input
 						id="form-checkout__cardNumber"
-						className="w-full min-h-[48px] p-3 border rounded-xl flex items-center"
+						type="text"
+						placeholder="Numero do cartao"
+						className="w-full p-3 border rounded-xl"
 					/>
 
 					<div className="grid grid-cols-2 gap-4">
@@ -263,18 +323,22 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 							<label className="block text-sm font-medium text-gray-700">
 								Validade (MM/AA)
 							</label>
-							<div
+							<input
 								id="form-checkout__expirationDate"
-								className="w-full min-h-[48px] p-3 border rounded-xl flex items-center"
+								type="text"
+								placeholder="MM/AA"
+								className="w-full p-3 border rounded-xl"
 							/>
 						</div>
 						<div>
 							<label className="block text-sm font-medium text-gray-700">
 								CVV
 							</label>
-							<div
+							<input
 								id="form-checkout__securityCode"
-								className="w-full min-h-[48px] p-3 border rounded-xl flex items-center"
+								type="text"
+								placeholder="CVV"
+								className="w-full p-3 border rounded-xl"
 							/>
 						</div>
 					</div>
