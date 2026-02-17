@@ -25,7 +25,57 @@ app.use(express.json());
 
 // CSP header to allow MercadoPago/mercadolibre connections required by SDK
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self' http://localhost:3000 http://localhost:5173 https://projetodormeaqui.onrender.com https://accounts.google.com https://oauth2.googleapis.com https://api.mercadopago.com https://api.mercadolibre.com https://www.mercadolibre.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://sdk.mercadopago.com; frame-src 'self' https://www.google.com https://sdk.mercadopago.com https://www.mercadolibre.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com");
+  res.setHeader(
+    "Content-Security-Policy",
+    `
+    default-src 'self';
+
+    connect-src
+      'self'
+      http://localhost:3000
+      http://localhost:5173
+      https://projetodormeaqui.onrender.com
+      https://accounts.google.com
+      https://oauth2.googleapis.com
+      https://api.mercadopago.com
+      https://api-static.mercadopago.com
+      https://secure-fields.mercadopago.com
+      https://api.mercadolibre.com
+      https://www.mercadolibre.com;
+
+    script-src
+      'self'
+      'unsafe-inline'
+      'unsafe-eval'
+      https://accounts.google.com
+      https://sdk.mercadopago.com;
+
+    frame-src
+      'self'
+      https://www.google.com
+      https://sdk.mercadopago.com
+      https://api.mercadopago.com
+      https://api-static.mercadopago.com
+      https://secure-fields.mercadopago.com
+      https://www.mercadolibre.com;
+
+    img-src
+      'self'
+      data:
+      https:;
+
+    font-src
+      'self'
+      https://fonts.gstatic.com
+      data:;
+
+    style-src
+      'self'
+      'unsafe-inline'
+      https://fonts.googleapis.com;
+    `.replace(/\s{2,}/g, " ").trim()
+  );
+
   next();
 });
 
