@@ -15,9 +15,17 @@ export const processTransparentPayment = async (data, user) => {
     installments,
     identificationType,
     identificationNumber,
+    fullName,
+    phoneAreaCode,
+    phoneNumber,
+    zipCode,
+    street,
+    streetNumber,
   } = data;
 
-  // Valida campos obrigatórios
+  // ==============================
+  // VALIDACOES BASICAS
+  // ==============================
   if (
     !accommodationId ||
     !checkIn ||
@@ -25,12 +33,23 @@ export const processTransparentPayment = async (data, user) => {
     !guests ||
     !token ||
     !email ||
-    !paymentMethodId
+    !paymentMethodId ||
+    !fullName ||
+    !identificationNumber
   ) {
     return { success: false, message: "Dados incompletos para pagamento." };
   }
 
-  // Busca a acomodação
+  // ==============================
+  // SPLIT NOME COMPLETO
+  // ==============================
+  const nameParts = String(fullName).trim().split(" ");
+  const firstName = nameParts.shift() || fullName;
+  const lastName = nameParts.join(" ") || ".";
+
+  // ==============================
+  // BUSCA ACOMODACAO
+  // ==============================
   const place = await Place.findById(accommodationId);
   if (!place) {
     return { success: false, message: "Acomodação não encontrada." };
@@ -40,13 +59,18 @@ export const processTransparentPayment = async (data, user) => {
   const checkoutDate = new Date(checkOut);
 
   if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime())) {
-    return { success: false, message: "Formato de data inválido para checkin/checkout." };
+    return {
+      success: false,
+      message: "Formato de data inválido para checkin/checkout.",
+    };
   }
 
-  const nights = Math.ceil((checkoutDate - checkinDate) / (1000 * 60 * 60 * 24)) || 1;
-  const totalPrice = place.price * nights;
+  const nights =
+    Math.ceil((checkoutDate - checkinDate) / (1000 * 60 * 60 * 24)) || 1;
+  const totalPrice = Number(place.price) * nights;
 
-  const itemCategoryId = process.env.MERCADO_PAGO_ITEM_CATEGORY_ID || "lodging";
+  const itemCategoryId =
+    process.env.MERCADO_PAGO_ITEM_CATEGORY_ID || "lodging";
   const externalReference = `booking_${Date.now()}_${accommodationId}`;
 
   if (!process.env.MERCADO_PAGO_WEBHOOK_URL) {
@@ -56,22 +80,27 @@ export const processTransparentPayment = async (data, user) => {
     };
   }
 
-  // Verifica conflitos de reservas antes de criar o pagamento
+  // ==============================
+  // CONFLITO RESERVA
+  // ==============================
   const conflicting = await Booking.find({
     place: accommodationId,
     $or: [{ checkin: { $lt: checkoutDate }, checkout: { $gt: checkinDate } }],
   }).limit(1);
 
-  if (conflicting && conflicting.length > 0) {
+  if (conflicting?.length > 0) {
     return {
       success: false,
-      message: "Datas conflitantes com reservas existentes. As datas selecionadas não estão disponíveis.",
+      message:
+        "Datas conflitantes com reservas existentes. As datas selecionadas não estão disponíveis.",
       status: "conflict",
     };
   }
 
   try {
-    // Prepara dados para pagamento
+    // ==============================
+    // PAYMENT DATA CORRIGIDO
+    // ==============================
     const paymentData = {
       transaction_amount: Number(totalPrice),
       token,
@@ -79,14 +108,31 @@ export const processTransparentPayment = async (data, user) => {
       installments: Number(installments) || 1,
       payment_method_id: paymentMethodId,
       issuer_id: issuerId,
+
       payer: {
         email,
+        first_name: firstName,
+        last_name: lastName,
         identification: {
-          type: identificationType,
+          type: identificationType || "CPF",
           number: identificationNumber,
         },
       },
+
       additional_info: {
+        payer: {
+          first_name: firstName,
+          last_name: lastName,
+          phone: {
+            area_code: phoneAreaCode || "11",
+            number: phoneNumber || "999999999",
+          },
+          address: {
+            zip_code: zipCode || "00000000",
+            street_name: street || "Rua",
+            street_number: streetNumber || 0,
+          },
+        },
         items: [
           {
             id: accommodationId,
@@ -98,8 +144,10 @@ export const processTransparentPayment = async (data, user) => {
           },
         ],
       },
+
       notification_url: process.env.MERCADO_PAGO_WEBHOOK_URL,
       external_reference: externalReference,
+
       metadata: {
         userId: user?._id?.toString() || "",
         accommodationId: accommodationId.toString(),
@@ -110,56 +158,40 @@ export const processTransparentPayment = async (data, user) => {
         totalPrice: totalPrice.toString(),
         pricePerNight: place.price.toString(),
       },
-      capture: false, // captura automática
+
+      capture: false,
     };
 
     console.log(
-      "🔁 Enviando paymentData para Mercado Pago (pre-autorização):",
+      "🔁 Enviando paymentData MP:",
       JSON.stringify(paymentData, null, 2)
     );
 
-    console.log("=== MP CREATE INPUT CHECK ===");
-  console.log({
-    paymentMethodId,
-    issuerId,
-    installments,
-    capture: false,
-    tokenPresent: !!token
-  });
-
     const response = await paymentClient.create({ body: paymentData });
 
-    console.log("=== MP CREATE RESULT ===");
-    console.log({
-      id: response.id,
-      status: response.status,
-      status_detail: response.status_detail,
-      captured: response.captured,
-      capture_requested: paymentData.capture,
-      payment_method_id: response.payment_method_id,
-      issuer_id: response.issuer_id
-    });
-
-    console.log("MP RAW RESPONSE:", JSON.stringify(response, null, 2));
+    console.log("MP STATUS:", response.status, response.status_detail);
 
     const paymentStatus = String(response.status).toLowerCase();
 
-    // Não criar reserva de forma síncrona aqui — confirmação e criação ficam a cargo do webhook do Mercado Pago
+    // ==============================
+    // STATUS HANDLING CORRETO
+    // ==============================
 
     if (paymentStatus === "approved") {
-      // Retornar sucesso informando que pagamento está aprovado, mas a reserva será criada quando o webhook confirmar e persistir o paymentId
       return {
         success: true,
-        message: "Pagamento aprovado. Reserva será criada após confirmação via webhook.",
-        status: response?.status || "approved",
+        message:
+          "Pagamento aprovado. Reserva será criada após confirmação via webhook.",
+        status: response.status,
         payment: response,
       };
     }
 
-    if (["authorized","pending_capture"].includes(paymentStatus)) {
+    if (["authorized", "pending_capture"].includes(paymentStatus)) {
       return {
         success: false,
-        message: "Pagamento autorizado, pendente de captura. Reserva será criada somente após confirmação via webhook.",
+        message:
+          "Pagamento autorizado e aguardando captura. Reserva será criada após webhook.",
         status: paymentStatus,
         payment: response,
       };
@@ -168,23 +200,33 @@ export const processTransparentPayment = async (data, user) => {
     if (paymentStatus === "pending") {
       return {
         success: false,
-        message: "Pagamento pendente. Reserva será criada somente após confirmação via webhook.",
+        message:
+          "Pagamento pendente. Reserva será criada após confirmação do pagamento.",
         status: paymentStatus,
         payment: response,
       };
     }
 
-    // Pagamento rejeitado ou outro status
+    if (paymentStatus === "in_process") {
+      return {
+        success: false,
+        message: "Pagamento em análise pelo Mercado Pago.",
+        status: paymentStatus,
+        status_detail: response.status_detail,
+        payment: response,
+      };
+    }
+
     return {
       success: false,
-      message: "Pagamento não autorizado. Reserva não criada.",
+      message: "Pagamento não autorizado.",
       status: paymentStatus,
       status_detail: response.status_detail,
       payment: response,
     };
   } catch (error) {
     console.error(
-      "❌ Erro ao criar pagamento (pre-autorização):",
+      "❌ Erro MP:",
       error.response?.data || error.message
     );
 

@@ -13,163 +13,98 @@ export default function TransparentCheckoutForm({
 }) {
 	const mpRef = useRef(null);
 	const cardFormRef = useRef(null);
-	const [formError, setFormError] = useState("");
 	const isSubmittingRef = useRef(false);
+
 	const [loading, setLoading] = useState(false);
+	const [formError, setFormError] = useState("");
+
+	// NOVOS CAMPOS ANTIFRAUDE
+	const [fullName, setFullName] = useState("");
+	const [phone, setPhone] = useState("");
+	const [zipCode, setZipCode] = useState("");
+	const [streetNumber, setStreetNumber] = useState("");
 
 	useEffect(() => {
-		if (!window.MercadoPago) {
-			console.error("SDK MercadoPago não carregado");
-			return;
-		}
+		if (!window.MercadoPago) return;
 
 		const mp = new window.MercadoPago(
 			import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY,
-			{
-				locale: "pt-BR",
-			},
+			{ locale: "pt-BR" },
 		);
 
 		mpRef.current = mp;
 
-		const amount = String(amountValue);
-		console.log("Inicializando cardForm com amount:", amount);
-
-		// valida containers obrigatórios
-		const required = [
-			"form-checkout__cardNumber",
-			"form-checkout__expirationDate",
-			"form-checkout__securityCode",
-			"form-checkout__installments",
-			"form-checkout__issuer",
-			"form-checkout__identificationType",
-			"form-checkout__identificationNumber",
-		];
-
-		const missing = required.filter((id) => !document.getElementById(id));
-		if (missing.length) {
-			console.error("Missing MP containers:", missing);
-			return;
-		}
-
 		cardFormRef.current = mp.cardForm({
-			amount,
+			amount: String(amountValue),
 			iframe: true,
 			form: {
 				id: "form-checkout",
-				cardholderName: {
-					id: "form-checkout__cardholderName",
-					placeholder: "Nome no cartao",
-				},
-				cardholderEmail: {
-					id: "form-checkout__cardholderEmail",
-					placeholder: "Email",
-				},
-				cardNumber: {
-					id: "form-checkout__cardNumber",
-					placeholder: "Numero do cartao",
-				},
-				expirationDate: {
-					id: "form-checkout__expirationDate",
-					placeholder: "MM/AAAA",
-				},
-				securityCode: {
-					id: "form-checkout__securityCode",
-					placeholder: "CVV",
-				},
-				installments: {
-					id: "form-checkout__installments",
-				},
-				issuer: {
-					id: "form-checkout__issuer",
-				},
-				identificationType: {
-					id: "form-checkout__identificationType",
-				},
-				identificationNumber: {
-					id: "form-checkout__identificationNumber",
-					placeholder: "CPF",
-				},
+				cardholderName: { id: "form-checkout__cardholderName" },
+				cardholderEmail: { id: "form-checkout__cardholderEmail" },
+				cardNumber: { id: "form-checkout__cardNumber" },
+				expirationDate: { id: "form-checkout__expirationDate" },
+				securityCode: { id: "form-checkout__securityCode" },
+				installments: { id: "form-checkout__installments" },
+				issuer: { id: "form-checkout__issuer" },
+				identificationType: { id: "form-checkout__identificationType" },
+				identificationNumber: { id: "form-checkout__identificationNumber" },
 			},
 			callbacks: {
-				onFormMounted: (error) => {
-					if (error) {
-						console.error("Erro ao montar cardForm:", error);
-						return;
-					}
-
-					console.log("CardForm montado com sucesso!");
-
-					setTimeout(() => {
-						const iframes = {
-							cardNumber: !!document.querySelector(
-								"#form-checkout__cardNumber iframe",
-							),
-							expiration: !!document.querySelector(
-								"#form-checkout__expirationDate iframe",
-							),
-							securityCode: !!document.querySelector(
-								"#form-checkout__securityCode iframe",
-							),
-						};
-						console.log("Iframes detectados:", iframes);
-					}, 500);
-				},
-
 				onSubmit: async (event) => {
 					event.preventDefault();
-
 					if (isSubmittingRef.current) return;
-					isSubmittingRef.current = true;
+
 					setLoading(true);
 					setFormError("");
+					isSubmittingRef.current = true;
 
 					try {
 						const cardForm = cardFormRef.current;
-						if (!cardForm?.getCardFormData) {
-							throw new Error("Formulario do cartao nao inicializado.");
-						}
+						const data = cardForm.getCardFormData();
 
-						const {
-							token,
-							paymentMethodId,
-							issuerId,
-							installments,
-							identificationType,
-							identificationNumber,
-							cardholderEmail,
-						} = cardForm.getCardFormData();
+						if (!data.token) throw new Error("Token não gerado");
 
-						if (!token) {
-							throw new Error("Token nao gerado pelos campos seguros.");
-						}
+						// separa telefone
+						const phoneDigits = phone.replace(/\D/g, "");
+						const areaCode = phoneDigits.slice(0, 2);
+						const number = phoneDigits.slice(2);
 
 						const payload = {
 							...bookingData,
-							token,
-							paymentMethodId,
-							issuerId: issuerId || null,
-							installments: Number(installments) || 1,
-							identificationType,
-							identificationNumber,
-							email: cardholderEmail,
+							token: data.token,
+							paymentMethodId: data.paymentMethodId,
+							issuerId: data.issuerId || null,
+							installments: Number(data.installments) || 1,
+							identificationType: data.identificationType,
+							identificationNumber: data.identificationNumber,
+							email: data.cardholderEmail,
+
+							// ANTIFRAUDE
+							fullName,
+							phoneAreaCode: areaCode,
+							phoneNumber: number,
+							zipCode,
+							streetNumber,
 						};
 
-						const { data } = await axios.post("/payments/transparent", payload);
+						const { data: response } = await api.post(
+							"/payments/transparent",
+							payload,
+						);
 
-						if (data?.success === true) {
-							onSuccess(data);
+						if (response?.success) {
+							onSuccess(response);
 						} else {
-							throw new Error(data?.message || "Pagamento nao aprovado");
+							throw new Error(response?.message);
 						}
 					} catch (err) {
-						const message =
+						const msg =
 							err?.response?.data?.message ||
 							err?.message ||
 							"Erro ao processar pagamento";
 
-						setFormError(message);
-						onError(message);
+						setFormError(msg);
+						onError(msg);
 					} finally {
 						setLoading(false);
 						isSubmittingRef.current = false;
@@ -178,12 +113,8 @@ export default function TransparentCheckoutForm({
 			},
 		});
 
-		return () => {
-			if (cardFormRef.current) {
-				cardFormRef.current.unmount();
-			}
-		};
-	}, [amountValue]);
+		return () => cardFormRef.current?.unmount();
+	}, [amountValue, fullName, phone, zipCode, streetNumber]);
 
 	return (
 		<form
@@ -192,94 +123,77 @@ export default function TransparentCheckoutForm({
 		>
 			<h2 className="text-xl font-semibold">Pagamento</h2>
 
+			{/* NOME COMPLETO */}
 			<div>
-				<label className="block text-sm font-medium">Nome no cartão</label>
+				<label className="block text-sm">Nome completo</label>
 				<input
-					id="form-checkout__cardholderName"
+					value={fullName}
+					onChange={(e) => setFullName(e.target.value)}
 					className="w-full p-3 border rounded-xl"
+					required
 				/>
 			</div>
 
+			{/* TELEFONE */}
 			<div>
-				<label className="block text-sm font-medium">Email</label>
+				<label className="block text-sm">Telefone</label>
 				<input
-					id="form-checkout__cardholderEmail"
-					type="email"
-					aria-placeholder="11/2030"
-					placeholder="MM/AAAA"
-					className="w-full p-3 border h-12.5 rounded-xl"
-				/>
-			</div>
-
-			<div>
-				<label className="block text-sm font-medium">Número do cartão</label>
-				<div
-					id="form-checkout__cardNumber"
-					aria-placeholder="11/2030"
-					placeholder="XXXX XXXX XXXX XXXX"
-					className="w-full p-3 border h-12.5 rounded-xl"
-				/>
-			</div>
-
-			<div className="grid grid-cols-2 gap-3">
-				<div className="flex-col flex gap-2">
-					<label className="block text-sm font-medium">Validade</label>
-					<div
-						id="form-checkout__expirationDate"
-						aria-placeholder="11/2030"
-						placeholder="MM/AAAA"
-						className="w-full p-3 border h-12.5 rounded-xl"
-					/>
-				</div>
-
-				<div>
-					<label className="block text-sm font-medium">CVV</label>
-					<div
-						id="form-checkout__securityCode"
-						aria-placeholder="11/2030"
-						placeholder="XXX"
-						className="w-full p-3 border h-12.5 rounded-xl"
-					/>
-				</div>
-			</div>
-
-			<div>
-				<label className="block text-sm font-medium">Banco emissor</label>
-				<select
-					id="form-checkout__issuer"
-					className="w-full p-3 border h-12.5 rounded-xl"
-				>
-					<option value="">Selecione</option>
-				</select>
-			</div>
-
-			<div>
-				<label className="block text-sm font-medium">Parcelas</label>
-				<select
-					id="form-checkout__installments"
+					value={phone}
+					onChange={(e) => setPhone(e.target.value)}
+					placeholder="11999999999"
 					className="w-full p-3 border rounded-xl"
-				>
-					<option value="">Selecione</option>
-				</select>
+					required
+				/>
 			</div>
 
-			<div className="grid grid-cols-2 gap-3">
-				<div>
-					<label className="block text-sm font-medium">Tipo documento</label>
-					<select
-						id="form-checkout__identificationType"
-						className="w-full p-3 border rounded-xl"
-					/>
-				</div>
-
-				<div>
-					<label className="block text-sm font-medium">Número documento</label>
-					<input
-						id="form-checkout__identificationNumber"
-						className="w-full p-3 border rounded-xl"
-					/>
-				</div>
+			{/* CEP */}
+			<div>
+				<label className="block text-sm">CEP</label>
+				<input
+					value={zipCode}
+					onChange={(e) => setZipCode(e.target.value)}
+					className="w-full p-3 border rounded-xl"
+					required
+				/>
 			</div>
+
+			{/* NUMERO */}
+			<div>
+				<label className="block text-sm">Número</label>
+				<input
+					value={streetNumber}
+					onChange={(e) => setStreetNumber(e.target.value)}
+					className="w-full p-3 border rounded-xl"
+					required
+				/>
+			</div>
+
+			{/* CAMPOS MP */}
+			<input id="form-checkout__cardholderName" hidden />
+			<input id="form-checkout__cardholderEmail" hidden />
+
+			<div id="form-checkout__cardNumber" className="p-3 border rounded-xl" />
+			<div
+				id="form-checkout__expirationDate"
+				className="p-3 border rounded-xl"
+			/>
+			<div id="form-checkout__securityCode" className="p-3 border rounded-xl" />
+
+			<select id="form-checkout__issuer" className="p-3 border rounded-xl" />
+			<select
+				id="form-checkout__installments"
+				className="p-3 border rounded-xl"
+			/>
+			<select
+				id="form-checkout__identificationType"
+				className="p-3 border rounded-xl"
+			/>
+			<input
+				id="form-checkout__identificationNumber"
+				className="p-3 border rounded-xl"
+			/>
+
+			{formError && <div className="text-red-600 text-sm">{formError}</div>}
 
 			<button
 				type="submit"
