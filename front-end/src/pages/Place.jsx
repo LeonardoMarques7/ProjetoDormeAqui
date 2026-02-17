@@ -390,11 +390,20 @@ const Place = () => {
 		e.preventDefault();
 
 		if (checkin && checkout && guests) {
+			const nights = Math.max(
+				1,
+				Math.ceil((checkout - checkin) / (1000 * 60 * 60 * 24)),
+			);
+			const pricePerNight = Number(place?.price || 0);
+			const totalPrice = Number((pricePerNight * nights).toFixed(2));
 			const bookingData = {
 				accommodationId: id,
 				checkIn: checkin.toISOString(),
 				checkOut: checkout.toISOString(),
 				guests: guests,
+				nights,
+				pricePerNight,
+				totalPrice,
 			};
 			setTransparentBookingData(bookingData);
 			setShowTransparentCheckout(true);
