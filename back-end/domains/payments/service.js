@@ -155,6 +155,8 @@ export const createCheckoutPreference = async ({
     console.log("  failure:", failureUrl);
     console.log("  pending:", pendingUrl);
 
+    const itemCategoryId = process.env.MERCADO_PAGO_ITEM_CATEGORY_ID || "lodging";
+
     // Cria a preferência no Mercado Pago
     // NOTA: O Mercado Pago SDK pode não estar passando back_urls corretamente
     // Vamos tentar diferentes formatos
@@ -167,7 +169,8 @@ export const createCheckoutPreference = async ({
                 quantity: 1,
                 currency_id: "BRL",
                 unit_price: Number(totalPrice),
-                picture_url: place.photos?.[0] || undefined
+                picture_url: place.photos?.[0] || undefined,
+                category_id: itemCategoryId
             }
         ],
         payer: payerEmail ? { email: payerEmail } : undefined,

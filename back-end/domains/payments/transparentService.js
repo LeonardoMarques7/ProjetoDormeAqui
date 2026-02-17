@@ -46,6 +46,16 @@ export const processTransparentPayment = async (data, user) => {
   const nights = Math.ceil((checkoutDate - checkinDate) / (1000 * 60 * 60 * 24)) || 1;
   const totalPrice = place.price * nights;
 
+  const itemCategoryId = process.env.MERCADO_PAGO_ITEM_CATEGORY_ID || "lodging";
+  const externalReference = `booking_${Date.now()}_${accommodationId}`;
+
+  if (!process.env.MERCADO_PAGO_WEBHOOK_URL) {
+    return {
+      success: false,
+      message: "MERCADO_PAGO_WEBHOOK_URL nao configurado para webhook.",
+    };
+  }
+
   // Verifica conflitos de reservas antes de criar o pagamento
   const conflicting = await Booking.find({
     place: accommodationId,
@@ -84,9 +94,12 @@ export const processTransparentPayment = async (data, user) => {
             description: place.description,
             quantity: 1,
             unit_price: Number(totalPrice),
+            category_id: itemCategoryId,
           },
         ],
       },
+      notification_url: process.env.MERCADO_PAGO_WEBHOOK_URL,
+      external_reference: externalReference,
       metadata: {
         userId: user?._id?.toString() || "",
         accommodationId: accommodationId.toString(),
