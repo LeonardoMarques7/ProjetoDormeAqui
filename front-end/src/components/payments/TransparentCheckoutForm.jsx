@@ -17,6 +17,9 @@ const loadMercadoPagoSdk = () =>
 
 const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 	const { user } = useUserContext();
+	const amountValue = bookingData?.totalPrice
+		? Number(bookingData.totalPrice)
+		: 0;
 
 	const [paymentMethod, setPaymentMethod] = useState("card");
 	const [email, setEmail] = useState(user?.email || "");
@@ -50,14 +53,20 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 					setFormError("Chave publica do Mercado Pago nao configurada.");
 					return;
 				}
+				if (cardFormRef.current?.unmount) {
+					cardFormRef.current.unmount();
+					cardFormRef.current = null;
+				}
 
 				await loadMercadoPagoSdk();
 				if (!isMounted) return;
+				if (!amountValue || Number.isNaN(amountValue)) {
+					setFormError("Valor da reserva indisponivel para calcular parcelas.");
+					return;
+				}
 
 				const mp = new window.MercadoPago(publicKey, { locale: "pt-BR" });
-				const amount = bookingData?.totalPrice
-					? String(bookingData.totalPrice)
-					: "0";
+				const amount = String(amountValue);
 
 				cardFormRef.current = mp.cardForm({
 					amount,
@@ -101,7 +110,11 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 					callbacks: {
 						onFormMounted: (error) => {
 							if (error) {
-								setFormError("Falha ao carregar os campos seguros do cartao.");
+								console.error("Erro ao montar cardForm:", error);
+								setFormError(
+									error?.message ||
+										"Falha ao carregar os campos seguros do cartao.",
+								);
 							}
 						},
 						onSubmit: async (event) => {
@@ -168,6 +181,7 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 					},
 				});
 			} catch (error) {
+				console.error("Erro ao configurar o checkout:", error);
 				setFormError(error?.message || "Erro ao configurar o checkout.");
 			}
 		};
@@ -179,7 +193,7 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 			cardFormRef.current?.unmount?.();
 			cardFormRef.current = null;
 		};
-	}, [paymentMethod, bookingData]);
+	}, [paymentMethod, amountValue]);
 
 	return (
 		<div className="p-8 w-full max-w-2xl mx-auto">
@@ -208,6 +222,13 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 
 			{paymentMethod === "card" ? (
 				<form id="form-checkout" className="space-y-4">
+					<div className="text-sm text-gray-600">
+						Preencha os dados do cartao e do titular para concluir o pagamento.
+					</div>
+
+					<label className="block text-sm font-medium text-gray-700">
+						Nome no cartao
+					</label>
 					<input
 						id="form-checkout__cardholderName"
 						type="text"
@@ -217,6 +238,9 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 						className="w-full p-3 border rounded-xl"
 					/>
 
+					<label className="block text-sm font-medium text-gray-700">
+						Email do titular
+					</label>
 					<input
 						id="form-checkout__cardholderEmail"
 						type="email"
@@ -226,49 +250,87 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 						className="w-full p-3 border rounded-xl"
 					/>
 
+					<label className="block text-sm font-medium text-gray-700">
+						Numero do cartao
+					</label>
 					<div
 						id="form-checkout__cardNumber"
-						className="w-full p-3 border rounded-xl"
+						className="w-full min-h-[48px] p-3 border rounded-xl flex items-center"
 					/>
 
 					<div className="grid grid-cols-2 gap-4">
-						<div
-							id="form-checkout__expirationDate"
-							className="w-full p-3 border rounded-xl"
-						/>
-						<div
-							id="form-checkout__securityCode"
-							className="w-full p-3 border rounded-xl"
-						/>
+						<div>
+							<label className="block text-sm font-medium text-gray-700">
+								Validade (MM/AA)
+							</label>
+							<div
+								id="form-checkout__expirationDate"
+								className="w-full min-h-[48px] p-3 border rounded-xl flex items-center"
+							/>
+						</div>
+						<div>
+							<label className="block text-sm font-medium text-gray-700">
+								CVV
+							</label>
+							<div
+								id="form-checkout__securityCode"
+								className="w-full min-h-[48px] p-3 border rounded-xl flex items-center"
+							/>
+						</div>
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
-						<select
-							id="form-checkout__identificationType"
-							className="w-full p-3 border rounded-xl"
-							defaultValue="CPF"
-						>
-							<option value="CPF">CPF</option>
-							<option value="CNPJ">CNPJ</option>
-						</select>
-						<input
-							id="form-checkout__identificationNumber"
-							type="text"
-							placeholder="CPF"
-							className="w-full p-3 border rounded-xl"
-						/>
+						<div>
+							<label className="block text-sm font-medium text-gray-700">
+								Tipo de documento
+							</label>
+							<select
+								id="form-checkout__identificationType"
+								className="w-full p-3 border rounded-xl"
+								defaultValue="CPF"
+							>
+								<option value="CPF">CPF</option>
+								<option value="CNPJ">CNPJ</option>
+							</select>
+						</div>
+						<div>
+							<label className="block text-sm font-medium text-gray-700">
+								Numero do documento
+							</label>
+							<input
+								id="form-checkout__identificationNumber"
+								type="text"
+								placeholder="CPF"
+								className="w-full p-3 border rounded-xl"
+							/>
+						</div>
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
-						<select
-							id="form-checkout__issuer"
-							className="w-full p-3 border rounded-xl"
-						/>
-						<select
-							id="form-checkout__installments"
-							className="w-full p-3 border rounded-xl"
-						/>
+						<div className="col-span-2">
+							<label className="block text-sm font-medium text-gray-700">
+								Parcelas
+							</label>
+							<select
+								id="form-checkout__installments"
+								className="w-full p-3 border rounded-xl"
+							>
+								<option value="" disabled>
+									Selecione
+								</option>
+							</select>
+							<p className="text-xs text-gray-500 mt-1">
+								As parcelas sao carregadas automaticamente pelo Mercado Pago.
+							</p>
+						</div>
 					</div>
+
+					<select
+						id="form-checkout__issuer"
+						className="hidden"
+						aria-hidden="true"
+						tabIndex={-1}
+					/>
 
 					{formError && (
 						<p className="text-red-500 flex gap-1 items-center text-sm">
