@@ -319,11 +319,9 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 					<label className="block text-sm font-medium text-gray-700">
 						Numero do cartao
 					</label>
-					<input
+					<div
 						id="form-checkout__cardNumber"
-						type="text"
-						placeholder="Numero do cartao"
-						className="w-full p-3 border rounded-xl"
+						className="w-full h-[48px] border rounded-xl"
 					/>
 
 					<div className="grid grid-cols-2 gap-4">
@@ -331,22 +329,18 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 							<label className="block text-sm font-medium text-gray-700">
 								Validade (MM/AA)
 							</label>
-							<input
+							<div
 								id="form-checkout__expirationDate"
-								type="text"
-								placeholder="MM/AA"
-								className="w-full p-3 border rounded-xl"
+								className="w-full h-[48px] border rounded-xl"
 							/>
 						</div>
 						<div>
 							<label className="block text-sm font-medium text-gray-700">
 								CVV
 							</label>
-							<input
+							<div
 								id="form-checkout__securityCode"
-								type="text"
-								placeholder="CVV"
-								className="w-full p-3 border rounded-xl"
+								className="w-full h-[48px] border rounded-xl"
 							/>
 						</div>
 					</div>
