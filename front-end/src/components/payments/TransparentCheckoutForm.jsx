@@ -160,16 +160,25 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 								console.log("CardForm montado com sucesso!");
 								// Verificar se iframes foram criados
 								setTimeout(() => {
-									const cardNumberIframe = document.querySelector('#form-checkout__cardNumber iframe');
-									const expirationIframe = document.querySelector('#form-checkout__expirationDate iframe');
-									const securityCodeIframe = document.querySelector('#form-checkout__securityCode iframe');
+									const cardNumberIframe = document.querySelector(
+										"#form-checkout__cardNumber iframe",
+									);
+									const expirationIframe = document.querySelector(
+										"#form-checkout__expirationDate iframe",
+									);
+									const securityCodeIframe = document.querySelector(
+										"#form-checkout__securityCode iframe",
+									);
 									console.log("Iframes detectados:", {
 										cardNumber: !!cardNumberIframe,
 										expiration: !!expirationIframe,
-										securityCode: !!securityCodeIframe
+										securityCode: !!securityCodeIframe,
 									});
 									if (cardNumberIframe) {
-										console.log("CardNumber iframe:", cardNumberIframe.style.cssText);
+										console.log(
+											"CardNumber iframe:",
+											cardNumberIframe.style.cssText,
+										);
 									}
 								}, 500);
 							}
@@ -237,7 +246,6 @@ const TransparentCheckoutForm = ({ bookingData, onSuccess, onError }) => {
 						},
 					},
 				});
-
 			} catch (error) {
 				console.error("Erro ao configurar o checkout:", error);
 				setFormError(error?.message || "Erro ao configurar o checkout.");
