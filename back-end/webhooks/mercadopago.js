@@ -102,9 +102,54 @@ export const handleMercadoPagoWebhook = async (req, res) => {
         // Mapeia o status do Mercado Pago para nosso status interno
         let paymentStatus = mapPaymentStatus(status);
 
-        // Se o pagamento foi rejeitado, não cria a reserva
+        // Se o pagamento foi rejeitado, salvar para auditoria e notificar usuário
         if (paymentStatus === "rejected") {
             console.log(`Pagamento ${paymentId} rejeitado. Reserva não será criada.`);
+
+            // Guarda no banco para análise posterior
+            try {
+                const FailedPayment = (await import("../domains/payments/failedPaymentModel.js")).default;
+                await FailedPayment.create({
+                    paymentId,
+                    status: paymentStatus,
+                    status_detail: paymentInfo?.status_detail || undefined,
+                    reason: paymentInfo?.status_detail || undefined,
+                    metadata,
+                    paymentInfo
+                });
+                console.log("Registro de pagamento rejeitado salvo em failedPayments.");
+            } catch (saveErr) {
+                console.error("Falha ao salvar failedPayment:", saveErr?.message || saveErr);
+            }
+
+            // Tenta notificar o usuário por email se disponível
+            try {
+                const nodemailer = (await import('nodemailer')).default;
+                const payerEmail = paymentInfo?.payer?.email || metadata?.userEmail || undefined;
+                if (payerEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
+                    const transporter = nodemailer.createTransport({
+                        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+                        port: process.env.SMTP_PORT || 587,
+                        secure: false,
+                        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+                    });
+
+                    const subject = `Pagamento rejeitado - DormeAqui (Pedido ${paymentId})`;
+                    const html = `<p>Olá,</p>
+                        <p>Seu pagamento (ID: ${paymentId}) foi rejeitado pelo Mercado Pago.</p>
+                        <p>Motivo: ${paymentInfo?.status_detail || 'Não informado'}</p>
+                        <p>Por favor tente outro cartão ou método de pagamento.</p>
+                        <p>Se precisar de ajuda, responda este e-mail.</p>`;
+
+                    await transporter.sendMail({ from: process.env.SMTP_USER, to: payerEmail, subject, html });
+                    console.log("Notificação de pagamento rejeitado enviada por email para:", payerEmail);
+                } else {
+                    console.log("Email do pagador não disponível ou SMTP não configurado; pulando notificação por email.");
+                }
+            } catch (mailErr) {
+                console.error("Falha ao enviar email de notificação:", mailErr?.message || mailErr);
+            }
+
             return res.status(200).json({ 
                 received: true, 
                 message: "Pagamento rejeitado, reserva não criada",

@@ -52,6 +52,20 @@ router.post("/capture/:paymentId", authenticateUser, captureAuthorizedPayment);
  */
 router.get("/test-config", testMercadoPagoConfig);
 
+// Admin: lista pagamentos rejeitados (failedPayments)
+router.get("/failed", authenticateUser, async (req, res) => {
+    try {
+        const FailedPayment = (await import("./failedPaymentModel.js")).default;
+        const page = Math.max(0, parseInt(req.query.page) || 0);
+        const limit = Math.min(100, parseInt(req.query.limit) || 50);
+        const items = await FailedPayment.find().sort({ receivedAt: -1 }).skip(page * limit).limit(limit);
+        return res.status(200).json({ success: true, data: items });
+    } catch (err) {
+        console.error("Erro ao listar failedPayments:", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 import transparentRoutes from "./transparentRoutes.js";
 import pixRoutes from "./pixRoutes.js";
 router.use(transparentRoutes);
