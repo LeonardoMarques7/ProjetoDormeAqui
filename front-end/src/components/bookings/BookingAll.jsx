@@ -89,7 +89,7 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 									{booking.place.title}
 								</p>
 								<span className="px-4 max-sm:hidden py-2 h-fit border rounded-md text-xs">
-									ID: {booking.place._id.slice(0, 8)}
+									ID: {booking._id.slice(0, 8)}
 								</span>
 							</div>
 							<div className="flex items-center gap-4">
@@ -116,7 +116,7 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 							<div className="flex flex-col max-sm:pb-4 flex-1">
 								<div className="flex items-baseline flex-col gap-1">
 									<span className="text-2xl font-normal text-gray-900">
-										R$ {booking.price},00
+										R$ {booking.price || booking.priceTotal},00
 									</span>
 									<div className="flex items-center gap-2">
 										<p className="font-light text-gray-700">

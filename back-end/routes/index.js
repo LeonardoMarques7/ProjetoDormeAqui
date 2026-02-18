@@ -17,6 +17,8 @@ router.use("/payments", PaymentRoutes);
 
 // Webhook do Mercado Pago (rota pública, sem autenticação)
 router.post("/webhook/mercadopago", handleMercadoPagoWebhook);
+router.post("/webhooks/mercadopago", handleMercadoPagoWebhook); // rota adicional solicitada
 router.get("/webhook/mercadopago", verifyWebhook);
+router.get("/webhooks/mercadopago", verifyWebhook); // health check também disponível no plural
 
 export default router;

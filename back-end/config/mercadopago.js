@@ -1,47 +1,40 @@
-import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
-import "dotenv/config";
+import axios from 'axios';
+import 'dotenv/config';
+import crypto from 'crypto';
 
-/**
- * Configuração do Mercado Pago
- * Inicializa o SDK com o access token do ambiente
- */
+// Lightweight Mercado Pago client using REST API to avoid SDK dependency
 
 // Valida se o token está configurado
 const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 
-/**
- * Valida o formato do token do Mercado Pago
- * @returns {Object} Resultado da validação
- */
 export const validateToken = () => {
     if (!accessToken) {
         return {
             valid: false,
-            error: "MERCADO_PAGO_ACCESS_TOKEN não está configurado",
-            details: "Adicione MERCADO_PAGO_ACCESS_TOKEN ao arquivo .env"
+            error: 'MERCADO_PAGO_ACCESS_TOKEN não está configurado',
+            details: 'Adicione MERCADO_PAGO_ACCESS_TOKEN ao arquivo .env'
         };
     }
 
-    const isTestToken = accessToken.startsWith("TEST-");
-    const isProdToken = accessToken.startsWith("APP_USR-");
+    const isTestToken = accessToken.startsWith('TEST-');
+    const isProdToken = accessToken.startsWith('APP_USR-');
     const tokenLength = accessToken.length;
 
-    // Log de configuração
-    console.log("🔧 Configurando Mercado Pago...");
-    console.log("Token presente: Sim");
-    console.log("Comprimento do token:", tokenLength, "caracteres");
-    console.log("Prefixo:", accessToken.substring(0, 10) + "...");
+    console.log('🔧 Configurando Mercado Pago (REST client)...');
+    console.log('Token presente: Sim');
+    console.log('Comprimento do token:', tokenLength, 'caracteres');
+    console.log('Prefixo:', accessToken.substring(0, 10) + '...');
 
     if (!isTestToken && !isProdToken) {
         return {
             valid: false,
-            error: "Token não começa com TEST- ou APP_USR-",
+            error: 'Token não começa com TEST- ou APP_USR-',
             details: `Token inválido: ${accessToken.substring(0, 20)}...`
         };
     }
     return {
         valid: true,
-        type: isTestToken ? "TESTE" : "PRODUÇÃO",
+        type: isTestToken ? 'TESTE' : 'PRODUÇÃO',
         length: tokenLength
     };
 };
@@ -49,109 +42,101 @@ export const validateToken = () => {
 // Executa validação inicial
 const validation = validateToken();
 if (!validation.valid) {
-    console.error("❌ ERRO CRÍTICO:", validation.error);
-    console.error("Detalhes:", validation.details);
+    console.error('❌ ERRO CRÍTICO:', validation.error);
+    console.error('Detalhes:', validation.details);
 } else {
-    console.log("✅ Token válido detectado");
-    console.log("Ambiente:", validation.type);
+    console.log('✅ Token válido detectado');
+    console.log('Ambiente:', validation.type);
 }
 
-const validToken = validation.valid ? accessToken : "INVALID_TOKEN";
+const validToken = validation.valid ? accessToken : 'INVALID_TOKEN';
 
-/**
- * Configuração do SDK Mercado Pago
- * Inclui opções adicionais para melhor compatibilidade
- */
-const mercadopagoConfig = new MercadoPagoConfig({
-    accessToken: validToken,
-    options: {
-        timeout: 30000, // Aumentado para 30 segundos para evitar ERR_CONNECTION_RESET
-        idempotencyKey: `dormeaqui-${Date.now()}-${Math.random().toString(36).substring(7)}`
+const api = axios.create({
+    baseURL: process.env.MERCADO_PAGO_API_URL || 'https://api.mercadopago.com',
+    timeout: 30000,
+    headers: {
+        Authorization: `Bearer ${validToken}`,
+        'Content-Type': 'application/json'
     }
 });
 
-console.log("🔧 MercadoPagoConfig criado com timeout de 30s");
+export const preferenceClient = {
+    create: async ({ body }) => {
+        const res = await api.post('/checkout/preferences', body);
+        return res.data;
+    }
+};
 
+export const paymentClient = {
+    create: async ({ body }) => {
+        const idempotencyKey = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const res = await api.post('/v1/payments', body, { headers: { 'X-Idempotency-Key': idempotencyKey } });
+        return res.data;
+    },
+    get: async ({ id }) => {
+        const res = await api.get(`/v1/payments/${id}`);
+        return res.data;
+    },
+    capture: async ({ id }) => {
+        const res = await api.post(`/v1/payments/${id}/capture`);
+        return res.data;
+    }
+};
 
-// Clientes específicos para cada funcionalidade
-export const preferenceClient = new Preference(mercadopagoConfig);
-export const paymentClient = new Payment(mercadopagoConfig);
-
-/**
- * Cria uma preferência com back_urls (função auxiliar para debug)
- * @param {Object} preferenceData - Dados da preferência
- * @returns {Promise<Object>} Resposta da API
- */
 export const createPreferenceWithBackUrls = async (preferenceData) => {
-    console.log("🚀 [SDK] Criando preferência com back_urls");
-    console.log("🚀 [SDK] Dados enviados:", JSON.stringify(preferenceData, null, 2));
-    
+    console.log('🚀 [REST] Criando preferência com back_urls');
+    console.log('🚀 [REST] Dados enviados:', JSON.stringify(preferenceData, null, 2));
     try {
         const response = await preferenceClient.create({ body: preferenceData });
-        
-        console.log("✅ [SDK] Preferência criada:");
-        console.log("✅ [SDK] ID:", response.id);
-        console.log("✅ [SDK] back_urls na resposta:", JSON.stringify(response.back_urls, null, 2));
-        console.log("✅ [SDK] navigation:", JSON.stringify(response.navigation, null, 2));
-        
+        console.log('✅ [REST] Preferência criada:');
+        console.log('✅ [REST] ID:', response.id);
+        console.log('✅ [REST] back_urls na resposta:', JSON.stringify(response.back_urls, null, 2));
+        console.log('✅ [REST] navigation:', JSON.stringify(response.navigation, null, 2));
         return response;
     } catch (error) {
-        console.error("❌ [SDK] Erro ao criar preferência:");
-        console.error("❌ [SDK] Mensagem:", error.message);
-        console.error("❌ [SDK] Status:", error.status);
-        console.error("❌ [SDK] Response data:", error.response?.data);
+        console.error('❌ [REST] Erro ao criar preferência:');
+        console.error('❌ [REST] Mensagem:', error.message);
+        console.error('❌ [REST] Status:', error.response?.status);
+        console.error('❌ [REST] Response data:', error.response?.data);
         throw error;
     }
 };
 
-/**
- * Testa se o token do Mercado Pago está funcionando
- * Faz uma chamada simples à API para verificar autenticação
- * @returns {Promise<Object>} Resultado do teste
- */
 export const testToken = async () => {
     try {
-        // Tenta criar uma preferência de teste mínima
         const testPreference = {
             items: [
                 {
-                    title: "Teste de Configuração",
+                    title: 'Teste de Configuração',
                     quantity: 1,
-                    currency_id: "BRL",
-                    unit_price: 1.00
+                    currency_id: 'BRL',
+                    unit_price: 1.0
                 }
             ]
         };
-
         const response = await preferenceClient.create({ body: testPreference });
-        
         return {
             success: true,
-            message: "Token válido e funcionando",
+            message: 'Token válido e funcionando',
             preferenceId: response.id,
             initPoint: response.init_point
         };
     } catch (error) {
-        console.error("❌ Erro ao testar token:", error);
-        
-        // Analisa o erro específico
+        console.error('❌ Erro ao testar token (REST):', error?.response?.data || error.message);
         let errorDetails = {
             message: error.message,
-            status: error.status || error.statusCode,
-            code: error.code
+            status: error.response?.status,
+            data: error.response?.data
         };
-
-        // Se for erro de autenticação
-        if (error.status === 403 || error.message?.includes("UNAUTHORIZED")) {
-            errorDetails.suggestion = "Token inválido ou expirado. Gere um novo token no dashboard do Mercado Pago.";
+        if (error.response?.status === 403 || error.message?.includes('UNAUTHORIZED')) {
+            errorDetails.suggestion = 'Token inválido ou expirado. Gere um novo token no dashboard do Mercado Pago.';
         }
-
         return {
             success: false,
-            message: "Falha na autenticação com Mercado Pago",
+            message: 'Falha na autenticação com Mercado Pago',
             error: errorDetails
         };
     }
 };
 
-export default mercadopagoConfig;
+export default api;

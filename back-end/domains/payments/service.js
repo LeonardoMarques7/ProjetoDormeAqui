@@ -66,7 +66,8 @@ export const createCheckoutPreference = async ({
     checkIn,
     checkOut,
     guests,
-    frontendUrl
+    frontendUrl,
+    payerEmail
 }) => {
     console.log("🔍 [SERVICE] Iniciando criação de preferência");
     console.log("🔍 [SERVICE] Parâmetros:", {
@@ -154,6 +155,8 @@ export const createCheckoutPreference = async ({
     console.log("  failure:", failureUrl);
     console.log("  pending:", pendingUrl);
 
+    const itemCategoryId = process.env.MERCADO_PAGO_ITEM_CATEGORY_ID || "lodging";
+
     // Cria a preferência no Mercado Pago
     // NOTA: O Mercado Pago SDK pode não estar passando back_urls corretamente
     // Vamos tentar diferentes formatos
@@ -166,11 +169,13 @@ export const createCheckoutPreference = async ({
                 quantity: 1,
                 currency_id: "BRL",
                 unit_price: Number(totalPrice),
-                picture_url: place.photos?.[0] || undefined
+                picture_url: place.photos?.[0] || undefined,
+                category_id: itemCategoryId
             }
         ],
+        payer: payerEmail ? { email: payerEmail } : undefined,
         // Formato 1: back_urls direto no objeto raiz
-        back_urls: {
+          back_urls: {
             success: successUrl,
             failure: failureUrl,
             pending: pendingUrl
@@ -291,38 +296,67 @@ export const getPaymentInfo = async (paymentId) => {
  * @returns {Promise<Object>} Resultado do processamento
  */
 export const processPaymentNotification = async (paymentData) => {
-    const { data } = paymentData;
-    
-    if (!data || !data.id) {
+    const incomingId = paymentData?.data?.id || paymentData?.id || paymentData?.resource;
+    if (!incomingId) {
         const error = new Error("Dados de pagamento inválidos");
         error.statusCode = 400;
         throw error;
     }
-    
+
     // Busca informações detalhadas do pagamento
-    const paymentInfo = await getPaymentInfo(data.id);
-    
-    if (!paymentInfo || !paymentInfo.metadata) {
+    const paymentInfo = await getPaymentInfo(incomingId);
+    if (!paymentInfo) {
         const error = new Error("Não foi possível obter informações do pagamento");
         error.statusCode = 500;
         throw error;
     }
-    
-    const { metadata } = paymentInfo;
+
     const paymentStatus = paymentInfo.status; // approved, pending, rejected, etc.
-    
+
+    // Reconstrói metadata de forma robusta a partir de diferentes fontes
+    const rawMeta = paymentInfo.metadata || {};
+    let userId = rawMeta.userId || rawMeta.user || undefined;
+    let accommodationId = rawMeta.accommodationId || rawMeta.accommodation || undefined;
+    let checkIn = rawMeta.checkIn || rawMeta.check_in || undefined;
+    let checkOut = rawMeta.checkOut || rawMeta.check_out || undefined;
+    let guests = rawMeta.guests || rawMeta.numGuests || undefined;
+    let nights = rawMeta.nights || undefined;
+    let totalPrice = rawMeta.totalPrice || rawMeta.total || undefined;
+    let pricePerNight = rawMeta.pricePerNight || undefined;
+
+    // Fallback a partir de external_reference e additional_info
+    if (!accommodationId && paymentInfo.external_reference) {
+        const match = String(paymentInfo.external_reference).match(/booking_\d+_(\w+)/);
+        if (match) accommodationId = match[1];
+    }
+    if (!accommodationId && paymentInfo.additional_info?.items?.[0]?.id) {
+        accommodationId = paymentInfo.additional_info.items[0].id;
+    }
+    if (!totalPrice && paymentInfo.transaction_amount) {
+        totalPrice = paymentInfo.transaction_amount;
+    }
+
+    // Normaliza tipos
+    const parsedTotal = totalPrice !== undefined ? parseFloat(totalPrice) : NaN;
+    const parsedGuests = guests !== undefined ? parseInt(guests) : NaN;
+    const parsedNights = nights !== undefined ? parseInt(nights) : NaN;
+    const parsedPricePerNight = pricePerNight !== undefined ? parseFloat(pricePerNight) : NaN;
+
+    const parsedCheckIn = checkIn ? new Date(checkIn) : undefined;
+    const parsedCheckOut = checkOut ? new Date(checkOut) : undefined;
+
     return {
-        paymentId: data.id,
+        paymentId: String(incomingId),
         status: paymentStatus,
         metadata: {
-            userId: metadata.userId,
-            accommodationId: metadata.accommodationId,
-            checkIn: new Date(metadata.checkIn),
-            checkOut: new Date(metadata.checkOut),
-            guests: parseInt(metadata.guests),
-            nights: parseInt(metadata.nights),
-            totalPrice: parseFloat(metadata.totalPrice),
-            pricePerNight: parseFloat(metadata.pricePerNight)
+            userId,
+            accommodationId,
+            checkIn: parsedCheckIn,
+            checkOut: parsedCheckOut,
+            guests: isNaN(parsedGuests) ? undefined : parsedGuests,
+            nights: isNaN(parsedNights) ? undefined : parsedNights,
+            totalPrice: isNaN(parsedTotal) ? undefined : parsedTotal,
+            pricePerNight: isNaN(parsedPricePerNight) ? undefined : parsedPricePerNight
         },
         paymentInfo
     };

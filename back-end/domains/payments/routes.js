@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createPaymentPreference, checkPaymentStatus, testMercadoPagoConfig } from "./controller.js";
+import { createPaymentPreference, checkPaymentStatus, testMercadoPagoConfig, captureAuthorizedPayment } from "./controller.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 
 
@@ -41,10 +41,45 @@ router.post("/create", authenticateUser, createPaymentPreference);
 router.get("/status/:paymentId", authenticateUser, checkPaymentStatus);
 
 /**
+ * Captura pagamento autorizado
+ */
+router.post("/capture/:paymentId", authenticateUser, captureAuthorizedPayment);
+
+/**
  * GET /api/payments/test-config
  * Testa a configuração do Mercado Pago (token, autenticação)
  * Endpoint público - não requer autenticação
  */
 router.get("/test-config", testMercadoPagoConfig);
+
+// Admin: lista pagamentos rejeitados (failedPayments)
+router.get("/failed", authenticateUser, async (req, res) => {
+    try {
+        const FailedPayment = (await import("./failedPaymentModel.js")).default;
+        const page = Math.max(0, parseInt(req.query.page) || 0);
+        const limit = Math.min(100, parseInt(req.query.limit) || 50);
+        const items = await FailedPayment.find().sort({ receivedAt: -1 }).skip(page * limit).limit(limit);
+        return res.status(200).json({ success: true, data: items });
+    } catch (err) {
+        console.error("Erro ao listar failedPayments:", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// Retry endpoint para um failedPayment (admin)
+router.post('/failed/:paymentId/retry', authenticateUser, async (req, res) => {
+    try {
+        const { retryFailedPayment } = await import('./controller.js');
+        return await retryFailedPayment(req, res);
+    } catch (err) {
+        console.error('Erro no endpoint de retry:', err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+import transparentRoutes from "./transparentRoutes.js";
+import pixRoutes from "./pixRoutes.js";
+router.use(transparentRoutes);
+router.use(pixRoutes);
 
 export default router;

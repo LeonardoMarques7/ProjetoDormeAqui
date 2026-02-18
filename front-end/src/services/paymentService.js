@@ -67,7 +67,7 @@ export const createCheckoutPreference = async (bookingData) => {
                 case 500:
                     throw new Error(data.message || "Erro interno do servidor. Tente novamente.");
                 default:
-                    throw new Error(data.message || "Erro ao processar pagamento. Tente novamente.");
+                    throw new Error(data.message || "Erro ao processar pagamento. PaymentService.");
             }
         }
         
