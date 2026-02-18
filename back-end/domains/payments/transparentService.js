@@ -3,25 +3,47 @@ import Place from "../places/model.js";
 import Booking from "../bookings/model.js";
 
 export const processTransparentPayment = async (data, user) => {
-  const {
-    accommodationId,
-    checkIn,
-    checkOut,
-    guests,
-    token,
-    email,
-    paymentMethodId,
-    issuerId,
-    installments,
-    identificationType,
-    identificationNumber,
-    fullName,
-    phoneAreaCode,
-    phoneNumber,
-    zipCode,
-    street,
-    streetNumber,
-  } = data;
+  // ==============================
+  // SUPORTE CAMELCASE OU PAYER
+  // ==============================
+  const payer = data.payer || {};
+
+  const accommodationId = data.accommodationId;
+  const checkIn = data.checkIn;
+  const checkOut = data.checkOut;
+  const guests = data.guests;
+  const token = data.token;
+
+  const email = data.email || payer.email;
+
+  const paymentMethodId = data.paymentMethodId || data.payment_method_id;
+  const issuerId = data.issuerId || data.issuer_id;
+  const installments = data.installments;
+
+  const firstName = data.firstName || payer.first_name;
+  const lastName = data.lastName || payer.last_name;
+
+  const identificationType =
+    data.identificationType || payer.identification?.type;
+
+  const identificationNumber =
+    data.identificationNumber || payer.identification?.number;
+
+  const phoneAreaCode =
+    data.phoneAreaCode || payer.phone?.area_code;
+
+  const phoneNumber =
+    data.phoneNumber || payer.phone?.number;
+
+  const streetNumber =
+    data.streetNumber || payer.address?.street_number;
+
+  const zipCode = data.zipCode || payer.address?.zip_code;
+  const street = data.street || payer.address?.street_name;
+
+  const fullName =
+    data.fullName ||
+    `${firstName || ""} ${lastName || ""}`.trim();
 
   // ==============================
   // VALIDACOES BASICAS
@@ -34,22 +56,15 @@ export const processTransparentPayment = async (data, user) => {
     !token ||
     !email ||
     !paymentMethodId ||
-    !fullName ||
     !identificationNumber
   ) {
-    return { success: false, message: "Dados incompletos para pagamento.", data: data };
+    return {
+      success: false,
+      message: "Dados incompletos para pagamento.",
+      data,
+    };
   }
 
-  // ==============================
-  // SPLIT NOME COMPLETO
-  // ==============================
-  const nameParts = String(fullName).trim().split(" ");
-  const firstName = nameParts.shift() || fullName;
-  const lastName = nameParts.join(" ") || ".";
-
-  // ==============================
-  // BUSCA ACOMODACAO
-  // ==============================
   const place = await Place.findById(accommodationId);
   if (!place) {
     return { success: false, message: "Acomodação não encontrada." };
@@ -67,16 +82,15 @@ export const processTransparentPayment = async (data, user) => {
 
   const nights =
     Math.ceil((checkoutDate - checkinDate) / (1000 * 60 * 60 * 24)) || 1;
+
   const totalPrice = Number(place.price) * nights;
 
-  const itemCategoryId =
-    process.env.MERCADO_PAGO_ITEM_CATEGORY_ID || "lodging";
   const externalReference = `booking_${Date.now()}_${accommodationId}`;
 
   if (!process.env.MERCADO_PAGO_WEBHOOK_URL) {
     return {
       success: false,
-      message: "MERCADO_PAGO_WEBHOOK_URL nao configurado para webhook.",
+      message: "MERCADO_PAGO_WEBHOOK_URL nao configurado.",
     };
   }
 
@@ -92,14 +106,14 @@ export const processTransparentPayment = async (data, user) => {
     return {
       success: false,
       message:
-        "Datas conflitantes com reservas existentes. As datas selecionadas não estão disponíveis.",
+        "Datas conflitantes com reservas existentes.",
       status: "conflict",
     };
   }
 
   try {
     // ==============================
-    // PAYMENT DATA CORRIGIDO
+    // PAYMENT DATA MP
     // ==============================
     const paymentData = {
       transaction_amount: Number(totalPrice),
@@ -120,6 +134,9 @@ export const processTransparentPayment = async (data, user) => {
         phone: {
           area_code: phoneAreaCode || "11",
           number: phoneNumber || "999999999",
+        },
+        address: {
+          street_number: streetNumber,
         },
       },
 
@@ -166,7 +183,6 @@ export const processTransparentPayment = async (data, user) => {
       capture: false,
     };
 
-
     console.log(
       "🔁 Enviando paymentData MP:",
       JSON.stringify(paymentData, null, 2)
@@ -178,16 +194,12 @@ export const processTransparentPayment = async (data, user) => {
 
     const paymentStatus = String(response.status).toLowerCase();
 
-    // ==============================
-    // STATUS HANDLING CORRETO
-    // ==============================
-
     if (paymentStatus === "approved") {
       return {
         success: true,
         message:
-          "Pagamento aprovado. Reserva será criada após confirmação via webhook.",
-        status: response.status,
+          "Pagamento aprovado. Reserva será criada após webhook.",
+        status: paymentStatus,
         payment: response,
       };
     }
@@ -196,7 +208,7 @@ export const processTransparentPayment = async (data, user) => {
       return {
         success: false,
         message:
-          "Pagamento autorizado e aguardando captura. Reserva será criada após webhook.",
+          "Pagamento autorizado aguardando captura.",
         status: paymentStatus,
         payment: response,
       };
@@ -206,7 +218,7 @@ export const processTransparentPayment = async (data, user) => {
       return {
         success: false,
         message:
-          "Pagamento pendente. Reserva será criada após confirmação do pagamento.",
+          "Pagamento pendente.",
         status: paymentStatus,
         payment: response,
       };
@@ -215,7 +227,7 @@ export const processTransparentPayment = async (data, user) => {
     if (paymentStatus === "in_process") {
       return {
         success: false,
-        message: "Pagamento em análise pelo Mercado Pago.",
+        message: "Pagamento em análise.",
         status: paymentStatus,
         status_detail: response.status_detail,
         payment: response,

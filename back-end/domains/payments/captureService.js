@@ -13,7 +13,11 @@ export const capturePayment = async (paymentId) => {
       captured: response.captured,
     });
 
-    return response;
+    return {
+      success: true,
+      status: response.status,
+      payment: response,
+    };
   } catch (error) {
     console.error("❌ MP CAPTURE ERROR:", error.response?.data || error.message);
     throw error;
