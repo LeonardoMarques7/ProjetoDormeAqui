@@ -121,14 +121,14 @@ export const processTransparentPayment = async (data, user) => {
       notification_url: process.env.MERCADO_PAGO_WEBHOOK_URL,
       external_reference: externalReference,
       metadata: {
-        userId: user?._id?.toString() || "undefined",
-        accommodationId: accommodationId.toString(),
-        guests,
-        nights,
-        totalPrice,
-        pricePerNight,
-        checkIn,
-        checkOut,
+        userId: user?._id?.toString() || "",
+        accommodationId: accommodationId?.toString() || "",
+        guests: String(guests),
+        nights: String(nights),
+        totalPrice: String(totalPrice),
+        pricePerNight: String(pricePerNight),
+        checkIn: checkIn,
+        checkOut: checkOut
       },
       capture: false,
     };

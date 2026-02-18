@@ -24,18 +24,21 @@ export const handleMercadoPagoWebhook = async (req, res) => {
             console.error("Falha ao gravar log de notificação:", logErr?.message || logErr);
         }
         
-        const { type, data } = req.body;
+        // Compatibilidade com diferentes formatos de webhook do Mercado Pago
+        const mpType = req.body.type || req.body.topic || (req.body.action ? String(req.body.action).split('.')[0] : undefined);
+        const data = req.body.data || {};
+        const incomingPaymentId = data.id || req.body.id || req.body.resource || (req.body?.data?.id);
         
         // Valida o tipo de notificação
-        if (type !== "payment") {
-            console.log(`Tipo de notificação ignorado: ${type}`);
+        if (!mpType || String(mpType).toLowerCase() !== "payment") {
+            console.log(`Tipo de notificação ignorado: ${mpType}`);
             return res.status(200).json({ 
                 received: true, 
                 message: "Notificação recebida mas não processada (tipo não é payment)" 
             });
         }
         
-        if (!data || !data.id) {
+        if (!incomingPaymentId) {
             console.log("Notificação sem ID de pagamento");
             return res.status(200).json({ 
                 received: true, 
@@ -43,8 +46,11 @@ export const handleMercadoPagoWebhook = async (req, res) => {
             });
         }
         
+        // Normaliza payload para processPaymentNotification
+        const normalizedPayload = { data: { id: incomingPaymentId } };
+        
         // Processa a notificação de pagamento
-        const paymentData = await processPaymentNotification(req.body);
+        const paymentData = await processPaymentNotification(normalizedPayload);
         
         const { 
             paymentId, 
@@ -129,16 +135,22 @@ export const handleMercadoPagoWebhook = async (req, res) => {
             return res.status(200).json({ received: true, message: "Pagamento não aprovado - aguardando confirmação via webhook", paymentStatus });
         }
 
+        // Validação de metadata antes de criar reserva
+        if (!userId || !accommodationId || typeof totalPrice === 'undefined' || totalPrice === null || Number.isNaN(Number(totalPrice))) {
+            console.error("Metadata incompleta ou inválida - não criando reserva", { userId, accommodationId, totalPrice, metadata });
+            return res.status(200).json({ received: true, message: "Metadata incompleta; reserva não criada", paymentStatus, metadata });
+        }
+
         // Cria a reserva somente quando pagamento estiver aprovado
         const newBooking = new Booking({
             place: accommodationId,
             user: userId,
-            pricePerNight: pricePerNight,
-            totalPrice: totalPrice,
+            pricePerNight: Number(pricePerNight) || 0,
+            totalPrice: Number(totalPrice),
             checkIn: checkIn,
             checkOut: checkOut,
-            guests: guests,
-            nights: nights,
+            guests: Number(guests) || 1,
+            nights: Number(nights) || 1,
             paymentStatus: "approved",
             mercadopagoPaymentId: paymentId.toString()
         });
