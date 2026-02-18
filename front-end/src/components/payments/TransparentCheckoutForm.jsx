@@ -22,7 +22,6 @@ export default function TransparentCheckoutForm({
 	const [formError, setFormError] = useState("");
 
 	// 🔐 ANTIFRAUDE
-	// refs inputs antifraude
 	const fullNameRef = useRef(null);
 	const phoneRef = useRef(null);
 	const zipCodeRef = useRef(null);
@@ -33,7 +32,6 @@ export default function TransparentCheckoutForm({
 	useEffect(() => {
 		if (!window.MercadoPago) return;
 
-		// ⚠️ se já existe cardForm → destruir antes
 		if (cardFormRef.current) {
 			try {
 				cardFormRef.current.unmount();
@@ -41,7 +39,6 @@ export default function TransparentCheckoutForm({
 			cardFormRef.current = null;
 		}
 
-		// ⚠️ limpa DOM dos secure fields (IMPORTANTE)
 		const ids = [
 			"form-checkout__cardNumber",
 			"form-checkout__expirationDate",
@@ -114,27 +111,47 @@ export default function TransparentCheckoutForm({
 						if (!data.token) throw new Error("Token não gerado");
 
 						const fullName = fullNameRef.current?.value?.trim();
-						const phone = phoneRef.current?.value?.trim();
+						const phone = phoneRef.current?.value?.replace(/\D/g, "");
 						const streetNumber = streetNumberRef.current?.value?.trim();
+						const cpf = data.identificationNumber;
+						const emailValue = email?.trim();
 
-						if (!fullName || !phone || !streetNumber) {
+						if (!fullName || !phone || !streetNumber || !cpf || !emailValue) {
 							setFormError("Preencha todos os dados obrigatórios");
 							return;
 						}
 
+						// separa nome e sobrenome
+						const [firstName, ...rest] = fullName.split(" ");
+						const lastName = rest.join(" ") || " ";
+
 						const payload = {
 							...bookingData,
-							fullName,
-							phoneAreaCode: phone.slice(0, 2),
-							phoneNumber: phone.slice(2),
-							streetNumber,
+
 							token: data.token,
-							paymentMethodId: data.paymentMethodId,
-							issuerId: data.issuerId || null,
+							payment_method_id: data.paymentMethodId,
+							issuer_id: data.issuerId || null,
 							installments: Number(data.installments) || 1,
-							identificationType: data.identificationType,
-							identificationNumber: data.identificationNumber,
-							email,
+
+							payer: {
+								email: emailValue,
+								first_name: firstName,
+								last_name: lastName,
+
+								identification: {
+									type: data.identificationType,
+									number: cpf,
+								},
+
+								phone: {
+									area_code: phone.slice(0, 2),
+									number: phone.slice(2),
+								},
+
+								address: {
+									street_number: streetNumber,
+								},
+							},
 						};
 
 						console.log("📤 Payload enviado:", payload);
@@ -146,6 +163,7 @@ export default function TransparentCheckoutForm({
 
 						if (response?.success) onSuccess(response);
 						else throw new Error(response?.message || "Pagamento não aprovado");
+						console.log("✅ Resposta do servidor:", response);
 					} catch (err) {
 						const message =
 							err?.response?.data?.message ||
@@ -179,10 +197,11 @@ export default function TransparentCheckoutForm({
 		>
 			<h2 className="text-xl font-semibold">Pagamento</h2>
 
-			{/* NOME */}
+			{/* NOME COMPLETO - ID movido para cá para o MP capturar corretamente */}
 			<div className="flex flex-col gap-2">
 				<label className="text-sm font-medium">Nome completo</label>
 				<input
+					id="form-checkout__cardholderName"
 					ref={fullNameRef}
 					className="w-full p-3 border rounded-xl h-12"
 					required
@@ -267,23 +286,15 @@ export default function TransparentCheckoutForm({
 				</div>
 			</div>
 
-			{/* HIDDEN MP */}
-			<input
-				id="form-checkout__cardholderName"
-				value={fullNameRef.current?.value || ""}
-				hidden
-				readOnly
-			/>
-
+			{/* HIDDEN MP - Email com defaultValue e selects necessários */}
 			<input
 				id="form-checkout__cardholderEmail"
-				value={email}
-				hidden
-				readOnly
+				defaultValue={email}
+				style={{ display: "none" }}
 			/>
 
-			<select id="form-checkout__issuer" hidden />
-			<select id="form-checkout__installments" hidden />
+			<select id="form-checkout__issuer" style={{ display: "none" }} />
+			<select id="form-checkout__installments" style={{ display: "none" }} />
 
 			{formError && <div className="text-red-600 text-sm">{formError}</div>}
 
