@@ -37,7 +37,7 @@ export const processTransparentPayment = async (data, user) => {
     !fullName ||
     !identificationNumber
   ) {
-    return { success: false, message: "Dados incompletos para pagamento." };
+    return { success: false, message: "Dados incompletos para pagamento.", data: data };
   }
 
   // ==============================
@@ -117,6 +117,10 @@ export const processTransparentPayment = async (data, user) => {
           type: identificationType || "CPF",
           number: identificationNumber,
         },
+        phone: {
+          area_code: phoneAreaCode || "11",
+          number: phoneNumber || "999999999",
+        },
       },
 
       additional_info: {
@@ -128,9 +132,9 @@ export const processTransparentPayment = async (data, user) => {
             number: phoneNumber || "999999999",
           },
           address: {
-            zip_code: zipCode || "00000000",
-            street_name: street || "Rua",
-            street_number: streetNumber || 0,
+            zip_code: zipCode,
+            street_name: place.address?.street || street,
+            street_number: streetNumber,
           },
         },
         items: [
@@ -140,7 +144,7 @@ export const processTransparentPayment = async (data, user) => {
             description: place.description,
             quantity: 1,
             unit_price: Number(totalPrice),
-            category_id: itemCategoryId,
+            category_id: "lodging",
           },
         ],
       },
@@ -149,18 +153,19 @@ export const processTransparentPayment = async (data, user) => {
       external_reference: externalReference,
 
       metadata: {
-        userId: user?._id?.toString() || "",
+        userId: user?._id?.toString(),
         accommodationId: accommodationId.toString(),
+        guests,
+        nights,
+        totalPrice,
+        pricePerNight: place.price,
         checkIn,
         checkOut,
-        guests: guests.toString(),
-        nights: nights.toString(),
-        totalPrice: totalPrice.toString(),
-        pricePerNight: place.price.toString(),
       },
 
       capture: false,
     };
+
 
     console.log(
       "🔁 Enviando paymentData MP:",
