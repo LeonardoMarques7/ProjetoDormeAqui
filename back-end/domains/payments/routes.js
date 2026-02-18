@@ -66,6 +66,17 @@ router.get("/failed", authenticateUser, async (req, res) => {
     }
 });
 
+// Retry endpoint para um failedPayment (admin)
+router.post('/failed/:paymentId/retry', authenticateUser, async (req, res) => {
+    try {
+        const { retryFailedPayment } = await import('./controller.js');
+        return await retryFailedPayment(req, res);
+    } catch (err) {
+        console.error('Erro no endpoint de retry:', err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 import transparentRoutes from "./transparentRoutes.js";
 import pixRoutes from "./pixRoutes.js";
 router.use(transparentRoutes);
