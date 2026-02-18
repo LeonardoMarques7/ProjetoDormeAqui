@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import logoPrimary from "@/assets/logo__primary.png";
-import logoPrimaryIcon from "@/assets/logo__primary__mobile.png";
+import logoPrimary from "@/assets/logos/logo__primary.png";
+import logoPrimaryIcon from "@/assets/logos/logo__primary.png";
 import { Link, useLocation } from "react-router-dom";
 import {
 	DropdownMenu,
@@ -194,7 +194,7 @@ const AppSidebar = () => {
 							<img
 								src={logoPrimaryIcon}
 								alt="Logo DormeAqui"
-								className="h-20 object-contain transition-all w-full duration-300 hidden group-data-[collapsible=icon]:flex"
+								className="h-20  transition-all w-full duration-300 hidden group-data-[collapsible=icon]:flex"
 							/>
 						</TooltipTrigger>
 						<TooltipContent side="right" className="ml-2" align="center">
@@ -204,7 +204,7 @@ const AppSidebar = () => {
 					<img
 						src={logoPrimary}
 						alt="Logo DormeAqui"
-						className="h-8 transition-all duration-300 group-data-[collapsible=icon]:hidden"
+						className="object-contain transition-all duration-300 group-data-[collapsible=icon]:hidden"
 					/>
 				</Link>
 			</SidebarHeader>

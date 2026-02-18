@@ -32,7 +32,7 @@ import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 
 import { useMessage } from "@/components/contexts/MessageContext";
 
-import logo__primary from "@/assets/logo__primary.png";
+import logo__primary from "@/assets/logos/logo__primary.png";
 import { useUserContext } from "@/components/contexts/UserContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
