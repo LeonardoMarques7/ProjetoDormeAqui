@@ -142,27 +142,26 @@ export const handleMercadoPagoWebhook = async (req, res) => {
         }
 
         // Cria a reserva somente quando pagamento estiver aprovado
-        const newBooking = new Booking({
+        // Use createFromPayment for transactional checks (usuario, conflitos, intervalos)
+        const createdBooking = await Booking.createFromPayment({
             place: accommodationId,
             user: userId,
             pricePerNight: Number(pricePerNight) || 0,
-            totalPrice: Number(totalPrice),
-            checkIn: checkIn,
-            checkOut: checkOut,
+            priceTotal: Number(totalPrice),
+            checkin: checkIn,
+            checkout: checkOut,
             guests: Number(guests) || 1,
             nights: Number(nights) || 1,
-            paymentStatus: "approved",
-            mercadopagoPaymentId: paymentId.toString()
+            mercadopagoPaymentId: paymentId.toString(),
+            paymentStatus: "approved"
         });
 
-        await newBooking.save();
-
-        console.log(`Reserva criada com sucesso: ${newBooking._id} (Status: approved)`);
+        console.log(`Reserva criada com sucesso: ${createdBooking._id} (Status: approved)`);
 
         return res.status(200).json({ 
             received: true, 
             message: "Reserva criada com sucesso",
-            bookingId: newBooking._id,
+            bookingId: createdBooking._id,
             paymentStatus: "approved"
         });
         
