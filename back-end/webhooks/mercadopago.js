@@ -135,10 +135,15 @@ export const handleMercadoPagoWebhook = async (req, res) => {
                     });
 
                     const subject = `Pagamento rejeitado - DormeAqui (Pedido ${paymentId})`;
+                    const frontendUrl = (process.env.FRONTEND_URL && process.env.FRONTEND_URL.replace(/\/$/, '')) || 'http://localhost:5173';
+                    const retryLink = `${frontendUrl}/payment/retry?paymentId=${encodeURIComponent(paymentId)}`;
+
                     const html = `<p>Olá,</p>
                         <p>Seu pagamento (ID: ${paymentId}) foi rejeitado pelo Mercado Pago.</p>
                         <p>Motivo: ${paymentInfo?.status_detail || 'Não informado'}</p>
-                        <p>Por favor tente outro cartão ou método de pagamento.</p>
+                        <p>Você pode tentar novamente clicando no link abaixo:</p>
+                        <p><a href="${retryLink}">${retryLink}</a></p>
+                        <p>Ou tente outro cartão/metodo de pagamento no checkout.</p>
                         <p>Se precisar de ajuda, responda este e-mail.</p>`;
 
                     await transporter.sendMail({ from: process.env.SMTP_USER, to: payerEmail, subject, html });

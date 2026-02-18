@@ -122,6 +122,7 @@ export const processTransparentPayment = async (data, user) => {
       external_reference: externalReference,
       metadata: {
         userId: user?._id?.toString() || "",
+        userEmail: user?.email || email || "",
         accommodationId: accommodationId?.toString() || "",
         guests: String(guests),
         nights: String(nights),
