@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import logoPrimary from "@/assets/logo__primary.png";
-import logoSecondary from "@/assets/logo__secondary.png";
+import logoPrimary from "@/assets/logos/logo__primary.png";
+import logoSecondary from "@/assets/logos/logo__secondary.png";
 import { Link, useLocation } from "react-router-dom";
 import MenuBar from "./MenuBar";
 
@@ -66,7 +66,7 @@ const Header = ({ active }) => {
 					<img
 						src={getLogoSrc()}
 						alt="Logo DormeAqui"
-						className="h-6 md:h-10 transition-all duration-300"
+						className=" transition-all object-cover duration-300"
 					/>
 				</Link>
 				<MenuBar active={active} />
