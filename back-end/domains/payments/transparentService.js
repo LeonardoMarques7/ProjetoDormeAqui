@@ -84,12 +84,13 @@ export const processTransparentPayment = async (data, user) => {
     // PREPARAR PAYMENT DATA MP
     // ==============================
     const externalReference = `booking_${Date.now()}_${accommodationId}`;
+    const isDebit = String(paymentMethodId).toLowerCase().includes("debit");
 
     const paymentData = {
       transaction_amount: totalPrice,
       token,
       description: `Reserva em ${place.title}`,
-      installments,
+      installments: isDebit ? 1 : installments,
       payment_method_id: paymentMethodId,
       issuer_id: issuerId,
       payer: {
@@ -131,7 +132,8 @@ export const processTransparentPayment = async (data, user) => {
         checkIn: checkIn,
         checkOut: checkOut
       },
-      capture: false,
+      // débito: captura imediata; crédito: fluxo dois passos (authorize → capture via webhook)
+      capture: !isDebit,
     };
 
     console.log("🔁 Enviando paymentData MP:", JSON.stringify(paymentData, null, 2));

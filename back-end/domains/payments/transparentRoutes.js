@@ -15,7 +15,7 @@ const authenticateUser = async (req, res, next) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Usuário não autenticado. Faça login para continuar.",
+      message: "Usuário não autenticado. Faça login para continuar. transparentRoutes",
       error: error.message,
     });
   }

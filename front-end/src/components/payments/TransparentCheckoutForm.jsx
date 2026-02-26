@@ -3,13 +3,13 @@ import axios from "axios";
 import React from "react";
 import { useUserContext } from "@/components/contexts/UserContext";
 
-export const api = axios.create({
-	baseURL: import.meta.env.VITE_API_URL,
-});
+// Usa axios global (withCredentials + Authorization já configurados em main.jsx)
+const api = axios;
 
 export default function TransparentCheckoutForm({
 	bookingData,
 	amountValue = 1,
+	paymentMethod = "credit",
 	onSuccess,
 	onError,
 }) {
@@ -195,7 +195,9 @@ export default function TransparentCheckoutForm({
 			id="form-checkout"
 			className="max-w-md mx-auto bg-white p-6 rounded-2xl shadow space-y-4"
 		>
-			<h2 className="text-xl font-semibold">Pagamento</h2>
+			<h2 className="text-xl font-semibold">
+				{paymentMethod === "debit" ? "Cartão de Débito" : "Cartão de Crédito"}
+			</h2>
 
 			{/* NOME COMPLETO - ID movido para cá para o MP capturar corretamente */}
 			<div className="flex flex-col gap-2">
@@ -286,6 +288,17 @@ export default function TransparentCheckoutForm({
 				</div>
 			</div>
 
+			{/* PARCELAS (apenas crédito) */}
+			{paymentMethod === "credit" && (
+				<div className="flex flex-col gap-2">
+					<label className="text-sm font-medium">Parcelas</label>
+					<select
+						id="form-checkout__installments"
+						className="w-full p-3 border rounded-xl h-12 bg-white"
+					/>
+				</div>
+			)}
+
 			{/* HIDDEN MP - Email com defaultValue e selects necessários */}
 			<input
 				id="form-checkout__cardholderEmail"
@@ -294,7 +307,9 @@ export default function TransparentCheckoutForm({
 			/>
 
 			<select id="form-checkout__issuer" style={{ display: "none" }} />
-			<select id="form-checkout__installments" style={{ display: "none" }} />
+			{paymentMethod !== "credit" && (
+				<select id="form-checkout__installments" style={{ display: "none" }} />
+			)}
 
 			{formError && <div className="text-red-600 text-sm">{formError}</div>}
 

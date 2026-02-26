@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createPixPaymentController, createPixPayloadController } from "./pixController.js";
+import { createPixPaymentController, createPixPayloadController, getPixStatusController } from "./pixController.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 
 const router = Router();
@@ -15,15 +15,19 @@ const authenticateUser = async (req, res, next) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Usuário não autenticado. Faça login para continuar.",
+      message: "Usuário não autenticado. Faça login para continuar. paymentsPixRoutes",
       error: error.message,
     });
   }
 };
 
+
 router.post("/pix", authenticateUser, createPixPaymentController);
 
-// route to generate PIX EMV payload (CRC included) for testing
+// Polling de status do Pix (autenticado)
+router.get("/pix/status/:paymentId", authenticateUser, getPixStatusController);
+
+// Gera payload EMV para testes
 router.post("/pix/payload", createPixPayloadController);
 
 export default router;

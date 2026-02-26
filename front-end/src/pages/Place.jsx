@@ -22,6 +22,8 @@ import {
 	ArrowRight,
 } from "lucide-react";
 import TransparentCheckoutForm from "../components/payments/TransparentCheckoutForm";
+import PaymentMethodSelector from "../components/payments/PaymentMethodSelector";
+import PixPayment from "../components/payments/PixPayment";
 
 import { Select } from "@mantine/core";
 import {
@@ -114,6 +116,7 @@ const Place = () => {
 
 	const [showTransparentCheckout, setShowTransparentCheckout] = useState(false);
 	const [transparentBookingData, setTransparentBookingData] = useState(null);
+	const [paymentMethod, setPaymentMethod] = useState("credit");
 	const navigate = useNavigate();
 
 	const handlePaymentSuccess = (data) => {
@@ -1681,14 +1684,31 @@ const Place = () => {
 										<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 											{/* Left: payment form */}
 											<div className="border-r border-gray-100 w-full p-6">
-												<TransparentCheckoutForm
-													bookingData={transparentBookingData}
-													onSuccess={(data) => {
-														handlePaymentSuccess(data);
-														setShowTransparentCheckout(false);
-													}}
-													onError={handlePaymentError}
+												<PaymentMethodSelector
+													selected={paymentMethod}
+													onChange={setPaymentMethod}
 												/>
+												{paymentMethod === "pix" ? (
+													<PixPayment
+														bookingData={transparentBookingData}
+														onSuccess={(data) => {
+															handlePaymentSuccess(data);
+															setShowTransparentCheckout(false);
+														}}
+														onError={handlePaymentError}
+													/>
+												) : (
+													<TransparentCheckoutForm
+														bookingData={transparentBookingData}
+														amountValue={transparentBookingData?.totalPrice || 1}
+														paymentMethod={paymentMethod}
+														onSuccess={(data) => {
+															handlePaymentSuccess(data);
+															setShowTransparentCheckout(false);
+														}}
+														onError={handlePaymentError}
+													/>
+												)}
 											</div>
 											{/* Right: booking preview */}
 											<div className="p-6 bg-gray-50 rounded-2xl">
