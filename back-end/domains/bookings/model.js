@@ -11,7 +11,7 @@ const bookingSchema = new Schema({
     nights: { type: Number, required: true },
     paymentStatus: { 
         type: String, 
-        enum: ["pending", "approved", "rejected"], 
+        enum: ["pending", "approved", "rejected", "canceled"], 
         default: "pending" 
     },
     mercadopagoPaymentId: { type: String, index: true },
