@@ -7,8 +7,10 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 import "./Booking.css";
 
 import Review from "@/components/reviews/Review";
+import BookingStatusBadge from "@/components/bookings/BookingStatusBadge";
+import CancelButton from "@/components/bookings/CancelButton";
 
-const BookingAll = ({ bookingsArray, bookingId }) => {
+const BookingAll = ({ bookingsArray, bookingId, onBookingCanceled }) => {
 	const [sortOrder, setSortOrder] = useState("closest"); // 'closest' or 'furthest'
 	const navigate = useNavigate();
 
@@ -88,9 +90,12 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 								<p className="text-[1.2rem] font-light text-gray-900">
 									{booking.place.title}
 								</p>
-								<span className="px-4 max-sm:hidden py-2 h-fit border rounded-md text-xs">
-									ID: {booking._id.slice(0, 8)}
-								</span>
+								<div className="flex items-center gap-2">
+									<BookingStatusBadge status={booking.paymentStatus} />
+									<span className="px-4 max-sm:hidden py-2 h-fit border rounded-md text-xs">
+										ID: {booking._id.slice(0, 8)}
+									</span>
+								</div>
 							</div>
 							<div className="flex items-center gap-4">
 								<div className="flex items-center flex-1 gap-1 text-xs w-full text-gray-600">
@@ -129,15 +134,23 @@ const BookingAll = ({ bookingsArray, bookingId }) => {
 									</div>
 								</div>
 							</div>
-							<InteractiveHoverButton
-								className="w-fit rounded-xl max-sm:w-full text-center font-medium"
-								onClick={(e) => {
-									e.preventDefault();
-									navigate(`/places/${booking.place._id}`);
-								}}
-							>
-								Acessar acomodação
-							</InteractiveHoverButton>
+							<div className="flex flex-col items-end gap-2 max-sm:w-full">
+								<InteractiveHoverButton
+									className="w-fit rounded-xl max-sm:w-full text-center font-medium"
+									onClick={(e) => {
+										e.preventDefault();
+										navigate(`/places/${booking.place._id}`);
+									}}
+								>
+									Acessar acomodação
+								</InteractiveHoverButton>
+								{booking.paymentStatus === "approved" && (
+									<CancelButton
+										bookingId={booking._id}
+										onCanceled={onBookingCanceled}
+									/>
+								)}
+							</div>
 						</div>
 						{/* Review Section */}
 						{new Date(booking.checkout) < new Date() && (

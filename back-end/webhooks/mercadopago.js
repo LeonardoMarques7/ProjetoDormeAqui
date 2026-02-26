@@ -241,8 +241,8 @@ const mapPaymentStatus = (mpStatus) => {
         "in_mediation": "pending",
         "rejected": "rejected",
         "cancelled": "rejected",
-        "refunded": "rejected",
-        "charged_back": "rejected"
+        "refunded": "canceled",
+        "charged_back": "canceled"
     };
     
     return statusMap[mpStatus] || "pending";

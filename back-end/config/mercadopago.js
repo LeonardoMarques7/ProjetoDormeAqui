@@ -80,6 +80,15 @@ export const paymentClient = {
     capture: async ({ id }) => {
         const res = await api.put(`/v1/payments/${id}`, { capture: true });
         return res.data;
+    },
+    refund: async ({ id }) => {
+        const idempotencyKey = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const res = await api.post(`/v1/payments/${id}/refunds`, {}, { headers: { 'X-Idempotency-Key': idempotencyKey } });
+        return res.data;
+    },
+    cancel: async ({ id }) => {
+        const res = await api.put(`/v1/payments/${id}`, { status: "cancelled" });
+        return res.data;
     }
 };
 

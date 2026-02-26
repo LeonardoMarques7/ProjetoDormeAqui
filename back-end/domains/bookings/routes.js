@@ -268,4 +268,60 @@ router.post("/from-payment", async (req, res) => {
     }
 });
 
+// Endpoint para cancelar uma reserva aprovada e solicitar estorno ao Mercado Pago
+router.post("/:id/cancel", async (req, res) => {
+    try {
+        const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
+        const booking = await Booking.findById(req.params.id);
+
+        if (!booking) {
+            return res.status(404).json({ message: "Reserva não encontrada." });
+        }
+
+        if (booking.user.toString() !== userId.toString()) {
+            return res.status(403).json({ message: "Você não tem permissão para cancelar esta reserva." });
+        }
+
+        if (booking.paymentStatus !== "approved") {
+            return res.status(400).json({ message: `Só é possível cancelar reservas aprovadas. Status atual: ${booking.paymentStatus}` });
+        }
+
+        // Solicita cancelamento/estorno ao Mercado Pago conforme estado real do pagamento
+        if (booking.mercadopagoPaymentId) {
+            try {
+                const { paymentClient } = await import("../../config/mercadopago.js");
+
+                // Consulta estado atual no MP para decidir a ação correta:
+                // - authorized (capture=false): deve ser cancelado via PUT status=cancelled
+                // - approved (capture=true): deve ser estornado via POST /refunds
+                const mpPayment = await paymentClient.get({ id: booking.mercadopagoPaymentId });
+                const mpStatus = mpPayment?.status;
+
+                if (mpStatus === "authorized" || mpStatus === "pending_capture") {
+                    await paymentClient.cancel({ id: booking.mercadopagoPaymentId });
+                    console.log(`Pagamento ${booking.mercadopagoPaymentId} cancelado no MP (era ${mpStatus})`);
+                } else {
+                    await paymentClient.refund({ id: booking.mercadopagoPaymentId });
+                    console.log(`Estorno solicitado para pagamento ${booking.mercadopagoPaymentId} (era ${mpStatus})`);
+                }
+            } catch (refundErr) {
+                console.error("Erro ao cancelar/estornar no MP:", refundErr?.response?.data || refundErr?.message);
+                return res.status(502).json({
+                    message: "Erro ao solicitar cancelamento/estorno no Mercado Pago. Tente novamente.",
+                    error: refundErr?.response?.data?.message || refundErr?.message
+                });
+            }
+        }
+
+        booking.paymentStatus = "canceled";
+        await booking.save();
+
+        console.log(`Reserva ${booking._id} cancelada pelo usuário ${userId}`);
+        return res.status(200).json({ message: "Reserva cancelada e estorno solicitado com sucesso.", booking });
+    } catch (error) {
+        console.error("Erro ao cancelar reserva:", error);
+        return res.status(500).json({ message: "Erro interno ao cancelar reserva." });
+    }
+});
+
 export default router;

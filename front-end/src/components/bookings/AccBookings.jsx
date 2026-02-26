@@ -11,22 +11,19 @@ const AccBookings = ({ bookingId }) => {
 	const [readyBookings, setReadyBookings] = useState(false);
 	const { user, ready: userReady } = useUserContext();
 
+	const fetchBookings = async () => {
+		const { data } = await axios.get("/bookings/owner");
+		setBookings(data);
+		setReadyBookings(true);
+	};
+
 	useEffect(() => {
 		if (!user) {
 			setBookings([]);
 			setReadyBookings(false);
 			return;
 		}
-
-		const axiosGet = async () => {
-			const { data } = await axios.get("/bookings/owner");
-			setTimeout(() => {
-				setBookings(data);
-				setReadyBookings(true);
-			}, 100);
-		};
-
-		axiosGet();
+		fetchBookings();
 	}, [user?._id]);
 
 	return (
@@ -143,7 +140,7 @@ const AccBookings = ({ bookingId }) => {
 						Seu diário de viagens está vazio.
 					</h2>
 				) : (
-					<BookingAll bookingsArray={bookings} bookingId={bookingId} />
+					<BookingAll bookingsArray={bookings} bookingId={bookingId} onBookingCanceled={fetchBookings} />
 				)}
 			</div>
 		</>
