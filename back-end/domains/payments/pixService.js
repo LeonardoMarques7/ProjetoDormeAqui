@@ -73,27 +73,33 @@ export const createPixPayment = async (data, user) => {
 
   const nights =
     Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)) || 1;
-  const totalPrice = place.price * nights;
+  const pricePerNight = Number(place.price) || 0;
+  const totalPrice = pricePerNight * nights;
+
+  if (!totalPrice || totalPrice <= 0) {
+    return { success: false, message: "Valor do pagamento inválido (R$ 0). Verifique o preço da acomodação." };
+  }
 
   try {
     const paymentData = {
-      transaction_amount: Number(totalPrice),
-      description: `Reserva em ${place.title}`,
+      transaction_amount: Number(totalPrice.toFixed(2)),
+      description: `Reserva em ${place.title}`.substring(0, 60),
       payment_method_id: "pix",
-      payer: {
-        email,
-      },
+      payer: { email },
       additional_info: {
         items: [
           {
-            id: accommodationId,
-            title: place.title,
-            description: place.description,
+            id: String(accommodationId).substring(0, 36),
+            title: String(place.title).substring(0, 60),
+            description: String(place.description || place.title).substring(0, 100),
             quantity: 1,
-            unit_price: Number(totalPrice),
+            unit_price: Number(totalPrice.toFixed(2)),
           },
         ],
       },
+      ...(process.env.MERCADO_PAGO_WEBHOOK_URL
+        ? { notification_url: process.env.MERCADO_PAGO_WEBHOOK_URL }
+        : {}),
       metadata: {
         userId: user?._id?.toString() || "",
         accommodationId: accommodationId.toString(),
@@ -102,8 +108,11 @@ export const createPixPayment = async (data, user) => {
         guests: guests.toString(),
         nights: nights.toString(),
         totalPrice: totalPrice.toString(),
+        pricePerNight: pricePerNight.toString(),
       },
     };
+
+    console.log("🔵 [PIX] Criando pagamento:", JSON.stringify({ amount: paymentData.transaction_amount, email, nights }, null, 2));
 
     const response = await paymentClient.create({ body: paymentData });
 
@@ -169,10 +178,13 @@ export const createPixPayment = async (data, user) => {
       paymentResponse: response,
     };
   } catch (error) {
+    const mpError = error.response?.data;
+    const mpMessage = mpError?.message || mpError?.cause?.[0]?.description || error.message || "Erro ao criar pagamento PIX.";
+    console.error("❌ [PIX] Erro MP:", JSON.stringify(mpError || error.message, null, 2));
     return {
       success: false,
-      message: error.message || "Erro ao criar pagamento PIX.",
-      error,
+      message: mpMessage,
+      mpError: mpError || null,
     };
   }
 };
