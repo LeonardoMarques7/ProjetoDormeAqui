@@ -78,7 +78,7 @@ export const paymentClient = {
         return res.data;
     },
     capture: async ({ id }) => {
-        const res = await api.post(`/v1/payments/${id}/capture`);
+        const res = await api.put(`/v1/payments/${id}`, { capture: true });
         return res.data;
     }
 };
