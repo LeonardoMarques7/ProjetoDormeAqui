@@ -314,15 +314,16 @@ export const processPaymentNotification = async (paymentData) => {
     const paymentStatus = paymentInfo.status; // approved, pending, rejected, etc.
 
     // Reconstrói metadata de forma robusta a partir de diferentes fontes
+    // NOTA: Mercado Pago converte camelCase para snake_case ao armazenar metadata
     const rawMeta = paymentInfo.metadata || {};
-    let userId = rawMeta.userId || rawMeta.user || undefined;
-    let accommodationId = rawMeta.accommodationId || rawMeta.accommodation || undefined;
+    let userId = rawMeta.userId || rawMeta.user_id || rawMeta.user || undefined;
+    let accommodationId = rawMeta.accommodationId || rawMeta.accommodation_id || rawMeta.accommodation || undefined;
     let checkIn = rawMeta.checkIn || rawMeta.check_in || undefined;
     let checkOut = rawMeta.checkOut || rawMeta.check_out || undefined;
-    let guests = rawMeta.guests || rawMeta.numGuests || undefined;
+    let guests = rawMeta.guests || rawMeta.num_guests || rawMeta.numGuests || undefined;
     let nights = rawMeta.nights || undefined;
-    let totalPrice = rawMeta.totalPrice || rawMeta.total || undefined;
-    let pricePerNight = rawMeta.pricePerNight || undefined;
+    let totalPrice = rawMeta.totalPrice || rawMeta.total_price || rawMeta.total || undefined;
+    let pricePerNight = rawMeta.pricePerNight || rawMeta.price_per_night || undefined;
 
     // Fallback a partir de external_reference e additional_info
     if (!accommodationId && paymentInfo.external_reference) {
