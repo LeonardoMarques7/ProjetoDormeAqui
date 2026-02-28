@@ -179,11 +179,22 @@ export const createPixPayment = async (data, user) => {
     };
   } catch (error) {
     const mpError = error.response?.data;
-    const mpMessage = mpError?.message || mpError?.cause?.[0]?.description || error.message || "Erro ao criar pagamento PIX.";
-    console.error("❌ [PIX] Erro MP:", JSON.stringify(mpError || error.message, null, 2));
+    const mpCause = mpError?.cause?.[0];
+    const mpCode = mpCause?.code;
+    const mpMessage = mpCause?.description || mpError?.message || error.message || "Erro ao criar pagamento PIX.";
+
+    // Mapeamento de códigos de erro conhecidos do MP para mensagens amigáveis
+    const friendlyMessages = {
+      13253: "Pix não está habilitado nesta conta Mercado Pago. Cadastre uma chave Pix em mercadopago.com.br/pix.",
+      4041: "Método de pagamento Pix indisponível para esta conta.",
+    };
+
+    const friendlyMessage = friendlyMessages[mpCode] || mpMessage;
+    console.error("❌ [PIX] Erro MP:", JSON.stringify({ code: mpCode, message: mpMessage }, null, 2));
+
     return {
       success: false,
-      message: mpMessage,
+      message: friendlyMessage,
       mpError: mpError || null,
     };
   }
