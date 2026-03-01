@@ -1,11 +1,5 @@
 import axios from "axios";
-import {
-	BrowserRouter,
-	Routes,
-	Route,
-	useLocation,
-	useParams,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 import { Toaster } from "sonner";
 
@@ -22,13 +16,14 @@ import PaymentPending from "./pages/PaymentPending";
 import PaymentFailure from "./pages/PaymentFailure";
 
 import Footer from "@/components/layout/Footer";
+import Header from "@/components/layout/Header";
 import AppSidebar from "@/components/layout/Sidebar";
 import {
-	SidebarInset,
 	SidebarProvider,
-	SidebarTrigger,
-	SidebarFooter,
+	SidebarInset,
+	useSidebar,
 } from "@/components/ui/sidebar";
+import { ChevronRight } from "lucide-react";
 
 import "@mantine/core/styles.css";
 
@@ -45,6 +40,30 @@ axios.defaults.baseURL =
 		? "http://localhost:3000/api"
 		: "https://projetodormeaqui.onrender.com/api";
 axios.defaults.withCredentials = true;
+
+function SidebarToggleButton() {
+	const { state, toggleSidebar, isMobile } = useSidebar();
+	if (isMobile) return null;
+	return (
+		<button
+			onClick={toggleSidebar}
+			className="z-50 h-10 w-5 bg-[#f5f5f5] rounded-r-xl shadow-sm flex items-center justify-center hover:bg-gray-200 transition-colors duration-200 border border-gray-200/60 border-l-0"
+			style={{
+				left:
+					state === "collapsed"
+						? "calc(var(--sidebar-width-icon) + 0.5rem)"
+						: "calc(var(--sidebar-width) + 0.5rem)",
+				transition: "left 200ms ease",
+			}}
+		>
+			<ChevronRight
+				className={`w-3 h-3 text-gray-500 transition-transform duration-200 ${
+					state !== "collapsed" ? "rotate-180" : ""
+				}`}
+			/>
+		</button>
+	);
+}
 
 function ScrollToTop() {
 	const { pathname } = useLocation();
@@ -68,54 +87,47 @@ function App() {
 						<MessageProvider>
 							<Toaster position="top-right" />
 							<SidebarProvider>
-								<AppSidebar active={isComponentActive} />
+								<AppSidebar />
+
 								<SidebarInset>
 									<ScrollToTop />
-									<div className="flex flex-col min-h-screen">
-										<header
-											className="flex shrink-0 absolute group transition-all  rounded-tl-2xl bg-white top-0 left-0 rounded-r-3xl p-4 z-50 items-center gap-2 
-  before:content-[''] before:absolute before:bottom-6 before:-right-5  before:rotate-90 before:w-5 before:h-5 before:bg-transparent before:rounded-bl-[10px] before:shadow-[-10px_10px_0_0_white]
-  after:content-[''] after:absolute after:-bottom-5 after:left-4 after:w-5 after:h-5 after:bg-transparent after:rounded-tl-[10px] after:shadow-[-10px_-10px_0_0_white]"
-										>
-											<SidebarTrigger className="cursor-pointer hover:text-gray-900 text-gray-700" />
-										</header>
-										<div className="flex flex-1 flex-col p-4">
-											<Routes>
-												<Route path="/" element={<Home />} />
-												<Route
-													path="/reset-password"
-													element={<ResetPassword />}
-												/>
-												<Route
-													path="/account/:subpage/:action?/:id?"
-													element={<Account />}
-												/>
-												<Route path="/places/:id" element={<Place />} />
-												<Route
-													path="/payment/success"
-													element={<PaymentSuccess />}
-												/>
-												<Route
-													path="/payment/pending"
-													element={<PaymentPending />}
-												/>
-												<Route
-													path="/payment/failure"
-													element={<PaymentFailure />}
-												/>
-												<Route path="/*" element={<NotFound />} />
+									<Header active={isComponentActive} />
+									<div className="flex flex-1 flex-col p-4">
+										<Routes>
+											<Route path="/" element={<Home />} />
+											<Route
+												path="/reset-password"
+												element={<ResetPassword />}
+											/>
+											<Route
+												path="/account/:subpage/:action?/:id?"
+												element={<Account />}
+											/>
+											<Route path="/places/:id" element={<Place />} />
+											<Route
+												path="/payment/success"
+												element={<PaymentSuccess />}
+											/>
+											<Route
+												path="/payment/pending"
+												element={<PaymentPending />}
+											/>
+											<Route
+												path="/payment/failure"
+												element={<PaymentFailure />}
+											/>
+											<Route path="/*" element={<NotFound />} />
 
-												<Route
-													path="/auth/github/callback"
-													element={<GithubCallback />}
-												/>
-												<Route
-													path="/auth/google/callback"
-													element={<GoogleCallback />}
-												/>
-											</Routes>
-											<Footer active={isComponentActive} />
-										</div>
+											<Route
+												path="/auth/github/callback"
+												element={<GithubCallback />}
+											/>
+											<Route
+												path="/auth/google/callback"
+												element={<GoogleCallback />}
+											/>
+										</Routes>
+										<Footer active={isComponentActive} />
 									</div>
 								</SidebarInset>
 							</SidebarProvider>

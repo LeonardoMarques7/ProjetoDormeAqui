@@ -1,52 +1,27 @@
 import React, { useEffect, useState } from "react";
-import logoPrimary from "@/assets/logos/logo__primary.png";
-import logoPrimaryIcon from "@/assets/logos/logo__primary.png";
 import { Link, useLocation } from "react-router-dom";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import {
-	Tooltip,
-	TooltipTrigger,
-	TooltipContent,
-	TooltipProvider,
-} from "@/components/ui/tooltip";
-
-import {
-	ArrowRight,
-	ChevronRight,
-	ChevronRightIcon,
-	ChevronsUpDown,
-	ChevronsUpDownIcon,
-	LogIn,
-	LogOut,
-	UserPlus,
-} from "lucide-react";
+import { Bell, LogIn, LogOut, User, UserPlus } from "lucide-react";
 import {
 	HomeIcon,
 	CalendarDaysIcon,
 	BuildingOfficeIcon,
 	UserIcon,
 	Cog6ToothIcon,
-	ChatBubbleLeftIcon,
-	ChatBubbleOvalLeftIcon,
 } from "@heroicons/react/24/outline";
 import {
 	HomeIcon as HomeIconSolid,
 	CalendarDaysIcon as CalendarDaysIconSolid,
 	BuildingOfficeIcon as BuildingOfficeIconSolid,
-	UserIcon as UserIconSolid,
-	Cog6ToothIcon as Cog6ToothIconSolid,
-	ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconSolid,
 } from "@heroicons/react/24/solid";
-import { motion } from "framer-motion";
 
+import logoPrimary from "@/assets/logos/logo__primary__min.png";
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 import { useMessage } from "@/components/contexts/MessageContext";
 import { useUserContext } from "@/components/contexts/UserContext";
@@ -56,53 +31,90 @@ import {
 	Sidebar as ShadcnSidebar,
 	SidebarContent,
 	SidebarFooter,
-	SidebarGroup,
-	SidebarGroupContent,
-	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarProvider,
-	SidebarTrigger,
+	SidebarSeparator,
 	useSidebar,
 } from "@/components/ui/sidebar";
 
+const NavItems = ({ items }) => {
+	const { state } = useSidebar();
+	const location = useLocation();
+	const isCollapsed = state === "collapsed";
+
+	return (
+		<SidebarMenu className="gap-1 px-2">
+			{items.map((item) => {
+				const isActive = location.pathname === item.path;
+				const Icon = isActive ? item.icon : item.iconRegular;
+				return (
+					<SidebarMenuItem key={item.path}>
+						<SidebarMenuButton
+							asChild
+							tooltip={item.label}
+							className={`
+								h-11! rounded-full! px-3! gap-3! transition-all duration-200
+								${
+									isActive
+										? "bg-white! text-gray-900! hover:bg-white! shadow-sm!"
+										: "text-gray-600! hover:bg-white/70! hover:text-gray-900!"
+								}
+							`}
+						>
+							<Link to={item.path}>
+								<div className="relative flex-shrink-0 p-1">
+									<Icon className="w-[18px] h-[18px]" />
+								</div>
+								<span className="group-data-[collapsible=icon]:hidden text-sm font-medium flex-1">
+									{item.label}
+								</span>
+								{item.notifications > 0 && !isCollapsed && (
+									<span className="ml-auto min-w-[22px] h-[22px] bg-gray-900 text-white text-xs font-medium rounded-full flex items-center justify-center px-1">
+										{item.notifications}
+									</span>
+								)}
+							</Link>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				);
+			})}
+		</SidebarMenu>
+	);
+};
+
 const AppSidebar = () => {
 	const { user, setUser } = useUserContext();
-	const location = useLocation();
 	const { showMessage } = useMessage();
-	const [logoutActive, setLogoutActive] = useState(false);
 	const { showAuthModal } = useAuthModalContext();
-	const { state } = useSidebar();
 	const [bookings, setBookings] = useState([]);
-	const [readyBookings, setReadyBookings] = useState(false);
 	const [qtdBookings, setQtdBookings] = useState(0);
+	const [logoutActive, setLogoutActive] = useState(false);
 
 	useEffect(() => {
 		if (!user) {
 			setBookings([]);
-			setReadyBookings(false);
 			return;
 		}
-
-		const axiosGet = async () => {
+		const fetchBookings = async () => {
 			const { data } = await axios.get("/bookings/owner");
-			setTimeout(() => {
-				setBookings(data);
-				setReadyBookings(true);
-			}, 100);
+			setBookings(data);
 		};
-
-		axiosGet();
+		fetchBookings();
 	}, [user?._id]);
 
 	useEffect(() => {
 		setQtdBookings(bookings.length);
-	}, [bookings.updateAt, bookings.length]);
+	}, [bookings.length]);
 
 	const navItems = [
-		{ path: "/", icon: HomeIconSolid, iconRegular: HomeIcon, label: "Home" },
+		{
+			path: "/",
+			icon: HomeIconSolid,
+			iconRegular: HomeIcon,
+			label: "Home",
+		},
 		{
 			path: "/account/bookings",
 			icon: CalendarDaysIconSolid,
@@ -116,58 +128,14 @@ const AppSidebar = () => {
 			iconRegular: BuildingOfficeIcon,
 			label: "Acomodações",
 		},
-		{
-			path: "/account/message",
-			icon: ChatBubbleOvalLeftIconSolid,
-			iconRegular: ChatBubbleOvalLeftIcon,
-			label: "Mensagens",
-		},
-	];
-
-	const navItemsPerfil = [
-		{ path: "/account/profile/edit", label: "Editar perfil" },
-		{
-			label: "Sair",
-			function: () => {
-				logout();
-			},
-		},
-	];
-
-	const navItemsNOPerfil = [
-		{
-			path: "/",
-			label: "Página Inicial",
-			function: () => {
-				window.scrollTo({ top: 0, behavior: "smooth" });
-			},
-		},
-		{
-			function: () => {
-				showAuthModal("login");
-			},
-			label: "Torne-se um anfitrião",
-		},
 	];
 
 	const logout = async () => {
 		try {
-			const { data } = await axios.post(
-				"/users/logout",
-				{},
-				{
-					withCredentials: true,
-				},
-			);
-
-			// Limpa qualquer cache do axios
+			await axios.post("/users/logout", {}, { withCredentials: true });
 			delete axios.defaults.headers.common["Authorization"];
-
-			// Limpa estados locais
 			localStorage.clear();
 			sessionStorage.clear();
-
-			console.log(data);
 			setUser(null);
 			setLogoutActive(true);
 		} catch (error) {
@@ -175,151 +143,236 @@ const AppSidebar = () => {
 		}
 	};
 
-	const nameUser = user?.name ? user.name.split(" ") : ["", ""];
-
 	if (logoutActive) {
-		showMessage("Logout realizado com sucesso!", "info");
+		showMessage("Logout realizado com sucesso!", "success");
 		setLogoutActive(false);
 	}
 
+	const nameUser = user?.name ? user.name.split(" ") : ["", ""];
+
 	return (
-		<ShadcnSidebar variant="inset" collapsible="icon">
-			<SidebarHeader className="w-full">
-				<Link
-					to="/"
-					className="flex items-center justify-start px-2 py-4 group-data-[collapsible=icon]:py-0"
-				>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<img
-								src={logoPrimaryIcon}
-								alt="Logo DormeAqui"
-								className="h-20  transition-all w-full duration-300 hidden group-data-[collapsible=icon]:flex"
-							/>
-						</TooltipTrigger>
-						<TooltipContent side="right" className="ml-2" align="center">
-							<p>Página inicial</p>
-						</TooltipContent>
-					</Tooltip>
-					<img
-						src={logoPrimary}
-						alt="Logo DormeAqui"
-						className="object-contain transition-all duration-300 group-data-[collapsible=icon]:hidden"
-					/>
-				</Link>
-			</SidebarHeader>
-			<SidebarContent className=" py-6">
-				<SidebarMenu className="space-y-1">
-					{navItems.map((item) => {
-						const isActive = location.pathname === item.path;
-						const Icon = isActive ? item.icon : item.iconRegular;
+		<ShadcnSidebar
+			variant="floating"
+			collapsible="icon"
+			style={{
+				"--sidebar-background": "#f5f5f5",
+				"--sidebar-border": "transparent",
+				"--sidebar-width": "220px",
+				"--sidebar-width-icon": "68px",
+			}}
+			className="border-0 shadow-sm"
+		>
+			{/* Header: Logo + Bell + User Avatar */}
+			<SidebarHeader className="px-3 pt-3 pb-2">
+				<div className="flex items-center gap-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center">
+					{/* Logo */}
+					<Link
+						to="/"
+						className="flex-1 flex items-center min-w-0 group-data-[collapsible=icon]:hidden"
+					>
+						<img
+							src={logoPrimary}
+							alt="DormeAqui"
+							className="h-9 object-contain max-w-[130px]"
+						/>
+					</Link>
 
-						return (
-							<SidebarMenuItem key={item.path}>
-								<SidebarMenuButton
-									asChild
-									isActive={isActive}
-									tooltip={item.label}
-									className="group/item py-2!"
+					{/* Notification Bell */}
+					<Link
+						to="/account/bookings"
+						className="relative w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors flex-shrink-0"
+					>
+						<Bell className="w-4 h-4 text-gray-700" />
+						{qtdBookings > 0 && (
+							<span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-gray-900 text-white text-[10px] font-medium rounded-full flex items-center justify-center px-0.5">
+								{qtdBookings}
+							</span>
+						)}
+					</Link>
+
+					{/* User Avatar / Login Icon - only visible when expanded */}
+					<div className="group-data-[collapsible=icon]:hidden flex items-center">
+						{user ? (
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<button className="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-sm hover:opacity-90 transition-opacity flex-shrink-0 cursor-pointer">
+										<img
+											src={user.photo}
+											alt={nameUser[0]}
+											className="w-full h-full object-cover"
+										/>
+									</button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent
+									className="min-w-52 rounded-xl p-1.5"
+									side="bottom"
+									align="end"
+									sideOffset={6}
 								>
-									<Link
-										className={`
-											w-full flex h-15 items-center rounded-2xl! gap-4 p-5!
-											transition-all duration-200
-										
-										`}
-										to={item.path}
-									>
-										<Icon className="w-5 h-5 flex-shrink-0" />
-
-										<span
-											className={`text-sm group-data-[collapsible=icon]:hidden ${isActive && "font-medium "}`}
-										>
-											{item.label}
-										</span>
-										{item.notifications && (
-											<div
-												className={`ml-auto text-xs font-light text-primary-500 flex justify-center items-center bg-white h-5 w-5 rounded-full ${isActive && "font-light"}`}
-											>
-												{item.notifications}
-											</div>
-										)}
+									<div className="px-3 py-2 mb-1">
+										<p className="text-sm font-semibold text-gray-900">
+											{nameUser[0]}
+										</p>
+										<p className="text-xs text-gray-500 truncate">
+											{user.email}
+										</p>
+									</div>
+									<DropdownMenuSeparator />
+									<Link to="/account/profile">
+										<DropdownMenuItem className="cursor-pointer py-2 rounded-lg gap-2">
+											<UserIcon className="w-4 h-4" />
+											Acessar perfil
+										</DropdownMenuItem>
 									</Link>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						);
-					})}
-				</SidebarMenu>
+									<Link to="/account/profile/edit">
+										<DropdownMenuItem className="cursor-pointer py-2 rounded-lg gap-2">
+											<Cog6ToothIcon className="w-4 h-4" />
+											Configurações
+										</DropdownMenuItem>
+									</Link>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem
+										onClick={logout}
+										className="text-red-500 focus:bg-red-50 focus:text-red-600 cursor-pointer py-2 rounded-lg gap-2"
+									>
+										<LogOut className="w-4 h-4" />
+										Sair
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						) : (
+							<button
+								onClick={() => showAuthModal("login")}
+								className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors flex-shrink-0 cursor-pointer"
+							>
+								<User className="w-4 h-4 text-gray-700" />
+							</button>
+						)}
+					</div>
+				</div>
+			</SidebarHeader>
+
+			<SidebarSeparator className="mx-3 opacity-30" />
+
+			{/* Nav items */}
+			<SidebarContent className="py-3">
+				<NavItems items={navItems} />
 			</SidebarContent>
-			<SidebarFooter>
+
+			{/* Info section - visível apenas quando expandido */}
+			<div className="group-data-[collapsible=icon]:hidden px-5 pb-4 mt-auto space-y-3">
+				<SidebarSeparator className="opacity-20" />
+				<div className="space-y-1">
+					<p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+						DormeAqui
+					</p>
+					<p className="text-[11px] text-gray-400 leading-relaxed">
+						Encontre o lugar perfeito para sua próxima estadia.
+					</p>
+				</div>
+				<div className="flex flex-col gap-1">
+					<Link
+						to="/sobre"
+						className="text-[11px] text-gray-400 hover:text-gray-700 transition-colors"
+					>
+						Sobre nós
+					</Link>
+					<Link
+						to="/ajuda"
+						className="text-[11px] text-gray-400 hover:text-gray-700 transition-colors"
+					>
+						Central de ajuda
+					</Link>
+					<a
+						href="mailto:projeto.dormeaqui@gmail.com"
+						className="text-[11px] text-gray-400 hover:text-gray-700 transition-colors"
+					>
+						projeto.dormeaqui@gmail.com
+					</a>
+				</div>
+				<p className="text-[10px] text-gray-300">© 2025 DormeAqui</p>
+			</div>
+
+			{/* Footer: avatar quando fechado / login quando não logado */}
+			<SidebarFooter className="px-3 pb-3">
 				{user ? (
-					<DropdownMenu>
-						<DropdownMenuTrigger className="!p-0 !m-0 rounded-2xl!">
-							<SidebarMenuButton className="px-4!  group-data-[collapsible=icon]:bg-transparent! hover:bg-accent h-fit gap-3 rounded-2xl! cursor-pointer">
-								<div className="flex aspect-square size-9 group-data-[collapsible=icon]:-ml-1 items-center justify-center rounded-full">
+					/* Avatar no footer - aparece apenas quando collapsed */
+					<div className="hidden group-data-[collapsible=icon]:flex justify-center">
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<button className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm hover:opacity-90 cursor-pointer">
 									<img
 										src={user.photo}
-										className="w-9 h-9 aspect-square rounded-full object-cover"
-										alt="Foto do Usuário"
+										alt={nameUser[0]}
+										className="w-full h-full object-cover"
 									/>
+								</button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								className="min-w-52 rounded-xl p-1.5"
+								side="right"
+								align="end"
+								sideOffset={6}
+							>
+								<div className="px-3 py-2 mb-1">
+									<p className="text-sm font-semibold text-gray-900">
+										{nameUser[0]}
+									</p>
+									<p className="text-xs text-gray-500 truncate">{user.email}</p>
 								</div>
-								<div className="grid flex-1 text-left text-sm  leading-tight">
-									<span className="truncate font-semibold ">{nameUser[0]}</span>
-									<span className="truncate text-xs ">{user.pronouns}</span>
-								</div>
-								<ChevronsUpDownIcon size={18} className="size-4!" />
-							</SidebarMenuButton>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-							side={state === "collapsed" ? "right" : "bottom"}
-							align="end"
-							sideOffset={4}
-						>
-							<Link to="/account/profile">
-								<DropdownMenuItem className=" text-primary-700  hover:bg-primary-100/50 cursor-pointer py-2">
-									<UserIcon className="w-4 h-4 mr-1" />
-									<span>Acessar perfil</span>
+								<DropdownMenuSeparator />
+								<Link to="/account/profile">
+									<DropdownMenuItem className="cursor-pointer py-2 rounded-lg gap-2">
+										<UserIcon className="w-4 h-4" />
+										Acessar perfil
+									</DropdownMenuItem>
+								</Link>
+								<Link to="/account/profile/edit">
+									<DropdownMenuItem className="cursor-pointer py-2 rounded-lg gap-2">
+										<Cog6ToothIcon className="w-4 h-4" />
+										Configurações
+									</DropdownMenuItem>
+								</Link>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem
+									onClick={logout}
+									className="text-red-500 focus:bg-red-50 focus:text-red-600 cursor-pointer py-2 rounded-lg gap-2"
+								>
+									<LogOut className="w-4 h-4" />
+									Sair
 								</DropdownMenuItem>
-							</Link>
-							<Link>
-								<DropdownMenuItem className=" text-primary-700  hover:bg-primary-100/50 cursor-pointer py-2">
-									<Cog6ToothIcon className="w-4 h-4 mr-1" />
-									<span>Configurações</span>
-								</DropdownMenuItem>
-							</Link>
-							<DropdownMenuSeparator />
-							<Link onClick={() => logout()}>
-								<DropdownMenuItem className="text-red-500  hover:bg-red-100/50! hover:text-red-600! cursor-pointer py-2">
-									<LogOut className="text-red-500 mr-1" />
-									<span>Sair</span>
-								</DropdownMenuItem>
-							</Link>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				) : (
-					<div className=" space-y-2">
-						<button
-							onClick={() => showAuthModal("login")}
-							className="w-full justify-center group-data-[collapsible=icon]:flex hidden  cursor-pointer  items-center gap-2.5 transition-colors"
-						>
-							<LogIn size={18} />
-						</button>
-						<button
-							onClick={() => showAuthModal("login")}
-							className="w-full  cursor-pointer group-data-[collapsible=icon]:hidden flex items-center gap-2.5 bg-primary-900 text-white px-4 py-3 border-primary-900 border rounded-lg hover:bg-black transition-colors"
-						>
-							<LogIn size={18} />
-							Entrar na conta
-						</button>
-						<button
-							onClick={() => showAuthModal("register")}
-							className=" group-data-[collapsible=icon]:hidden w-full cursor-pointer flex items-center gap-2.5 bg-white text-primary-500 border border-primary-500 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors"
-						>
-							<UserPlus size={18} />
-							Criar nova conta
-						</button>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</div>
+				) : (
+					<>
+						{/* Ícone de login - quando collapsed */}
+						<div className="hidden group-data-[collapsible=icon]:flex justify-center">
+							<button
+								onClick={() => showAuthModal("login")}
+								className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer"
+							>
+								<User className="w-4 h-4 text-gray-700" />
+							</button>
+						</div>
+						{/* Botões expandidos */}
+						<div className="flex flex-col gap-1.5 group-data-[collapsible=icon]:hidden">
+							<button
+								onClick={() => showAuthModal("login")}
+								className="w-full flex items-center gap-3 h-11 px-3 rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer"
+							>
+								<LogIn size={18} className="flex-shrink-0" />
+								<span className="text-sm font-medium">Entrar na conta</span>
+							</button>
+							<button
+								onClick={() => showAuthModal("register")}
+								className="w-full flex items-center gap-3 h-11 px-3 rounded-full border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 transition-colors cursor-pointer"
+							>
+								<UserPlus size={18} className="flex-shrink-0" />
+								<span className="text-sm font-medium">Criar nova conta</span>
+							</button>
+						</div>
+					</>
 				)}
 			</SidebarFooter>
 		</ShadcnSidebar>

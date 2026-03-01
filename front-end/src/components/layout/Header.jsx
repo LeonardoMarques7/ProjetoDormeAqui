@@ -7,66 +7,30 @@ import MenuBar from "./MenuBar";
 const Header = ({ active }) => {
 	const [scrolled, setScrolled] = useState(false);
 	const location = useLocation();
-	const secondaryLogoRoutes = [
-		"/", // home
-		"/places/",
-	];
-
-	// Verifica se a rota atual precisa da logo secondary
+	const secondaryLogoRoutes = ["/", "/places/"];
 	const useSecondaryLogo = secondaryLogoRoutes.includes(location.pathname);
 
 	useEffect(() => {
-		const handleScroll = () => {
-			setScrolled(window.scrollY > 25);
-		};
-
+		const handleScroll = () => setScrolled(window.scrollY > 25);
 		window.addEventListener("scroll", handleScroll);
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
 
-	// Lógica para escolher a logo
 	const getLogoSrc = () => {
-		// Se active está definido, usa logo primary
-		if (active === true) {
-			return logoPrimary;
-		}
-
-		// Se scrolled, usa logo primary (escura)
-		if (scrolled) {
-			return logoPrimary;
-		}
-
-		// Se está em uma rota que precisa de logo clara, usa secondary
+		if (active === true) return logoPrimary;
+		if (scrolled) return logoPrimary;
 		return useSecondaryLogo ? logoSecondary : logoPrimary;
 	};
 
-	// Lógica para cor do texto
-	const getTextColor = () => {
-		// Se scrolled, texto fica preto
-		if (scrolled) {
-			return "text-gray-900";
-		}
-
-		// Se active está definido, texto preto
-		if (active === true) {
-			return "text-gray-900";
-		}
-
-		// Se usa logo secondary (clara), texto branco
-		// Se usa logo primary (escura), texto preto
-		return useSecondaryLogo ? "text-white" : "text-gray-900";
-	};
-
 	return (
-		<header
-			className={`fixed z-50 w-full mb-3 transition-all duration-500 delay-0 2xl:max-w-full 2xl:px-10 xl:max-w-full `}
-		>
-			<div className="max-w-full flex max-sm:px-3.5 items-center mx-auto justify-between px-10 sm:px-8 py-5 ">
+		/* Mobile: header fixo com logo e sheet */
+		<header className="md:hidden fixed z-50 w-full transition-all duration-500">
+			<div className="flex max-sm:px-3.5 items-center justify-between px-6 py-5">
 				<Link to="/" className="flex items-center transition-all">
 					<img
 						src={getLogoSrc()}
 						alt="Logo DormeAqui"
-						className=" transition-all object-cover duration-300"
+						className="transition-all object-cover duration-300"
 					/>
 				</Link>
 				<MenuBar active={active} />
