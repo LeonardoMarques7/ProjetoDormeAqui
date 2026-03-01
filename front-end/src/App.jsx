@@ -88,7 +88,7 @@ function App() {
 							<Toaster position="top-right" />
 							<SidebarProvider>
 								<AppSidebar />
-
+								<SidebarToggleButton />
 								<SidebarInset>
 									<ScrollToTop />
 									<Header active={isComponentActive} />
