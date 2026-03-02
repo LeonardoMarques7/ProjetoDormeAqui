@@ -309,7 +309,7 @@ function MenuBar({ active }) {
 											<img
 												src={logo__primary}
 												alt="Logo do DormeAqui"
-												className="w-40"
+												className="w-40 object-cover"
 											/>
 										</div>
 									)}
