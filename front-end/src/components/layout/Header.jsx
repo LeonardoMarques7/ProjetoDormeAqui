@@ -66,7 +66,7 @@ const Header = ({ active }) => {
 					<img
 						src={getLogoSrc()}
 						alt="Logo DormeAqui"
-						className=" transition-all object-cover duration-300"
+						className=" transition-all h-25 object-cover duration-300"
 					/>
 				</Link>
 				<MenuBar active={active} />

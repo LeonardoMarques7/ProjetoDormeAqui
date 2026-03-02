@@ -12,6 +12,7 @@ import { Toaster } from "sonner";
 import { UserContextProvider } from "./components/contexts/UserContext";
 import { MessageProvider } from "./components/contexts/MessageContext";
 
+import Header from "./components/layout/Header";
 import Home from "./pages/Home";
 import Account from "./pages/Account";
 import Place from "./pages/Place";
@@ -67,58 +68,34 @@ function App() {
 					<AuthModalContextProvider>
 						<MessageProvider>
 							<Toaster position="top-right" />
-							<SidebarProvider>
-								<AppSidebar active={isComponentActive} />
-								<SidebarInset>
-									<ScrollToTop />
-									<div className="flex flex-col min-h-screen">
-										<header
-											className="flex shrink-0 absolute group transition-all  rounded-tl-2xl bg-white top-0 left-0 rounded-r-3xl p-4 z-50 items-center gap-2 
-  before:content-[''] before:absolute before:bottom-6 before:-right-5  before:rotate-90 before:w-5 before:h-5 before:bg-transparent before:rounded-bl-[10px] before:shadow-[-10px_10px_0_0_white]
-  after:content-[''] after:absolute after:-bottom-5 after:left-4 after:w-5 after:h-5 after:bg-transparent after:rounded-tl-[10px] after:shadow-[-10px_-10px_0_0_white]"
-										>
-											<SidebarTrigger className="cursor-pointer hover:text-gray-900 text-gray-700" />
-										</header>
-										<div className="flex flex-1 flex-col p-4">
-											<Routes>
-												<Route path="/" element={<Home />} />
-												<Route
-													path="/reset-password"
-													element={<ResetPassword />}
-												/>
-												<Route
-													path="/account/:subpage/:action?/:id?"
-													element={<Account />}
-												/>
-												<Route path="/places/:id" element={<Place />} />
-												<Route
-													path="/payment/success"
-													element={<PaymentSuccess />}
-												/>
-												<Route
-													path="/payment/pending"
-													element={<PaymentPending />}
-												/>
-												<Route
-													path="/payment/failure"
-													element={<PaymentFailure />}
-												/>
-												<Route path="/*" element={<NotFound />} />
+							<Header />
+							<ScrollToTop />
 
-												<Route
-													path="/auth/github/callback"
-													element={<GithubCallback />}
-												/>
-												<Route
-													path="/auth/google/callback"
-													element={<GoogleCallback />}
-												/>
-											</Routes>
-											<Footer active={isComponentActive} />
-										</div>
-									</div>
-								</SidebarInset>
-							</SidebarProvider>
+							<div className="flex flex-1 flex-col p-4">
+								<Routes>
+									<Route path="/" element={<Home />} />
+									<Route path="/reset-password" element={<ResetPassword />} />
+									<Route
+										path="/account/:subpage/:action?/:id?"
+										element={<Account />}
+									/>
+									<Route path="/places/:id" element={<Place />} />
+									<Route path="/payment/success" element={<PaymentSuccess />} />
+									<Route path="/payment/pending" element={<PaymentPending />} />
+									<Route path="/payment/failure" element={<PaymentFailure />} />
+									<Route path="/*" element={<NotFound />} />
+
+									<Route
+										path="/auth/github/callback"
+										element={<GithubCallback />}
+									/>
+									<Route
+										path="/auth/google/callback"
+										element={<GoogleCallback />}
+									/>
+								</Routes>
+								<Footer active={isComponentActive} />
+							</div>
 						</MessageProvider>
 					</AuthModalContextProvider>
 				</UserContextProvider>

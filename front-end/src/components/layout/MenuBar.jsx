@@ -1,11 +1,5 @@
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import StaggeredMenu from "@/components/layout/StaggeredMenu";
 import {
 	Sheet,
 	SheetContent,
@@ -24,9 +18,29 @@ import {
 	Sidebar,
 	TicketCheck,
 } from "lucide-react";
+import {
+	HomeIcon,
+	CalendarDaysIcon,
+	BuildingOfficeIcon,
+	UserIcon,
+	Cog6ToothIcon,
+	ChatBubbleLeftIcon,
+	ChatBubbleOvalLeftIcon,
+} from "@heroicons/react/24/outline";
+import {
+	HomeIcon as HomeIconSolid,
+	CalendarDaysIcon as CalendarDaysIconSolid,
+	BuildingOfficeIcon as BuildingOfficeIconSolid,
+	UserIcon as UserIconSolid,
+	Cog6ToothIcon as Cog6ToothIconSolid,
+	ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconSolid,
+} from "@heroicons/react/24/solid";
+
 import { Home, Briefcase, User, Mail, Settings } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+
+import menu from "@/assets/menu-icon.png";
 
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 
@@ -45,6 +59,12 @@ function MenuBar({ active }) {
 	const [activeSection, setActiveSection] = useState("Home");
 	const [redirect, setRedirect] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
+	const [menuOpen, setMenuOpen] = useState(false);
+	const [logoutActive, setLogoutActive] = useState(false);
+	const [bookings, setBookings] = useState([]);
+	const [readyBookings, setReadyBookings] = useState(false);
+	const [qtdBookings, setQtdBookings] = useState(0);
+	const menuTriggerRef = useRef(null);
 	const [mobile, setIsMobile] = useState(window.innerWidth <= 768);
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const { showAuthModal } = useAuthModalContext();
@@ -93,6 +113,28 @@ function MenuBar({ active }) {
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
 
+	useEffect(() => {
+		if (!user) {
+			setBookings([]);
+			setReadyBookings(false);
+			return;
+		}
+
+		const axiosGet = async () => {
+			const { data } = await axios.get("/bookings/owner");
+			setTimeout(() => {
+				setBookings(data);
+				setReadyBookings(true);
+			}, 100);
+		};
+
+		axiosGet();
+	}, [user?._id]);
+
+	useEffect(() => {
+		setQtdBookings(bookings.length);
+	}, [bookings.updateAt, bookings.length]);
+
 	const logout = async () => {
 		try {
 			const { data } = await axios.post(
@@ -136,44 +178,41 @@ function MenuBar({ active }) {
 				>
 					{!user && (
 						<>
-							<motion.button className="">
-								<Link
-									to={"/"}
-									className={`flex items-center  gap-2  rounded-2xl  justify-between  `}
-								>
-									<motion.div
-										onClick={(e) => {
-											e.preventDefault();
-											showAuthModal("login");
-										}}
-										className="hover:bg-primary-100/50  px-4 py-2 rounded-xl transition-all duration-300"
-									>
-										Torne-se um anfitrião
-									</motion.div>
-								</Link>
-							</motion.button>
-							<DropdownMenu modal={false}>
-								<DropdownMenuTrigger className={`outline-none `}>
-									<div className="badge__user flex items-center text-primary-800 gap-2 cursor-pointer hover:bg-gray-200 transition-colors bg-primary-100 p-4 rounded-xl">
-										<MenuIcon size={18} />
-									</div>
-								</DropdownMenuTrigger>
+							{/* <span className="bg-primary-800 w-[617px] absolute rounded-full h-[500px] rotate-[14deg]"></span> */}
+							<svg
+								width="500"
+								height="171"
+								className="right-0 absolute -z-10"
+								viewBox="0 0 500 171"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									d="M36.4791 -231.032C147.155 -446.553 623.341 -323.52 615.765 -81.3605C613.993 -24.6884 605.277 9.04315 579.376 59.4812C468.7 275.003 -7.48623 151.97 0.0895477 -90.1901C1.86249 -146.862 10.5778 -180.594 36.4791 -231.032Z"
+									fill="#334155"
+								/>
+							</svg>
 
-								<DropdownMenuContent
-									align="end"
-									className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2"
-								>
-									<span
-										onClick={(e) => {
-											e.preventDefault();
-											showAuthModal("login");
-										}}
-										className={`flex group justify-between cursor-pointer hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
-									>
-										Entre ou Cadastre-se
-									</span>
-								</DropdownMenuContent>
-							</DropdownMenu>
+							<button
+								ref={menuTriggerRef}
+								onClick={() => setMenuOpen((prev) => !prev)}
+								className="badge__user flex items-center gap-2 cursor-pointer transition-all p-4 bg-transparent border-none"
+							>
+								<img src={menu} className="w-5 h-5" alt="Menu" />
+							</button>
+							<StaggeredMenu
+								open={menuOpen}
+								onClose={() => setMenuOpen(false)}
+								triggerRef={menuTriggerRef}
+								colors={["#cbd5e1", "#334155"]}
+								accentColor="#1e293b"
+								items={[
+									{
+										label: "Entre ou Cadastre-se",
+										onClick: () => showAuthModal("login"),
+									},
+								]}
+							/>
 						</>
 					)}
 					{user &&
@@ -206,74 +245,61 @@ function MenuBar({ active }) {
 						})}
 
 					{user && (
-						<DropdownMenu modal={false}>
-							<DropdownMenuTrigger className={`outline-none`}>
-								<div className="badge__user bg-primary-100 flex items-center gap-2 cursor-pointer hover:bg-gray-200 transition-colors  pr-3 py-1.5 px-2 rounded-2xl">
-									<img
-										src={user.photo}
-										className="w-8 h-8 aspect-square rounded-full object-cover"
-										alt="Foto do Usuário"
-									/>
-									<ChevronDown size={18} className="text-gray-500" />
-								</div>
-							</DropdownMenuTrigger>
-
-							<DropdownMenuContent
-								align="end"
-								className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2"
+						<>
+							<button
+								ref={menuTriggerRef}
+								onClick={() => setMenuOpen((prev) => !prev)}
+								className="badge__user bg-primary-100 flex items-center gap-2 cursor-pointer hover:bg-gray-200 transition-colors pr-3 py-1.5 px-2 rounded-2xl border-none"
 							>
-								{/* Perfil */}
-								<Link
-									to={"/account/profile"}
-									className="flex items-center group hover:bg-gray-100 transition-all rounded-2xl cursor-pointer gap-2 px-4 py-2"
-								>
-									<img
-										src={user.photo}
-										className="w-12 h-12 aspect-square rounded-full object-cover"
-										alt="Foto do Usuário"
-									/>
-									<div className="flex flex-col text-gray-700 ">
-										<h4>{user.name}</h4>
-										<small>{user.email}</small>
-									</div>
-									<ChevronRight
-										size={15}
-										className="opacity-0 group-hover:opacity-100 text-gray-500 "
-									/>
-								</Link>
-
-								<DropdownMenuSeparator />
-
-								{/* Navegação */}
-								{navItemsPerfil.map((item) => {
-									return (
-										<Link
-											key={item.path}
-											to={item.path}
-											onClick={item.function}
-											className={`flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
-										>
-											{item.label}
-											<ChevronRight
-												size={15}
-												className="opacity-0 group-hover:opacity-100 text-gray-500"
-											/>
-										</Link>
-									);
-								})}
-								{!user && (
-									<span
-										onClick={(e) => {
-											e.preventDefault();
-											showAuthModal("login");
-										}}
-										className="text-white bg-primary-500 px-5 border-1 rounded-xl py-2"
-									>
-										Entre ou Cadastre-se
-									</span>
-								)}
-							</DropdownMenuContent>
-						</DropdownMenu>
+								<img
+									src={user.photo}
+									className="w-8 h-8 aspect-square rounded-full object-cover"
+									alt="Foto do Usuário"
+								/>
+								<ChevronDown size={18} className="text-gray-500" />
+							</button>
+							<StaggeredMenu
+								open={menuOpen}
+								onClose={() => setMenuOpen(false)}
+								triggerRef={menuTriggerRef}
+								colors={["#cbd5e1", "#334155"]}
+								accentColor="#1e293b"
+								items={[
+									{
+										path: "/",
+										icon: HomeIconSolid,
+										iconRegular: HomeIcon,
+										label: "Home",
+									},
+									{
+										path: "/account/bookings",
+										icon: CalendarDaysIconSolid,
+										iconRegular: CalendarDaysIcon,
+										label: "Reservas",
+										notifications: qtdBookings,
+									},
+									{
+										path: "/account/places",
+										icon: BuildingOfficeIconSolid,
+										iconRegular: BuildingOfficeIcon,
+										label: "Acomodações",
+									},
+									{
+										path: "/account/message",
+										icon: ChatBubbleOvalLeftIconSolid,
+										iconRegular: ChatBubbleOvalLeftIcon,
+										label: "Mensagens",
+									},
+									{ label: "Sair", onClick: logout },
+								]}
+								userProfile={{
+									photo: user.photo,
+									name: user.name,
+									email: user.email,
+									to: "/account/profile",
+								}}
+							/>
+						</>
 					)}
 				</motion.nav>
 			) : (
@@ -309,7 +335,7 @@ function MenuBar({ active }) {
 											<img
 												src={logo__primary}
 												alt="Logo do DormeAqui"
-												className="w-40 object-cover"
+												className="w-40"
 											/>
 										</div>
 									)}
