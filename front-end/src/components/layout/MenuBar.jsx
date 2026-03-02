@@ -182,7 +182,7 @@ function MenuBar({ active }) {
 							<svg
 								width="500"
 								height="171"
-								className="right-0 absolute -z-10"
+								className="-right-20 absolute -z-10"
 								viewBox="0 0 500 171"
 								fill="none"
 								xmlns="http://www.w3.org/2000/svg"

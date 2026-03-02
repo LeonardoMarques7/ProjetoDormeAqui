@@ -3,6 +3,7 @@ import logoPrimary from "@/assets/logos/logo__primary.png";
 import logoSecondary from "@/assets/logos/logo__secondary.png";
 import { Link, useLocation } from "react-router-dom";
 import MenuBar from "./MenuBar";
+import SearchBar from "./SearchBar";
 
 const Header = ({ active }) => {
 	const [scrolled, setScrolled] = useState(false);
@@ -61,14 +62,20 @@ const Header = ({ active }) => {
 		<header
 			className={`fixed z-50 w-full mb-3 transition-all duration-500 delay-0 2xl:max-w-full 2xl:px-10 xl:max-w-full `}
 		>
-			<div className="max-w-full flex max-sm:px-3.5 items-center mx-auto justify-between px-10 sm:px-8 py-5 ">
-				<Link to="/" className="flex items-center transition-all">
+			<div className="max-w-full flex max-sm:flex-col max-sm:gap-3 max-sm:px-3.5 items-center mx-auto justify-between px-10 sm:px-8 py-5 ">
+				<Link to="/" className="flex items-center transition-all flex-shrink-0">
 					<img
 						src={getLogoSrc()}
 						alt="Logo DormeAqui"
 						className=" transition-all h-25 object-cover duration-300"
 					/>
 				</Link>
+
+				{/* SearchBar no Header - visível em desktop */}
+				<div className="hidden md:flex flex-1 mx-8 max-md:hidden">
+					<SearchBar compact={true} />
+				</div>
+
 				<MenuBar active={active} />
 			</div>
 		</header>

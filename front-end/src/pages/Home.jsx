@@ -30,6 +30,7 @@ import DatePickerAirbnb from "@/components/places/DatePickerAirbnb";
 import searchSchema from "@/components/schemas/searchSchema.jsx";
 import { useMobileContext } from "../components/contexts/MobileContext";
 import { useLocation } from "react-router";
+import SearchBar from "@/components/layout/SearchBar";
 
 const Home = () => {
 	const location = useLocation();
@@ -61,7 +62,7 @@ const Home = () => {
 			checkout: null,
 			guests: null,
 		},
-		mode: "onSubmit", // Valida apenas no submit para não quebrar o layout
+		mode: "onSubmit",
 	});
 
 	const fetchPlaces = async () => {
@@ -80,9 +81,13 @@ const Home = () => {
 		fetchPlaces();
 	}, []);
 
+	// Processa resultados da busca vindo do SearchBar no Header
 	useEffect(() => {
-		if (location.state?.focusSearch) {
-			searchInputRef.current?.focus();
+		if (location.state?.searchResults) {
+			setCity(location.state.searchCity || "");
+			setPlacesSearch(location.state.searchResults);
+			// Limpa o state após usar
+			window.history.replaceState({}, document.title);
 		}
 	}, [location.state]);
 
@@ -96,34 +101,24 @@ const Home = () => {
 
 	const onSubmit = async (formData) => {
 		setIsSearching(true);
-		setCity(formData.city || ""); // Armazena o termo visualmente
+		setCity(formData.city || "");
 
-		// 1. Normaliza o termo de busca digitado pelo usuário
 		const searchTerm = normalize(formData.city);
 
 		try {
-			// Se você já tem todos os lugares carregados no estado `places` (do fetchPlaces inicial),
-			// use-o como base. Se não, terá que buscar tudo de novo.
-
-			// Vamos assumir que 'places' contém a lista completa original
 			let filteredResults = places.filter((place) => {
-				// Normaliza os dados do local (banco de dados)
 				const normalizedCity = normalize(place.city);
-				const normalizedState = normalize(place.state); // Supondo que exista place.state ou place.uf
+				const normalizedState = normalize(place.state);
 				const normalizedUf = normalize(place.uf);
 
-				// Lógica da Busca Abrangente:
-				// Verifica se o termo está na cidade OU no estado OU na sigla
 				const matchLocation =
 					normalizedCity.includes(searchTerm) ||
 					normalizedState.includes(searchTerm) ||
 					normalizedUf.includes(searchTerm);
 
-				// Se não digitou cidade, considera verdadeiro (para filtrar só por data/hóspedes depois)
 				return formData.city ? matchLocation : true;
 			});
 
-			// 2. Aplica os outros filtros (Data e Hóspedes) na lista já filtrada por local
 			if (formData.guests) {
 				filteredResults = filteredResults.filter(
 					(place) => place.guests >= formData.guests,
@@ -133,7 +128,7 @@ const Home = () => {
 			setTimeout(() => {
 				setPlacesSearch(filteredResults);
 				setIsSearching(false);
-				setSheetOpen(false); // Fecha o sheet após buscar
+				setDrawerOpen(false);
 			}, 300);
 		} catch (err) {
 			console.error("Erro na busca local:", err);
@@ -160,24 +155,12 @@ const Home = () => {
 		setValue("checkout", newCheckout);
 	};
 
-	const watchedValues = watch();
-	const hasFilters =
-		watchedValues.city || watchedValues.checkin || watchedValues.guests;
-
 	return (
 		<div>
-			<div className="relative flex justify-center w-full mb-12 ">
-				<div className="max-sm:h-[25svh] w-full xl:h-[30svh] h-[50svh]  rounded-2xl!  max-w-full max-sm:top-0   relative">
-					<img
-						src={Banner}
-						alt=""
-						className="object-cover pointer-events-none h-full w-full rounded-2xl!"
-					/>
-					<div className="absolute inset-0 mx-auto  rounded-2xl! bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>
-				</div>
-
-				{mobile ? (
-					/* Versão Mobile - Drawer */
+			{/* Banner com SearchBar Mobile */}
+			<div className="relative flex justify-center w-full mb-12 pt-28">
+				{mobile && (
+					/* Versão Mobile - SearchBar no Drawer */
 					<div className="absolute z-20 -bottom-8 left-0 right-0 px-3.5">
 						<Drawer
 							open={drawerOpen}
@@ -191,19 +174,17 @@ const Home = () => {
 								>
 									<div className="flex-1 text-left">
 										<p className="text-sm font-semibold text-gray-900">
-											{hasFilters
-												? "Pesquisa personalizada"
-												: "Inicie sua busca"}
+											{city ? "Pesquisa personalizada" : "Inicie sua busca"}
 										</p>
 										<p className="text-xs text-gray-500">
-											{watchedValues.city || "Para onde? • Quando? • Quem?"}
+											{city || "Para onde? • Quando? • Quem?"}
 										</p>
 									</div>
 									<Search className="mr-2" />
 								</button>
 							</DrawerTrigger>
 
-							<DrawerContent className="   p-0">
+							<DrawerContent className="p-0">
 								<DrawerHeader className="p-6 pb-4 border-b sticky top-0 bg-white z-10">
 									<div className="flex items-center justify-between">
 										<DrawerTitle className="text-xl !font-medium">
@@ -327,7 +308,7 @@ const Home = () => {
 											<button
 												onClick={(e) => {
 													limparPesquisa(e);
-													setDatePickerKey((prev) => prev + 1); // Adicione esta linha
+													setDatePickerKey((prev) => prev + 1);
 												}}
 												className="bg-red-500 cursor-pointer text-white h-15 w-15 justify-center rounded-xl text-sm font-bold hover:bg-red-700/90 transition-all disabled:bg-red-100 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
 											>
@@ -338,100 +319,6 @@ const Home = () => {
 								</div>
 							</DrawerContent>
 						</Drawer>
-					</div>
-				) : (
-					/* Versão Desktop - Original */
-					<div className="2xl:max-w-10/12 z-20 w-full max-w-5xl max-lg:max-w-4xl bg-white absolute flex flex-col justify-center -bottom-12 p-4 pl-8 px-4 shadow-xl rounded-2xl mt-4">
-						<form onSubmit={handleSubmit(onSubmit)}>
-							<div className=" flex items-center w-full justify-start">
-								{/* Campo Cidade */}
-								<div className="group__input relative pr-4 border-r flex w-full items-center ">
-									<MapPin className="text-gray-400 size-5 flex-shrink-0" />
-									<input
-										ref={searchInputRef}
-										id="city"
-										type="text"
-										placeholder="Para onde você vai?"
-										className="ml-4 outline-none  w-full"
-										{...register("city")}
-									/>
-								</div>
-
-								{/* Campo Datas */}
-								<div className="w-90 2xl:w-120 h-fit text-nowrap border-r px-6">
-									<Controller
-										name="checkin"
-										control={control}
-										render={({ field }) => (
-											<Controller
-												name="checkout"
-												control={control}
-												render={({ field: checkoutField }) => (
-													<DatePickerAirbnb
-														key={datePickerKey}
-														onDateSelect={({ checkin, checkout }) => {
-															field.onChange(checkin);
-															checkoutField.onChange(checkout);
-														}}
-														initialCheckin={field.value}
-														initialCheckout={checkoutField.value}
-														search={true}
-													/>
-												)}
-											/>
-										)}
-									/>
-								</div>
-
-								{/* Campo Hóspedes */}
-								<div className="group__input relative pl-6 pr-4 flex items-center w-90">
-									<Users className="text-gray-400 size-5 flex-shrink-0" />
-									<input
-										id="guests"
-										type="number"
-										className="ml-4 outline-none w-full"
-										placeholder="Hóspedes"
-										{...register("guests", {
-											valueAsNumber: true,
-											setValueAs: (v) => (v === "" ? null : parseInt(v)),
-										})}
-										min="1"
-										max="20"
-									/>
-								</div>
-
-								{/* Botão de Busca */}
-								<Button
-									type="submit"
-									variant="outline"
-									disabled={isSearching}
-									className="justify-center ml-4 !px-5 !py-5 font-normal border bg-primary-900 hover:bg-primary-800/90 cursor-pointer hover:text-white border-gray-200 h-full rounded-2xl text-white outline-primary-400 disabled:opacity-50"
-								>
-									{isSearching ? (
-										<div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-									) : (
-										<Search className="h-5 w-5" />
-									)}
-								</Button>
-							</div>
-						</form>
-
-						{/* Mensagem de erro - Aparece abaixo do formulário */}
-						{Object.keys(errors).length > 0 && (
-							<div className="mt-3 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
-								<div className="flex items-start gap-2">
-									<AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-									<div className="flex flex-col gap-1 text-sm text-red-600">
-										{errors.city && <span>• {errors.city.message}</span>}
-										{errors.checkin && <span>• {errors.checkin.message}</span>}
-										{errors.checkout && (
-											<span>• {errors.checkout.message}</span>
-										)}
-										{errors.guests && <span>• {errors.guests.message}</span>}
-									</div>
-								</div>
-							</div>
-						)}
 					</div>
 				)}
 			</div>
@@ -489,9 +376,7 @@ const Home = () => {
 				)
 			) : (
 				// Caso 1: sem pesquisa
-				<span className="mx-auto text__section max-sm:text-lg max-sm:mb-2.5 max-sm:pt-0 font-medium max-w-full mb-5 w-full flex justify-start items-start px-4 max-sm:px-3.5  text-2xl text-start pt-5">
-					Acomodações disponíveis
-				</span>
+				<></>
 			)}
 			{loading && (
 				<div className="relative ">
