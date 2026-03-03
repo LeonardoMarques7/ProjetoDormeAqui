@@ -5,6 +5,10 @@ import {
 	TreePine,
 	Hotel,
 	Leaf,
+	Users2,
+	Bed,
+	Bath,
+	DoorOpen,
 } from "lucide-react";
 import { GuestsInput } from "@/components/ui/GuestsInput";
 
@@ -124,6 +128,9 @@ const Step1Space = ({ data, dispatch, errors }) => {
 						max={20}
 						value={data.rooms}
 						onChange={(e) => set("rooms", e.target.value)}
+						icon={DoorOpen}
+						unitSingular="quarto"
+						unitPlural="quartos"
 					/>
 					<GuestsInput
 						label="Banheiros"
@@ -131,6 +138,9 @@ const Step1Space = ({ data, dispatch, errors }) => {
 						max={20}
 						value={data.bathrooms}
 						onChange={(e) => set("bathrooms", e.target.value)}
+						icon={Bath}
+						unitSingular="banheiro"
+						unitPlural="banheiros"
 					/>
 					<GuestsInput
 						label="Camas"
@@ -138,6 +148,9 @@ const Step1Space = ({ data, dispatch, errors }) => {
 						max={30}
 						value={data.beds}
 						onChange={(e) => set("beds", e.target.value)}
+						icon={Bed}
+						unitSingular="cama"
+						unitPlural="camas"
 					/>
 					<GuestsInput
 						label="Hóspedes"
@@ -145,6 +158,9 @@ const Step1Space = ({ data, dispatch, errors }) => {
 						max={20}
 						value={data.guests}
 						onChange={(e) => set("guests", e.target.value)}
+						icon={Users2}
+						unitSingular="hóspede"
+						unitPlural="hóspedes"
 					/>
 				</div>
 				{(errors?.rooms ||

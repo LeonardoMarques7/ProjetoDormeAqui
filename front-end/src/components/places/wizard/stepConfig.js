@@ -1,3 +1,5 @@
+import { Home, Camera, FileText, Sparkles, Tag, ClipboardCheck } from "lucide-react";
+
 // ============================================
 // CONFIGURAÇÃO DOS STEPS DO WIZARD
 // Adicionar / remover / reordenar steps aqui
@@ -8,6 +10,7 @@
  * - id: identificador único
  * - title: título exibido no indicador
  * - description: subtítulo descritivo
+ * - icon: ícone Lucide
  * - fields: campos obrigatórios deste step
  * - validate: função que retorna objeto de erros { campo: "mensagem" }
  */
@@ -16,6 +19,7 @@ export const STEPS_CONFIG = [
 		id: 1,
 		title: "Sobre o espaço",
 		description: "Tipo de acomodação, localização e capacidade.",
+		icon: Home,
 		fields: ["type", "title", "city", "rooms", "bathrooms", "beds", "guests"],
 		validate: (data) => {
 			const errors = {};
@@ -37,6 +41,7 @@ export const STEPS_CONFIG = [
 		id: 2,
 		title: "Fotos",
 		description: "Mostre seu espaço com boas fotos.",
+		icon: Camera,
 		fields: ["photos"],
 		validate: (data) => {
 			const errors = {};
@@ -49,6 +54,7 @@ export const STEPS_CONFIG = [
 		id: 3,
 		title: "Descrição",
 		description: "Conte o que torna o seu espaço especial.",
+		icon: FileText,
 		fields: ["description"],
 		validate: (data) => {
 			const errors = {};
@@ -61,6 +67,7 @@ export const STEPS_CONFIG = [
 		id: 4,
 		title: "Comodidades",
 		description: "Selecione o que está disponível.",
+		icon: Sparkles,
 		fields: [],
 		// Comodidades são opcionais
 		validate: () => ({}),
@@ -69,6 +76,7 @@ export const STEPS_CONFIG = [
 		id: 5,
 		title: "Preço",
 		description: "Defina preço e disponibilidade.",
+		icon: Tag,
 		fields: ["price", "checkin", "checkout"],
 		validate: (data) => {
 			const errors = {};
@@ -83,6 +91,7 @@ export const STEPS_CONFIG = [
 		id: 6,
 		title: "Revisão",
 		description: "Confira e publique sua acomodação.",
+		icon: ClipboardCheck,
 		fields: [],
 		validate: () => ({}),
 	},

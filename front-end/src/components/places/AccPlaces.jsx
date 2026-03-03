@@ -146,34 +146,11 @@ const AccPlaces = () => {
 							<></>
 						)}
 					</div>
-					{action === "edit" && (
-						<>
-							<span className="text-lg max-sm:text-sm flex items-center gap-3">
-								Adicionando acomodação
-							</span>
-							<p>
-								Informe os dados abaixo para começar a receber hóspedes e
-								oferecer experiências inesquecíveis.
-							</p>
-						</>
-					)}
+
 					{action !== "new" ? (
 						<></>
 					) : (
 						<div className="flex flex-col justify-center items-center gap-2.5">
-							<div className=" flex  pb-4 text-center justify-between items-center w-full ">
-								<span className="text-gray-500 flex-col gap-1,5 flex text-sm font-light pl-0.5">
-									<span className=" text-3xl max-sm:text-xl text-nowrap flex items-end gap-3 text-black">
-										<span className="text-xl max-sm:text-sm flex items-center gap-3">
-											Adicionando acomodação
-										</span>{" "}
-									</span>
-									<p className="text-sm">
-										Informe os dados abaixo para começar a receber hóspedes e
-										oferecer experiências inesquecíveis.
-									</p>
-								</span>
-							</div>
 							<NewPlace />
 						</div>
 					)}

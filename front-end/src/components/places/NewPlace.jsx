@@ -14,10 +14,10 @@ import {
 	TOTAL_STEPS,
 	validateStep,
 	isStepValid,
-	computeProgress,
 } from "@/components/places/wizard/stepConfig";
-import StepIndicator from "@/components/places/wizard/StepIndicator";
+import StepSidebar from "@/components/places/wizard/StepSidebar";
 import StepNavigation from "@/components/places/wizard/StepNavigation";
+import { STEPS_CONFIG } from "@/components/places/wizard/stepConfig";
 
 // Steps
 import Step1Space from "@/components/places/steps/Step1Space";
@@ -123,7 +123,6 @@ const NewPlace = () => {
 	// ─── Navegação ───────────────────────────────────────────────────────────
 	const stepErrors = validateStep(currentStep, state);
 	const currentStepValid = isStepValid(currentStep, state);
-	const progressPercent = computeProgress(state);
 
 	const handleNext = () => {
 		if (!currentStepValid) return;
@@ -183,19 +182,58 @@ const NewPlace = () => {
 
 	// ─── Render step atual ───────────────────────────────────────────────────
 	const StepComponent = STEP_COMPONENTS[currentStep];
+	const activeStepConfig = STEPS_CONFIG[currentStep - 1];
 
 	return (
-		<>
-			<StepIndicator
-				currentStep={currentStep}
-				progressPercent={progressPercent}
-			/>
-			<div className="bg-white min-h-screen flex flex-col pb-6">
-				<div className="flex-1 mx-auto w-full max-w-3xl px-4 pt-6">
-					{/* Indicador de progresso */}
+		<div className="bg-white min-h-screen">
+			{/* ── Layout principal ─────────────────────────────────────── */}
+			<div className="flex max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-8">
+				{/* ── SIDEBAR VERTICAL (desktop only) ─────────────────── */}
+				<StepSidebar
+					currentStep={currentStep}
+					data={state}
+					onStepClick={(stepId) => setCurrentStep(stepId)}
+				/>
+
+				{/* ── COLUNA DE CONTEÚDO ──────────────────────────────── */}
+				<div className="flex-1 min-w-0 flex flex-col">
+					{/* Header mobile: "Etapa X de Y" */}
+					<div className="lg:hidden mb-5">
+						<div className="flex items-center justify-between mb-3">
+							<span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+								Etapa {currentStep} de {TOTAL_STEPS}
+							</span>
+							<span className="text-xs text-primary-600 font-semibold">
+								{Math.round(((currentStep - 1) / TOTAL_STEPS) * 100)}% concluído
+							</span>
+						</div>
+						{/* Barra de progresso mobile */}
+						<div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+							<div
+								className="h-full bg-primary-600 rounded-full transition-all duration-500"
+								style={{
+									width: `${Math.round(((currentStep - 1) / TOTAL_STEPS) * 100)}%`,
+								}}
+							/>
+						</div>
+						{/* Nome do step atual (mobile) */}
+						<div className="flex items-center gap-2 mt-3">
+							{activeStepConfig?.icon && (
+								<span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-100 text-primary-700">
+									<activeStepConfig.icon size={14} />
+								</span>
+							)}
+							<span className="text-base font-semibold text-gray-800">
+								{activeStepConfig?.title}
+							</span>
+						</div>
+					</div>
+
+					{/* Separador desktop */}
+					<div className="hidden lg:block h-px bg-gray-100 mb-6" />
 
 					{/* Conteúdo do step atual */}
-					<div className="mt-4">
+					<div className="flex-1">
 						<StepComponent
 							data={state}
 							dispatch={dispatch}
@@ -217,7 +255,7 @@ const NewPlace = () => {
 						/>
 					)}
 
-					{/* Navegação no último step (só o botão Voltar) */}
+					{/* Apenas botão Voltar no último step */}
 					{currentStep === TOTAL_STEPS && (
 						<div className="border-t border-gray-100 pt-4 mt-4">
 							<button
@@ -231,7 +269,7 @@ const NewPlace = () => {
 					)}
 				</div>
 			</div>
-		</>
+		</div>
 	);
 };
 

@@ -14,6 +14,10 @@ export function GuestsInput({
 	value,
 	onChange,
 	className = "",
+	// Ícone e textos customizáveis (default = comportamento original de hóspedes)
+	icon: Icon = Users,
+	unitSingular = "hóspede",
+	unitPlural = "hóspedes",
 }) {
 	const numericValue = parseInt(value) || 0;
 
@@ -67,8 +71,8 @@ export function GuestsInput({
 
 	const getGuestText = () => {
 		if (numericValue === 0) return "";
-		if (numericValue === 1) return "1 hóspede";
-		return `${numericValue} hóspedes`;
+		if (numericValue === 1) return `1 ${unitSingular}`;
+		return `${numericValue} ${unitPlural}`;
 	};
 
 	return (
@@ -82,7 +86,7 @@ export function GuestsInput({
 				</Label>
 			)}
 			<div className="relative flex items-center">
-				<Users className="absolute left-4 text-gray-400 size-5 pointer-events-none" />
+				<Icon className="absolute left-4 text-gray-400 size-5 pointer-events-none" />
 
 				<Input
 					id={id}
