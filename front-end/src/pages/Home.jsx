@@ -158,7 +158,7 @@ const Home = () => {
 	return (
 		<div>
 			{/* Banner com SearchBar Mobile */}
-			<div className="relative flex justify-center w-full mb-12 pt-28">
+			<div className="relative flex justify-center w-full mb-12 ">
 				{mobile && (
 					/* Versão Mobile - SearchBar no Drawer */
 					<div className="absolute z-20 -bottom-8 left-0 right-0 px-3.5">
@@ -381,7 +381,7 @@ const Home = () => {
 			{loading && (
 				<div className="relative ">
 					{mobile ? (
-						<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8 max-sm:px-3.5 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10">
+						<div className="grid transition-transform mx-auto max-w-7xl relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8 max-sm:px-3.5 ">
 							{[...Array(16)].map((_, index) => (
 								<div
 									key={index}
@@ -399,7 +399,7 @@ const Home = () => {
 							))}
 						</div>
 					) : (
-						<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8 max-sm:px-3.5 2xl:max-w-full 2xl:px-20 xl:max-w-full xl:px-10">
+						<div className="grid max-w-7xl transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-8 max-sm:px-3.5">
 							{[...Array(16)].map((_, index) => (
 								<div
 									key={index}
@@ -421,7 +421,7 @@ const Home = () => {
 			)}
 			{/* GRID DE RESULTADOS */}
 			{city && placesSearch.length > 0 && (
-				<div className="grid mb-10 max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 mx-auto gap-8 px-4 max-sm:px-3.5 py-4 ">
+				<div className="grid mb-10 max-w-7xl relative transition-transform grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 mx-auto gap-8 px-4 max-sm:px-3.5 py-4 ">
 					<>
 						{placesSearch.map((place) => (
 							<Item {...{ place }} key={place._id} />
@@ -432,7 +432,7 @@ const Home = () => {
 			)}
 			{(!city || placesSearch.length === 0) && (
 				<div className="relative mb-10">
-					<div className="grid max-w-full transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-4 max-sm:px-3.5">
+					<div className="grid max-w-7xl transition-transform mx-auto relative grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-8 px-4 max-sm:px-3.5">
 						{places.map((place) => (
 							<Item {...{ place }} key={place._id} />
 						))}

@@ -20,6 +20,7 @@ import {
 	Users,
 	Users2,
 	ArrowRight,
+	Verified,
 } from "lucide-react";
 import TransparentCheckoutForm from "../components/payments/TransparentCheckoutForm";
 import PaymentMethodSelector from "../components/payments/PaymentMethodSelector";
@@ -209,6 +210,14 @@ const Place = () => {
 		if (format === "dd de MMM")
 			return `${day} de ${monthNames[dateObj.getMonth()]}`;
 		return `${day}/${month}/${year}`;
+	};
+
+	const dataFormat = (date) => {
+		const parsedDate = new Date(date);
+
+		return parsedDate.toLocaleString("pt-BR", {
+			dateStyle: "short",
+		});
 	};
 
 	const numberOfDays = (date1, date2) => {
@@ -457,7 +466,7 @@ const Place = () => {
 
 	if (loading) {
 		return (
-			<div className="container__infos mx-auto mt-25 max-sm:max-w-full md:max-w-7xl flex flex-col gap-2">
+			<div className="container__infos mx-auto  max-sm:max-w-full md:max-w-7xl flex flex-col gap-2">
 				<div className="shadow-none max-sm:p-0 max-sm:shadow-none max-h-full max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
 					<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:mx-0 max-sm:rounded-none rounded-2xl cursor-pointer">
 						{/* Container do grid principal */}
@@ -727,7 +736,7 @@ const Place = () => {
 
 			{/* Place */}
 
-			<div className=" mb-2.5 flex w-full flex-col gap-2 mx-auto mt-25 max-sm:max-w-full md:max-w-7xl">
+			<div className=" mb-2.5 flex w-full flex-col gap-2 mx-auto  max-sm:max-w-full md:max-w-7xl">
 				<div className=" max-sm:p-0 max-sm:shadow-none max-h-full  max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center  relative overflow-hidden">
 					{/* <div className="grid relative  grid-cols-5 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2 2xl:h-130 max-sm:h-[50svh]">
 						<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
@@ -1450,60 +1459,79 @@ const Place = () => {
 										</div>
 									</div>
 								)}
-								<div className="grid grid-cols-1 gap-4 mt-5 mb-15 max-sm:mb-0">
+								<div className="grid max-w-full transition-transform relative grid-cols-[repeat(auto-fit,minmax(300px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-3 mt-5 mb-15 max-sm:mb-0">
 									{filteredReviews.length > 0 ? (
-										filteredReviews.map((review) => (
-											<div
-												key={review._id}
-												className="flex flex-col gap-4 p-6 bg-white rounded-2xl border border-gray-200 shadow-sm"
-											>
-												<div className="flex items-center gap-2">
-													<div className="flex items-center gap-1">
-														{[...Array(5)].map((_, index) => (
-															<Star
-																key={index}
-																fill={
-																	index < Math.floor(review.rating)
-																		? "black"
-																		: "none"
-																}
-																stroke="black"
-																size={20}
-															/>
-														))}
+										filteredReviews.map((review) => {
+											const stars = review.rating;
+											return (
+												<div
+													className="group relative bg-white rounded-3xl h-full p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-neutral-100"
+													key={review._id}
+												>
+													{/* HEADER */}
+													<div className="flex items-center justify-between">
+														{/* Avatar + Nome */}
+														<Link
+															to={`/account/profile/${review.user._id}`}
+															className="flex items-center gap-4"
+														>
+															<div className="relative">
+																<img
+																	src={review.user.photo || photoDefault}
+																	className="w-14 h-14 rounded-full object-cover shadow-sm"
+																	alt=""
+																/>
+																<Verified className="size-5 text-blue-600 absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow" />
+															</div>
+
+															<div>
+																<p className="font-semibold text-neutral-900">
+																	{review.user.name}
+																</p>
+																<p className="text-sm text-neutral-500">
+																	{review.user.city || "Hóspede"}
+																</p>
+															</div>
+														</Link>
+													</div>
+
+													{/* RATING */}
+													<div className="flex items-center gap-1 mt-4">
+														<span className="font-semibold">
+															{Number(stars).toFixed(1)}
+														</span>
+
+														<div className="flex text-yellow-500 text-xl">
+															{[1, 2, 3, 4, 5].map((star) => (
+																<span key={star}>
+																	{star <= Math.round(stars) ? "★" : "☆"}
+																</span>
+															))}
+														</div>
+													</div>
+
+													{/* COMMENT */}
+													<div className="my-4 mt-1 relative">
+														{review.comment ? (
+															<p className="text-neutral-700 pt-1 leading-relaxed line-clamp-4">
+																{review.comment}
+															</p>
+														) : (
+															<p className="text-neutral-400 italic">
+																Sem comentário
+															</p>
+														)}
+													</div>
+
+													{/* FOOTER */}
+													<div className="mt-auto absolute bottom-4 text-xs text-neutral-400">
+														Avaliado em {dataFormat(review.createdAt)}
 													</div>
 												</div>
-												{review.comment ? (
-													<p className="text-gray-700 max-w-md leading-relaxed line-clamp-4">
-														"{review.comment}"
-													</p>
-												) : (
-													<p className=" max-w-md mt-auto items-center text-primary-500 leading-relaxed line-clamp-4">
-														Sem comentário
-													</p>
-												)}
-												<Link
-													to={`/account/profile/${review.user._id}`}
-													className="flex items-center mt-auto gap-2"
-												>
-													<img
-														src={review.user.photo || photoDefault}
-														alt={review.user.name}
-														className="w-12 h-12 rounded-full object-cover"
-													/>
-													<div className="flex flex-col text-sm">
-														<p className="font-semibold text-gray-900">
-															{review.user.name}
-														</p>
-														<p className="text-xs text-gray-500">
-															Hóspede Verificado
-														</p>
-													</div>
-												</Link>
-											</div>
-										))
+											);
+										})
 									) : (
-										<p className="text-gray-500 text-center py-0">
+										<p className="text-gray-500 text-center py-0 col-span-full">
 											Ainda não há avaliações para este filtro.
 										</p>
 									)}

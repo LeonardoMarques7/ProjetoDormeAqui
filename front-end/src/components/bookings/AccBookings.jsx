@@ -30,7 +30,7 @@ const AccBookings = ({ bookingId }) => {
 		<>
 			{/* Conteúdo */}
 
-			<div className="flex w-full my-15 mx-auto mt-25 max-sm:max-w-full md:max-w-7xl md:px-5 max-h-full h-full flex-col gap-8 relative justify-start items-start  max-sm:my-0 max-sm:px-3.5">
+			<div className="flex w-full mx-auto  max-sm:max-w-full md:max-w-7xl md:px-5 max-h-full h-full flex-col gap-8 relative justify-start items-start  max-sm:my-0 max-sm:px-3.5">
 				<div className=" flex border-l-3 pl-4 justify-between items-center w-full ">
 					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
 						<span className=" text-3xl max-sm:text-xl text-black">
@@ -48,7 +48,7 @@ const AccBookings = ({ bookingId }) => {
 
 				{!readyBookings ? (
 					<>
-						<div className=" max-sm:flex-col mx-auto mt-25 max-sm:max-w-full md:max-w-9/12 bg-white/80 border border-primary-100 h-fit relative w-full flex-1 flex rounded-3xl   gap-5 ">
+						<div className=" max-sm:flex-col mx-auto  max-sm:max-w-full md:max-w-9/12 bg-white/80 border border-primary-100 h-fit relative w-full flex-1 flex rounded-3xl   gap-5 ">
 							<div className="w-85 h-90 max-sm:aspect-square max-sm:w-full max-sm:h-full ">
 								<Skeleton className="w-full rounded-r-none h-full max-sm:rounded-3xl max-sm:rounded-b-none rounded-l-3xl" />
 							</div>

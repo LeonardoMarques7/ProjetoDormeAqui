@@ -61,10 +61,10 @@ const Header = ({ active }) => {
 
 	return (
 		<header
-			className={`fixed z-50 w-full bg-white mb-3 transition-all  duration-500 delay-0 mx-auto max-sm:max-w-full `}
+			className={`sticky top-0 z-50 w-full bg-white mb-3 transition-all max-w-7xl duration-500 delay-0 mx-auto max-sm:max-w-full `}
 		>
 			<div
-				className={`max-w-full flex max-sm:flex-col max-sm:gap-3 max-sm:px-3.5 items-center mx-auto justify-between px-10 sm:px-8 py-5 ${!isHomePage && "max-h-25"}`}
+				className={`max-w-full flex max-sm:flex-col max-sm:gap-3 max-sm:px-3.5 items-center mx-auto justify-between  py-5 `}
 			>
 				<Link to="/" className="flex items-center transition-all flex-shrink-0">
 					<img

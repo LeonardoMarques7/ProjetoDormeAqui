@@ -48,7 +48,7 @@ const AccPlaces = () => {
 
 	return (
 		<>
-			<div className="flex w-full mx-auto mt-25 max-sm:max-w-full md:max-w-7xl md:px-4  max-h-full h-full flex-col gap-8 relative justify-start items-start max-sm:my-0 max-sm:px-3.5">
+			<div className="flex w-full mx-auto  max-sm:max-w-full md:max-w-7xl md:px-4  max-h-full h-full flex-col gap-8 relative justify-start items-start max-sm:my-0 max-sm:px-3.5">
 				<div className=" flex border-l-3 pl-4 justify-between items-center w-full ">
 					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
 						<span className=" text-3xl max-sm:text-xl text-nowrap flex items-end gap-3 text-black">
@@ -56,7 +56,7 @@ const AccPlaces = () => {
 								? "Editando acomodação"
 								: action !== "new"
 									? "Meus lugares"
-									: "Adicionando acomodação"}{" "}
+									: ""}{" "}
 							<span className="text-lg max-sm:text-sm flex items-center gap-3">
 								{action !== "new" && (
 									<>
@@ -72,16 +72,8 @@ const AccPlaces = () => {
 								)}
 							</span>
 						</span>
-						{action !== "new" ? (
-							<>Visualize suas acomodações</>
-						) : (
-							<>
-								Informe os dados abaixo para começar a receber hóspedes e
-								oferecer experiências inesquecíveis.{" "}
-							</>
-						)}
 					</span>
-
+					{action !== "new" && <>Visualize suas acomodações</>}
 					{edit && (
 						<Link
 							to="/account/places/new"
@@ -105,7 +97,7 @@ const AccPlaces = () => {
 					<></>
 				)}
 
-				<div className="flex gap-5 items-start">
+				<div className="flex gap-5 items-center justify-center w-full">
 					{/* {!action && !mobile && (
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -151,9 +143,40 @@ const AccPlaces = () => {
 								<Places places={places} />
 							</>
 						) : (
-							<NewPlace />
+							<></>
 						)}
 					</div>
+					{action === "edit" && (
+						<>
+							<span className="text-lg max-sm:text-sm flex items-center gap-3">
+								Adicionando acomodação
+							</span>
+							<p>
+								Informe os dados abaixo para começar a receber hóspedes e
+								oferecer experiências inesquecíveis.
+							</p>
+						</>
+					)}
+					{action !== "new" ? (
+						<></>
+					) : (
+						<div className="flex flex-col justify-center items-center gap-2.5">
+							<div className=" flex  pb-4 text-center justify-between items-center w-full ">
+								<span className="text-gray-500 flex-col gap-1,5 flex text-sm font-light pl-0.5">
+									<span className=" text-3xl max-sm:text-xl text-nowrap flex items-end gap-3 text-black">
+										<span className="text-xl max-sm:text-sm flex items-center gap-3">
+											Adicionando acomodação
+										</span>{" "}
+									</span>
+									<p className="text-sm">
+										Informe os dados abaixo para começar a receber hóspedes e
+										oferecer experiências inesquecíveis.
+									</p>
+								</span>
+							</div>
+							<NewPlace />
+						</div>
+					)}
 				</div>
 			</div>
 		</>

@@ -189,12 +189,12 @@ const NewPlace = () => {
 	};
 
 	return (
-		<div className="min-h-screen bg-white flex flex-col pb-5">
+		<div className=" bg-white flex  flex-col pb-5">
 			{/* Step Content */}
-			<div className="flex-1 flex items-center justify-start px-4">
-				<div className="max-w-2xl w-full">
+			<div className="flex-1 flex items-center justify-center mx-auto w-full px-4">
+				<div className="max-w-3xl mx-auto w-full">
 					{currentStep === 1 && (
-						<div className="space-y-8">
+						<div className="">
 							<div className="text-start">
 								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
 									Informações básicas

@@ -354,9 +354,9 @@ const AccProfile = () => {
 	const SkeletonProfile = () => (
 		<>
 			{!mobile ? (
-				<div className=" mt-25 max-sm:max-w-full mx-auto md:max-w-7xl">
+				<div className="  max-sm:max-w-full mx-auto md:max-w-7xl">
 					{/* Banner skeleton */}
-					<div className="bg-gray-200 animate-pulse mt-20 max-w-7xl mx-auto w-full h-[40svh] rounded-4xl" />
+					<div className="bg-gray-200 animate-pulse  max-w-7xl mx-auto w-full h-[40svh] rounded-4xl" />
 					{/* Container */}
 					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5 max-sm:mt-0 relative -mt-35">
 						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10">
@@ -465,7 +465,7 @@ const AccProfile = () => {
 			) : (
 				<div>
 					{/* Banner skeleton mobile */}
-					<div className="bg-gray-200 animate-pulse mt-20 max-w-7xl mx-auto w-full h-[25svh]" />
+					<div className="bg-gray-200 animate-pulse  max-w-7xl mx-auto w-full h-[25svh]" />
 					{/* Container mobile */}
 					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5 relative -mt-30">
 						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10 max-sm:mb-0">
@@ -626,7 +626,7 @@ const AccProfile = () => {
 	if (isDeactivated) {
 		return (
 			<>
-				<div className="mt-25 max-sm:max-w-full md:max-w-7xl mx-auto w-full bg-gray-100 rounded-4xl h-[40svh] relative overflow-hidden flex items-center justify-center">
+				<div className=" max-sm:max-w-full md:max-w-7xl mx-auto w-full bg-gray-100 rounded-4xl h-[40svh] relative overflow-hidden flex items-center justify-center">
 					<div className="text-center">
 						<h1 className="text-6xl font-bold text-gray-500 mb-4">
 							Perfil Desativado
@@ -669,7 +669,7 @@ const AccProfile = () => {
 			{!isEditingProfile ? (
 				<>
 					<img
-						className=" mx-auto w-full object-cover mt-25 max-sm:max-w-full max-w-7xl bg-center max-sm:h-[25svh] max-sm:rounded-none rounded-4xl h-[40svh] relative overflow-hidden"
+						className=" mx-auto w-full object-cover  max-sm:max-w-full max-w-7xl bg-center max-sm:h-[25svh] max-sm:rounded-none rounded-4xl h-[40svh] relative overflow-hidden"
 						src={displayUser?.banner || bannerDefault}
 					/>
 
