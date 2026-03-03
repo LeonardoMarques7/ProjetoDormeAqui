@@ -8,6 +8,7 @@ import SearchBar from "./SearchBar";
 const Header = ({ active }) => {
 	const [scrolled, setScrolled] = useState(false);
 	const location = useLocation();
+	const isHomePage = location.pathname === "/";
 	const secondaryLogoRoutes = [
 		"/", // home
 		"/places/",
@@ -60,9 +61,11 @@ const Header = ({ active }) => {
 
 	return (
 		<header
-			className={`fixed z-50 w-full mb-3 transition-all duration-500 delay-0 2xl:max-w-full 2xl:px-10 xl:max-w-full `}
+			className={`fixed z-50 w-full bg-white mb-3 transition-all  duration-500 delay-0 2xl:max-w-full 2xl:px-10 xl:max-w-full  `}
 		>
-			<div className="max-w-full flex max-sm:flex-col max-sm:gap-3 max-sm:px-3.5 items-center mx-auto justify-between px-10 sm:px-8 py-5 ">
+			<div
+				className={`max-w-full flex max-sm:flex-col max-sm:gap-3 max-sm:px-3.5 items-center mx-auto justify-between px-10 sm:px-8 py-5 ${!isHomePage && "max-h-25"}`}
+			>
 				<Link to="/" className="flex items-center transition-all flex-shrink-0">
 					<img
 						src={getLogoSrc()}
@@ -71,10 +74,12 @@ const Header = ({ active }) => {
 					/>
 				</Link>
 
-				{/* SearchBar no Header - visível em desktop */}
-				<div className="hidden md:flex flex-1 mx-8 max-md:hidden">
-					<SearchBar compact={true} />
-				</div>
+				{/* SearchBar no Header - visível apenas na Home e em desktop */}
+				{isHomePage && (
+					<div className="hidden md:flex flex-1 mx-8 max-md:hidden">
+						<SearchBar compact={true} />
+					</div>
+				)}
 
 				<MenuBar active={active} />
 			</div>
