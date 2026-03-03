@@ -3,7 +3,7 @@ import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 
 const Footer = () => {
 	return (
-		<footer className=" h-fit mt-auto w-full 2xl:max-w-11/12 text-black bg-accent rounded-2xl border-gray-100 mx-auto">
+		<footer className=" mx-auto w-full max-w-7xl text-black bg-accent rounded-2xl border border-gray-100">
 			<div className="py-8 max-sm:pt-4  flex-1 flex px-8 ">
 				<div className="flex flex-1 justify-between items-center">
 					<p className="text-black text-sm text-center">

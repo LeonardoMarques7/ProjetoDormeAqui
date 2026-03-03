@@ -457,7 +457,7 @@ const Place = () => {
 
 	if (loading) {
 		return (
-			<div className="container__infos mx-auto max-w-7xl flex flex-col gap-2">
+			<div className="container__infos mx-auto mt-25 max-sm:max-w-full md:max-w-7xl flex flex-col gap-2">
 				<div className="shadow-none max-sm:p-0 max-sm:shadow-none max-h-full max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center rounded-4xl  relative overflow-hidden">
 					<div className="bg-white max-sm:shadow-none p-2 max-sm:p-0 relative mx-4 max-sm:mx-0 max-sm:rounded-none rounded-2xl cursor-pointer">
 						{/* Container do grid principal */}
@@ -727,7 +727,7 @@ const Place = () => {
 
 			{/* Place */}
 
-			<div className=" mb-2.5 flex w-full max-w-full flex-col gap-2">
+			<div className=" mb-2.5 flex w-full flex-col gap-2 mx-auto mt-25 max-sm:max-w-full md:max-w-7xl">
 				<div className=" max-sm:p-0 max-sm:shadow-none max-h-full  max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center  relative overflow-hidden">
 					{/* <div className="grid relative  grid-cols-5 grid-rows-2 max-sm:grid-cols-3 h-100  max-sm:p-2 gap-2 2xl:h-130 max-sm:h-[50svh]">
 						<div className="col-span-2 row-span-2 max-sm:col-span-4 max-sm:row-span-2">
@@ -870,7 +870,7 @@ const Place = () => {
 				</div>
 				{/* Conteúdo da acomodação */}
 				<div className="sm:grid sm:grid-cols-5 max-sm:gap-5 max-sm:flex max-sm:flex-col mt-2 gap-5 max-sm:mx-2 max-sm:mt-0 mx-4 ">
-					<div className="leading-relaxed col-span-3 order-1 description ">
+					<div className="leading-relaxed col-span-3 order-1 description  w-full">
 						<div className="max-sm:py-0  w-full">
 							<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
 								<div className="flex gap-2 rounded-2xl items-center ">
@@ -1033,7 +1033,7 @@ const Place = () => {
 								</div>
 							</div>
 						</div>
-						<div className="border  border-r-0 py-7 border-l-0">
+						<div className="border max-w-2xl border-r-0 py-7 border-l-0">
 							<p
 								className=""
 								dangerouslySetInnerHTML={{
@@ -1041,7 +1041,7 @@ const Place = () => {
 								}}
 							></p>
 						</div>
-						<div className="py-7 border-b">
+						<div className="py-7 border-b  max-w-2xl">
 							<p className="text-primary-500 uppercase font-light">
 								Comodidades
 							</p>
@@ -1062,7 +1062,7 @@ const Place = () => {
 								</div>
 							</div>
 						</div>
-						<div className="py-7 border-b">
+						<div className="py-7  max-w-2xl border-b">
 							<p className="text-primary-500 uppercase font-light">
 								Localização
 							</p>
@@ -1088,7 +1088,7 @@ const Place = () => {
 								)}
 							</div>
 						</div>
-						<div className="py-7 border-b">
+						<div className="py-7  max-w-2xl border-b">
 							<p className="text-primary-500 uppercase font-light">
 								Políticas e Regras
 							</p>
@@ -1127,7 +1127,7 @@ const Place = () => {
 								</div>
 							</div>
 						</div>
-						<div className="my-4 mt-7">
+						<div className="my-4   max-w-2xl mt-7">
 							<div
 								id="avaliacoes"
 								className="flex scroll-m-25 flex-col w-full relative "
@@ -1700,7 +1700,9 @@ const Place = () => {
 												) : (
 													<TransparentCheckoutForm
 														bookingData={transparentBookingData}
-														amountValue={transparentBookingData?.totalPrice || 1}
+														amountValue={
+															transparentBookingData?.totalPrice || 1
+														}
 														paymentMethod={paymentMethod}
 														onSuccess={(data) => {
 															handlePaymentSuccess(data);

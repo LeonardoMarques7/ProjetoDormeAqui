@@ -71,7 +71,7 @@ function App() {
 							<Header />
 							<ScrollToTop />
 
-							<div className="flex flex-1 flex-col p-4">
+							<div className="min-h-screen relative flex flex-1 flex-col p-4 h-full w-full justify-between">
 								<Routes>
 									<Route path="/" element={<Home />} />
 									<Route path="/reset-password" element={<ResetPassword />} />

@@ -267,7 +267,7 @@ const DatePickerAirbnb = ({
 			<button
 				type="button"
 				onClick={() => setIsOpen(true)}
-				className={`${search && "border-none p-0 !text-gray-900"} w-full border rounded-xl overflow-hidden cursor-pointer hover:bg-gray-50 transition-all flex items-center gap-4`}
+				className={`${search && "border-none p-0 !text-gray-900"} w-full border rounded-xl overflow-hidden cursor-pointer hover:bg-white! transition-all flex items-center gap-4`}
 			>
 				<div
 					className={`grid grid-cols-2 divide-x w-full ${search ? "hidden" : "flex"}`}

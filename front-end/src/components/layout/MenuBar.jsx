@@ -54,6 +54,7 @@ import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 import { useMessage } from "@/components/contexts/MessageContext";
 
 import logo__primary from "@/assets/logos/logo__primary.png";
+import circleHeader from "@/assets/circleHeader.png";
 import { useUserContext } from "@/components/contexts/UserContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -195,20 +196,25 @@ function MenuBar({ active }) {
 						whileTap={{ scale: 0.95 }}
 						className="relative p-3 rounded-full cursor-pointer hover:bg-gray-100 transition-colors group"
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							strokeWidth={1.5}
-							stroke="currentColor"
-							className="size-6"
+						<div
+							style={{ backgroundImage: `url(${circleHeader})` }}
+							className="bg-cover bg-center w-15 h-15 flex items-center justify-center"
 						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25"
-							/>
-						</svg>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								strokeWidth={1.5}
+								stroke="currentColor"
+								className="w-6 h-6 invert-100!"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25"
+								/>
+							</svg>
+						</div>
 
 						{user && qtdBookings > 0 && (
 							<motion.span

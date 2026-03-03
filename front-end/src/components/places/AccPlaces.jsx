@@ -48,8 +48,8 @@ const AccPlaces = () => {
 
 	return (
 		<>
-			<div className="flex w-full mx-auto max-w-full max-h-full h-full flex-col gap-8 relative justify-start items-start max-sm:my-0 max-sm:px-3.5">
-				<div className="mt-15 flex border-l-3 pl-4 justify-between items-center w-full ">
+			<div className="flex w-full mx-auto mt-25 max-sm:max-w-full md:max-w-7xl md:px-4  max-h-full h-full flex-col gap-8 relative justify-start items-start max-sm:my-0 max-sm:px-3.5">
+				<div className=" flex border-l-3 pl-4 justify-between items-center w-full ">
 					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
 						<span className=" text-3xl max-sm:text-xl text-nowrap flex items-end gap-3 text-black">
 							{edit
