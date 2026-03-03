@@ -48,7 +48,7 @@ const AccPlaces = () => {
 
 	return (
 		<>
-			<div className="flex w-full mx-auto  max-sm:max-w-full md:max-w-7xl md:px-4  max-h-full h-full flex-col gap-8 relative justify-start items-start max-sm:my-0 max-sm:px-3.5">
+			<div className="flex w-full mx-auto  max-sm:max-w-full md:max-w-7xl md:px-4  max-h-full h-full flex-col gap-8 relative justify-start max-sm:justify-center max-sm:items-center items-start max-sm:my-0">
 				<div className=" flex border-l-3 pl-4 justify-between items-center w-full ">
 					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
 						<span className=" text-3xl max-sm:text-xl text-nowrap flex items-end gap-3 text-black">
@@ -97,7 +97,7 @@ const AccPlaces = () => {
 					<></>
 				)}
 
-				<div className="flex gap-5 items-center justify-center w-full">
+				<div className="flex gap-5 items-center justify-center w-full max-sm:p-0">
 					{/* {!action && !mobile && (
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -116,8 +116,8 @@ const AccPlaces = () => {
 							</TooltipContent>
 						</Tooltip>
 					)} */}
-					<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
-						{loadingPlaces ? (
+					{loadingPlaces ? (
+						<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
 							<>
 								{[...Array(2)].map((_, index) => (
 									<div
@@ -138,19 +138,20 @@ const AccPlaces = () => {
 									</div>
 								))}
 							</>
-						) : action !== "new" ? (
+							) : action !== "new" ? (
 							<>
 								<Places places={places} />
 							</>
-						) : (
-							<></>
-						)}
-					</div>
+							) : (<></>
+						</div>
+					) : (
+						<></>
+					)}
 
 					{action !== "new" ? (
 						<></>
 					) : (
-						<div className="flex flex-col justify-center items-center gap-2.5">
+						<div className="flex flex-col justify-center w-full   items-center gap-2.5">
 							<NewPlace />
 						</div>
 					)}

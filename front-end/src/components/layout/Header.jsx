@@ -61,16 +61,16 @@ const Header = ({ active }) => {
 
 	return (
 		<header
-			className={`sticky top-0 z-50 w-full bg-white mb-3 transition-all max-w-7xl duration-500 delay-0 mx-auto max-sm:max-w-full `}
+			className={`sticky top-0 z-50 w-full bg-white mb-3 max-sm:shadow-2xl transition-all max-w-7xl duration-500 delay-0 mx-auto max-sm:max-w-full `}
 		>
 			<div
-				className={`max-w-full flex max-sm:flex-col max-sm:gap-3 max-sm:px-3.5 items-center mx-auto justify-between  py-5 `}
+				className={`max-w-full flex  max-sm:gap-3 max-sm:px-3.5   max-sm:h-20 items-center mx-auto justify-between  py-5 `}
 			>
 				<Link to="/" className="flex items-center transition-all flex-shrink-0">
 					<img
 						src={getLogoSrc()}
 						alt="Logo DormeAqui"
-						className=" transition-all h-25 object-cover duration-300"
+						className=" transition-all h-25 max-sm:h-15 object-cover duration-300"
 					/>
 				</Link>
 

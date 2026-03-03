@@ -185,9 +185,9 @@ const NewPlace = () => {
 	const activeStepConfig = STEPS_CONFIG[currentStep - 1];
 
 	return (
-		<div className="bg-white min-h-screen">
+		<div className=" min-h-screen ">
 			{/* ── Layout principal ─────────────────────────────────────── */}
-			<div className="flex max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-8">
+			<div className="flex max-w-6xl mx-auto px-4  max-sm:w-full   max-sm:p-0 sm:px-6 lg:px-8 py-8 gap-8">
 				{/* ── SIDEBAR VERTICAL (desktop only) ─────────────────── */}
 				<StepSidebar
 					currentStep={currentStep}
@@ -196,7 +196,7 @@ const NewPlace = () => {
 				/>
 
 				{/* ── COLUNA DE CONTEÚDO ──────────────────────────────── */}
-				<div className="flex-1 min-w-0 flex flex-col">
+				<div className="flex-1 min-w-0 flex flex-col ">
 					{/* Header mobile: "Etapa X de Y" */}
 					<div className="lg:hidden mb-5">
 						<div className="flex items-center justify-between mb-3">
