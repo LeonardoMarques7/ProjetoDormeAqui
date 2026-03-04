@@ -107,6 +107,9 @@ const Item = ({ place = null, placeHolder }) => {
 											src={photo}
 											alt={`Imagem da acomodação ${index + 1}`}
 											className="aspect-square z-0 w-full *:rounded-2xl object-cover transition-transform rounded-t-2xl rounded-b-none"
+											loading={index === 0 ? "eager" : "lazy"}
+											width="350"
+											height="350"
 										/>
 									</CarouselItem>
 								))}

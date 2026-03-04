@@ -192,6 +192,7 @@ const Home = () => {
 										</DrawerTitle>
 										<button
 											onClick={() => setDrawerOpen(false)}
+											aria-label="Fechar"
 											className="p-2 cursor-pointer hover:bg-gray-100 rounded-full transition-colors"
 										>
 											<X className="w-5 h-5" />
@@ -310,6 +311,7 @@ const Home = () => {
 													limparPesquisa(e);
 													setDatePickerKey((prev) => prev + 1);
 												}}
+												aria-label="Limpar filtros"
 												className="bg-red-500 cursor-pointer text-white h-15 w-15 justify-center rounded-xl text-sm font-bold hover:bg-red-700/90 transition-all disabled:bg-red-100 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
 											>
 												<Trash />
@@ -376,7 +378,7 @@ const Home = () => {
 				)
 			) : (
 				// Caso 1: sem pesquisa
-				<></>
+				<h1 className="sr-only">Acomodações disponíveis no DormeAqui</h1>
 			)}
 			{loading && (
 				<div className="relative ">
