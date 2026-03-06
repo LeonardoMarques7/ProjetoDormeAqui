@@ -878,7 +878,7 @@ const Place = () => {
 					</div>
 				</div>
 				{/* Conteúdo da acomodação */}
-				<div className="sm:grid sm:grid-cols-5 max-sm:gap-5 max-sm:flex max-sm:flex-col mt-2 gap-5 max-sm:mx-2 max-sm:mt-0 mx-4 ">
+				<div className="sm:grid sm:grid-cols-5 max-sm:gap-5 max-sm:flex max-sm:flex-col mt-2 gap-5 max-sm:mx-2 max-sm:mt-0 md:ml-4">
 					<div className="leading-relaxed col-span-3 order-1 description  w-full">
 						<div className="max-sm:py-0  w-full">
 							<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
@@ -1136,7 +1136,7 @@ const Place = () => {
 								</div>
 							</div>
 						</div>
-						<div className="my-4   max-w-2xl mt-7">
+						<div className="my-4 mt-7">
 							<div
 								id="avaliacoes"
 								className="flex scroll-m-25 flex-col w-full relative "
@@ -1549,10 +1549,10 @@ const Place = () => {
 					</div>
 
 					{console.log("Este é log: ", booking)}
-					<div className="order-2 col-span-2 flex-1  ">
+					<div className="order-2 col-span-2 flex-1 w-full max-w-full  ml-auto">
 						{/* Booking - New Collapsible Card Style */}
 						{booking && (
-							<div className="mb-4 w-full transition-all duration-700 ml-auto max-sm:mb-5 lg:max-w-5xl">
+							<div className="mb-4 w-full transition-all duration-700 mx-auto max-sm:mb-5 ">
 								<div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
 									{/* Collapsed View */}
 									<div
