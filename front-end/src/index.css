@@ -20,6 +20,21 @@
   }
 }
 
+@layer utilities {
+  @keyframes spin-smooth {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin-smooth {
+    animation: spin-smooth 1s linear infinite;
+  }
+}
+
 @theme {
   --color-primary-100: #F3F4F6;
     --color-primary-200: #E5E7EB;

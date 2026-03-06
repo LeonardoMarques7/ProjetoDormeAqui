@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import logoPrimary from "@/assets/logos/logo__primary.png";
 import logoSecondary from "@/assets/logos/logo__secondary.png";
 import { Link, useLocation } from "react-router-dom";
-import MenuBar from "./MenuBar";
+import { Menu } from "lucide-react";
+import SearchBar from "./SearchBar";
 
-const Header = ({ active }) => {
+const Header = ({ active, onMobileMenuOpen }) => {
 	const [scrolled, setScrolled] = useState(false);
 	const location = useLocation();
+	const isHomePage = location.pathname === "/";
 	const secondaryLogoRoutes = [
 		"/", // home
 		"/places/",
@@ -26,50 +28,43 @@ const Header = ({ active }) => {
 
 	// Lógica para escolher a logo
 	const getLogoSrc = () => {
-		// Se active está definido, usa logo primary
-		if (active === true) {
-			return logoPrimary;
-		}
-
-		// Se scrolled, usa logo primary (escura)
-		if (scrolled) {
-			return logoPrimary;
-		}
-
-		// Se está em uma rota que precisa de logo clara, usa secondary
+		if (active === true) return logoPrimary;
+		if (scrolled) return logoPrimary;
 		return useSecondaryLogo ? logoSecondary : logoPrimary;
-	};
-
-	// Lógica para cor do texto
-	const getTextColor = () => {
-		// Se scrolled, texto fica preto
-		if (scrolled) {
-			return "text-gray-900";
-		}
-
-		// Se active está definido, texto preto
-		if (active === true) {
-			return "text-gray-900";
-		}
-
-		// Se usa logo secondary (clara), texto branco
-		// Se usa logo primary (escura), texto preto
-		return useSecondaryLogo ? "text-white" : "text-gray-900";
 	};
 
 	return (
 		<header
-			className={`fixed z-50 w-full mb-3 transition-all duration-500 delay-0 2xl:max-w-full 2xl:px-10 xl:max-w-full `}
+			className={`sticky top-0 z-20 w-full bg-white transition-all duration-500 max-sm:shadow-sm`}
 		>
-			<div className="max-w-full flex max-sm:px-3.5 items-center mx-auto justify-between px-10 sm:px-8 py-5 ">
-				<Link to="/" className="flex items-center transition-all">
+			<div className="max-w-full flex items-center mx-auto justify-between max-sm:px-3.5 max-sm:h-16 py-3 px-4">
+				{/* Logo — visível apenas no mobile (desktop usa a da sidebar) */}
+				<Link
+					to="/"
+					className="flex items-center flex-shrink-0 lg:hidden"
+				>
 					<img
 						src={getLogoSrc()}
 						alt="Logo DormeAqui"
-						className=" transition-all object-cover duration-300"
+						className="transition-all h-12 object-cover duration-300"
 					/>
 				</Link>
-				<MenuBar active={active} />
+
+				{/* SearchBar — apenas na Home e no desktop */}
+				{isHomePage && (
+					<div className="hidden md:flex flex-1 mx-8 max-md:hidden">
+						<SearchBar compact={true} />
+					</div>
+				)}
+
+				{/* Hamburger — apenas mobile */}
+				<button
+					onClick={onMobileMenuOpen}
+					className="lg:hidden p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer"
+					aria-label="Abrir menu"
+				>
+					<Menu className="w-5 h-5" />
+				</button>
 			</div>
 		</header>
 	);

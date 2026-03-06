@@ -15,6 +15,7 @@ import axios from "axios";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useUserContext } from "@/components/contexts/UserContext";
 import { useMessage } from "@/components/contexts/MessageContext";
+import Quotes from "@/assets/quotes.png";
 import {
 	ArrowRight,
 	Heart,
@@ -23,7 +24,8 @@ import {
 	ChevronRight,
 	Ellipsis,
 	Filter,
-	User,
+	Quote,
+	Verified,
 } from "lucide-react";
 
 import {
@@ -352,9 +354,9 @@ const AccProfile = () => {
 	const SkeletonProfile = () => (
 		<>
 			{!mobile ? (
-				<div>
+				<div className="  max-sm:max-w-full mx-auto md:max-w-7xl">
 					{/* Banner skeleton */}
-					<div className="bg-gray-200 animate-pulse mt-20 max-w-7xl mx-auto w-full h-[40svh] rounded-4xl" />
+					<div className="bg-gray-200 animate-pulse  max-w-7xl mx-auto w-full h-[40svh] rounded-4xl" />
 					{/* Container */}
 					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5 max-sm:mt-0 relative -mt-35">
 						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10">
@@ -463,7 +465,7 @@ const AccProfile = () => {
 			) : (
 				<div>
 					{/* Banner skeleton mobile */}
-					<div className="bg-gray-200 animate-pulse mt-20 max-w-7xl mx-auto w-full h-[25svh]" />
+					<div className="bg-gray-200 animate-pulse  max-w-7xl mx-auto w-full h-[25svh]" />
 					{/* Container mobile */}
 					<div className="container__profile mx-auto w-full lg:max-w-7xl px-8 max-sm:px-3.5 relative -mt-30">
 						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10 max-sm:mb-0">
@@ -624,7 +626,7 @@ const AccProfile = () => {
 	if (isDeactivated) {
 		return (
 			<>
-				<div className="mt-20 max-w-7xl mx-auto w-full bg-gray-100 rounded-4xl h-[40svh] relative overflow-hidden flex items-center justify-center">
+				<div className=" max-sm:max-w-full md:max-w-7xl mx-auto w-full bg-gray-100 rounded-4xl h-[40svh] relative overflow-hidden flex items-center justify-center">
 					<div className="text-center">
 						<h1 className="text-6xl font-bold text-gray-500 mb-4">
 							Perfil Desativado
@@ -653,17 +655,26 @@ const AccProfile = () => {
 		linkify: true,
 	});
 
+	const dataFormat = (date) => {
+		const parsedDate = new Date(date);
+
+		return parsedDate.toLocaleString("pt-BR", {
+			dateStyle: "short",
+			// timeStyle: "short",
+		});
+	};
+
 	return (
-		<>
+		<div className="px-8">
 			{!isEditingProfile ? (
 				<>
 					<img
-						className="mt-0 mx-auto w-full object-cover bg-center max-sm:h-[25svh] max-sm:rounded-none rounded-4xl h-[40svh] relative overflow-hidden"
+						className=" mx-auto w-full object-cover  max-sm:max-w-full max-w-7xl bg-center max-sm:h-[25svh] max-sm:rounded-none rounded-4xl h-[40svh] relative overflow-hidden"
 						src={displayUser?.banner || bannerDefault}
 					/>
 
 					{/* Container do conteúdo */}
-					<div className="container__profile mx-auto w-full px-8 max-sm:px-3.5  relative max-sm:-mt-30 -mt-35">
+					<div className="container__profile mx-auto w-full  max-w-7xl px-8 max-sm:px-3.5  relative max-sm:-mt-30 -mt-35">
 						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10 max-sm:mb-0">
 							{/* Header do perfil (avatar + botão) */}
 							<div className="avatar__btn flex  max-sm:gap-2 gap-5 items-center justify-start relative">
@@ -1255,59 +1266,86 @@ const AccProfile = () => {
 												</div>
 											</div>
 										)}
-										<BentoGrid className="grid w-full auto-rows-[22rem] grid-cols-3 gap-4 mt-5 mb-15 max-sm:mb-0">
+										<div className="grid max-w-full transition-transform relative grid-cols-[repeat(auto-fit,minmax(300px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-3">
 											{filteredReviews.length > 0 ? (
 												filteredReviews.map((review, index) => {
-													const bentoClasses = [
-														"col-span-1 row-span-1",
-														"col-span-2 row-span-1",
-														"col-span-1 row-span-2",
-														"col-span-2 row-span-2",
-														"col-span-1 row-span-1",
-														"col-span-1 row-span-1",
-														"col-span-2 row-span-1",
-														"col-span-1 row-span-2",
-													];
-													const className =
-														bentoClasses[index % bentoClasses.length];
-													const stars = [...Array(5)].map((_, i) => (
-														<Star
-															key={i}
-															fill={
-																i < Math.floor(review.rating) ? "black" : "none"
-															}
-															stroke="black"
-															size={16}
-														/>
-													));
+													const stars = review.rating;
 													return (
-														<BentoCard
+														// <div
+														// 	key={review._id}
+														// 	name={review.user.name}
+														// 	background={
+														// 		<div className="absolute inset-0 bg-gradient-to-br from-primary-100 to-primary-200" />
+														// 	}
+														// 	photo={review.user.photo}
+														// 	quote={review.comment}
+														// 	stars={review.rating}
+														// />
+
+														<div
+															className="group relative bg-white rounded-3xl h-full p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-neutral-100"
 															key={review._id}
-															name={review.user.name}
-															className={className}
-															background={
-																<div className="absolute inset-0 bg-gradient-to-br from-primary-100 to-primary-200" />
-															}
-															Icon={User}
-															description={
-																<div>
-																	<div className="flex items-center gap-1 mb-2">
-																		{stars}
+														>
+															{/* HEADER */}
+															<div className="flex items-center justify-between">
+																{/* Avatar + Nome */}
+																<Link
+																	to={`/account/profile/${review.user._id}`}
+																	className="flex items-center gap-4"
+																>
+																	<div className="relative">
+																		<img
+																			src={review.user.photo || userDefault}
+																			className="w-14 h-14 rounded-full object-cover  shadow-sm"
+																			alt=""
+																		/>
+																		<Verified className="size-5 text-blue-600 absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow" />
 																	</div>
-																	{review.comment ? (
-																		<p className="text-gray-700 leading-relaxed">
-																			"{review.comment}"
+
+																	<div>
+																		<p className="font-semibold text-neutral-900">
+																			{review.user.name}
 																		</p>
-																	) : (
-																		<p className="text-primary-500 leading-relaxed">
-																			Sem comentário
+																		<p className="text-sm text-neutral-500">
+																			{review.user.city}
 																		</p>
-																	)}
+																	</div>
+																</Link>
+
+																{/* Avaliação */}
+															</div>
+															<div className="flex items-center gap-1 mt-4">
+																<span className="font-semibold">
+																	{Number(stars).toFixed(1)}
+																</span>
+
+																<div className="flex text-yellow-500 text-xl">
+																	{[1, 2, 3, 4, 5].map((star) => (
+																		<span key={star}>
+																			{star <= Math.round(stars) ? "★" : "☆"}
+																		</span>
+																	))}
 																</div>
-															}
-															href={`/account/profile/${review.user._id}`}
-															cta="Ver perfil"
-														/>
+															</div>
+
+															{/* COMMENT */}
+															<div className="my-4 mt-1 relative">
+																{review.comment ? (
+																	<p className="text-neutral-700 pt-1 leading-relaxed line-clamp-4">
+																		{review.comment}
+																	</p>
+																) : (
+																	<p className="text-neutral-400 italic">
+																		Sem comentário
+																	</p>
+																)}
+															</div>
+
+															{/* FOOTER */}
+															<div className="mt-auto  absolute bottom-4 text-xs text-neutral-400">
+																Avaliado em {dataFormat(review.createdAt)}
+															</div>
+														</div>
 													);
 												})
 											) : (
@@ -1315,7 +1353,7 @@ const AccProfile = () => {
 													Ainda não há avaliações para este filtro.
 												</p>
 											)}
-										</BentoGrid>
+										</div>
 										{mobile && (
 											<button
 												onClick={() => setSheetOpen(true)}
@@ -1357,7 +1395,7 @@ const AccProfile = () => {
 					)}
 				</>
 			)}
-		</>
+		</div>
 	);
 };
 

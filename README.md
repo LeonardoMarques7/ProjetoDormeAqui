@@ -1,4 +1,8 @@
-# DormeAqui
+# Fluxo de form step-by-step
+
+Temos o projeto dormeaqui e na hora de criar um place/acomodação quero fazer estilo step-by-step mas quero ajuda para separar cada passo a passo por categoria tbmm eu tenho o meu componente ainda desmontado so com passos separados mas desorganizado, eu quero fazer de uma forma que torne leve e dinâmico, com categorias e perguntas simples e leves, me ajude a montar esse fluxo e depois eu vou programar em cima dele, olhe meu componente para entender todas as perguntas e categorias, e os novos inputs que ainda serão criados, mas já podem constar no nosso fluxo, quartos, banheiros e camas. Arquivo: NewPlace.jsx
+
+# Checkout Transparente Mercado Pago
 
 > Plataforma de hospedagem que conecta anfitriões e hóspedes para reservas de acomodações.
 
@@ -14,19 +18,24 @@ O projeto é voltado tanto para anfitriões que desejam disponibilizar espaços 
 
 ## 🚀 Funcionalidades
 
-- **Autenticação de usuários** — cadastro, login, recuperação de senha e autenticação via OAuth (Google e GitHub)
-- **Gerenciamento de acomodações** — criação, edição, remoção e listagem de lugares com upload de fotos
-- **Sistema de reservas** — criação, visualização e cancelamento de reservas
-- **Avaliações** — hóspedes e anfitriões podem deixar avaliações após estadias
-- **Pagamento integrado** — checkout transparente com cartão de crédito/débito e Pix via Mercado Pago
-- **Webhook de pagamento** — processamento assíncrono de notificações do Mercado Pago
-- **Envio de e-mails** — notificações transacionais via SMTP (ex: redefinição de senha)
-- **Upload de imagens** — armazenamento de fotos de acomodações via AWS S3
-- **Interface responsiva** — layout adaptado para mobile e desktop
+1. Instale a dependência Mercado Pago (caso não exista):
+   ```bash
+   npm install mercadopago
+   ```
+2. Adicione as variáveis de ambiente no `.env`:
 
----
+   ```
+   MERCADO_PAGO_ACCESS_TOKEN=SEU_TOKEN
+   MERCADO_PAGO_WEBHOOK_URL=https://suaapi.com/api/webhooks/mercadopago (rota pública que o Mercado Pago deve chamar)
+   FRONTEND_URL=http://localhost:5173
+   NODE_ENV=development
+   ```
 
-## 🛠 Tecnologias Utilizadas
+3. Importe e use as rotas do checkout transparente:
+   ```js
+   import transparentRoutes from "./domains/payments/transparentRoutes.js";
+   app.use("/api/payments", transparentRoutes);
+   ```
 
 ### Frontend
 
@@ -176,96 +185,45 @@ npm run dev
 
 ---
 
-## 🔐 Variáveis de Ambiente
+## PIX (Checkout Transparente)
 
-Crie o arquivo `back-end/.env` com as seguintes variáveis:
+Foi adicionada a opção de pagamento via PIX usando a API do Mercado Pago.
 
-| Variável | Obrigatória | Descrição |
-|---|---|---|
-| `PORT` | Não | Porta do servidor (padrão: `3000`) |
-| `NODE_ENV` | Não | Ambiente de execução (`development` ou `production`) |
-| `MONGO_URL` | ✅ | String de conexão do MongoDB |
-| `JWT_SECRET_KEY` | ✅ | Chave secreta para assinar tokens JWT |
-| `FRONTEND_URL` | Não | URL do frontend (padrão: `http://localhost:5173`) |
-| `PROD_DOMAIN` | Não | Domínio de produção da aplicação |
-| `MERCADO_PAGO_ACCESS_TOKEN` | ✅ | Token de acesso do Mercado Pago (`TEST-...` ou `APP_USR-...`) |
-| `MERCADO_PAGO_WEBHOOK_URL` | Não | URL pública para recebimento de webhooks do Mercado Pago |
-| `MERCADO_PAGO_API_URL` | Não | URL da API do MP (padrão: `https://api.mercadopago.com`) |
-| `MERCADO_PAGO_ITEM_CATEGORY_ID` | Não | Categoria do item no MP (padrão: `lodging`) |
-| `GOOGLE_CLIENT_ID` | Não | Client ID do OAuth do Google |
-| `GOOGLE_CLIENT_SECRET` | Não | Client Secret do OAuth do Google |
-| `GITHUB_CLIENT_ID_DEV` | Não | Client ID do OAuth do GitHub (desenvolvimento) |
-| `GITHUB_CLIENT_SECRET_DEV` | Não | Client Secret do OAuth do GitHub (desenvolvimento) |
-| `GITHUB_CLIENT_ID_PROD` | Não | Client ID do OAuth do GitHub (produção) |
-| `GITHUB_CLIENT_SECRET_PROD` | Não | Client Secret do OAuth do GitHub (produção) |
-| `BUCKET` | Não | Nome do bucket AWS S3 para armazenamento de imagens |
-| `SMTP_HOST` | Não | Host do servidor SMTP (padrão: `smtp.gmail.com`) |
-| `SMTP_PORT` | Não | Porta SMTP (padrão: `587`) |
-| `SMTP_USER` | Não | Usuário/e-mail SMTP |
-| `SMTP_PASS` | Não | Senha ou app password do SMTP |
+- Endpoint backend: `POST /api/payments/pix` (autenticado) — cria pagamento PIX e retorna qr_code e qr_code_base64 quando disponível.
+- Verificação de status: `GET /api/payments/status/:paymentId` (autenticado) — retorna status (approved, pending, rejected, etc.).
 
-**Exemplo de arquivo `.env` mínimo para desenvolvimento:**
+Como ativar e testar:
 
-```env
-MONGO_URL=mongodb://localhost:27017/dormeaqui
-JWT_SECRET_KEY=sua_chave_secreta_aqui
-MERCADO_PAGO_ACCESS_TOKEN=TEST-xxxxxxxxxxxxxxxx
+1. Ative o PIX na sua conta Mercado Pago e gere as credenciais necessárias.
+2. Use o token de teste `TEST-...` para sandbox ou `APP_USR-...` em produção no `.env` (MERCADO_PAGO_ACCESS_TOKEN).
+3. Configure `MERCADO_PAGO_WEBHOOK_URL` para receber notificações e atualizar status automaticamente.
+4. Para testes manuais, chame `POST /api/payments/pix` enviando:
+   ```json
+   {
+   	"accommodationId": "<id>",
+   	"checkIn": "YYYY-MM-DD",
+   	"checkOut": "YYYY-MM-DD",
+   	"guests": 2,
+   	"email": "cliente@example.com"
+   }
+   ```
+
+Resposta esperada (success):
+
+```json
+{
+	"success": true,
+	"message": "Pagamento PIX criado com sucesso.",
+	"paymentId": "123456789",
+	"status": "pending",
+	"qr_code": "000201...",
+	"qr_code_base64": "<base64_png>"
+}
 ```
 
----
+Notas de segurança:
 
-## 💳 Integrações
-
-### Mercado Pago
-
-O projeto utiliza integração direta com a API REST do Mercado Pago (sem SDK oficial), permitindo:
-
-- **Checkout Transparente com Cartão** — fluxo de autorização e captura. Para crédito, o pagamento é autorizado e capturado posteriormente; para débito, a aprovação é imediata.
-- **Pix** — geração de QR Code e código copia-e-cola com polling de status para confirmar o pagamento.
-- **Parcelamento** — suporte a parcelamento detectado automaticamente pelo Mercado Pago.
-- **Webhook** — endpoint público para receber notificações assíncronas de mudança de status dos pagamentos.
-
-As URLs de retorno (`back_urls`) são configuradas automaticamente com base nas variáveis `FRONTEND_URL` / `PROD_DOMAIN`.
-
-**Endpoints de Webhook:**
-
-```
-POST /api/webhook/mercadopago
-POST /api/webhooks/mercadopago
-```
-
-### AWS S3
-
-Imagens das acomodações são enviadas via Multer e armazenadas diretamente em um bucket S3. Configure a variável `BUCKET` com o nome do bucket e garanta que as credenciais AWS estejam disponíveis no ambiente (via variáveis `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` ou IAM role).
-
-### OAuth (Google e GitHub)
-
-Login social disponível via Google e GitHub. Configure as variáveis de OAuth correspondentes no painel de desenvolvedores de cada plataforma e defina as URLs de callback:
-
-- **Google:** `{BACKEND_URL}/api/users/auth/google/callback`
-- **GitHub:** `{BACKEND_URL}/api/users/auth/github/callback`
+- Não armazene dados sensíveis de cartões no servidor sem tokenização pelo MercadoPago.js.
+- Utilize webhooks para atualizar o status real do pagamento e confirmar reservas.
 
 ---
-
-## 📈 Melhorias Futuras
-
-- [ ] **Mapa interativo** — exibição de acomodações em mapa com filtro por localização
-- [ ] **Sistema de mensagens** — chat em tempo real entre hóspede e anfitrião
-- [ ] **Painel do anfitrião** — dashboard com métricas de ocupação, receita e avaliações
-- [ ] **Filtros avançados de busca** — filtrar por preço, comodidades, tipo de acomodação e datas
-- [ ] **Notificações push** — alertas de novas reservas e mensagens
-- [ ] **App mobile** — versão React Native ou PWA
-- [ ] **Suporte a múltiplos idiomas** — internacionalização (i18n)
-- [ ] **Testes end-to-end** — cobertura com Playwright ou Cypress
-- [ ] **CI/CD completo** — deploy automatizado para produção
-- [ ] **Cache** — uso de Redis para cache de listagens e sessões
-
----
-
-## 📄 Licença
-
-Este projeto está sob licença privada. Todos os direitos reservados.
-
----
-
-<p align="center">Desenvolvido por <a href="https://github.com/LeonardoMarques7">Leonardo Marques</a></p>

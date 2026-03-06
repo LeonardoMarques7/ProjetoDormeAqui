@@ -17,6 +17,7 @@ import {
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { useMobileContext } from "@/components/contexts/MobileContext";
 import axios from "axios";
+import { CalendarDateRangeIcon } from "@heroicons/react/24/outline";
 
 // Funções auxiliares para datas
 const formatDate = (date, format = "dd/MM/yyyy") => {
@@ -266,7 +267,7 @@ const DatePickerAirbnb = ({
 			<button
 				type="button"
 				onClick={() => setIsOpen(true)}
-				className={`${search && "border-none p-0 !text-gray-500"} w-full border rounded-xl overflow-hidden cursor-pointer hover:bg-gray-50 transition-all flex items-center gap-4`}
+				className={`${search && "border-none p-0 !text-gray-900"} w-full border rounded-xl overflow-hidden cursor-pointer hover:bg-white! transition-all flex items-center gap-4`}
 			>
 				<div
 					className={`grid grid-cols-2 divide-x w-full ${search ? "hidden" : "flex"}`}
@@ -293,8 +294,8 @@ const DatePickerAirbnb = ({
 					</div>
 				</div>
 				{search && (
-					<div className={`flex items-center gap-4 !text-gray-500`}>
-						<Calendar size={18} className="text-gray-500" />
+					<div className={`flex items-center gap-4 `}>
+						<CalendarDateRangeIcon className="w-6 h-6" />
 						Quando?
 					</div>
 				)}

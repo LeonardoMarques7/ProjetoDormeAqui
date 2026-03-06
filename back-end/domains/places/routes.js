@@ -95,10 +95,11 @@ router.put("/:id", async (req, res) => {
 
     const { id: _id } = req.params;
 
-    const { title, city, photos, description, extras, perks, price, checkin, checkout, guests } = req.body;
+    const { type, title, city, photos, description, extras, perks, price, checkin, checkout, guests, rooms, bathrooms, beds } = req.body;
 
         try {
             const updatePlaceDoc = await Place.findOneAndUpdate({_id}, {
+                type,
                 title,
                 city,
                 photos,
@@ -108,7 +109,10 @@ router.put("/:id", async (req, res) => {
                 price,
                 checkin,
                 checkout,
-                guests
+                guests,
+                rooms,
+                bathrooms,
+                beds,
             });
 
             res.json(updatePlaceDoc);
@@ -137,12 +141,13 @@ router.delete("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-    const { title, city, photos, description, extras, perks, price, checkin, checkout, guests } = req.body;
+    const { type, title, city, photos, description, extras, perks, price, checkin, checkout, guests, rooms, bathrooms, beds } = req.body;
 
         try {
             const { _id } = await JWTVerify(req, COOKIE_NAME);
             const newPlaceDoc = await Place.create({
                 owner: _id,
+                type,
                 title,
                 city,
                 photos,
@@ -152,7 +157,10 @@ router.post("/", async (req, res) => {
                 price,
                 checkin,
                 checkout,
-                guests
+                guests,
+                rooms,
+                bathrooms,
+                beds,
             });
 
             res.json(newPlaceDoc);

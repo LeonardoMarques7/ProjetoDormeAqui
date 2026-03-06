@@ -1,37 +1,139 @@
-import {
-	Check,
-	CircleUserRound,
-	Eye,
-	EyeOff,
-	Lock,
-	Mail,
-	X,
-} from "lucide-react";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-	Drawer,
-	DrawerClose,
-	DrawerContent,
-	DrawerDescription,
-	DrawerFooter,
-	DrawerHeader,
-	DrawerTitle,
-	DrawerTrigger,
-} from "@/components/ui/drawer";
+import { Check, Eye, EyeOff, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
 import { useUserContext } from "@/components/contexts/UserContext";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
+
 const photoDefault =
 	"https://projeto-dorme-aqui.s3.us-east-2.amazonaws.com/1769633448464-848631051.png";
+
+const INPUT_CLS =
+	"w-full px-4 py-3.5 border border-gray-200 rounded-xl outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all text-gray-800 placeholder:text-gray-400";
+
+function GoogleIcon() {
+	return (
+		<svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+			<path
+				d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+				fill="#4285F4"
+			/>
+			<path
+				d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+				fill="#34A853"
+			/>
+			<path
+				d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+				fill="#FBBC05"
+			/>
+			<path
+				d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+				fill="#EA4335"
+			/>
+		</svg>
+	);
+}
+
+function OrDivider() {
+	return (
+		<div className="relative flex items-center justify-center">
+			<div className="absolute inset-x-0 h-px bg-gray-200" />
+			<span className="relative bg-white px-3 text-sm text-gray-400">ou</span>
+		</div>
+	);
+}
+
+function LeftPanel() {
+	const autoplay = useRef(Autoplay({ delay: 4000, stopOnInteraction: false }));
+	const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
+		autoplay.current,
+	]);
+	const [photos, setPhotos] = useState([]);
+
+	useEffect(() => {
+		axios
+			.get("/places")
+			.then(({ data }) => {
+				const all = data
+					.flatMap((p) => p.photos || [])
+					.filter(Boolean)
+					.slice(0, 12);
+				if (all.length > 0) setPhotos(all);
+			})
+			.catch(() => {});
+	}, []);
+
+	const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+	const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+
+	const slides =
+		photos.length > 0
+			? photos
+			: [
+					"https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80",
+				];
+
+	return (
+		<div className="hidden md:block md:w-1/2 rounded-l-2xl border-white border-8 relative flex-shrink-0">
+			{/* diagonal cut on the right edge — "quebradinha cortado de lado" */}
+			<div
+				className="absolute inset-0 overflow-hidden rounded-l-2xl"
+				style={{ clipPath: "polygon(0 0, 100% 0, 84% 100%, 0 100%)" }}
+			>
+				{/* Embla carousel */}
+				<div className="overflow-hidden h-full rounded-l-2xl" ref={emblaRef}>
+					<div className="flex h-full touch-pan-y">
+						{slides.map((src, i) => (
+							<div key={i} className="flex-none w-full h-full relative">
+								<img
+									src={src}
+									alt=""
+									className="absolute inset-0 rounded-l-2xl rounded-bl-2xl! w-full h-full object-cover select-none"
+									draggable="false"
+								/>
+							</div>
+						))}
+					</div>
+				</div>
+
+				{/* Dark gradient overlay */}
+				<div className="absolute inset-0 bg-gradient-to-t rounded-l-2xl rounded-bl-2xl! from-black/80 via-black/20 to-transparent pointer-events-none" />
+
+				{/* Bottom content: branding + arrows */}
+				<div className="absolute bottom-7 left-7 right-22 z-10 rounded-l-2xl flex items-end justify-between">
+					<div>
+						<p className="text-white text-lg font-bold leading-tight">
+							DormeAqui
+						</p>
+						<p className="text-white/60 text-xs mt-0.5">
+							Encontre o lugar perfeito
+						</p>
+					</div>
+
+					{/* Minimalist arrow buttons — like the reference image */}
+					{/* <div className="flex gap-2 items-center">
+						<button
+							onClick={scrollPrev}
+							className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 border border-white/25 flex items-center justify-center backdrop-blur-sm transition-all duration-200 cursor-pointer"
+						>
+							<ChevronLeft size={14} className="text-white" />
+						</button>
+						<button
+							onClick={scrollNext}
+							className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 border border-white/25 flex items-center justify-center backdrop-blur-sm transition-all duration-200 cursor-pointer"
+						>
+							<ChevronRight size={14} className="text-white" />
+						</button>
+					</div> */}
+				</div>
+			</div>
+		</div>
+	);
+}
 
 export function AuthDialog({ mode, setMode, open, setOpen }) {
 	const [desktop, setDesktop] = useState(window.innerWidth >= 768);
@@ -48,7 +150,6 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 		} else {
 			document.body.style.overflow = "unset";
 		}
-
 		return () => {
 			document.body.style.overflow = "unset";
 		};
@@ -65,25 +166,32 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 					className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
 					onClick={() => setOpen(false)}
 				/>
-
 				<Dialog
 					open={open}
-					className="min-w-full w-full"
 					onOpenChange={setOpen}
 					modal={false}
+					className="w-full! max-w-full!"
 				>
-					<DialogContent className="h-full flex rounded-none xl:h-fit xl:rounded-3xl">
+					<DialogContent className="p-0 overflow-hidden rounded-3xl w-full max-w-5xl! border-0 shadow-2xl bg-white">
+						{/* Close button — dark since it sits over white panel */}
 						<button
 							onClick={() => setOpen(false)}
-							className="cursor-pointer mt-5 absolute right-5 z-50 w-10 outline-none h-10 flex items-center justify-center rounded-full hover:bg-primary-100 transition-colors"
+							className="cursor-pointer absolute top-4 right-4 z-50 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors outline-none"
 						>
-							<X className="w-6 h-6 text-black" />
+							<X className="w-5 h-5 text-gray-700" />
 						</button>
-						<ProfileForm
-							mode={mode}
-							setMode={setMode}
-							onSuccess={handleLoginSuccess}
-						/>
+
+						<div className="flex flex-row min-h-[570px]">
+							<LeftPanel />
+							{/* Right panel — white form */}
+							<div className="flex-1  flex items-center justify-center px-10 py-10">
+								<ProfileForm
+									mode={mode}
+									setMode={setMode}
+									onSuccess={handleLoginSuccess}
+								/>
+							</div>
+						</div>
 					</DialogContent>
 				</Dialog>
 			</>
@@ -91,21 +199,18 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 	}
 
 	// Mobile
-
 	return (
-		<>
-			<Drawer open={open} onOpenChange={setOpen}>
-				<DrawerContent className="!rounded-none !rounded-tl-4xl p-0">
-					<div className="p-10 ">
-						<ProfileForm
-							onSuccess={handleLoginSuccess}
-							mode={mode}
-							setMode={setMode}
-						/>
-					</div>
-				</DrawerContent>
-			</Drawer>
-		</>
+		<Drawer open={open} onOpenChange={setOpen}>
+			<DrawerContent className="!rounded-none !rounded-tl-4xl p-0">
+				<div className="p-10">
+					<ProfileForm
+						onSuccess={handleLoginSuccess}
+						mode={mode}
+						setMode={setMode}
+					/>
+				</div>
+			</DrawerContent>
+		</Drawer>
 	);
 }
 
@@ -148,12 +253,10 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 		setMessage("");
 
 		try {
-			// Usar a biblioteca Google Sign-In do Google diretamente
 			if (!window.google) {
 				throw new Error("Google Sign-In library not loaded");
 			}
 
-			// Obter o cliente OAuth
 			const result = await window.google.accounts.oauth2.initCodeClient({
 				client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
 				scope: "openid email profile",
@@ -190,15 +293,12 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 			return;
 		}
 
-		// Redirecionar para GitHub OAuth
 		window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
 	};
 
-	// Função para verificar se o email já existe
 	const checkEmailExists = async (emailToCheck) => {
 		if (!emailToCheck || mode === "login") return;
 
-		// Validação básica de formato de email
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(emailToCheck)) {
 			setEmailError("Email inválido");
@@ -209,13 +309,8 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 		setEmailError("");
 
 		try {
-			// Busca todos os usuários
 			const { data: users } = await axios.get("/users");
-
-			// Extrai todos os emails em um array
 			const emailsList = users.map((user) => user.email.toLowerCase());
-
-			// Verifica se o email digitado existe no array
 			const emailExists = emailsList.includes(emailToCheck.toLowerCase());
 
 			if (emailExists) {
@@ -319,368 +414,267 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 
 	if (redirect) return <Navigate to="/account/profile" />;
 
-	return mode === "forgotPassword" ? (
-		<section className="flex w-full">
-			<div className="flex-1 bg-white flex items-center justify-center">
-				<div className="w-full max-w-md text-start">
-					<p className="text-3xl font-medium text-gray-900 mb-2">
-						Recuperar senha
-					</p>
-					<p className="text-gray-600 mb-8">
-						Digite seu email para receber instruções de recuperação de senha
-					</p>
+	// ===== LOGIN =====
+	if (mode === "login") {
+		return (
+			<div className="w-full">
+				<h1 className="text-4xl font-bold text-gray-900 mb-1">
+					Olá, Viajante!
+				</h1>
+				<p className="text-gray-400 mb-8 text-sm">Bem-vindo ao DormeAqui</p>
 
-					<form className="space-y-5 text-start" onSubmit={handleSubmit}>
-						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">
-								Email
-							</label>
-							<div className="relative">
-								<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-								<input
-									type="email"
-									className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-									placeholder="seu@email.com"
-									value={email}
-									onChange={(e) => {
-										setEmail(e.target.value);
-										if (message) setMessage("");
-									}}
-								/>
-							</div>
-						</div>
+				<form className="space-y-4" onSubmit={handleSubmit}>
+					<input
+						type="email"
+						placeholder="Email"
+						className={INPUT_CLS}
+						value={email}
+						onChange={(e) => {
+							setEmail(e.target.value);
+							if (message) setMessage("");
+						}}
+					/>
 
-						{message && (
-							<div
-								className={`text-sm py-3 px-4 rounded-lg ${
-									message.includes("enviado")
-										? "bg-green-50 border border-green-200 text-green-600"
-										: "bg-red-50 border border-red-200 text-red-600"
-								}`}
-							>
-								{message}
-							</div>
-						)}
-
-						<button
-							type="submit"
-							disabled={isLoading}
-							className="w-full cursor-pointer py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary-200 disabled:opacity-50 disabled:cursor-not-allowed"
-						>
-							{isLoading ? "Enviando..." : "Enviar email de recuperação"}
-						</button>
-					</form>
-
-					<p className="text-center text-gray-600 mt-6">
-						Lembrou da senha?{" "}
-						<button
-							onClick={(e) => {
-								e.preventDefault();
-								setMode("login");
+					<div className="relative">
+						<input
+							type={showPassword ? "text" : "password"}
+							placeholder="Senha"
+							className={INPUT_CLS + " pr-12"}
+							value={password}
+							onChange={(e) => {
+								setPassword(e.target.value);
+								if (message) setMessage("");
 							}}
-							className="text-primary-600 hover:text-primary-700 font-semibold"
-						>
-							Voltar ao login
-						</button>
-					</p>
-				</div>
-			</div>
-		</section>
-	) : mode === "login" ? (
-		<section className="flex w-full">
-			<div className="flex-1 bg-white flex items-center justify-center">
-				<div className="w-full max-w-md text-start">
-					<p className="text-3xl font-medium text-gray-900 mb-2">Login</p>
-					<p className="text-gray-600 mb-8">Entre para continuar sua jornada</p>
-
-					<form className="space-y-5 text-start" onSubmit={handleSubmit}>
-						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">
-								Email
-							</label>
-							<div className="relative">
-								<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-								<input
-									type="email"
-									className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-									placeholder="seu@email.com"
-									value={email}
-									onChange={(e) => {
-										setEmail(e.target.value);
-										if (message) setMessage("");
-									}}
-								/>
-							</div>
-						</div>
-
-						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">
-								Senha
-							</label>
-							<div className="relative">
-								<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-								<input
-									type={showPassword ? "text" : "password"}
-									className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-									placeholder="••••••••"
-									value={password}
-									onChange={(e) => {
-										setPassword(e.target.value);
-										if (message) setMessage("");
-									}}
-								/>
-								<button
-									type="button"
-									onClick={() => setShowPassword(!showPassword)}
-									className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-								>
-									{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-								</button>
-							</div>
-						</div>
-
-						<div className="text-right">
-							<button
-								type="button"
-								className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-								onClick={() => setMode("forgotPassword")}
-							>
-								Esqueceu a senha?
-							</button>
-						</div>
-
-						{message && (
-							<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
-								{message}
-							</div>
-						)}
-
+						/>
 						<button
-							type="submit"
-							className="w-full cursor-pointer py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary-200"
+							type="button"
+							onClick={() => setShowPassword(!showPassword)}
+							className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
 						>
-							Entrar
+							{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
 						</button>
+					</div>
 
-						{/* OAuth BUTTONS */}
-						<div className="w-full mt-6">
-							<div className="relative flex items-center justify-center mb-4">
-								<div className="absolute inset-x-0 h-px bg-gray-300"></div>
-								<div className="relative px-2 text-sm text-gray-500 bg-white">
-									OU
-								</div>
-							</div>
-
-							<div className="flex gap-3 w-full">
-								{/* Google */}
-								<button
-									type="button"
-									onClick={() => handleGoogleLogin()}
-									disabled={loadingOAuth}
-									className="flex-1 flex items-center justify-center gap-2 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-								>
-									<svg
-										className="w-5 h-5"
-										viewBox="0 0 24 24"
-										fill="currentColor"
-									>
-										<path
-											d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-											fill="#4285F4"
-										/>
-										<path
-											d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-											fill="#34A853"
-										/>
-										<path
-											d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-											fill="#FBBC05"
-										/>
-										<path
-											d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-											fill="#EA4335"
-										/>
-									</svg>
-									Google
-								</button>
-
-								{/* GitHub */}
-								<button
-									type="button"
-									onClick={handleGithubLogin}
-									disabled={loadingOAuth}
-									className="flex-1 flex items-center justify-center gap-2 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-								>
-									<svg
-										className="w-5 h-5"
-										viewBox="0 0 24 24"
-										fill="currentColor"
-									>
-										<path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-									</svg>
-									GitHub
-								</button>
-							</div>
-						</div>
-					</form>
-
-					<p className="text-center text-gray-600 mt-6">
-						Não tem uma conta?{" "}
+					<div className="text-right -mt-1">
 						<button
-							onClick={(e) => {
-								e.preventDefault();
-								setMode("register");
-							}}
-							className="text-primary-900 underline hover:text-primary-800 font-semibold"
+							type="button"
+							onClick={() => setMode("forgotPassword")}
+							className="text-sm text-primary-600 hover:text-primary-700 font-medium"
 						>
-							Criar conta
+							Esqueceu a senha?
 						</button>
-					</p>
-				</div>
-			</div>
-		</section>
-	) : (
-		<section className="flex items-center justify-between flex-1 ">
-			<div className="max-w-125 maxs-m:max-w-full mx-auto gap-0  rounded-4xl py-2.5  right-0 flex flex-col items-start w-full ">
-				{desktop ? (
-					<h1 className="text-3xl font-bold y-0">Cadastre-se e descubra </h1>
-				) : (
-					<h1 className="text-3xl font-bold y-0">Cadastro</h1>
-				)}
-
-				<p className="mb-5">Crie uma conta para continuar</p>
-				<form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Nome
-						</label>
-						<div className="relative">
-							<CircleUserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 size-6" />
-							<input
-								type="text"
-								className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
-								placeholder="Leonardo Emanuel"
-								value={name}
-								onChange={(e) => {
-									setName(e.target.value);
-								}}
-							/>
-						</div>
 					</div>
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Email
-						</label>
-						<div className="relative">
-							<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 size-6" />
-							<input
-								type="email"
-								className={`border ${
-									emailError ? "border-red-400" : "border-gray-200"
-								} px-14 py-4 rounded-2xl w-full outline-primary-400`}
-								placeholder="seu@email.com"
-								value={email}
-								onChange={(e) => {
-									setEmail(e.target.value);
-									setEmailError("");
-									if (message) setMessage("");
-								}}
-								onBlur={(e) => checkEmailExists(e.target.value)}
-							/>
-							{isCheckingEmail && (
-								<span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-									Verificando...
-								</span>
-							)}
-						</div>
-					</div>
-					{emailError && (
-						<div className="text-red-500 text-sm -mt-1 ml-1">{emailError}</div>
-					)}
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Senha
-						</label>
-						<div className="relative">
-							<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 size-6" />
 
-							<input
-								type={showPassword ? "text" : "password"}
-								className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
-								placeholder="••••••••"
-								value={password}
-								onChange={(e) =>
-									setPassword(e.target.value) || setShowPasswordPopover(true)
-								}
-								onBlur={() => setShowPasswordPopover(false)}
-							/>
-
-							<button
-								type="button"
-								onClick={() => setShowPassword(!showPassword)}
-								className="cursor-pointer absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
-							>
-								{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-							</button>
-						</div>
-					</div>
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Confirmar Senha
-						</label>
-						<div className="relative">
-							<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 size-6" />
-
-							<input
-								type={showConfirmPassword ? "text" : "password"}
-								className="border border-gray-200 px-14 py-4 rounded-2xl w-full outline-primary-400"
-								placeholder="••••••••"
-								value={confirmPassword}
-								onChange={(e) => {
-									setConfirmPassword(e.target.value);
-									if (message) setMessage("");
-								}}
-							/>
-
-							<button
-								type="button"
-								onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-								className="cursor-pointer absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
-							>
-								{showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-							</button>
-						</div>
-					</div>
-					{showPasswordPopover && (
-						<div className="text-sm text-center mt-2 flex justify-start flex-col items-start mx-auto">
-							<PasswordRequirement
-								label="Pelo menos 6 caracteres"
-								meets={password.length > 5}
-							/>
-						</div>
-					)}
 					{message && (
-						<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rorunded-lg mt-2">
+						<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
 							{message}
 						</div>
 					)}
-					<button className="font-bold rounded-2xl text-xl cursor-pointer w-full px-14 py-4 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300">
-						Criar Conta
+
+					<OrDivider />
+
+					<button
+						type="button"
+						onClick={handleGoogleLogin}
+						disabled={loadingOAuth}
+						className="w-full flex items-center justify-center gap-3 py-3.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 cursor-pointer"
+					>
+						<GoogleIcon />
+						Continuar com Google
 					</button>
-					<p className="text-center text-gray-600 mt-6">
-						Já tem uma conta?{" "}
-						<button
-							onClick={(e) => {
-								e.preventDefault();
-								setMode("login");
-							}}
-							className="text-primary-900 underline hover:text-primary-800 font-semibold"
-						>
-							Entrar
-						</button>
-					</p>
+
+					<button
+						type="submit"
+						className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 cursor-pointer"
+					>
+						Entrar
+					</button>
 				</form>
+
+				<p className="text-center text-gray-400 text-sm mt-6">
+					Não tem uma conta?{" "}
+					<button
+						onClick={() => setMode("register")}
+						className="text-primary-600 font-semibold hover:underline"
+					>
+						Criar conta
+					</button>
+				</p>
 			</div>
-		</section>
+		);
+	}
+
+	// ===== FORGOT PASSWORD =====
+	if (mode === "forgotPassword") {
+		return (
+			<div className="w-full">
+				<h1 className="text-4xl font-bold text-gray-900 mb-1">
+					Recuperar senha
+				</h1>
+				<p className="text-gray-400 mb-8 text-sm">
+					Digite seu email para receber as instruções
+				</p>
+
+				<form className="space-y-4" onSubmit={handleSubmit}>
+					<input
+						type="email"
+						placeholder="Email"
+						className={INPUT_CLS}
+						value={email}
+						onChange={(e) => {
+							setEmail(e.target.value);
+							if (message) setMessage("");
+						}}
+					/>
+
+					{message && (
+						<div
+							className={`text-sm py-3 px-4 rounded-lg ${
+								message.includes("enviado")
+									? "bg-green-50 border border-green-200 text-green-600"
+									: "bg-red-50 border border-red-200 text-red-600"
+							}`}
+						>
+							{message}
+						</div>
+					)}
+
+					<button
+						type="submit"
+						disabled={isLoading}
+						className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+					>
+						{isLoading ? "Enviando..." : "Enviar instruções"}
+					</button>
+				</form>
+
+				<p className="text-center text-gray-400 text-sm mt-6">
+					Lembrou da senha?{" "}
+					<button
+						onClick={() => setMode("login")}
+						className="text-primary-600 font-semibold hover:underline"
+					>
+						Voltar ao login
+					</button>
+				</p>
+			</div>
+		);
+	}
+
+	// ===== REGISTER =====
+	return (
+		<div className="w-full ">
+			<h1 className="text-4xl font-bold text-gray-900 mb-1">Crie sua conta</h1>
+			<p className="text-gray-400 mb-8 text-sm">Junte-se ao DormeAqui</p>
+
+			<form className="space-y-4" onSubmit={handleSubmit}>
+				<input
+					type="text"
+					placeholder="Nome completo"
+					className={INPUT_CLS}
+					value={name}
+					onChange={(e) => setName(e.target.value)}
+				/>
+
+				<div>
+					<input
+						type="email"
+						placeholder="Email"
+						className={
+							INPUT_CLS +
+							(emailError
+								? " border-red-400 focus:border-red-400 focus:ring-red-100"
+								: "")
+						}
+						value={email}
+						onChange={(e) => {
+							setEmail(e.target.value);
+							setEmailError("");
+							if (message) setMessage("");
+						}}
+						onBlur={(e) => checkEmailExists(e.target.value)}
+					/>
+					{isCheckingEmail && (
+						<p className="text-xs text-gray-400 mt-1 ml-1">Verificando...</p>
+					)}
+					{emailError && (
+						<p className="text-xs text-red-500 mt-1 ml-1">{emailError}</p>
+					)}
+				</div>
+
+				<div className="relative">
+					<input
+						type={showPassword ? "text" : "password"}
+						placeholder="Senha"
+						className={INPUT_CLS + " pr-12"}
+						value={password}
+						onChange={(e) => {
+							setPassword(e.target.value);
+							setShowPasswordPopover(true);
+						}}
+						onBlur={() => setShowPasswordPopover(false)}
+					/>
+					<button
+						type="button"
+						onClick={() => setShowPassword(!showPassword)}
+						className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+					>
+						{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+					</button>
+				</div>
+
+				{showPasswordPopover && (
+					<div className="ml-1">
+						<PasswordRequirement
+							label="Pelo menos 6 caracteres"
+							meets={password.length > 5}
+						/>
+					</div>
+				)}
+
+				<div className="relative">
+					<input
+						type={showConfirmPassword ? "text" : "password"}
+						placeholder="Confirmar senha"
+						className={INPUT_CLS + " pr-12"}
+						value={confirmPassword}
+						onChange={(e) => {
+							setConfirmPassword(e.target.value);
+							if (message) setMessage("");
+						}}
+					/>
+					<button
+						type="button"
+						onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+						className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+					>
+						{showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+					</button>
+				</div>
+
+				{message && (
+					<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
+						{message}
+					</div>
+				)}
+
+				<button
+					type="submit"
+					className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 cursor-pointer"
+				>
+					Criar Conta
+				</button>
+			</form>
+
+			<p className="text-center text-gray-400 text-sm mt-6">
+				Já tem uma conta?{" "}
+				<button
+					onClick={() => setMode("login")}
+					className="text-primary-600 font-semibold hover:underline"
+				>
+					Entrar
+				</button>
+			</p>
+		</div>
 	);
 }

@@ -1,7 +1,7 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./Markdown.css";
 import {
 	Bold,
@@ -22,6 +22,19 @@ import {
 function BaseMarkdownEditor({ onChange, initialValue }) {
 	const [markdown, setMarkdown] = useState("");
 	const [edit, setEdit] = useState(false);
+
+	// Debounce ref para o onUpdate — evita sincronizar a cada tecla pressionada
+	const debounceRef = useRef(null);
+
+	const syncContent = (editor) => {
+		try {
+			const mdText = editor.storage.markdown.getMarkdown();
+			setMarkdown(mdText);
+			if (onChange) onChange(mdText);
+		} catch (error) {
+			console.error("Erro ao gerar markdown:", error);
+		}
+	};
 
 	const editor = useEditor({
 		extensions: [
@@ -44,14 +57,18 @@ function BaseMarkdownEditor({ onChange, initialValue }) {
 				class: "focus:outline-none",
 			},
 		},
+		// Sincroniza imediatamente quando o editor perde o foco
 		onBlur: ({ editor }) => {
-			try {
-				const mdText = editor.storage.markdown.getMarkdown();
-				setMarkdown(mdText);
-				if (onChange) onChange(mdText);
-			} catch (error) {
-				console.error("Erro ao gerar markdown:", error);
-			}
+			// Cancela qualquer debounce pendente e sincroniza agora
+			if (debounceRef.current) clearTimeout(debounceRef.current);
+			syncContent(editor);
+		},
+		// Sincroniza com debounce a cada alteração de conteúdo.
+		// Garante que o reducer tenha o valor mais recente mesmo que o usuário
+		// navegue para o próximo step sem clicar fora do editor.
+		onUpdate: ({ editor }) => {
+			if (debounceRef.current) clearTimeout(debounceRef.current);
+			debounceRef.current = setTimeout(() => syncContent(editor), 300);
 		},
 	});
 	useEffect(() => {
@@ -62,6 +79,23 @@ function BaseMarkdownEditor({ onChange, initialValue }) {
 			if (description) onChange(description);
 		}
 	}, [editor]);
+
+	// Garante que ao desmontar o componente (ex: usuário troca de step)
+	// qualquer conteúdo ainda não sincronizado seja salvo no reducer.
+	useEffect(() => {
+		return () => {
+			if (debounceRef.current) clearTimeout(debounceRef.current);
+			// Sincronização final na desmontagem
+			if (editor) {
+				try {
+					const mdText = editor.storage.markdown.getMarkdown();
+					if (onChange) onChange(mdText);
+				} catch (_) {
+					// ignora erros de desmontagem
+				}
+			}
+		};
+	}, [editor]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	useEffect(() => {
 		if (editor && initialValue) {

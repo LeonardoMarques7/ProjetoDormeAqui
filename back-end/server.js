@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import routes from "./routes/index.js";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
@@ -19,6 +20,9 @@ if (!fs.existsSync(tmpDir)) {
   fs.mkdirSync(tmpDir, { recursive: true });
   console.log("📁 Tmp directory created:", tmpDir);
 }
+
+// Compressão gzip/deflate para reduzir tamanho das respostas
+app.use(compression());
 
 app.use(cookieParser());
 app.use(express.json());
@@ -103,9 +107,20 @@ app.use(
   })
 );
 
-// Serve arquivos estáticos
+// Serve arquivos estáticos com cache de longa duração (1 ano) para assets com hash
 app.use("/tmp", express.static(__dirname + "/tmp"));
-app.use(express.static(path.join(__dirname, "../front-end/dist")));
+app.use(
+  express.static(path.join(__dirname, "../front-end/dist"), {
+    maxAge: "1y",
+    immutable: true,
+    setHeaders(res, filePath) {
+      // Para o index.html, não armazenar em cache (sempre buscar a versão mais recente)
+      if (filePath.endsWith("index.html")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      }
+    },
+  })
+);
 
 // Rotas da API
 app.use("/api", routes);

@@ -2,6 +2,7 @@ import  { model, Schema } from "mongoose"
 
 const placeSchema = new Schema({
     owner: { type: Schema.Types.ObjectId, ref: "User" },
+    type: { type: String, default: "" },
     title: String,
     city: String,
     photos: [String],

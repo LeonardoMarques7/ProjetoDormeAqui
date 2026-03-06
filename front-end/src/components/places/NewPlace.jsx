@@ -1,423 +1,271 @@
 import axios from "axios";
-import { useState, useEffect } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
-import { PriceInput } from "@/components/ui/PriceInput";
-
-import { useMessage } from "@/components/contexts/MessageContext";
-import { GuestsInput } from "@/components/ui/GuestsInput";
+import { useReducer, useEffect, useState } from "react";
+import { Navigate, useParams } from "react-router-dom";
 
 import { useUserContext } from "@/components/contexts/UserContext";
+import { useMessage } from "@/components/contexts/MessageContext";
 
-import Perks from "@/components/common/Perks";
+// Wizard
+import {
+	placeReducer,
+	INITIAL_STATE,
+} from "@/components/places/wizard/placeReducer";
+import {
+	TOTAL_STEPS,
+	validateStep,
+	isStepValid,
+} from "@/components/places/wizard/stepConfig";
+import StepSidebar from "@/components/places/wizard/StepSidebar";
+import StepNavigation from "@/components/places/wizard/StepNavigation";
+import { STEPS_CONFIG } from "@/components/places/wizard/stepConfig";
+
+// Steps
+import Step1Space from "@/components/places/steps/Step1Space";
+import Step2Photos from "@/components/places/steps/Step2Photos";
+import Step3Description from "@/components/places/steps/Step3Description";
+import Step4Perks from "@/components/places/steps/Step4Perks";
+import Step5Pricing from "@/components/places/steps/Step5Pricing";
+import Step6Review from "@/components/places/steps/Step6Review";
+
+// Hooks
+import { useDraftSave } from "@/hooks/useDraftSave";
 
 import "lightgallery/css/lightgallery.css";
 import "lightgallery/css/lg-zoom.css";
 import "lightgallery/css/lg-thumbnail.css";
 import "lightgallery/css/lg-fullscreen.css";
 
-import "@/components/places/NewPlace.css";
+// ============================================
+// MAP: número do step → componente
+// ============================================
+const STEP_COMPONENTS = {
+	1: Step1Space,
+	2: Step2Photos,
+	3: Step3Description,
+	4: Step4Perks,
+	5: Step5Pricing,
+	6: Step6Review,
+};
 
-import {
-	ArrowLeft,
-	CalendarArrowDown,
-	CalendarArrowUp,
-	Home,
-	MapPin,
-	SaveAllIcon,
-} from "lucide-react";
-import PhotosUploader from "@/components/places/PhotosUploader";
-import {
-	MarkdownEditor,
-	MarkdownEditor2,
-} from "@/components/ui/MarkdownEditor";
-import { TimePicker } from "@/components/ui/TimePicker";
-import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
-import Preview from "@/components/places/Preview";
-
+// ============================================
+// COMPONENTE PRINCIPAL
+// ============================================
 const NewPlace = () => {
 	const { user, ready } = useUserContext();
 	const { id } = useParams();
 	const { showMessage } = useMessage();
-	const { showAuthModal } = useAuthModalContext();
-	const [title, setTitle] = useState("");
-	const [city, setCity] = useState("");
-	const [photos, setPhotos] = useState([]);
-	const [photolink, setPhotoLink] = useState("");
-	const [description, setDescription] = useState("");
-	const [extras, setExtras] = useState("");
-	const [price, setPrice] = useState("");
-	const [perks, setPerks] = useState([]);
-	const [checkin, setCheckin] = useState("");
-	const [checkout, setCheckout] = useState("");
-	const [guests, setGuests] = useState("");
-	const [redirect, setRedirect] = useState(false);
+
+	// Estado único via reducer
+	const [state, dispatch] = useReducer(placeReducer, INITIAL_STATE);
+
+	// Controle de navegação
 	const [currentStep, setCurrentStep] = useState(1);
-	const totalSteps = 7;
+	const [redirect, setRedirect] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const photosPlaceholder = [
-		{
-			image: "https://placehold.co/600x400",
-		},
-		{
-			image: "https://placehold.co/200x200",
-		},
-		{
-			image: "https://placehold.co/200x200",
-		},
-	];
+	// Autosave (não salva ao editar um place existente para não sujar o rascunho)
+	const { hasDraft, loadDraft, clearDraft } = useDraftSave(
+		!id ? state : INITIAL_STATE,
+	);
 
-	console.log(id);
-
+	// ─── Carrega place existente (edição) ───────────────────────────────────
 	useEffect(() => {
-		if (id) {
-			const axiosGet = async () => {
+		if (!id) return;
+
+		const fetchPlace = async () => {
+			try {
 				const { data } = await axios.get(`/places/${id}`);
-
-				setTitle(data.title);
-				setCity(data.city);
-				setPhotos(data.photos);
-				setDescription(data.description);
-				setExtras(data.extras);
-				setPrice(data.price);
-				setPerks(data.perks);
-				setCheckin(data.checkin);
-				setCheckout(data.checkout);
-				setGuests(data.guests);
-			};
-
-			axiosGet();
-		}
-	}, []);
-
-	if (ready && !user) {
-		return <Navigate to="/" />;
-	}
-
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-
-		if (
-			title &&
-			city &&
-			extras &&
-			photos.length > 0 &&
-			description &&
-			price &&
-			checkin &&
-			checkout &&
-			guests
-		) {
-			if (id) {
-				try {
-					const modifiedPlace = await axios.put(`/places/${id}`, {
-						title,
-						city,
-						photos,
-						description,
-						extras,
-						perks,
-						price,
-						checkin,
-						checkout,
-						guests,
-					});
-					showMessage("Sua acomodação foi atualizada com sucesso!", "success");
-				} catch (error) {
-					console.log("Erro ao enviar o formulário: ", JSON.stringify(error));
-					showMessage("Deu erro ao atualizar a acomodação!", "error");
-				}
-			} else {
-				try {
-					const newPlace = await axios.post("/places", {
-						owner: user._id,
-						title,
-						city,
-						photos,
-						description,
-						extras,
-						perks,
-						price,
-						checkin,
-						checkout,
-						guests,
-					});
-					showMessage("Sua acomodação foi adicionada com sucesso!", "success");
-				} catch (error) {
-					console.log("Erro ao enviar o formulário: ", JSON.stringify(error));
-					showMessage(
-						"Deu erro ao enviar formulário de nova acomodação!",
-						"error",
-					);
-				}
+				dispatch({
+					type: "SET_MULTIPLE",
+					payload: {
+						type: data.type || "",
+						title: data.title || "",
+						city: data.city || "",
+						rooms: data.rooms || "",
+						bathrooms: data.bathrooms || "",
+						beds: data.beds || "",
+						guests: data.guests || "",
+						photos: data.photos || [],
+						description: data.description || "",
+						extras: data.extras || "",
+						perks: data.perks || [],
+						price: data.price || "",
+						checkin: data.checkin || "",
+						checkout: data.checkout || "",
+					},
+				});
+			} catch (err) {
+				showMessage("Erro ao carregar a acomodação.", "error");
 			}
+		};
 
-			setRedirect(true);
-		} else {
-			showMessage("Preencha todas as informações!", "warning");
-		}
-	};
+		fetchPlace();
+	}, [id]);
 
+	// ─── Oferta de rascunho ao criar novo place ──────────────────────────────
+	useEffect(() => {
+		if (id) return; // não oferecer rascunho na edição
+		if (!hasDraft()) return;
+
+		const draft = loadDraft();
+		const hasContent = draft?.title || draft?.city || draft?.photos?.length > 0;
+		if (!hasContent) return;
+
+		// Microfeedback discreto — carrega sem perguntar (pode-se trocar por modal)
+		dispatch({ type: "LOAD_DRAFT", payload: draft });
+		showMessage("Rascunho anterior carregado automaticamente.", "info");
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+	// ─── Redirect pós-autenticação ───────────────────────────────────────────
+	if (ready && !user) return <Navigate to="/" />;
 	if (redirect) return <Navigate to="/account/places" />;
 
-	const handlePageChange = () => {
-		setRedirect(true);
-	};
+	// ─── Navegação ───────────────────────────────────────────────────────────
+	const stepErrors = validateStep(currentStep, state);
+	const currentStepValid = isStepValid(currentStep, state);
 
 	const handleNext = () => {
-		if (currentStep < totalSteps) {
-			setCurrentStep(currentStep + 1);
-		}
+		if (!currentStepValid) return;
+		if (currentStep < TOTAL_STEPS) setCurrentStep((s) => s + 1);
 	};
 
 	const handleBack = () => {
-		if (currentStep > 1) {
-			setCurrentStep(currentStep - 1);
+		if (currentStep === 1) {
+			setRedirect(true);
+		} else {
+			setCurrentStep((s) => s - 1);
 		}
 	};
 
-	const formData = {
-		title,
-		city,
-		photos,
-		description,
-		extras,
-		perks,
-		price,
-		checkin,
-		checkout,
-		guests,
+	// ─── Submit ──────────────────────────────────────────────────────────────
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		setIsSubmitting(true);
+
+		const payload = {
+			type: state.type,
+			title: state.title,
+			city: state.city,
+			rooms: Number(state.rooms),
+			bathrooms: Number(state.bathrooms),
+			beds: Number(state.beds),
+			guests: Number(state.guests),
+			photos: state.photos,
+			description: state.description,
+			extras: state.extras,
+			perks: state.perks,
+			price: Number(state.price),
+			checkin: state.checkin,
+			checkout: state.checkout,
+		};
+
+		try {
+			if (id) {
+				await axios.put(`/places/${id}`, payload);
+				showMessage("Acomodação atualizada com sucesso!", "success");
+			} else {
+				await axios.post("/places", { ...payload, owner: user._id });
+				showMessage("Acomodação publicada com sucesso!", "success");
+				clearDraft();
+			}
+			setRedirect(true);
+		} catch (error) {
+			console.error("Erro ao salvar place:", error);
+			showMessage(
+				id ? "Erro ao atualizar acomodação." : "Erro ao publicar acomodação.",
+				"error",
+			);
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
+	// ─── Render step atual ───────────────────────────────────────────────────
+	const StepComponent = STEP_COMPONENTS[currentStep];
+	const activeStepConfig = STEPS_CONFIG[currentStep - 1];
+
 	return (
-		<div className="min-h-screen bg-white flex flex-col pb-5">
-			{/* Step Content */}
-			<div className="flex-1 flex items-center justify-start px-4">
-				<div className="max-w-2xl w-full">
-					{currentStep === 1 && (
-						<div className="space-y-8">
-							<div className="text-start">
-								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
-									Informações básicas
-								</h1>
-								<p className="text-gray-600">
-									Dê um título atraente e informe a localização da sua
-									acomodação.
-								</p>
-							</div>
-							<div className="space-y-6">
-								<div className="space-y-2">
-									<label className="block text-lg font-medium text-gray-700">
-										Título
-									</label>
-									<div className="relative">
-										<Home className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 size-6" />
-										<input
-											type="text"
-											placeholder="Digite o título do seu anúncio"
-											className="w-full pl-14 pr-4 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-400"
-											value={title}
-											onChange={(e) => setTitle(e.target.value)}
-										/>
-									</div>
-								</div>
-								<div className="space-y-2">
-									<label className="block text-lg font-medium text-gray-700">
-										Cidade e Estado
-									</label>
-									<div className="relative">
-										<MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 size-6" />
-										<input
-											type="text"
-											placeholder="Digite a cidade e estado"
-											className="w-full pl-14 pr-4 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-400"
-											value={city}
-											onChange={(e) => setCity(e.target.value)}
-										/>
-									</div>
-								</div>
-							</div>
-						</div>
-					)}
+		<div className=" min-h-screen ">
+			{/* ── Layout principal ─────────────────────────────────────── */}
+			<div className="flex max-w-6xl mx-auto px-4  max-sm:w-full   max-sm:p-0 sm:px-6 lg:px-8 py-8 gap-8">
+				{/* ── SIDEBAR VERTICAL (desktop only) ─────────────────── */}
+				<StepSidebar
+					currentStep={currentStep}
+					data={state}
+					onStepClick={(stepId) => setCurrentStep(stepId)}
+				/>
 
-					{currentStep === 2 && (
-						<div className="space-y-8">
-							<div className="text-start">
-								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
-									Fotos da acomodação
-								</h1>
-								<p className="text-gray-600">
-									Adicione fotos de alta qualidade para atrair mais hóspedes.
-								</p>
-							</div>
-							<PhotosUploader
-								{...{ photolink, setPhotoLink, photos, setPhotos, showMessage }}
+				{/* ── COLUNA DE CONTEÚDO ──────────────────────────────── */}
+				<div className="flex-1 min-w-0 flex flex-col ">
+					{/* Header mobile: "Etapa X de Y" */}
+					<div className="lg:hidden mb-5">
+						<div className="flex items-center justify-between mb-3">
+							<span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+								Etapa {currentStep} de {TOTAL_STEPS}
+							</span>
+							<span className="text-xs text-primary-600 font-semibold">
+								{Math.round(((currentStep - 1) / TOTAL_STEPS) * 100)}% concluído
+							</span>
+						</div>
+						{/* Barra de progresso mobile */}
+						<div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+							<div
+								className="h-full bg-primary-600 rounded-full transition-all duration-500"
+								style={{
+									width: `${Math.round(((currentStep - 1) / TOTAL_STEPS) * 100)}%`,
+								}}
 							/>
 						</div>
-					)}
-
-					{currentStep === 3 && (
-						<div className="space-y-8">
-							<div className="text-start">
-								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
-									Descrição do espaço
-								</h1>
-								<p className="text-gray-600">
-									Descreva o espaço de forma clara, destacando o que ele
-									oferece.
-								</p>
-							</div>
-							<MarkdownEditor
-								onChange={(descriptionText) => setDescription(descriptionText)}
-								initialValue={description}
-							/>
+						{/* Nome do step atual (mobile) */}
+						<div className="flex items-center gap-2 mt-3">
+							{activeStepConfig?.icon && (
+								<span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-100 text-primary-700">
+									<activeStepConfig.icon size={14} />
+								</span>
+							)}
+							<span className="text-base font-semibold text-gray-800">
+								{activeStepConfig?.title}
+							</span>
 						</div>
+					</div>
+
+					{/* Separador desktop */}
+					<div className="hidden lg:block h-px bg-gray-100 mb-6" />
+
+					{/* Conteúdo do step atual */}
+					<div className="flex-1">
+						<StepComponent
+							data={state}
+							dispatch={dispatch}
+							errors={stepErrors}
+							showMessage={showMessage}
+							onSubmit={handleSubmit}
+							isSubmitting={isSubmitting}
+						/>
+					</div>
+
+					{/* Navegação (Voltar / Próximo) — oculta no último step */}
+					{currentStep < TOTAL_STEPS && (
+						<StepNavigation
+							currentStep={currentStep}
+							isCurrentStepValid={currentStepValid}
+							stepErrors={stepErrors}
+							onNext={handleNext}
+							onBack={handleBack}
+						/>
 					)}
 
-					{currentStep === 4 && (
-						<div className="space-y-8">
-							<div className="text-start">
-								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
-									Comodidades
-								</h1>
-								<p className="text-gray-600">
-									Selecione as comodidades disponíveis na sua acomodação.
-								</p>
-							</div>
-							<Perks perks={perks} setPerks={setPerks} />
+					{/* Apenas botão Voltar no último step */}
+					{currentStep === TOTAL_STEPS && (
+						<div className="border-t border-gray-100 pt-4 mt-4">
+							<button
+								type="button"
+								onClick={handleBack}
+								className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium py-2 px-4 rounded-full hover:bg-gray-100"
+							>
+								← Voltar
+							</button>
 						</div>
-					)}
-
-					{currentStep === 5 && (
-						<div className="space-y-8">
-							<div className="text-start">
-								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
-									Informações extras
-								</h1>
-								<p className="text-gray-600">
-									Adicione regras, horários e outras informações importantes.
-								</p>
-							</div>
-							<MarkdownEditor2
-								onChange={(extrasText) => setExtras(extrasText)}
-								initialValue={extras}
-							/>
-						</div>
-					)}
-
-					{currentStep === 6 && (
-						<div className="space-y-8">
-							<div className="text-start">
-								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
-									Preço e capacidade
-								</h1>
-								<p className="text-gray-600">
-									Defina o preço, horários e número máximo de hóspedes.
-								</p>
-							</div>
-							<div className="space-y-6">
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									<PriceInput
-										label="Preço por noite"
-										placeholder="130,00"
-										value={price}
-										onChange={(e) => setPrice(e.target.value)}
-									/>
-									<GuestsInput
-										label="Número máximo de hóspedes"
-										min={1}
-										max={20}
-										value={guests}
-										onChange={(e) => setGuests(e.target.value)}
-									/>
-								</div>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									<div className="space-y-2">
-										<label className="block text-lg font-medium text-gray-700">
-											Check-in
-										</label>
-										<div className="relative">
-											<CalendarArrowUp className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 size-5" />
-											<TimePicker
-												className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-400"
-												value={checkin}
-												onChange={(e) => setCheckin(e.target.value)}
-											/>
-										</div>
-									</div>
-									<div className="space-y-2">
-										<label className="block text-lg font-medium text-gray-700">
-											Check-out
-										</label>
-										<div className="relative">
-											<CalendarArrowDown className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 size-5" />
-											<TimePicker
-												className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-400"
-												value={checkout}
-												onChange={(e) => setCheckout(e.target.value)}
-											/>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					)}
-
-					{currentStep === 7 && (
-						<div className="space-y-8">
-							<div className="text-start">
-								<h1 className="text-3xl font-semibold text-gray-800 mb-2">
-									Revisão final
-								</h1>
-								<p className="text-gray-600">
-									Confira todas as informações antes de publicar.
-								</p>
-							</div>
-							<Preview data={formData} />
-							<form onSubmit={handleSubmit} className="flex justify-center">
-								<button
-									type="submit"
-									className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-full font-medium transition-colors"
-								>
-									<SaveAllIcon className="inline mr-2" />
-									Salvar acomodação
-								</button>
-							</form>
-						</div>
-					)}
-				</div>
-			</div>
-
-			{/* Progress Bar and Navigation */}
-			<div className="">
-				{/* Progress Bar */}
-				<div className="flex w-full h-2 gap-2  mb-4">
-					<div
-						className={`h-full transition-all duration-300 ${currentStep >= 1 ? "bg-primary-600" : "bg-gray-100"}`}
-						style={{ width: "33.33%" }}
-					></div>
-					<div
-						className={`h-full transition-all duration-300 ${currentStep >= 3 ? "bg-primary-600" : "bg-gray-100"}`}
-						style={{ width: "33.33%" }}
-					></div>
-					<div
-						className={`h-full transition-all duration-300 ${currentStep >= 5 ? "bg-primary-600" : "bg-gray-100"}`}
-						style={{ width: "33.34%" }}
-					></div>
-				</div>
-				<div className="max-w-2xl mx-auto flex justify-between items-center">
-					<button
-						onClick={currentStep === 1 ? handlePageChange : handleBack}
-						className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-					>
-						{currentStep === 1 ? "Cancelar" : "Voltar"}
-					</button>
-					{currentStep < totalSteps && (
-						<button
-							onClick={handleNext}
-							className="bg-primary-700 hover:bg-primary-900 cursor-pointer text-white px-6 py-2 rounded-full font-medium transition-colors"
-						>
-							Próximo
-						</button>
 					)}
 				</div>
 			</div>

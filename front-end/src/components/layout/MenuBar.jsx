@@ -1,11 +1,5 @@
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import PremiumSidebar from "@/components/layout/PremiumSidebar";
 import {
 	Sheet,
 	SheetContent,
@@ -23,16 +17,44 @@ import {
 	MenuIcon,
 	Sidebar,
 	TicketCheck,
+	Sparkles,
+	LogOut,
+	Bell,
+	Heart,
+	Settings,
+	HelpCircle,
+	User as LucideUser,
 } from "lucide-react";
-import { Home, Briefcase, User, Mail, Settings } from "lucide-react";
-import { useState, useEffect } from "react";
+import {
+	HomeIcon,
+	CalendarDaysIcon,
+	BuildingOfficeIcon,
+	UserIcon,
+	Cog6ToothIcon,
+	ChatBubbleLeftIcon,
+	ChatBubbleOvalLeftIcon,
+} from "@heroicons/react/24/outline";
+import {
+	HomeIcon as HomeIconSolid,
+	CalendarDaysIcon as CalendarDaysIconSolid,
+	BuildingOfficeIcon as BuildingOfficeIconSolid,
+	UserIcon as UserIconSolid,
+	Cog6ToothIcon as Cog6ToothIconSolid,
+	ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconSolid,
+} from "@heroicons/react/24/solid";
+
+import { Home, Briefcase, User, Mail } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+
+import menu from "@/assets/menu-icon.png";
 
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 
 import { useMessage } from "@/components/contexts/MessageContext";
 
 import logo__primary from "@/assets/logos/logo__primary.png";
+import circleHeader from "@/assets/circleHeader.png";
 import { useUserContext } from "@/components/contexts/UserContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -45,8 +67,15 @@ function MenuBar({ active }) {
 	const [activeSection, setActiveSection] = useState("Home");
 	const [redirect, setRedirect] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
+	const [menuOpen, setMenuOpen] = useState(false);
+	const [logoutActive, setLogoutActive] = useState(false);
+	const [bookings, setBookings] = useState([]);
+	const [readyBookings, setReadyBookings] = useState(false);
+	const [qtdBookings, setQtdBookings] = useState(0);
+	const menuTriggerRef = useRef(null);
 	const [mobile, setIsMobile] = useState(window.innerWidth <= 768);
 	const [sidebarOpen, setSidebarOpen] = useState(false);
+	const [premiumSidebarOpen, setPremiumSidebarOpen] = useState(false);
 	const { showAuthModal } = useAuthModalContext();
 
 	const navItems = [
@@ -93,6 +122,28 @@ function MenuBar({ active }) {
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
 
+	useEffect(() => {
+		if (!user) {
+			setBookings([]);
+			setReadyBookings(false);
+			return;
+		}
+
+		const axiosGet = async () => {
+			const { data } = await axios.get("/bookings/owner");
+			setTimeout(() => {
+				setBookings(data);
+				setReadyBookings(true);
+			}, 100);
+		};
+
+		axiosGet();
+	}, [user?._id]);
+
+	useEffect(() => {
+		setQtdBookings(bookings.length);
+	}, [bookings.updateAt, bookings.length]);
+
 	const logout = async () => {
 		try {
 			const { data } = await axios.post(
@@ -103,16 +154,14 @@ function MenuBar({ active }) {
 				},
 			);
 
-			// Limpa qualquer cache do axios
 			delete axios.defaults.headers.common["Authorization"];
 
-			// Limpa estados locais
 			localStorage.clear();
 			sessionStorage.clear();
 
 			console.log(data);
 			setUser(null);
-			setSidebarOpen(false);
+			setPremiumSidebarOpen(false);
 			showMessage("Logout realizado com sucesso!", "success");
 		} catch (error) {
 			alert(JSON.stringify(error));
@@ -128,248 +177,206 @@ function MenuBar({ active }) {
 	return (
 		<>
 			{!mobile ? (
-				<motion.nav
-					initial={{ opacity: 0, y: -50 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.8, delay: 0.5 }}
-					className="flex items-center gap-4"
-				>
-					{!user && (
-						<>
-							<motion.button className="">
-								<Link
-									to={"/"}
-									className={`flex items-center  gap-2  rounded-2xl  justify-between  `}
-								>
-									<motion.div
-										onClick={(e) => {
-											e.preventDefault();
-											showAuthModal("login");
-										}}
-										className="hover:bg-primary-100/50  px-4 py-2 rounded-xl transition-all duration-300"
-									>
-										Torne-se um anfitrião
-									</motion.div>
-								</Link>
-							</motion.button>
-							<DropdownMenu modal={false}>
-								<DropdownMenuTrigger className={`outline-none `}>
-									<div className="badge__user flex items-center text-primary-800 gap-2 cursor-pointer hover:bg-gray-200 transition-colors bg-primary-100 p-4 rounded-xl">
-										<MenuIcon size={18} />
-									</div>
-								</DropdownMenuTrigger>
+				<>
+					{/* Desktop Premium Sidebar */}
+					<PremiumSidebar
+						open={premiumSidebarOpen}
+						onClose={() => setPremiumSidebarOpen(false)}
+						user={user}
+						onLogout={() => setUser(null)}
+					/>
 
-								<DropdownMenuContent
-									align="end"
-									className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2"
-								>
-									<span
-										onClick={(e) => {
-											e.preventDefault();
-											showAuthModal("login");
-										}}
-										className={`flex group justify-between cursor-pointer hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
-									>
-										Entre ou Cadastre-se
-									</span>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</>
-					)}
-					{user &&
-						navItems.map((item) => {
-							const isActive = location.pathname === item.path;
-							return (
-								<motion.button
-									whileHover={{ scale: 1.05 }}
-									whileTap={{ scale: 0.95 }}
-									key={item.path}
-								>
-									<Link
-										to={item.path}
-										className={`flex items-center gap-2  rounded-2xl px-4 justify-between py-2 transition-colors 
-											
-									`}
-									>
-										<motion.div
-											transition={{
-												type: "spring",
-												bounce: 0.25,
-												duration: 0.5,
-											}}
-										>
-											{item.label}
-										</motion.div>
-									</Link>
-								</motion.button>
-							);
-						})}
-
-					{user && (
-						<DropdownMenu modal={false}>
-							<DropdownMenuTrigger className={`outline-none`}>
-								<div className="badge__user bg-primary-100 flex items-center gap-2 cursor-pointer hover:bg-gray-200 transition-colors  pr-3 py-1.5 px-2 rounded-2xl">
-									<img
-										src={user.photo}
-										className="w-8 h-8 aspect-square rounded-full object-cover"
-										alt="Foto do Usuário"
-									/>
-									<ChevronDown size={18} className="text-gray-500" />
-								</div>
-							</DropdownMenuTrigger>
-
-							<DropdownMenuContent
-								align="end"
-								className="p-2 bg-white rounded-xl shadow-xl flex flex-col gap-2"
+					{/* Desktop Trigger Button */}
+					<motion.button
+						initial={{ opacity: 0, scale: 0.9 }}
+						animate={{ opacity: 1, scale: 1 }}
+						transition={{ duration: 0.5, delay: 0.6 }}
+						onClick={() => setPremiumSidebarOpen(true)}
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
+						className="relative p-3 rounded-full cursor-pointer hover:bg-gray-100 transition-colors group"
+					>
+						<div
+							style={{ backgroundImage: `url(${circleHeader})` }}
+							className="bg-cover bg-center w-15 h-15 flex items-center justify-center"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								strokeWidth={1.5}
+								stroke="currentColor"
+								className="w-6 h-6 invert-100!"
 							>
-								{/* Perfil */}
-								<Link
-									to={"/account/profile"}
-									className="flex items-center group hover:bg-gray-100 transition-all rounded-2xl cursor-pointer gap-2 px-4 py-2"
-								>
-									<img
-										src={user.photo}
-										className="w-12 h-12 aspect-square rounded-full object-cover"
-										alt="Foto do Usuário"
-									/>
-									<div className="flex flex-col text-gray-700 ">
-										<h4>{user.name}</h4>
-										<small>{user.email}</small>
-									</div>
-									<ChevronRight
-										size={15}
-										className="opacity-0 group-hover:opacity-100 text-gray-500 "
-									/>
-								</Link>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25"
+								/>
+							</svg>
+						</div>
 
-								<DropdownMenuSeparator />
-
-								{/* Navegação */}
-								{navItemsPerfil.map((item) => {
-									return (
-										<Link
-											key={item.path}
-											to={item.path}
-											onClick={item.function}
-											className={`flex group justify-between hover:bg-gray-100 transition-colors items-center gap-2 px-4 py-2 rounded-xl`}
-										>
-											{item.label}
-											<ChevronRight
-												size={15}
-												className="opacity-0 group-hover:opacity-100 text-gray-500"
-											/>
-										</Link>
-									);
-								})}
-								{!user && (
-									<span
-										onClick={(e) => {
-											e.preventDefault();
-											showAuthModal("login");
-										}}
-										className="text-white bg-primary-500 px-5 border-1 rounded-xl py-2"
-									>
-										Entre ou Cadastre-se
-									</span>
-								)}
-							</DropdownMenuContent>
-						</DropdownMenu>
-					)}
-				</motion.nav>
+						{user && qtdBookings > 0 && (
+							<motion.span
+								initial={{ scale: 0 }}
+								animate={{ scale: 1 }}
+								className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+							>
+								{qtdBookings}
+							</motion.span>
+						)}
+					</motion.button>
+				</>
 			) : (
-				<div className="flex items-center gap-2 ">
+				<div className="flex items-center gap-2">
 					<Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
 						<SheetTrigger className={`absolute z-50 right-8`}>
-							<Sidebar className="w-5 h-5" />
+							<motion.div
+								whileHover={{ scale: 1.1 }}
+								whileTap={{ scale: 0.95 }}
+							>
+								<Sidebar className="w-6 h-6 text-gray-700" />
+							</motion.div>
 						</SheetTrigger>
 
-						<SheetContent className="w-80 p-0">
-							<SheetHeader className="p-6 pb-0">
+						<SheetContent className="w-80 p-0 bg-gradient-to-b from-white to-gray-50">
+							<SheetHeader className="p-6 pb-4">
 								<SheetTitle className="text-left">
 									{user ? (
 										<Link to={"/account/profile"} onClick={handleNavClick}>
-											<div className="flex items-center gap-3 py-4">
-												<img
-													src={user.photo}
-													className="w-16 h-16 aspect-square rounded-full object-cover border-4 border-primary-200"
-													alt="Foto do Usuário"
-												/>
+											<motion.div
+												whileHover={{ y: -2 }}
+												className="flex items-center gap-3 py-4 px-3 rounded-2xl hover:bg-primary-100 transition-colors"
+											>
+												<div className="relative">
+													<img
+														src={user.photo}
+														className="w-16 h-16 aspect-square rounded-2xl object-cover border-4 border-primary-200 shadow-lg"
+														alt="Foto do Usuário"
+													/>
+													<div className="absolute -bottom-1 -right-1 bg-primary-500 rounded-full p-1">
+														<Sparkles className="w-3 h-3 text-white" />
+													</div>
+												</div>
 												<div className="flex flex-col">
-													<span className="font-semibold text-lg text-gray-800 line-clamp-1 overflow-ellipsis">
+													<span className="font-bold text-lg text-gray-900 line-clamp-1 overflow-ellipsis">
 														{user.name}
 													</span>
-													<span className="text-sm text-gray-500 font-normal">
+													<span className="text-xs text-gray-500 font-normal">
 														{user.email}
 													</span>
 												</div>
-											</div>
+											</motion.div>
 										</Link>
 									) : (
-										<div className="flex flex-col items-start gap-2 pt-8">
+										<div className="flex flex-col items-start gap-4 pt-8">
 											<img
 												src={logo__primary}
 												alt="Logo do DormeAqui"
 												className="w-40"
 											/>
+											<p className="text-sm text-gray-600 font-medium">
+												Bem-vindo ao DormeAqui!
+											</p>
 										</div>
 									)}
 								</SheetTitle>
 							</SheetHeader>
 
-							<div className="px-4 py-6 flex flex-col gap-1">
+							<div className="px-4 py-4 flex flex-col gap-2 max-h-[calc(100vh-200px)] overflow-y-auto">
 								{/* Navegação Principal */}
 								{user && (
-									<div className="mb-2">
-										<p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
-											Navegação
+									<div className="mb-4">
+										<p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-3 mb-3">
+											📍 Principal
 										</p>
 										{navItems.map((item) => {
 											const isActive = location.pathname === item.path;
 											return (
-												<Link
+												<motion.div
 													key={item.path}
-													to={item.path}
-													onClick={handleNavClick}
-													className={`flex items-center  gap-3 px-4 py-3 rounded-xl transition-all ${
-														isActive
-															? "bg-primary-500 text-white shadow-lg shadow-primary-200"
-															: "hover:bg-primary-50 text-gray-700"
-													} hover:bg-gray-100!`}
+													whileHover={{ x: 4 }}
+													whileTap={{ scale: 0.98 }}
 												>
-													<item.icon className="w-5 h-5" />
-													<span className="font-medium">{item.label}</span>
-													{isActive && (
-														<ChevronRight className="w-4 h-4 ml-auto" />
-													)}
-												</Link>
+													<Link
+														to={item.path}
+														onClick={handleNavClick}
+														className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 font-medium ${
+															isActive
+																? "bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-200"
+																: "hover:bg-primary-50 text-gray-700 hover:text-primary-900"
+														}`}
+													>
+														<item.icon className="w-5 h-5 flex-shrink-0" />
+														<span className="flex-1">{item.label}</span>
+														{isActive && (
+															<motion.div
+																layoutId="indicator"
+																className="w-1 h-1 rounded-full bg-white"
+															/>
+														)}
+													</Link>
+												</motion.div>
 											);
 										})}
 									</div>
 								)}
+
 								{/* Perfil e Configurações */}
 								{user && (
 									<>
-										<DropdownMenuSeparator className="my-4" />
+										<div className="my-2 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
 										<div>
-											<p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
-												Conta
+											<p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-3 mb-3">
+												⚙️ Conta
 											</p>
-											{navItemsPerfil.map((item) => {
-												return (
-													<Link
-														key={item.path}
-														to={item.path}
-														onClick={() => {
-															if (item.function) item.function();
-															handleNavClick();
-														}}
-														className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-700 transition-all group"
-													>
-														<span className="font-medium">{item.label}</span>
-														<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-													</Link>
-												);
-											})}
+											<motion.div
+												whileHover={{ x: 4 }}
+												whileTap={{ scale: 0.98 }}
+											>
+												<Link
+													to="/account/profile/edit"
+													onClick={handleNavClick}
+													className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl hover:bg-blue-50 text-gray-700 transition-all group font-medium"
+												>
+													<div className="flex items-center gap-3">
+														<LucideUser className="w-4 h-4" />
+														<span>Editar perfil</span>
+													</div>
+													<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+												</Link>
+											</motion.div>
+											<motion.div
+												whileHover={{ x: 4 }}
+												whileTap={{ scale: 0.98 }}
+											>
+												<Link
+													to="/account/settings"
+													onClick={handleNavClick}
+													className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl hover:bg-blue-50 text-gray-700 transition-all group font-medium"
+												>
+													<div className="flex items-center gap-3">
+														<Settings className="w-4 h-4" />
+														<span>Configurações</span>
+													</div>
+													<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+												</Link>
+											</motion.div>
+											<motion.button
+												whileHover={{ x: 4 }}
+												whileTap={{ scale: 0.98 }}
+												onClick={() => {
+													logout();
+													handleNavClick();
+												}}
+												className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl hover:bg-red-50 text-gray-700 transition-all group font-medium mt-2"
+											>
+												<div className="flex items-center gap-3">
+													<LogOut className="w-4 h-4 text-red-500" />
+													<span className="text-red-600">Sair</span>
+												</div>
+												<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+											</motion.button>
 										</div>
 									</>
 								)}
@@ -378,87 +385,102 @@ function MenuBar({ active }) {
 								{!user && (
 									<>
 										<div>
-											<div className="flex mb-4 flex-col gap-3 p-5 bg-primary-100 rounded-xl border">
-												<span className="text-lg font-medium">Bem-vindo!</span>
-												<span className="font-light">
-													Faça login para acessar suas reservas e acomodações
+											<motion.div
+												whileHover={{ y: -2 }}
+												className="flex mb-4 flex-col gap-3 p-5 bg-gradient-to-br from-blue-50 to-primary-100 rounded-2xl border-2 border-primary-300 shadow-sm"
+											>
+												<div className="flex items-center gap-2">
+													<Sparkles className="w-5 h-5 text-primary-600" />
+													<span className="text-lg font-bold text-gray-900">
+														Bem-vindo!
+													</span>
+												</div>
+												<span className="font-light text-gray-700 text-sm leading-relaxed">
+													Faça login para acessar suas reservas, acomodações e
+													muito mais
 												</span>
-												<button
+												<motion.button
+													whileHover={{ scale: 1.02 }}
+													whileTap={{ scale: 0.98 }}
 													onClick={(e) => {
 														e.preventDefault();
 														setSidebarOpen(false);
 														showAuthModal("login");
 													}}
-													className="flex text-sm items-center bg-primary-900 cursor-pointer justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-800 text-white transition-all group"
+													className="flex text-sm items-center bg-gradient-to-r from-primary-900 to-primary-800 cursor-pointer justify-between gap-3 w-full h-11 px-4 rounded-xl hover:from-primary-800 hover:to-primary-700 text-white transition-all group font-medium shadow-md hover:shadow-lg"
 												>
 													<span className="">Entrar</span>
 													<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-												</button>
-												<button
+												</motion.button>
+												<motion.button
+													whileHover={{ scale: 1.02 }}
+													whileTap={{ scale: 0.98 }}
 													onClick={(e) => {
 														e.preventDefault();
 														setSidebarOpen(false);
 														showAuthModal("register");
 													}}
-													className="flex text-sm items-center bg-white cursor-pointer justify-between gap-3 w-full h-10 px-4 rounded-xl hover:bg-gray-200 text-primary-900 transition-all group"
+													className="flex text-sm items-center bg-white cursor-pointer justify-between gap-3 w-full h-11 px-4 rounded-xl hover:bg-gray-100 text-primary-900 transition-all group font-medium border-2 border-primary-300"
 												>
 													<span className="">Criar Conta</span>
 													<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-												</button>
-											</div>
-											<p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
-												Menu
+												</motion.button>
+											</motion.div>
+											<p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-3 mb-3">
+												🔗 Links
 											</p>
 											{navItemsNOPerfil.map((item) => {
 												return (
-													<Link
+													<motion.div
 														key={item.path}
-														to={item.path}
-														onClick={() => {
-															if (item.function) item.function();
-															handleNavClick();
+														whileHover={{ x: 4 }}
+														whileTap={{
+															scale: 0.98,
 														}}
-														className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-700 transition-all group"
 													>
-														<span className="font-medium">{item.label}</span>
-														<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-													</Link>
+														<Link
+															to={item.path}
+															onClick={() => {
+																if (item.function) item.function();
+																handleNavClick();
+															}}
+															className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-700 transition-all group font-medium"
+														>
+															<span>{item.label}</span>
+															<ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+														</Link>
+													</motion.div>
 												);
 											})}
 										</div>
 									</>
 								)}
 							</div>
-							<div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col gap-4 ">
+							<div className="absolute bottom-0 left-0 right-0 max-h-24 bg-gradient-to-t from-white via-white to-transparent p-4 flex flex-col gap-3 border-t">
 								{/* Footer da Sidebar */}
 								{user && (
-									<Link
-										to={"/account/profile"}
-										onClick={handleNavClick}
-										className="flex items-center gap-3 p-3  rounded-xl hover:bg-white transition-all group"
-									>
-										<div className="flex flex-col flex-1">
-											<span className="text-sm font-semibold text-gray-800">
-												Ver perfil completo
-											</span>
-											<span className="text-xs text-gray-500">
-												Editar suas informações
-											</span>
-										</div>
-										<ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
-									</Link>
+									<motion.div whileHover={{ y: -2 }}>
+										<Link
+											to={"/account/profile"}
+											onClick={handleNavClick}
+											className="flex items-center gap-3 p-3 rounded-xl hover:bg-primary-50 transition-all group"
+										>
+											<div className="flex flex-col flex-1">
+												<span className="text-sm font-bold text-gray-800">
+													Ver perfil
+												</span>
+												<span className="text-xs text-gray-500">
+													Suas informações
+												</span>
+											</div>
+											<ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary-600" />
+										</Link>
+									</motion.div>
 								)}
-								<div
-									className="border-t bg-gray-50 p-3"
-									onClick={handleNavClick}
-								>
-									<div className="mt-auto">
-										<div className="">
-											<p className="text-gray-600 text-sm text-start">
-												© 2025 DormeAqui. Todos os direitos reservados.
-											</p>
-										</div>
-									</div>
+								<div className="text-center">
+									<p className="text-xs text-gray-500 font-medium">
+										© 2025 DormeAqui
+									</p>
 								</div>
 							</div>
 						</SheetContent>
