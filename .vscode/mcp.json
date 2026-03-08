@@ -1,9 +1,9 @@
-{
-	"servers": {
-		"mcp-mercado-pago": {
-			"url": "https://mcp.mercadopago.com/mcp",
-			"type": "http"
-		}
-	},
-	"inputs": []
-}
+// {
+// 	"servers": {
+// 		"mcp-mercado-pago": {
+// 			"url": "https://mcp.mercadopago.com/mcp",
+// 			"type": "http"
+// 		}
+// 	},
+// 	"inputs": []
+// }

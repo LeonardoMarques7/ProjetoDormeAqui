@@ -13,7 +13,7 @@ import {
 	CarouselPrevious,
 } from "@/components/ui/carousel";
 
-import { MapPin, Star, ChevronDown } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 const DotButton = ({ selected, onClick }) => (
 	<button
@@ -148,29 +148,19 @@ const Item = ({ place = null, placeHolder }) => {
 					</div>
 
 					{/* Card info - estado normal */}
-					<div className="mt-1 px-4 max-sm:px-2 max-sm:mt-0 flex flex-col justify-end h-full gap-1">
-						<div className="flex flex-col flex-1">
-							<span className="text-xs  max-sm:hidden max-sm:line-through text-gray-500 flex items-center gap-1 ">
-								De <div className="">R$ {Math.round(place.price * 1.2)}</div>
+					<div className="px-4 max-sm:px-2 py-3 flex flex-col gap-1">
+						<div className="flex items-center gap-1 text-xs text-gray-500">
+							<MapPin size={12} className="flex-shrink-0" />
+							<span className="line-clamp-1">
+								{place.city}{place.uf ? `, ${place.uf}` : ""}
 							</span>
-							<div className="flex items-baseline gap-1">
-								<span className="text-xl max-sm:text-xs font-medium text-gray-900">
-									Por R$ {place.price}
-								</span>
-							</div>
-							<div className="mt-1 leading-5">
-								<p className="text-[1rem] max-sm:text-xs font-light text-gray-900 line-clamp-1 overflow- max-sm:max-w-full max-w-[90%]">
-									{place.title}
-								</p>
-							</div>
 						</div>
-						<div className="flex items-center h-full max-sm:pb-1 max-sm:py-0 py-2 gap-4 ">
-							<div className="flex py-2 items-center flex-1 gap-1 text-xs w-full text-gray-600">
-								<MapPin className="max-sm:hidden" size={14} />
-								<span>{place.city}</span>
-							</div>
-							{!isHovered && <ChevronDown size={15} className="mr-2" />}
-						</div>
+						<p className="text-[0.95rem] max-sm:text-sm font-semibold text-gray-900 line-clamp-1">
+							{place.title}
+						</p>
+						<span className="text-sm text-gray-700">
+							R$ {place.price} por noite
+						</span>
 
 						{/* Card info - estado hover (expanded) */}
 						<div

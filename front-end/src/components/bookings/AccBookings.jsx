@@ -48,7 +48,7 @@ const AccBookings = ({ bookingId }) => {
 
 				{!readyBookings ? (
 					<>
-						<div className=" max-sm:flex-col mx-auto  max-sm:max-w-full md:max-w-9/12 bg-white/80 border border-primary-100 h-fit relative w-full flex-1 flex rounded-3xl   gap-5 ">
+						<div className=" max-sm:flex-col mx-auto  max-sm:max-w-full md:max-w-7xl bg-white/80 border border-primary-100 h-fit relative w-full flex-1 flex rounded-3xl   gap-5 ">
 							<div className="w-85 h-90 max-sm:aspect-square max-sm:w-full max-sm:h-full ">
 								<Skeleton className="w-full rounded-r-none h-full max-sm:rounded-3xl max-sm:rounded-b-none rounded-l-3xl" />
 							</div>
