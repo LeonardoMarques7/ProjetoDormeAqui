@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { clipRevealY, staggerContainer, staggerItem } from "@/lib/animations";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Item from "@/components/places/Item";
 import ScrollCarousel from "@/components/common/ScrollCarousel";
+import FeaturedSection from "@/components/common/FeaturedSection";
 import Grainient from "@/components/Grainient";
 import axios from "axios";
 
-import logoPrimary from "@/assets/logo__secondary.png";
+import logoPrimary from "@/assets/logo__primary.png";
 import { Link } from "react-router-dom";
 import {
 	Eraser,
@@ -124,6 +126,10 @@ const Home = () => {
 		setDrawerOpen(false);
 	};
 
+	const heroRef = useRef(null);
+	const { scrollY } = useScroll();
+	const heroY = useTransform(scrollY, [0, 500], [0, -80]);
+
 	const limparPesquisa = (e) => {
 		e.preventDefault();
 		setCity("");
@@ -143,36 +149,39 @@ const Home = () => {
 	return (
 		<div className="">
 			{/* ─── HERO: Grainient + texto centralizado ─── */}
-			<div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-				{/* Animated background */}
-				<div className="absolute inset-0 z-0 opacity-75">
-					<Grainient />
-					<ScrollIcon />
-				</div>
-
+			<div ref={heroRef} className="relative flex flex-col items-center justify-center overflow-hidden">
 				{/* Centered hero content */}
-				<div className="relative z-10 text-center px-6 mx-auto">
-					<motion.h1
-						initial={{ opacity: 0, y: 60 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.9 }}
-						className="text-7xl max-md:text-5xl max-sm:text-4xl font-extrabold text-primary-900 leading-tight mb-6"
-					>
-						<img src={logoPrimary} className="max-w-2xl" alt="" />
-					</motion.h1>
+				<motion.div
+					style={{ y: heroY }}
+					className="relative z-10 h-full 2xl:mt-45 text-center px-6 my-auto mx-auto"
+				>
+					<div className="overflow-hidden">
+						<motion.h1
+							variants={clipRevealY}
+							initial="hidden"
+							animate="visible"
+							custom={0}
+							className="text-7xl max-md:text-5xl max-sm:text-4xl font-extrabold text-primary-900 leading-tight mb-6"
+						>
+							<img src={logoPrimary} className="max-w-2xl" alt="" />
+						</motion.h1>
+					</div>
 
-					<motion.p
-						initial={{ opacity: 0, y: 60 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.2, duration: 0.9 }}
-						className="text-gray-100 mb-10 text-xl max-sm:text-base leading-relaxed"
-					>
-						Encontre acomodações únicas em Sorocaba e em todo o Brasil.
-						<br className="max-sm:hidden" />
-						Reserve com segurança e descubra novos lugares.
-					</motion.p>
+					<div className="overflow-hidden">
+						<motion.p
+							variants={clipRevealY}
+							initial="hidden"
+							animate="visible"
+							custom={1}
+							className="text-gray-900 mb-10 text-xl max-sm:text-base leading-relaxed"
+						>
+							Encontre acomodações únicas em Sorocaba e em todo o Brasil.
+							<br className="max-sm:hidden" />
+							Reserve com segurança e descubra novos lugares.
+						</motion.p>
+					</div>
 
-					<motion.div
+					{/* <motion.div
 						initial={{ opacity: 0, y: 60 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.4 }}
@@ -190,8 +199,8 @@ const Home = () => {
 						>
 							Anunciar acomodação
 						</Link>
-					</motion.div>
-				</div>
+					</motion.div> */}
+				</motion.div>
 
 				{/* SEARCH MOBILE */}
 				{mobile && (
@@ -274,8 +283,8 @@ const Home = () => {
 				)}
 			</div>
 
-			{/* ─── CARROSSEL HORIZONTAL ─── */}
-			<ScrollCarousel />
+			{/* ─── FEATURED SECTION ─── */}
+			<FeaturedSection />
 
 			{/* ─── GRID DE PLACES ─── */}
 			<section className="relative mb-16 px-4">
@@ -315,11 +324,19 @@ const Home = () => {
 				)}
 
 				{!loading && (
-					<div className="grid max-w-7xl mx-auto grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8">
+					<motion.div
+						className="grid max-w-7xl mx-auto grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8"
+						variants={staggerContainer(0.06)}
+						initial="hidden"
+						whileInView="visible"
+						viewport={{ once: true }}
+					>
 						{(city ? placesSearch : places).map((place) => (
-							<Item key={place._id} place={place} />
+							<motion.div key={place._id} variants={staggerItem}>
+								<Item place={place} />
+							</motion.div>
 						))}
-					</div>
+					</motion.div>
 				)}
 			</section>
 		</div>

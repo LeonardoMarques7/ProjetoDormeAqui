@@ -51,6 +51,7 @@ import EditProfile from "@/components/profile/EditProfile";
 import { useLocation } from "react-router-dom";
 import Banner from "@/assets/banner.jpg";
 import bannerDefault from "@/assets/banner__default2.jpg";
+import { motion, AnimatePresence } from "framer-motion";
 
 const AccProfile = () => {
 	const { user, setUser, ready: userContextReady } = useUserContext();
@@ -665,7 +666,12 @@ const AccProfile = () => {
 	};
 
 	return (
-		<div className="px-8">
+		<motion.div
+			className="px-8"
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ duration: 0.4 }}
+		>
 			{!isEditingProfile ? (
 				<>
 					<img
@@ -679,13 +685,19 @@ const AccProfile = () => {
 							{/* Header do perfil (avatar + botão) */}
 							<div className="avatar__btn flex  max-sm:gap-2 gap-5 items-center justify-start relative">
 								{/* Avatar sobreposto */}
-								<div className=" relative w-60 h-60 max-sm:w-50 max-sm:h-50 rounded-full border-2 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
+								<motion.div
+									className=" relative w-60 h-60 max-sm:w-50 max-sm:h-50 rounded-full border-2 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white"
+									initial={{ scale: 0.8, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+									whileHover={{ scale: 1.05 }}
+								>
 									<img
 										src={displayUser?.photo || userDefault}
 										className="w-full h-full object-cover object-center rounded-full"
 										alt={displayUser?.name}
 									/>
-								</div>
+								</motion.div>
 								{isOwnProfile && (
 									<div className="flex absolute gap-2.5 max-sm:top-30 max-sm:right-5 right-0 top-35">
 										<DropdownMenu modal={false}>
@@ -765,7 +777,12 @@ const AccProfile = () => {
 
 								{/* Botão de editar - só mostra se for o próprio perfil E estiver logado */}
 							</div>
-							<div className="flex gap-0 flex-col">
+							<motion.div
+								className="flex gap-0 flex-col"
+								initial={{ opacity: 0, x: -20 }}
+								animate={{ opacity: 1, x: 0 }}
+								transition={{ delay: 0.2, duration: 0.5 }}
+							>
 								<div className="">
 									<p className="text-primary-700 uppercase font-light">
 										{displayUser?.occupation}
@@ -775,7 +792,7 @@ const AccProfile = () => {
 									<p>{nameUser[0]}</p>
 									{nameUser[1]}
 								</span>
-							</div>
+							</motion.div>
 							<div className="flex gap-5 items-center">
 								<span className="flex gap-1.5 text-black">
 									{[...Array(5)].map((_, index) => (
@@ -813,27 +830,52 @@ const AccProfile = () => {
 								)}
 							</div>
 							<div className="flex items-center max-sm:items-start max-sm:flex-col gap-5 max-sm:gap-2 max-sm:mt-2.5  my-5 p-0 list-none">
-								<span className="flex flex-col gap-2.5 max-sm:gap-0 ">
-									<span className="font-bold max-sm:font-medium text-5xl  ">
-										{places.length}
+								<motion.div
+									initial={{ opacity: 0, y: 20 }}
+									whileInView={{ opacity: 1, y: 0 }}
+									viewport={{ once: true }}
+									transition={{ delay: 0 }}
+								>
+									<span className="flex flex-col gap-2.5 max-sm:gap-0 ">
+										<span className="font-bold max-sm:font-medium text-5xl  ">
+											{places.length}
+										</span>
+										<p>Acomodações Exclusivas</p>
 									</span>
-									<p>Acomodações Exclusivas</p>
-								</span>
-								<span className="flex flex-col gap-2.5 max-sm:gap-0 ">
-									<span className="font-bold max-sm:font-medium text-5xl ">
-										{totalGuestsSatisfied}
+								</motion.div>
+								<motion.div
+									initial={{ opacity: 0, y: 20 }}
+									whileInView={{ opacity: 1, y: 0 }}
+									viewport={{ once: true }}
+									transition={{ delay: 0.1 }}
+								>
+									<span className="flex flex-col gap-2.5 max-sm:gap-0 ">
+										<span className="font-bold max-sm:font-medium text-5xl ">
+											{totalGuestsSatisfied}
+										</span>
+										<p>Hóspedes Satisfeitos</p>
 									</span>
-									<p>Hóspedes Satisfeitos</p>
-								</span>
-								<span className="flex flex-col gap-2.5 max-sm:gap-0 ">
-									<span className="font-bold max-sm:font-medium text-5xl ">
-										{experienceTime}
+								</motion.div>
+								<motion.div
+									initial={{ opacity: 0, y: 20 }}
+									whileInView={{ opacity: 1, y: 0 }}
+									viewport={{ once: true }}
+									transition={{ delay: 0.2 }}
+								>
+									<span className="flex flex-col gap-2.5 max-sm:gap-0 ">
+										<span className="font-bold max-sm:font-medium text-5xl ">
+											{experienceTime}
+										</span>
+										<p>De Experiência</p>
 									</span>
-									<p>De Experiência</p>
-								</span>
+								</motion.div>
 							</div>
 							{/* Meus anúncios */}
-							<div>
+							<motion.div
+								initial={{ opacity: 0, y: 16 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+							>
 								<p className="text-primary-500 uppercase font-light">Seleção</p>
 								<div className="flex items-center mb-15 justify-between">
 									<div className="">
@@ -1364,7 +1406,7 @@ const AccProfile = () => {
 										)}
 									</div>
 								</div>
-							</div>
+							</motion.div>
 							{isOwnProfile && (
 								<DeleteAccountDialog
 									open={showDeleteDialog}
@@ -1395,7 +1437,7 @@ const AccProfile = () => {
 					)}
 				</>
 			)}
-		</div>
+		</motion.div>
 	);
 };
 

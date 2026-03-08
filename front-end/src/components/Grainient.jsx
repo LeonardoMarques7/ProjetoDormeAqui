@@ -126,9 +126,13 @@ const Grainient = ({
 	// color2 = "#5227FF",
 	// color3 = "#B19EEF", // Cores originais
 
-	color1 = "#741a71",
-	color2 = "#1c0186",
-	color3 = "#3c297a",
+	// color1 = "#741a71",
+	// color2 = "#1c0186",
+	// color3 = "#3c297a",
+
+	color1 = "#0c020c",
+	color2 = "#03000e",
+	color3 = "#0b0227",
 	className = "",
 }) => {
 	const containerRef = useRef(null);

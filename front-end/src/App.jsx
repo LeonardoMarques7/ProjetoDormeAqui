@@ -41,6 +41,8 @@ import { useEffect } from "react";
 import { MobileContextProvider } from "./components/contexts/MobileContext";
 
 import { AuthModalContextProvider } from "./components/contexts/AuthModalContext";
+import { AnimatePresence } from "framer-motion";
+import PageTransition from "./components/common/PageTransition";
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
 		? "http://localhost:3000/api"
@@ -72,28 +74,39 @@ function App() {
 							<ScrollToTop />
 
 							<div className="min-h-screen relative flex flex-1 flex-col p-4 h-full w-full justify-between">
-								<Routes>
-									<Route path="/" element={<Home />} />
-									<Route path="/reset-password" element={<ResetPassword />} />
-									<Route
-										path="/account/:subpage/:action?/:id?"
-										element={<Account />}
-									/>
-									<Route path="/places/:id" element={<Place />} />
-									<Route path="/payment/success" element={<PaymentSuccess />} />
-									<Route path="/payment/pending" element={<PaymentPending />} />
-									<Route path="/payment/failure" element={<PaymentFailure />} />
-									<Route path="/*" element={<NotFound />} />
+								<PageTransition>
+									<Routes>
+										<Route path="/" element={<Home />} />
+										<Route path="/reset-password" element={<ResetPassword />} />
+										<Route
+											path="/account/:subpage/:action?/:id?"
+											element={<Account />}
+										/>
+										<Route path="/places/:id" element={<Place />} />
+										<Route
+											path="/payment/success"
+											element={<PaymentSuccess />}
+										/>
+										<Route
+											path="/payment/pending"
+											element={<PaymentPending />}
+										/>
+										<Route
+											path="/payment/failure"
+											element={<PaymentFailure />}
+										/>
+										<Route path="/*" element={<NotFound />} />
 
-									<Route
-										path="/auth/github/callback"
-										element={<GithubCallback />}
-									/>
-									<Route
-										path="/auth/google/callback"
-										element={<GoogleCallback />}
-									/>
-								</Routes>
+										<Route
+											path="/auth/github/callback"
+											element={<GithubCallback />}
+										/>
+										<Route
+											path="/auth/google/callback"
+											element={<GoogleCallback />}
+										/>
+									</Routes>
+								</PageTransition>
 								<Footer active={isComponentActive} />
 							</div>
 						</MessageProvider>

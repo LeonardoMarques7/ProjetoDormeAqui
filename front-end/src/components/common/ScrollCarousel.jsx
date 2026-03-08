@@ -69,7 +69,7 @@ export default function ScrollCarousel() {
 				>
 					<CarouselContent className="-ml-4">
 						{slides.map((slide, i) => {
-							const isCenter = i === activeIndex;
+							const isCenter = false;
 
 							return (
 								<CarouselItem

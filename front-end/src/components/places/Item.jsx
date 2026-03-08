@@ -15,6 +15,17 @@ import {
 
 import { MapPin, Star } from "lucide-react";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { ease, staggerContainer } from "@/lib/animations";
+
+const cardInfoItem = {
+	hidden: { opacity: 0, y: 10 },
+	visible: {
+		opacity: 1,
+		y: 0,
+		transition: { duration: 0.4, ease: ease.power3Out },
+	},
+};
+
 const DotButton = ({ selected, onClick }) => (
 	<button
 		className={`w-2 h-2 rounded-full cursor-pointer transition-all duration-700 ${
@@ -78,122 +89,149 @@ const Item = ({ place = null, placeHolder }) => {
 					<Skeleton className="h-5 w-32" />
 				</div>
 			) : (
-				<Link
-					ref={cardRef}
-					to={`/places/${place._id}`}
-					onMouseEnter={() => setIsHovered(true)}
-					onMouseLeave={() => setIsHovered(false)}
-					className={`${
-						isHovered && "border-2 border-primary-200 z-1 shadow-xl"
-					} flex bg-white shadow-md h-full rounded-2xl gap-4 flex-col w-full sm:max-w-[350px] transition-all duration-300`}
+				<motion.div
+					whileHover={{ y: -6, boxShadow: "0 16px 48px rgba(0,0,0,0.18)" }}
+					transition={{ type: "spring", stiffness: 260, damping: 20 }}
+					className="h-full w-full sm:max-w-[350px]"
 				>
-					{/* Carrossel de imagens */}
-					<div className="relative">
-						<Carousel
-							opts={{
-								loop: true,
-							}}
-							plugins={[...(isHovered ? [Autoplay({ delay: 3000 })] : [])]}
-							className="w-full relative rounded-b-none"
-							setApi={setApi}
-						>
-							<CarouselContent>
-								{place.photos.map((photo, index) => (
-									<CarouselItem
-										className="relative overflow-hidden rounded-b-none rounded-t-2xl"
-										key={index}
-									>
-										<img
-											src={photo}
-											alt={`Imagem da acomodação ${index + 1}`}
-											className="aspect-square z-0 w-full *:rounded-2xl object-cover transition-transform rounded-t-2xl rounded-b-none"
-											loading={index === 0 ? "eager" : "lazy"}
-											width="350"
-											height="350"
-										/>
-									</CarouselItem>
-								))}
-							</CarouselContent>
-
-							{/* Navegação do carrossel */}
-							<div onClick={(e) => e.preventDefault()}>
-								<CarouselPrevious className="absolute border-none left-2 text-white bg-white/30 hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
-							</div>
-							<div onClick={(e) => e.preventDefault()}>
-								<CarouselNext className="absolute right-2 border-none bg-white/30 text-white hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
-							</div>
-
-							{/* Rating badge */}
-							<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
-								<Star size={14} fill="#FFC107" stroke="#FFC107" />
-								<span className="text-sm font-semibold">
-									{place.averageRating.toFixed(1)}
-								</span>
-							</div>
-						</Carousel>
-
-						{/* Dot indicators */}
-						<div
-							className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"
-							onClick={(e) => e.preventDefault()}
-						>
-							{scrollSnaps.map((_, index) => (
-								<DotButton
-									key={index}
-									selected={index === selectedIndex}
-									onClick={() => onDotButtonClick(index)}
-								/>
-							))}
-						</div>
-					</div>
-
-					{/* Card info - estado normal */}
-					<div className="px-4 max-sm:px-2 py-3 flex flex-col gap-1">
-						<div className="flex items-center gap-1 text-xs text-gray-500">
-							<MapPin size={12} className="flex-shrink-0" />
-							<span className="line-clamp-1">
-								{place.city}{place.uf ? `, ${place.uf}` : ""}
-							</span>
-						</div>
-						<p className="text-[0.95rem] max-sm:text-sm font-semibold text-gray-900 line-clamp-1">
-							{place.title}
-						</p>
-						<span className="text-sm text-gray-700">
-							R$ {place.price} por noite
-						</span>
-
-						{/* Card info - estado hover (expanded) */}
-						<div
-							className={`flex flex-col gap-3 px-0 border-primary-100  transition-all duration-700 ${
-								isHovered
-									? "opacity-100 max-h-96 "
-									: "opacity-0 max-h-0 overflow-hidden"
-							}`}
-						>
-							<AnimatePresence>
-								{isHovered ? (
-									<motion.div
-										className="flex items-center mb-2 flex-1 gap-3"
-										initial={{ opacity: 0, y: 10 }}
-										animate={{ opacity: 1, y: 0 }}
-										exit={{ opacity: 0, y: 10 }}
-										transition={{ duration: 0.7 }}
-									>
-										<InteractiveHoverButton
-											className="w-full rounded-xl text-center font-medium"
-											onClick={(e) => {
-												e.preventDefault();
-												setClickItem(true);
-											}}
+					<Link
+						ref={cardRef}
+						to={`/places/${place._id}`}
+						onMouseEnter={() => setIsHovered(true)}
+						onMouseLeave={() => setIsHovered(false)}
+						className={`${
+							isHovered && "border-2 border-primary-200 z-1 shadow-xl"
+						} flex bg-white shadow-md h-full rounded-2xl gap-4 flex-col w-full transition-all duration-300`}
+					>
+						{/* Carrossel de imagens */}
+						<div className="relative">
+							<Carousel
+								opts={{
+									loop: true,
+								}}
+								plugins={[...(isHovered ? [Autoplay({ delay: 3000 })] : [])]}
+								className="w-full relative rounded-b-none"
+								setApi={setApi}
+							>
+								<CarouselContent>
+									{place.photos.map((photo, index) => (
+										<CarouselItem
+											className="relative overflow-hidden rounded-b-none rounded-t-2xl"
+											key={index}
 										>
-											Reservar
-										</InteractiveHoverButton>
-									</motion.div>
-								) : null}
-							</AnimatePresence>
+											<motion.div
+												initial={{ scale: 1.08, opacity: 0 }}
+												animate={{ scale: 1, opacity: 1 }}
+												transition={{ duration: 0.6, ease: ease.power3Out }}
+												className="w-full h-full"
+											>
+												<img
+													src={photo}
+													alt={`Imagem da acomodação ${index + 1}`}
+													className="aspect-square z-0 w-full *:rounded-2xl object-cover transition-transform rounded-t-2xl rounded-b-none"
+													loading={index === 0 ? "eager" : "lazy"}
+													width="350"
+													height="350"
+												/>
+											</motion.div>
+										</CarouselItem>
+									))}
+								</CarouselContent>
+
+								{/* Navegação do carrossel */}
+								<div onClick={(e) => e.preventDefault()}>
+									<CarouselPrevious className="absolute border-none left-2 text-white bg-white/30 hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
+								</div>
+								<div onClick={(e) => e.preventDefault()}>
+									<CarouselNext className="absolute right-2 border-none bg-white/30 text-white hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
+								</div>
+
+								{/* Rating badge */}
+								<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
+									<Star size={14} fill="#FFC107" stroke="#FFC107" />
+									<span className="text-sm font-semibold">
+										{place.averageRating.toFixed(1)}
+									</span>
+								</div>
+							</Carousel>
+
+							{/* Dot indicators */}
+							<div
+								className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"
+								onClick={(e) => e.preventDefault()}
+							>
+								{scrollSnaps.map((_, index) => (
+									<DotButton
+										key={index}
+										selected={index === selectedIndex}
+										onClick={() => onDotButtonClick(index)}
+									/>
+								))}
+							</div>
 						</div>
-					</div>
-				</Link>
+
+						{/* Card info - estado normal */}
+						<motion.div
+							className="px-4 max-sm:px-2 py-3 flex flex-col gap-1"
+							variants={staggerContainer(0.07)}
+							initial="hidden"
+							animate="visible"
+						>
+							<motion.div
+								variants={cardInfoItem}
+								className="flex items-center gap-1 text-xs text-gray-500"
+							>
+								<MapPin size={12} className="flex-shrink-0" />
+								<span className="line-clamp-1">
+									{place.city}{place.uf ? `, ${place.uf}` : ""}
+								</span>
+							</motion.div>
+							<motion.p
+								variants={cardInfoItem}
+								className="text-[0.95rem] max-sm:text-sm font-semibold text-gray-900 line-clamp-1"
+							>
+								{place.title}
+							</motion.p>
+							<motion.span
+								variants={cardInfoItem}
+								className="text-sm text-gray-700"
+							>
+								R$ {place.price} por noite
+							</motion.span>
+
+							{/* Card info - estado hover (expanded) */}
+							<div
+								className={`flex flex-col gap-3 px-0 border-primary-100  transition-all duration-700 ${
+									isHovered
+										? "opacity-100 max-h-96 "
+										: "opacity-0 max-h-0 overflow-hidden"
+								}`}
+							>
+								<AnimatePresence>
+									{isHovered ? (
+										<motion.div
+											className="flex items-center mb-2 flex-1 gap-3"
+											initial={{ opacity: 0, y: 10 }}
+											animate={{ opacity: 1, y: 0 }}
+											exit={{ opacity: 0, y: 10 }}
+											transition={{ duration: 0.7 }}
+										>
+											<InteractiveHoverButton
+												className="w-full rounded-xl text-center font-medium"
+												onClick={(e) => {
+													e.preventDefault();
+													setClickItem(true);
+												}}
+											>
+												Reservar
+											</InteractiveHoverButton>
+										</motion.div>
+									) : null}
+								</AnimatePresence>
+							</div>
+						</motion.div>
+					</Link>
+				</motion.div>
 			)}
 		</>
 	);

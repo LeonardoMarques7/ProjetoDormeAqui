@@ -171,3 +171,30 @@
   }
 }
 
+
+
+/* ─── Text clip-path mask reveal animation ───────────────────────────────── */
+.text-mask-reveal {
+  overflow: hidden;
+  display: inline-block;
+}
+
+.text-mask-reveal > span {
+  display: inline-block;
+  animation: textReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform: translateY(110%);
+}
+
+@keyframes textReveal {
+  to { transform: translateY(0); }
+}
+
+/* ─── Global smooth transitions ──────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+

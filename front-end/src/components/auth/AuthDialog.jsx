@@ -1,3 +1,4 @@
+import { motion, AnimatePresence } from "framer-motion";
 import { Check, Eye, EyeOff, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
@@ -184,13 +185,18 @@ export function AuthDialog({ mode, setMode, open, setOpen }) {
 						<div className="flex flex-row min-h-[570px]">
 							<LeftPanel />
 							{/* Right panel — white form */}
-							<div className="flex-1  flex items-center justify-center px-10 py-10">
+							<motion.div
+								className="flex-1  flex items-center justify-center px-10 py-10"
+								initial={{ opacity: 0, x: 30 }}
+								animate={{ opacity: 1, x: 0 }}
+								transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+							>
 								<ProfileForm
 									mode={mode}
 									setMode={setMode}
 									onSuccess={handleLoginSuccess}
 								/>
-							</div>
+							</motion.div>
 						</div>
 					</DialogContent>
 				</Dialog>
@@ -414,267 +420,348 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 
 	if (redirect) return <Navigate to="/account/profile" />;
 
-	// ===== LOGIN =====
-	if (mode === "login") {
-		return (
-			<div className="w-full">
-				<h1 className="text-4xl font-bold text-gray-900 mb-1">
-					Olá, Viajante!
-				</h1>
-				<p className="text-gray-400 mb-8 text-sm">Bem-vindo ao DormeAqui</p>
-
-				<form className="space-y-4" onSubmit={handleSubmit}>
-					<input
-						type="email"
-						placeholder="Email"
-						className={INPUT_CLS}
-						value={email}
-						onChange={(e) => {
-							setEmail(e.target.value);
-							if (message) setMessage("");
-						}}
-					/>
-
-					<div className="relative">
-						<input
-							type={showPassword ? "text" : "password"}
-							placeholder="Senha"
-							className={INPUT_CLS + " pr-12"}
-							value={password}
-							onChange={(e) => {
-								setPassword(e.target.value);
-								if (message) setMessage("");
-							}}
-						/>
-						<button
-							type="button"
-							onClick={() => setShowPassword(!showPassword)}
-							className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-						>
-							{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-						</button>
-					</div>
-
-					<div className="text-right -mt-1">
-						<button
-							type="button"
-							onClick={() => setMode("forgotPassword")}
-							className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-						>
-							Esqueceu a senha?
-						</button>
-					</div>
-
-					{message && (
-						<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
-							{message}
-						</div>
-					)}
-
-					<OrDivider />
-
-					<button
-						type="button"
-						onClick={handleGoogleLogin}
-						disabled={loadingOAuth}
-						className="w-full flex items-center justify-center gap-3 py-3.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 cursor-pointer"
-					>
-						<GoogleIcon />
-						Continuar com Google
-					</button>
-
-					<button
-						type="submit"
-						className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 cursor-pointer"
-					>
-						Entrar
-					</button>
-				</form>
-
-				<p className="text-center text-gray-400 text-sm mt-6">
-					Não tem uma conta?{" "}
-					<button
-						onClick={() => setMode("register")}
-						className="text-primary-600 font-semibold hover:underline"
-					>
-						Criar conta
-					</button>
-				</p>
-			</div>
-		);
-	}
-
-	// ===== FORGOT PASSWORD =====
-	if (mode === "forgotPassword") {
-		return (
-			<div className="w-full">
-				<h1 className="text-4xl font-bold text-gray-900 mb-1">
-					Recuperar senha
-				</h1>
-				<p className="text-gray-400 mb-8 text-sm">
-					Digite seu email para receber as instruções
-				</p>
-
-				<form className="space-y-4" onSubmit={handleSubmit}>
-					<input
-						type="email"
-						placeholder="Email"
-						className={INPUT_CLS}
-						value={email}
-						onChange={(e) => {
-							setEmail(e.target.value);
-							if (message) setMessage("");
-						}}
-					/>
-
-					{message && (
-						<div
-							className={`text-sm py-3 px-4 rounded-lg ${
-								message.includes("enviado")
-									? "bg-green-50 border border-green-200 text-green-600"
-									: "bg-red-50 border border-red-200 text-red-600"
-							}`}
-						>
-							{message}
-						</div>
-					)}
-
-					<button
-						type="submit"
-						disabled={isLoading}
-						className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-					>
-						{isLoading ? "Enviando..." : "Enviar instruções"}
-					</button>
-				</form>
-
-				<p className="text-center text-gray-400 text-sm mt-6">
-					Lembrou da senha?{" "}
-					<button
-						onClick={() => setMode("login")}
-						className="text-primary-600 font-semibold hover:underline"
-					>
-						Voltar ao login
-					</button>
-				</p>
-			</div>
-		);
-	}
-
-	// ===== REGISTER =====
 	return (
-		<div className="w-full ">
-			<h1 className="text-4xl font-bold text-gray-900 mb-1">Crie sua conta</h1>
-			<p className="text-gray-400 mb-8 text-sm">Junte-se ao DormeAqui</p>
-
-			<form className="space-y-4" onSubmit={handleSubmit}>
-				<input
-					type="text"
-					placeholder="Nome completo"
-					className={INPUT_CLS}
-					value={name}
-					onChange={(e) => setName(e.target.value)}
-				/>
-
-				<div>
-					<input
-						type="email"
-						placeholder="Email"
-						className={
-							INPUT_CLS +
-							(emailError
-								? " border-red-400 focus:border-red-400 focus:ring-red-100"
-								: "")
-						}
-						value={email}
-						onChange={(e) => {
-							setEmail(e.target.value);
-							setEmailError("");
-							if (message) setMessage("");
-						}}
-						onBlur={(e) => checkEmailExists(e.target.value)}
-					/>
-					{isCheckingEmail && (
-						<p className="text-xs text-gray-400 mt-1 ml-1">Verificando...</p>
-					)}
-					{emailError && (
-						<p className="text-xs text-red-500 mt-1 ml-1">{emailError}</p>
-					)}
-				</div>
-
-				<div className="relative">
-					<input
-						type={showPassword ? "text" : "password"}
-						placeholder="Senha"
-						className={INPUT_CLS + " pr-12"}
-						value={password}
-						onChange={(e) => {
-							setPassword(e.target.value);
-							setShowPasswordPopover(true);
-						}}
-						onBlur={() => setShowPasswordPopover(false)}
-					/>
-					<button
-						type="button"
-						onClick={() => setShowPassword(!showPassword)}
-						className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-					>
-						{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-					</button>
-				</div>
-
-				{showPasswordPopover && (
-					<div className="ml-1">
-						<PasswordRequirement
-							label="Pelo menos 6 caracteres"
-							meets={password.length > 5}
-						/>
-					</div>
-				)}
-
-				<div className="relative">
-					<input
-						type={showConfirmPassword ? "text" : "password"}
-						placeholder="Confirmar senha"
-						className={INPUT_CLS + " pr-12"}
-						value={confirmPassword}
-						onChange={(e) => {
-							setConfirmPassword(e.target.value);
-							if (message) setMessage("");
-						}}
-					/>
-					<button
-						type="button"
-						onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-						className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-					>
-						{showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-					</button>
-				</div>
-
-				{message && (
-					<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
-						{message}
-					</div>
-				)}
-
-				<button
-					type="submit"
-					className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 cursor-pointer"
+		<AnimatePresence mode="wait">
+			{/* ===== LOGIN ===== */}
+			{mode === "login" && (
+				<motion.div
+					key="login"
+					className="w-full"
+					initial={{ opacity: 0, x: 20 }}
+					animate={{ opacity: 1, x: 0 }}
+					exit={{ opacity: 0, x: -20 }}
+					transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
 				>
-					Criar Conta
-				</button>
-			</form>
+					<motion.h1
+						className="text-4xl font-bold text-gray-900 mb-1"
+						initial={{ opacity: 0, y: -10 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.4 }}
+					>
+						Olá, Viajante!
+					</motion.h1>
+					<p className="text-gray-400 mb-8 text-sm">Bem-vindo ao DormeAqui</p>
 
-			<p className="text-center text-gray-400 text-sm mt-6">
-				Já tem uma conta?{" "}
-				<button
-					onClick={() => setMode("login")}
-					className="text-primary-600 font-semibold hover:underline"
+					<form className="space-y-4" onSubmit={handleSubmit}>
+						<motion.div
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0 * 0.07, duration: 0.4 }}
+						>
+							<input
+								type="email"
+								placeholder="Email"
+								className={INPUT_CLS}
+								value={email}
+								onChange={(e) => {
+									setEmail(e.target.value);
+									if (message) setMessage("");
+								}}
+							/>
+						</motion.div>
+
+						<motion.div
+							className="relative"
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 1 * 0.07, duration: 0.4 }}
+						>
+							<input
+								type={showPassword ? "text" : "password"}
+								placeholder="Senha"
+								className={INPUT_CLS + " pr-12"}
+								value={password}
+								onChange={(e) => {
+									setPassword(e.target.value);
+									if (message) setMessage("");
+								}}
+							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword(!showPassword)}
+								className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+							>
+								{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+							</button>
+						</motion.div>
+
+						<div className="text-right -mt-1">
+							<button
+								type="button"
+								onClick={() => setMode("forgotPassword")}
+								className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+							>
+								Esqueceu a senha?
+							</button>
+						</div>
+
+						{message && (
+							<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
+								{message}
+							</div>
+						)}
+
+						<OrDivider />
+
+						<button
+							type="button"
+							onClick={handleGoogleLogin}
+							disabled={loadingOAuth}
+							className="w-full flex items-center justify-center gap-3 py-3.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 cursor-pointer"
+						>
+							<GoogleIcon />
+							Continuar com Google
+						</button>
+
+						<motion.button
+							type="submit"
+							className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 cursor-pointer"
+							whileHover={{ scale: 1.02 }}
+							whileTap={{ scale: 0.98 }}
+						>
+							Entrar
+						</motion.button>
+					</form>
+
+					<p className="text-center text-gray-400 text-sm mt-6">
+						Não tem uma conta?{" "}
+						<button
+							onClick={() => setMode("register")}
+							className="text-primary-600 font-semibold hover:underline"
+						>
+							Criar conta
+						</button>
+					</p>
+				</motion.div>
+			)}
+
+			{/* ===== FORGOT PASSWORD ===== */}
+			{mode === "forgotPassword" && (
+				<motion.div
+					key="forgotPassword"
+					className="w-full"
+					initial={{ opacity: 0, x: 20 }}
+					animate={{ opacity: 1, x: 0 }}
+					exit={{ opacity: 0, x: -20 }}
+					transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
 				>
-					Entrar
-				</button>
-			</p>
-		</div>
+					<motion.h1
+						className="text-4xl font-bold text-gray-900 mb-1"
+						initial={{ opacity: 0, y: -10 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.4 }}
+					>
+						Recuperar senha
+					</motion.h1>
+					<p className="text-gray-400 mb-8 text-sm">
+						Digite seu email para receber as instruções
+					</p>
+
+					<form className="space-y-4" onSubmit={handleSubmit}>
+						<motion.div
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0, duration: 0.4 }}
+						>
+							<input
+								type="email"
+								placeholder="Email"
+								className={INPUT_CLS}
+								value={email}
+								onChange={(e) => {
+									setEmail(e.target.value);
+									if (message) setMessage("");
+								}}
+							/>
+						</motion.div>
+
+						{message && (
+							<div
+								className={`text-sm py-3 px-4 rounded-lg ${
+									message.includes("enviado")
+										? "bg-green-50 border border-green-200 text-green-600"
+										: "bg-red-50 border border-red-200 text-red-600"
+								}`}
+							>
+								{message}
+							</div>
+						)}
+
+						<motion.button
+							type="submit"
+							disabled={isLoading}
+							className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+							whileHover={{ scale: 1.02 }}
+							whileTap={{ scale: 0.98 }}
+						>
+							{isLoading ? "Enviando..." : "Enviar instruções"}
+						</motion.button>
+					</form>
+
+					<p className="text-center text-gray-400 text-sm mt-6">
+						Lembrou da senha?{" "}
+						<button
+							onClick={() => setMode("login")}
+							className="text-primary-600 font-semibold hover:underline"
+						>
+							Voltar ao login
+						</button>
+					</p>
+				</motion.div>
+			)}
+
+			{/* ===== REGISTER ===== */}
+			{mode === "register" && (
+				<motion.div
+					key="register"
+					className="w-full"
+					initial={{ opacity: 0, x: 20 }}
+					animate={{ opacity: 1, x: 0 }}
+					exit={{ opacity: 0, x: -20 }}
+					transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+				>
+					<motion.h1
+						className="text-4xl font-bold text-gray-900 mb-1"
+						initial={{ opacity: 0, y: -10 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.4 }}
+					>
+						Crie sua conta
+					</motion.h1>
+					<p className="text-gray-400 mb-8 text-sm">Junte-se ao DormeAqui</p>
+
+					<form className="space-y-4" onSubmit={handleSubmit}>
+						<motion.div
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0 * 0.07, duration: 0.4 }}
+						>
+							<input
+								type="text"
+								placeholder="Nome completo"
+								className={INPUT_CLS}
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+							/>
+						</motion.div>
+
+						<motion.div
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 1 * 0.07, duration: 0.4 }}
+						>
+							<input
+								type="email"
+								placeholder="Email"
+								className={
+									INPUT_CLS +
+									(emailError
+										? " border-red-400 focus:border-red-400 focus:ring-red-100"
+										: "")
+								}
+								value={email}
+								onChange={(e) => {
+									setEmail(e.target.value);
+									setEmailError("");
+									if (message) setMessage("");
+								}}
+								onBlur={(e) => checkEmailExists(e.target.value)}
+							/>
+							{isCheckingEmail && (
+								<p className="text-xs text-gray-400 mt-1 ml-1">Verificando...</p>
+							)}
+							{emailError && (
+								<p className="text-xs text-red-500 mt-1 ml-1">{emailError}</p>
+							)}
+						</motion.div>
+
+						<motion.div
+							className="relative"
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 2 * 0.07, duration: 0.4 }}
+						>
+							<input
+								type={showPassword ? "text" : "password"}
+								placeholder="Senha"
+								className={INPUT_CLS + " pr-12"}
+								value={password}
+								onChange={(e) => {
+									setPassword(e.target.value);
+									setShowPasswordPopover(true);
+								}}
+								onBlur={() => setShowPasswordPopover(false)}
+							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword(!showPassword)}
+								className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+							>
+								{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+							</button>
+						</motion.div>
+
+						{showPasswordPopover && (
+							<div className="ml-1">
+								<PasswordRequirement
+									label="Pelo menos 6 caracteres"
+									meets={password.length > 5}
+								/>
+							</div>
+						)}
+
+						<motion.div
+							className="relative"
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 3 * 0.07, duration: 0.4 }}
+						>
+							<input
+								type={showConfirmPassword ? "text" : "password"}
+								placeholder="Confirmar senha"
+								className={INPUT_CLS + " pr-12"}
+								value={confirmPassword}
+								onChange={(e) => {
+									setConfirmPassword(e.target.value);
+									if (message) setMessage("");
+								}}
+							/>
+							<button
+								type="button"
+								onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+								className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+							>
+								{showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+							</button>
+						</motion.div>
+
+						{message && (
+							<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
+								{message}
+							</div>
+						)}
+
+						<motion.button
+							type="submit"
+							className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 cursor-pointer"
+							whileHover={{ scale: 1.02 }}
+							whileTap={{ scale: 0.98 }}
+						>
+							Criar Conta
+						</motion.button>
+					</form>
+
+					<p className="text-center text-gray-400 text-sm mt-6">
+						Já tem uma conta?{" "}
+						<button
+							onClick={() => setMode("login")}
+							className="text-primary-600 font-semibold hover:underline"
+						>
+							Entrar
+						</button>
+					</p>
+				</motion.div>
+			)}
+		</AnimatePresence>
 	);
 }
