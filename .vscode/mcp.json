@@ -7,3 +7,17 @@
 // 	},
 // 	"inputs": []
 // }
+
+{
+  "servers": {
+    "coolify": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@felixallistar/coolify-mcp", "--server"],
+      "env": {
+        "COOLIFY_API_URL": "https://coolify.seudominio.com",
+        "COOLIFY_API_TOKEN": "Lyl1OwutFkfMvLnr4d0iOBZ1ao5tQujFdcrDO1eIa15aa0e1"
+      }
+    }
+  }
+}
