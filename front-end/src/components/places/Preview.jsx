@@ -76,7 +76,9 @@ const Preview = ({ data }) => {
 							<img
 								className="w-full h-full rounded-2xl object-cover  hover:saturate-150 transition-all"
 								src={photos[0] || photoDefault}
-								alt="Imagem da acomodação"
+								alt="Foto principal da acomodação"
+								loading="eager"
+								fetchPriority="high"
 								onClick={() => handleImageClick(0)}
 							/>
 						</div>
@@ -86,7 +88,8 @@ const Preview = ({ data }) => {
 							<img
 								className="w-full h-full rounded-2xl object-cover  hover:saturate-150 transition-all"
 								src={photos[1] || photoDefault}
-								alt="Imagem da acomodação"
+								alt="Foto da acomodação"
+								loading="lazy"
 								onClick={() => handleImageClick(1)}
 							/>
 						</div>
@@ -96,7 +99,8 @@ const Preview = ({ data }) => {
 							<img
 								className="w-full h-full rounded-2xl object-cover  hover:saturate-150 transition-all"
 								src={photos[2] || photoDefault}
-								alt="Imagem da acomodação"
+								alt="Foto da acomodação"
+								loading="lazy"
 								onClick={() => handleImageClick(2)}
 							/>
 						</div>
@@ -106,7 +110,8 @@ const Preview = ({ data }) => {
 									<img
 										className="w-full h-full rounded-2xl object-cover  hover:saturate-150 transition-all"
 										src={photos[3] || photoDefault}
-										alt="Imagem da acomodação"
+										alt="Foto da acomodação"
+										loading="lazy"
 										onClick={() => handleImageClick(3)}
 									/>
 								</div>
@@ -115,7 +120,8 @@ const Preview = ({ data }) => {
 									<img
 										className="w-full h-full rounded-2xl object-cover  hover:saturate-150 transition-all"
 										src={photos[4] || photoDefault}
-										alt="Imagem da acomodação"
+										alt="Foto da acomodação"
+										loading="lazy"
 										onClick={() => handleImageClick(4)}
 									/>
 								</div>

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle, Calendar, Home, ArrowRight } from "lucide-react";
 import axios from "axios";
 import { useMessage } from "../components/contexts/MessageContext";
+import { motion } from "framer-motion";
 const PaymentSuccess = () => {
 	const [searchParams] = useSearchParams();
 	const [bookingDetails, setBookingDetails] = useState(null);
@@ -127,24 +128,49 @@ const PaymentSuccess = () => {
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-			<div className="max-w-2xl w-full bg-white rounded-3xl shadow-lg p-8 md:p-12">
+			<motion.div
+				className="max-w-2xl w-full bg-white rounded-3xl shadow-lg p-8 md:p-12"
+				initial={{ opacity: 0, y: 40, scale: 0.97 }}
+				animate={{ opacity: 1, y: 0, scale: 1 }}
+				transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+			>
 				{/* Header */}
 				<div className="text-center mb-8">
-					<div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+					<motion.div
+						className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
+						initial={{ scale: 0 }}
+						animate={{ scale: 1 }}
+						transition={{ delay: 0.3, type: "spring", stiffness: 300, damping: 15 }}
+					>
 						<CheckCircle className="w-10 h-10 text-green-600" />
-					</div>
+					</motion.div>
 
-					<h1 className="text-3xl font-bold text-gray-900 mb-2">
+					<motion.h1
+						className="text-3xl font-bold text-gray-900 mb-2"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.5, duration: 0.4 }}
+					>
 						Pagamento Aprovado!
-					</h1>
+					</motion.h1>
 
-					<p className="text-gray-600">
+					<motion.p
+						className="text-gray-600"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.6, duration: 0.4 }}
+					>
 						Sua reserva foi confirmada com sucesso.
-					</p>
+					</motion.p>
 				</div>
 
 				{/* Detalhes */}
-				<div className="bg-gray-50 rounded-2xl p-6 mb-8">
+				<motion.div
+					className="bg-gray-50 rounded-2xl p-6 mb-8"
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ delay: 0.7 }}
+				>
 					<h2 className="text-lg font-semibold text-gray-900 mb-4">
 						Detalhes do Pagamento
 					</h2>
@@ -171,7 +197,7 @@ const PaymentSuccess = () => {
 							</span>
 						</div>
 					</div>
-				</div>
+				</motion.div>
 
 				{/* Próximos passos */}
 				<div className="space-y-4 mb-8">
@@ -205,7 +231,12 @@ const PaymentSuccess = () => {
 				</div>
 
 				{/* Ações */}
-				<div className="flex flex-col sm:flex-row gap-4">
+				<motion.div
+					className="flex flex-col sm:flex-row gap-4"
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.85 }}
+				>
 					<Link
 						to="/account/bookings"
 						className="flex-1 bg-primary-900 text-white py-4 px-6 rounded-xl font-medium hover:bg-primary-800 transition-colors
@@ -222,7 +253,7 @@ const PaymentSuccess = () => {
 					>
 						Voltar para Home
 					</Link>
-				</div>
+				</motion.div>
 
 				<p className="text-center text-sm text-gray-500 mt-6">
 					Dúvidas? Entre em contato com nosso suporte em{" "}
@@ -233,7 +264,7 @@ const PaymentSuccess = () => {
 						suporte@dormeaqui.com
 					</a>
 				</p>
-			</div>
+			</motion.div>
 		</div>
 	);
 };

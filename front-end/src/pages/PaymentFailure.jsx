@@ -8,6 +8,7 @@ import {
 	HelpCircle,
 } from "lucide-react";
 import { useMessage } from "../components/contexts/MessageContext";
+import { motion } from "framer-motion";
 
 const PaymentFailure = () => {
 	const [searchParams] = useSearchParams();
@@ -26,15 +27,30 @@ const PaymentFailure = () => {
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-			<div className="max-w-2xl w-full bg-white rounded-3xl shadow-lg p-8 md:p-12">
+			<motion.div
+				className="max-w-2xl w-full bg-white rounded-3xl shadow-lg p-8 md:p-12"
+				initial={{ opacity: 0, y: 40, scale: 0.97 }}
+				animate={{ opacity: 1, y: 0, scale: 1 }}
+				transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+			>
 				{/* Header com ícone de erro */}
 				<div className="text-center mb-8">
-					<div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+					<motion.div
+						className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"
+						initial={{ scale: 0, rotate: -30 }}
+						animate={{ scale: 1, rotate: 0 }}
+						transition={{ delay: 0.3, type: "spring", stiffness: 350, damping: 12 }}
+					>
 						<XCircle className="w-10 h-10 text-red-600" />
-					</div>
-					<h1 className="text-3xl font-bold text-gray-900 mb-2">
+					</motion.div>
+					<motion.h1
+						className="text-3xl font-bold text-gray-900 mb-2"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.5, duration: 0.4 }}
+					>
 						Pagamento Não Aprovado
-					</h1>
+					</motion.h1>
 					<p className="text-gray-600">
 						Infelizmente não conseguimos processar seu pagamento.
 					</p>
@@ -123,20 +139,28 @@ const PaymentFailure = () => {
 
 				{/* Botões de ação */}
 				<div className="flex flex-col sm:flex-row gap-4">
-					<button
+					<motion.button
 						onClick={() => window.history.back()}
 						className="flex-1 bg-primary-900 text-white py-4 px-6 rounded-xl font-medium hover:bg-primary-800 transition-colors flex items-center justify-center gap-2"
+						whileHover={{ scale: 1.02 }}
+						whileTap={{ scale: 0.98 }}
 					>
 						<ArrowLeft className="w-5 h-5" />
 						Voltar e Tentar Novamente
-					</button>
+					</motion.button>
 
-					<Link
-						to="/"
-						className="flex-1 bg-gray-100 text-gray-700 py-4 px-6 rounded-xl font-medium hover:bg-gray-200 transition-colors text-center"
+					<motion.div
+						className="flex-1"
+						whileHover={{ scale: 1.02 }}
+						whileTap={{ scale: 0.98 }}
 					>
-						Voltar para Home
-					</Link>
+						<Link
+							to="/"
+							className="block w-full bg-gray-100 text-gray-700 py-4 px-6 rounded-xl font-medium hover:bg-gray-200 transition-colors text-center"
+						>
+							Voltar para Home
+						</Link>
+					</motion.div>
 				</div>
 
 				{/* Informação adicional */}
@@ -154,7 +178,7 @@ const PaymentFailure = () => {
 						</a>
 					</p>
 				</div>
-			</div>
+			</motion.div>
 		</div>
 	);
 };

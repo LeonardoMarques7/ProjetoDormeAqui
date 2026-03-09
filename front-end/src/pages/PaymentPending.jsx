@@ -8,6 +8,7 @@ import {
 	RefreshCw,
 } from "lucide-react";
 import { useMessage } from "../components/contexts/MessageContext";
+import { motion } from "framer-motion";
 
 const PaymentPending = () => {
 	const [searchParams] = useSearchParams();
@@ -26,18 +27,37 @@ const PaymentPending = () => {
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-			<div className="max-w-2xl w-full bg-white rounded-3xl shadow-lg p-8 md:p-12">
+			<motion.div
+				className="max-w-2xl w-full bg-white rounded-3xl shadow-lg p-8 md:p-12"
+				initial={{ opacity: 0, y: 40, scale: 0.97 }}
+				animate={{ opacity: 1, y: 0, scale: 1 }}
+				transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+			>
 				{/* Header com ícone de pending */}
 				<div className="text-center mb-8">
-					<div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+					<motion.div
+						className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4"
+						animate={{ rotate: [0, 360] }}
+						transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+					>
 						<Clock className="w-10 h-10 text-yellow-600" />
-					</div>
-					<h1 className="text-3xl font-bold text-gray-900 mb-2">
+					</motion.div>
+					<motion.h1
+						className="text-3xl font-bold text-gray-900 mb-2"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.5, duration: 0.4 }}
+					>
 						Pagamento em Processamento
-					</h1>
-					<p className="text-gray-600">
+					</motion.h1>
+					<motion.p
+						className="text-gray-600"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.6, duration: 0.4 }}
+					>
 						Estamos aguardando a confirmação do seu pagamento.
-					</p>
+					</motion.p>
 				</div>
 
 				{/* Alerta informativo */}
@@ -92,9 +112,13 @@ const PaymentPending = () => {
 					</h3>
 
 					<div className="flex items-start gap-4">
-						<div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+						<motion.div
+							className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0"
+							whileHover={{ rotate: 180 }}
+							transition={{ duration: 0.4 }}
+						>
 							<RefreshCw className="w-5 h-5 text-primary-600" />
-						</div>
+						</motion.div>
 						<div>
 							<p className="font-medium text-gray-900">
 								Aguardando confirmação
@@ -155,7 +179,7 @@ const PaymentPending = () => {
 						</a>
 					</p>
 				</div>
-			</div>
+			</motion.div>
 		</div>
 	);
 };

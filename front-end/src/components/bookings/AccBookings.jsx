@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import BookingAll from "@/components/bookings/BookingAll";
 import { Skeleton } from "@/components/ui/skeleton";
 import "@/components/bookings/Booking.css";
@@ -30,8 +31,13 @@ const AccBookings = ({ bookingId }) => {
 		<>
 			{/* Conteúdo */}
 
-			<div className="flex w-full my-15 max-w-full max-h-full h-full flex-col gap-8 relative justify-start items-start  max-sm:my-0 max-sm:px-3.5">
-				<div className=" flex border-l-3 pl-4 justify-between items-center w-full ">
+			<div className="flex w-full mx-auto  max-sm:max-w-full md:max-w-7xl md:px-5 max-h-full h-full flex-col gap-8 relative justify-start items-start  max-sm:my-0 max-sm:px-3.5">
+				<motion.div
+					className=" flex border-l-3 pl-4 justify-between items-center w-full "
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.5 }}
+				>
 					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
 						<span className=" text-3xl max-sm:text-xl text-black">
 							Minhas reservas{" "}
@@ -39,16 +45,26 @@ const AccBookings = ({ bookingId }) => {
 						</span>
 						Visualize suas reservas
 					</span>
-				</div>
+				</motion.div>
 				{bookings.length === 0 && (
-					<p className="text-gray-500 text-center py-8">
+					<motion.p
+						className="text-gray-500 text-center py-8"
+						initial={{ opacity: 0, scale: 0.9 }}
+						animate={{ opacity: 1, scale: 1 }}
+						transition={{ type: "spring", stiffness: 200, damping: 20 }}
+					>
 						Você não possue reservas.
-					</p>
+					</motion.p>
 				)}
 
 				{!readyBookings ? (
 					<>
-						<div className=" max-sm:flex-col bg-white/80 border border-primary-100 h-fit relative w-full flex-1 flex rounded-3xl   gap-5 ">
+						<motion.div
+							className=" max-sm:flex-col mx-auto  max-sm:max-w-full md:max-w-7xl bg-white/80 border border-primary-100 h-fit relative w-full flex-1 flex rounded-3xl   gap-5 "
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ delay: 0 * 0.1 }}
+						>
 							<div className="w-85 h-90 max-sm:aspect-square max-sm:w-full max-sm:h-full ">
 								<Skeleton className="w-full rounded-r-none h-full max-sm:rounded-3xl max-sm:rounded-b-none rounded-l-3xl" />
 							</div>
@@ -90,8 +106,13 @@ const AccBookings = ({ bookingId }) => {
 									<Skeleton className="w-35 h-7 rounded-xl max-sm:w-full text-center font-medium"></Skeleton>
 								</div>
 							</div>
-						</div>
-						<div className=" max-sm:flex-col bg-white/80 border border-primary-100 h-fit relative w-full flex-1 flex rounded-3xl   gap-5 ">
+						</motion.div>
+						<motion.div
+							className=" max-sm:flex-col bg-white/80 border border-primary-100 h-fit relative w-full flex-1 flex rounded-3xl   gap-5 "
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ delay: 1 * 0.1 }}
+						>
 							<div className="w-85 h-90 max-sm:aspect-square max-sm:w-full max-sm:h-full ">
 								<Skeleton className="w-full rounded-r-none h-full max-sm:rounded-3xl max-sm:rounded-b-none rounded-l-3xl" />
 							</div>
@@ -133,14 +154,29 @@ const AccBookings = ({ bookingId }) => {
 									<Skeleton className="w-35 h-7 rounded-xl max-sm:w-full text-center font-medium"></Skeleton>
 								</div>
 							</div>
-						</div>
+						</motion.div>
 					</>
 				) : bookings.length == 0 ? (
-					<h2 className="text-3xl font-bold text-white/50">
+					<motion.h2
+						className="text-3xl font-bold text-white/50"
+						initial={{ opacity: 0, scale: 0.9 }}
+						animate={{ opacity: 1, scale: 1 }}
+						transition={{ type: "spring", stiffness: 200, damping: 20 }}
+					>
 						Seu diário de viagens está vazio.
-					</h2>
+					</motion.h2>
 				) : (
-					<BookingAll bookingsArray={bookings} bookingId={bookingId} onBookingCanceled={fetchBookings} />
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ duration: 0.4, delay: 0.2 }}
+					>
+						<BookingAll
+							bookingsArray={bookings}
+							bookingId={bookingId}
+							onBookingCanceled={fetchBookings}
+						/>
+					</motion.div>
 				)}
 			</div>
 		</>

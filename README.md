@@ -1,3 +1,7 @@
+# Fluxo de form step-by-step
+
+Temos o projeto dormeaqui e na hora de criar um place/acomodação quero fazer estilo step-by-step mas quero ajuda para separar cada passo a passo por categoria tbmm eu tenho o meu componente ainda desmontado so com passos separados mas desorganizado, eu quero fazer de uma forma que torne leve e dinâmico, com categorias e perguntas simples e leves, me ajude a montar esse fluxo e depois eu vou programar em cima dele, olhe meu componente para entender todas as perguntas e categorias, e os novos inputs que ainda serão criados, mas já podem constar no nosso fluxo, quartos, banheiros e camas. Arquivo: NewPlace.jsx
+
 # Checkout Transparente Mercado Pago
 
 ## Instalação
@@ -9,6 +13,7 @@
    npm install mercadopago
    ```
 2. Adicione as variáveis de ambiente no `.env`:
+
    ```
    MERCADO_PAGO_ACCESS_TOKEN=SEU_TOKEN
    MERCADO_PAGO_WEBHOOK_URL=https://suaapi.com/api/webhooks/mercadopago (rota pública que o Mercado Pago deve chamar)
@@ -18,8 +23,8 @@
 
 3. Importe e use as rotas do checkout transparente:
    ```js
-   import transparentRoutes from './domains/payments/transparentRoutes.js';
-   app.use('/api/payments', transparentRoutes);
+   import transparentRoutes from "./domains/payments/transparentRoutes.js";
+   app.use("/api/payments", transparentRoutes);
    ```
 
 ### Frontend
@@ -88,11 +93,11 @@ Como ativar e testar:
 4. Para testes manuais, chame `POST /api/payments/pix` enviando:
    ```json
    {
-     "accommodationId": "<id>",
-     "checkIn": "YYYY-MM-DD",
-     "checkOut": "YYYY-MM-DD",
-     "guests": 2,
-     "email": "cliente@example.com"
+   	"accommodationId": "<id>",
+   	"checkIn": "YYYY-MM-DD",
+   	"checkOut": "YYYY-MM-DD",
+   	"guests": 2,
+   	"email": "cliente@example.com"
    }
    ```
 
@@ -100,18 +105,18 @@ Resposta esperada (success):
 
 ```json
 {
-  "success": true,
-  "message": "Pagamento PIX criado com sucesso.",
-  "paymentId": "123456789",
-  "status": "pending",
-  "qr_code": "000201...",
-  "qr_code_base64": "<base64_png>"
+	"success": true,
+	"message": "Pagamento PIX criado com sucesso.",
+	"paymentId": "123456789",
+	"status": "pending",
+	"qr_code": "000201...",
+	"qr_code_base64": "<base64_png>"
 }
 ```
 
 Notas de segurança:
+
 - Não armazene dados sensíveis de cartões no servidor sem tokenização pelo MercadoPago.js.
 - Utilize webhooks para atualizar o status real do pagamento e confirmar reservas.
 
 ---
-
