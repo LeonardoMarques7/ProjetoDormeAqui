@@ -12,7 +12,7 @@ axios.defaults.withCredentials = true;
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
 		? "http://localhost:3000/api"
-		: "https://projetodormeaqui.onrender.com/api";
+		: "https://zk8kgskg4cwg80osgckokowo.46.62.153.177.sslip.io/api";
 
 axios.interceptors.request.use((config) => {
 	const token = localStorage.getItem("token");
@@ -29,5 +29,5 @@ createRoot(document.getElementById("root")).render(
 				<App />
 			</BrowserRouter>
 		</GoogleOAuthProvider>
-	</StrictMode>
+	</StrictMode>,
 );
