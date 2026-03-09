@@ -38,7 +38,7 @@ app.use((req, res, next) => {
       'self'
       http://localhost:3000
       http://localhost:5173
-      https://projetodormeaqui.onrender.com
+      https://dorme-aqui-o66qlosin-leonardoemcs1-8335s-projects.vercel.app
       https://accounts.google.com
       https://oauth2.googleapis.com
       https://api.mercadopago.com
@@ -101,7 +101,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://projetodormeaqui.onrender.com"
+      "https://dorme-aqui-o66qlosin-leonardoemcs1-8335s-projects.vercel.app"
     ],
     credentials: true,
   })

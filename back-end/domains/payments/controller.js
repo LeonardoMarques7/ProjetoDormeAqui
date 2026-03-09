@@ -76,7 +76,7 @@ export const createPaymentPreference = async (req, res, next) => {
         
         // Determina URL do frontend baseado no ambiente
         let frontendUrl = process.env.NODE_ENV === "production" 
-            ? process.env.FRONTEND_URL || "https://projetodormeaqui.onrender.com"
+            ? process.env.FRONTEND_URL || "https://dorme-aqui-o66qlosin-leonardoemcs1-8335s-projects.vercel.app"
             : "http://localhost:5173";
         
         // Validação crucial: garante que frontendUrl está definido
