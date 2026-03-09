@@ -4,9 +4,19 @@ Temos o projeto dormeaqui e na hora de criar um place/acomodação quero fazer e
 
 # Checkout Transparente Mercado Pago
 
-## Instalação
+> Plataforma de hospedagem que conecta anfitriões e hóspedes para reservas de acomodações.
 
-### Backend
+---
+
+## 📌 Sobre o Projeto
+
+**DormeAqui** é uma aplicação web full-stack de hospedagem que permite que usuários anunciem acomodações e que outros usuários realizem reservas de forma simples e segura. A plataforma oferece gerenciamento completo de listagens, sistema de reservas, avaliações e pagamento integrado com o Mercado Pago.
+
+O projeto é voltado tanto para anfitriões que desejam disponibilizar espaços quanto para hóspedes que buscam acomodações com processo de reserva direto e pagamento transparente.
+
+---
+
+## 🚀 Funcionalidades
 
 1. Instale a dependência Mercado Pago (caso não exista):
    ```bash
@@ -29,52 +39,149 @@ Temos o projeto dormeaqui e na hora de criar um place/acomodação quero fazer e
 
 ### Frontend
 
-1. Instale a dependência axios (caso não exista):
-   ```bash
-   npm install axios
-   ```
-2. Adicione o componente `TransparentCheckoutForm.jsx` onde desejar exibir o checkout.
+| Tecnologia | Versão | Descrição |
+|---|---|---|
+| React | 19.x | Biblioteca principal de UI |
+| TypeScript | 5.8 | Tipagem estática |
+| Vite | 5.4 | Build tool e servidor de desenvolvimento |
+| React Router | 6.x | Roteamento client-side |
+| TailwindCSS | 4.x | Estilização utilitária |
+| Mantine | — | Componentes de UI |
+| Radix UI | — | Componentes acessíveis sem estilo |
+| Framer Motion | — | Animações |
+| React Hook Form + Zod | — | Formulários com validação |
+| Embla Carousel | — | Carrosséis de imagens |
+| GSAP | — | Animações avançadas |
 
-## Guia de Uso
+### Backend
 
-- O componente `TransparentCheckoutForm` recebe os dados da reserva (`bookingData`) e callbacks para sucesso/erro.
-- O backend expõe o endpoint `POST /api/payments/transparent` para processar pagamentos com cartão.
-- Para produção, utilize o MercadoPago.js no frontend para gerar o token do cartão e envie para o backend.
+| Tecnologia | Versão | Descrição |
+|---|---|---|
+| Node.js | 18.x | Runtime JavaScript |
+| Express | 5.1 | Framework web |
+| Mongoose | 8.x | ODM para MongoDB |
+| JSON Web Token (JWT) | — | Autenticação stateless |
+| bcrypt | — | Hash de senhas |
+| Multer | 2.x | Upload de arquivos |
+| Nodemailer | 6.9 | Envio de e-mails |
+| AWS SDK (S3) | — | Armazenamento de imagens |
+| QRCode | — | Geração de QR Codes para Pix |
 
-## Configuração de Sandbox e Produção
+### Banco de Dados
 
-- Use tokens de teste do Mercado Pago para ambiente sandbox.
-- Para produção, gere o token do cartão no frontend usando MercadoPago.js e envie para o backend.
-- Nunca envie dados sensíveis de cartão diretamente ao backend em produção.
+| Tecnologia | Descrição |
+|---|---|
+| MongoDB | Banco de dados NoSQL principal |
 
-## Novas Dependências
+### Integrações Externas
 
-- **Backend:** `mercadopago`
-- **Frontend:** `axios` (já utilizado)
-- **Frontend:** `qrcode` (para gerar QR Codes no cliente)
+| Serviço | Descrição |
+|---|---|
+| Mercado Pago | Checkout transparente (cartão e Pix) |
+| Google OAuth | Login social via Google |
+| GitHub OAuth | Login social via GitHub |
+| AWS S3 | Armazenamento de imagens das acomodações |
+| SMTP (Gmail/outro) | Envio de e-mails transacionais |
 
 ---
 
-## Fluxo Authorize / Capture (Mercado Pago)
+## 📂 Estrutura de Pastas
 
-Este projeto suporta o fluxo authorize/capture do Mercado Pago (pagamentos criados com capture=false). Resumo do comportamento implementado:
+```
+ProjetoDormeAqui/
+├── back-end/                    # Servidor Node.js/Express
+│   ├── config/
+│   │   ├── db.js                # Conexão com MongoDB
+│   │   └── mercadopago.js       # Configuração do Mercado Pago
+│   ├── middleware/
+│   │   └── errorHandler.js      # Middleware de tratamento de erros
+│   ├── routes/
+│   │   └── index.js             # Registro de todas as rotas
+│   ├── users/                   # Domínio de usuários (auth, perfil)
+│   ├── places/                  # Domínio de acomodações
+│   ├── bookings/                # Domínio de reservas
+│   ├── reviews/                 # Domínio de avaliações
+│   ├── payments/                # Domínio de pagamentos
+│   ├── webhooks/
+│   │   └── mercadopago.js       # Handler do webhook do Mercado Pago
+│   ├── ultis/                   # Utilitários (jwt, imageDownloader, dirname)
+│   ├── server.js                # Ponto de entrada do servidor
+│   └── package.json
+│
+├── front-end/                   # Aplicação React + Vite
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── auth/            # Componentes de autenticação
+│   │   │   ├── bookings/        # Componentes de reservas
+│   │   │   ├── payments/        # Componentes de pagamento (Pix, cartão)
+│   │   │   ├── places/          # Componentes de acomodações
+│   │   │   └── ui/              # Componentes reutilizáveis de UI
+│   │   ├── contexts/            # Context API (usuário, mensagens, modal de auth)
+│   │   ├── pages/               # Páginas da aplicação
+│   │   ├── services/            # Camada de chamadas à API
+│   │   ├── App.jsx              # Definição de rotas
+│   │   └── main.jsx             # Ponto de entrada
+│   └── package.json
+│
+├── package.json                 # Scripts raiz (build/start)
+└── README.md
+```
 
-- Pagamento criado (capture=false) → status inicial: "authorized" ou "pending_capture". O payment_id retornado pelo Mercado Pago é persistido (mercadopagoPaymentId) quando a reserva é confirmada via webhook.
-- Endpoint backend adicionado: POST /api/payments/capture/:paymentId — captura um pagamento previamente autorizado usando a API Mercado Pago (/v1/payments/{id}/capture).
-- Fluxo seguro: A confirmação final da reserva e sua criação no banco de dados ocorrem apenas no webhook do Mercado Pago. O webhook tentará capturar pagamentos em estado 'authorized' ou 'pending_capture' quando apropriado e, somente se o status final for 'approved', a reserva será criada.
-- Idempotência: Se uma reserva já existir para o payment_id, o webhook ignora a criação adicional e atualiza status quando necessário.
-- Erros: Se a captura falhar, a criação da reserva é interrompida e um log/retorno será gerado; o cliente deve aguardar nova notificação do Mercado Pago.
+---
 
-Rotas relevantes:
+## ⚙️ Como Rodar Localmente
 
-- POST /api/payments/capture/:paymentId — Captura pagamento autorizado (autenticado).
-- POST /api/bookings/from-payment — Endpoint para consulta/integração manual que valida o pagamento, mas NÃO cria reservas; a criação é delegada ao webhook do Mercado Pago.
-- POST /api/webhooks/mercadopago — Rota pública que o Mercado Pago chama para confirmar pagamentos e criar reservas idempotentemente.
+### Pré-requisitos
 
-Notas de implementação:
+- [Node.js 18+](https://nodejs.org/)
+- [MongoDB](https://www.mongodb.com/) (local ou Atlas)
+- Conta no [Mercado Pago Developers](https://www.mercadopago.com.br/developers) (para pagamentos)
+- Conta na AWS com bucket S3 configurado (para upload de imagens)
 
-- O serviço de captura foi corrigido para usar o método correto do client REST (paymentClient.capture).
-- A criação de reservas foi removida dos fluxos síncronos (transparent/pix/from-payment) e centralizada no webhook para evitar reservas com status 'authorized' ou 'pending_capture'.
+### 1. Clonar o repositório
+
+```bash
+git clone https://github.com/LeonardoMarques7/ProjetoDormeAqui.git
+cd ProjetoDormeAqui
+```
+
+### 2. Instalar dependências
+
+```bash
+# Instala dependências do backend e do frontend e gera o build de produção do frontend
+npm run build
+
+# Ou instalar separadamente (apenas dependências):
+cd back-end && npm install
+cd ../front-end && npm install
+```
+
+### 3. Configurar variáveis de ambiente
+
+Crie o arquivo `.env` dentro da pasta `back-end/`:
+
+```bash
+# Crie e preencha o arquivo .env com base na seção de variáveis abaixo
+touch back-end/.env
+```
+
+### 4. Rodar o backend
+
+```bash
+cd back-end
+npm start
+# Servidor disponível em http://localhost:3000
+```
+
+### 5. Rodar o frontend
+
+```bash
+cd front-end
+npm run dev
+# Aplicação disponível em http://localhost:5173
+```
+
+> O frontend em modo de desenvolvimento faz proxy das chamadas `/api` para `http://localhost:3000` automaticamente via configuração do Vite.
 
 ---
 

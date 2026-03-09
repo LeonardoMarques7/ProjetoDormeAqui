@@ -106,9 +106,9 @@ const SearchBar = ({ compact = false }) => {
 		return (
 			<form
 				onSubmit={handleSubmit(onSubmit)}
-				className="w-full max-w-4xl mx-auto"
+				className="w-full max-w-full mx-auto"
 			>
-				<div className="flex items-center gap-5 bg-white rounded-3xl shadow-2xl text-primary-900 px-10 py-5 hover:shadow-lg transition-shadow">
+				<div className="flex items-center w-full gap-5 bg-white rounded-3xl shadow-2xl text-primary-900 px-10 py-5 hover:shadow-lg transition-shadow">
 					{/* Ícone de localização */}
 					<MapPin className="w-5 h-5 text-primary-900 flex-shrink-0" />
 

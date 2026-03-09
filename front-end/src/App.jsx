@@ -24,12 +24,6 @@ import PaymentFailure from "./pages/PaymentFailure";
 
 import Footer from "@/components/layout/Footer";
 import AppSidebar from "@/components/layout/Sidebar";
-import {
-	SidebarInset,
-	SidebarProvider,
-	SidebarTrigger,
-	SidebarFooter,
-} from "@/components/ui/sidebar";
 
 import "@mantine/core/styles.css";
 
@@ -37,7 +31,7 @@ import GithubCallback from "./pages/GithubCallback";
 import GoogleCallback from "./pages/GoogleCallback";
 
 import { MantineProvider } from "@mantine/core";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { MobileContextProvider } from "./components/contexts/MobileContext";
 
 import { AuthModalContextProvider } from "./components/contexts/AuthModalContext";
@@ -63,6 +57,8 @@ function App() {
 	const location = useLocation();
 	const isComponentActive =
 		location.pathname === "/login" || location.pathname === "/register";
+	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
 	return (
 		<MantineProvider>
 			<MobileContextProvider>
@@ -108,6 +104,51 @@ function App() {
 									</Routes>
 								</PageTransition>
 								<Footer active={isComponentActive} />
+							<div className="flex min-h-screen">
+								<AppSidebar
+									mobileOpen={mobileMenuOpen}
+									onMobileClose={() => setMobileMenuOpen(false)}
+								/>
+								<div className="flex-1 flex flex-col min-w-0">
+									<Header onMobileMenuOpen={() => setMobileMenuOpen(true)} />
+									<ScrollToTop />
+									<main className="relative flex flex-1 flex-col p-4">
+										<Routes>
+											<Route path="/" element={<Home />} />
+											<Route
+												path="/reset-password"
+												element={<ResetPassword />}
+											/>
+											<Route
+												path="/account/:subpage/:action?/:id?"
+												element={<Account />}
+											/>
+											<Route path="/places/:id" element={<Place />} />
+											<Route
+												path="/payment/success"
+												element={<PaymentSuccess />}
+											/>
+											<Route
+												path="/payment/pending"
+												element={<PaymentPending />}
+											/>
+											<Route
+												path="/payment/failure"
+												element={<PaymentFailure />}
+											/>
+											<Route path="/*" element={<NotFound />} />
+											<Route
+												path="/auth/github/callback"
+												element={<GithubCallback />}
+											/>
+											<Route
+												path="/auth/google/callback"
+												element={<GoogleCallback />}
+											/>
+										</Routes>
+										<Footer active={isComponentActive} />
+									</main>
+								</div>
 							</div>
 						</MessageProvider>
 					</AuthModalContextProvider>
