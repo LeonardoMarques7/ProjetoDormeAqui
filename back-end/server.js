@@ -38,7 +38,7 @@ app.use((req, res, next) => {
       'self'
       http://localhost:3000
       http://localhost:5173
-      https://dorme-aqui-o66qlosin-leonardoemcs1-8335s-projects.vercel.app
+      https://*.vercel.app
       https://accounts.google.com
       https://oauth2.googleapis.com
       https://api.mercadopago.com
@@ -99,10 +99,18 @@ app.use((req, res, next) => {
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://dorme-aqui-o66qlosin-leonardoemcs1-8335s-projects.vercel.app"
-    ],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+      ];
+      // Permite qualquer subdomínio do Vercel
+      if (!origin || allowedOrigins.includes(origin) || /^https:\/\/[^.]+\.vercel\.app$/.test(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
