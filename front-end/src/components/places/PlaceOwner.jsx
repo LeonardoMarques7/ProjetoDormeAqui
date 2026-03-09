@@ -1,12 +1,44 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const slideLeft = {
 	hidden: { opacity: 0, x: -32 },
-	visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+	visible: {
+		opacity: 1,
+		x: 0,
+		transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+	},
 };
 
-export default function PlaceOwner({ owner, experienceTime }) {
+export default function PlaceOwner({ owner }) {
+	const [experienceTime, setExperienceTime] = useState("");
+	useEffect(() => {
+		if (owner) {
+			calculateExperienceTime();
+		}
+	}, [owner]);
+
+	const calculateExperienceTime = () => {
+		const createdAt = owner?.createdAt || place?.owner?.createdAt;
+		if (!createdAt) return;
+
+		const createdDate = new Date(createdAt);
+		const now = new Date();
+		const diffTime = Math.abs(now - createdDate);
+		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+		if (diffDays < 30) {
+			setExperienceTime(`${diffDays} dia${diffDays !== 1 ? "s" : ""}`);
+		} else if (diffDays < 365) {
+			const months = Math.floor(diffDays / 30);
+			setExperienceTime(`${months} ${months !== 1 ? "meses" : "mês"}`);
+		} else {
+			const years = Math.floor(diffDays / 365);
+			setExperienceTime(`${years} ano${years !== 1 ? "s" : ""}`);
+		}
+	};
+
 	return (
 		<motion.div
 			className="flex gap-2 flex-col mt-2.5 max-sm:mt-2"
@@ -30,7 +62,9 @@ export default function PlaceOwner({ owner, experienceTime }) {
 							<div className="font-medium w-fit">{owner.name}</div>
 							<small className="flex items-center gap-1">
 								Anfitrião há{" "}
-								<span className="text-primary-600 font-medium">{experienceTime}</span>
+								<span className="text-primary-600 font-medium">
+									{experienceTime}
+								</span>
 							</small>
 						</div>
 					</Link>
