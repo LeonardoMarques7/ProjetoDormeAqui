@@ -1,9 +1,9 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import printHome from "../../assets/imageBanner.png";
 
 export default function FeaturedVideo() {
 	const sectionRef = useRef(null);
-
 	const { scrollY } = useScroll();
 	const parallaxY = useTransform(scrollY, [0, 800], [-10, 10]);
 
@@ -35,22 +35,23 @@ export default function FeaturedVideo() {
 					transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
 				>
 					<motion.div className="w-full h-full" style={{ y: parallaxY }}>
-						<video
+						{/* <video
 							src="/videos/demo.mp4"
 							autoPlay
 							muted
 							loop
 							playsInline
 							className="w-full h-full object-cover"
-						/>
+						/> */}
+						<img src={printHome} alt="Tela inicial do Projeto" />
 					</motion.div>
 
 					{/* Overlay */}
-					<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
+					{/* <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" /> */}
 				</motion.div>
 
 				{/* Text */}
-				<div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 z-10">
+				{/* <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 z-10">
 					<motion.div
 						initial={{ opacity: 0, y: 30 }}
 						whileInView={{ opacity: 1, y: 0 }}
@@ -64,7 +65,7 @@ export default function FeaturedVideo() {
 							Viva experiências únicas em hospedagens selecionadas para você.
 						</p>
 					</motion.div>
-				</div>
+				</div> */}
 			</div>
 		</section>
 	);

@@ -130,7 +130,7 @@ export default function PlaceGallery({ photos }) {
 								>
 									<img
 										className="w-full h-full border aspect-video object-cover hover:scale-[1.04] transition-transform duration-700"
-										src={photoDefaultLoading}
+										src={getImageSrc(3)}
 										alt="Imagem da acomodação"
 										onClick={() => handleImageClick(3)}
 									/>
@@ -142,7 +142,7 @@ export default function PlaceGallery({ photos }) {
 								>
 									<img
 										className="w-full h-full border aspect-video object-cover hover:scale-[1.04] transition-transform duration-700"
-										src={photoDefaultLoading}
+										src={getImageSrc(4)}
 										alt="Imagem da acomodação"
 										onClick={() => handleImageClick(4)}
 									/>

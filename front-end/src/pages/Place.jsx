@@ -196,7 +196,7 @@ const Place = () => {
 				{/* GRID */}
 
 				<motion.div
-					className="sm:grid sm:grid-cols-5 gap-5 mt-2"
+					className="sm:grid sm:grid-cols-5 md:ml-5 gap-5 mt-2"
 					variants={stagger}
 					initial="hidden"
 					whileInView="visible"
@@ -206,9 +206,7 @@ const Place = () => {
 					<motion.div className="col-span-3" variants={fadeUp}>
 						<PlaceHeader place={place} />
 
-						{owner && (
-							<PlaceOwner owner={owner} experienceTime={experienceTime} />
-						)}
+						{owner && <PlaceOwner owner={place.owner} />}
 
 						{place.description && (
 							<PlaceDescription description={place.description} />
@@ -225,7 +223,7 @@ const Place = () => {
 
 					{/* COLUNA DIREITA */}
 
-					<motion.div className="col-span-2" variants={fadeUp}>
+					<motion.div className="col-span-2 w-full  md:-ml-5" variants={fadeUp}>
 						{/* COLE AQUI TODO O BLOCO GRANDE QUE VOCÊ ENVIOU */}
 						{/* booking card + calendario + checkout + dialog */}
 
