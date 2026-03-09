@@ -8,7 +8,7 @@
   "main": "index.js",
   "dependencies": {
     "asynckit": "^0.4.0",
-    "axios": "^1.12.2",
+    "axios": "^1.13.6",
     "bcrypt": "^6.0.0",
     "buffer-equal-constant-time": "^1.0.1",
     "call-bind-apply-helpers": "^1.0.2",

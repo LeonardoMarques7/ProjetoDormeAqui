@@ -6,6 +6,8 @@ node_modules/
 dist
 tmp/
 
+mcp.json
+
 /front-end/node_modules/
 /back-end/seed.js
 /back-end/seed
