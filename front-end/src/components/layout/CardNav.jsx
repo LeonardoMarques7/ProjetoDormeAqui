@@ -10,6 +10,8 @@ import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 import { useMessage } from "@/components/contexts/MessageContext";
 import logoPrimary from "@/assets/logos/logo__primary.png";
 import logoSecondary from "@/assets/logos/logo__secondary.png";
+import NotificationBell from "@/components/NotificationBell";
+import NotificationPanel from "@/components/NotificationPanel";
 
 const EASE = "power3.out";
 
@@ -252,6 +254,13 @@ const CardNav = ({ active, className = "" }) => {
 					</div>
 
 					<div className="flex items-center gap-4 ">
+						{/* Notification Bell - only shown for authenticated users */}
+						{user && (
+							<div className="relative hidden md:block">
+								<NotificationBell />
+								<NotificationPanel />
+							</div>
+						)}
 						{/* CTA Button */}
 						{!user ? (
 							<button
