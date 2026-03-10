@@ -245,6 +245,7 @@ export const createCheckoutSession = async (data, user) => {
             product_data: {
               name: `Reserva: ${place.title}`,
               description: `${nights} noite(s) · Check-in: ${checkinDate.toLocaleDateString("pt-BR")} · Check-out: ${checkoutDate.toLocaleDateString("pt-BR")}`,
+
             },
             unit_amount: Math.round(totalPrice * 100),
           },

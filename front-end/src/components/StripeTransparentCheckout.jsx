@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Lock } from "lucide-react";
+import CheckoutPreview from "./CheckoutPreview";
 import iconPix from "@/assets/icons/icons8-pix-50.png";
 import iconsBrands from "@/assets/icons/iconsBrands.png";
 
@@ -26,15 +27,21 @@ const PAYMENT_BADGES = [
 	},
 ];
 
-function CheckoutForm({ checkoutData, onResult }) {
+function CheckoutForm({ checkoutData, onResult, place }) {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 
 	const handleCheckout = async () => {
 		setError(null);
 
-		if (!checkoutData?.checkIn || !checkoutData?.checkOut || !checkoutData?.accommodationId) {
-			setError("Selecione as datas de check-in e check-out antes de continuar.");
+		if (
+			!checkoutData?.checkIn ||
+			!checkoutData?.checkOut ||
+			!checkoutData?.accommodationId
+		) {
+			setError(
+				"Selecione as datas de check-in e check-out antes de continuar.",
+			);
 			return;
 		}
 
@@ -69,6 +76,9 @@ function CheckoutForm({ checkoutData, onResult }) {
 
 	return (
 		<div className="space-y-4">
+			{/* Preview da reserva */}
+			<CheckoutPreview checkoutData={checkoutData} place={place} />
+
 			{/* Métodos disponíveis */}
 			<div>
 				<p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
@@ -86,12 +96,6 @@ function CheckoutForm({ checkoutData, onResult }) {
 						</span>
 					))}
 				</div>
-			</div>
-
-			{/* Info segurança */}
-			<div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-xl p-3">
-				<Lock className="w-4 h-4 text-gray-400 flex-shrink-0" />
-				<span>Você será redirecionado para o checkout seguro do Stripe.</span>
 			</div>
 
 			{error && (

@@ -213,6 +213,7 @@ export default function PlaceBookingForm({
 				)}
 				{user && (
 					<StripeTransparentCheckoutWrapper
+						place={place}
 						checkoutData={(() => {
 							const n = checkin && checkout
 								? Math.max(1, Math.ceil((checkout - checkin) / (1000 * 60 * 60 * 24)))
