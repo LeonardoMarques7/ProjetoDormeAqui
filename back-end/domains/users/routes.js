@@ -35,7 +35,7 @@ const COOKIE_OPTIONS = isProduction ? {
   sameSite: 'none',    // Cross-site para produção
   path: '/',
   maxAge: 7 * 24 * 60 * 60 * 1000,
-  domain: process.env.PROD_DOMAIN || undefined, // Ex: '.seusite.com'
+  // domain omitido: o browser vincula ao domínio do back-end automaticamente
 } : {
   httpOnly: true,
   secure: false,       // Permite HTTP local
@@ -281,8 +281,7 @@ router.post("/login", async (req, res) => {
 
     res
       .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
-      .json(newUserObj);
-
+      .json({ ...newUserObj, token });
 
   } catch (error) {
     console.error("Erro no login:", error);

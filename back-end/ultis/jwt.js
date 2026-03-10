@@ -16,8 +16,12 @@ const getSecret = () => {
 };
 
 // ⭐ Atualizado para aceitar o nome do cookie como parâmetro
+// Lê o token do cookie OU do header Authorization: Bearer <token>
 export const JWTVerify = (req, cookieName = 'token') => {
-  const token = req.cookies && req.cookies[cookieName]; // Usa o nome passado como parâmetro
+  const cookieToken = req.cookies && req.cookies[cookieName];
+  const authHeader = req.headers && req.headers['authorization'];
+  const bearerToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const token = cookieToken || bearerToken;
 
   if (token) {
     return new Promise((resolve, reject) => {
