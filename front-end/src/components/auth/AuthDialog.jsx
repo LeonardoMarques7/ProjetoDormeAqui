@@ -4,7 +4,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useUserContext } from "@/components/contexts/UserContext";
 import useEmblaCarousel from "embla-carousel-react";
@@ -252,15 +252,26 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 	const [resetToken, setResetToken] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [loadingOAuth, setLoadingOAuth] = useState(false);
+	const [acceptedTerms, setAcceptedTerms] = useState(false);
 
 	// ========== GOOGLE LOGIN ==========
 	const handleGoogleLogin = async () => {
+		if (mode === "register" && !acceptedTerms) {
+			setMessage("Você deve aceitar os Termos de Serviço e Política de Privacidade");
+			return;
+		}
+
 		setLoadingOAuth(true);
 		setMessage("");
 
 		try {
 			if (!window.google) {
 				throw new Error("Google Sign-In library not loaded");
+			}
+
+			// Salvar flag para validar no callback
+			if (mode === "register") {
+				localStorage.setItem("acceptedTermsForOAuth", "true");
 			}
 
 			const result = await window.google.accounts.oauth2.initCodeClient({
@@ -273,6 +284,7 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 				},
 				error_callback: (error) => {
 					console.error("❌ Google OAuth Error:", error);
+					localStorage.removeItem("acceptedTermsForOAuth");
 					setMessage("Erro ao conectar com Google");
 					setLoadingOAuth(false);
 				},
@@ -281,6 +293,7 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 			result.requestCode();
 		} catch (error) {
 			console.error("❌ Erro ao fazer login com Google:", error);
+			localStorage.removeItem("acceptedTermsForOAuth");
 			setMessage("Erro ao conectar com Google: " + error.message);
 			setLoadingOAuth(false);
 		}
@@ -288,6 +301,11 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 
 	// ========== GITHUB LOGIN ==========
 	const handleGithubLogin = () => {
+		if (mode === "register" && !acceptedTerms) {
+			setMessage("Você deve aceitar os Termos de Serviço e Política de Privacidade");
+			return;
+		}
+
 		setLoadingOAuth(true);
 		setMessage("");
 		const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
@@ -297,6 +315,11 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 			setMessage("GitHub Client ID não configurado");
 			setLoadingOAuth(false);
 			return;
+		}
+
+		// Salvar flag para validar no callback
+		if (mode === "register") {
+			localStorage.setItem("acceptedTermsForOAuth", "true");
 		}
 
 		window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
@@ -374,6 +397,11 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 			if (email && password && name) {
 				if (emailError) {
 					setMessage("Corrija os erros antes de continuar");
+					return;
+				}
+
+				if (!acceptedTerms) {
+					setMessage("Você deve aceitar os Termos de Serviço e Política de Privacidade");
 					return;
 				}
 
@@ -741,9 +769,56 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 							</div>
 						)}
 
+						{/* Terms and Privacy Checkbox */}
+						<motion.div
+							className="flex items-start gap-3"
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 4 * 0.07, duration: 0.4 }}
+						>
+							<input
+								type="checkbox"
+								id="acceptTerms"
+								checked={acceptedTerms}
+								onChange={(e) => setAcceptedTerms(e.target.checked)}
+								className="w-5 h-5 rounded border-gray-200 text-primary-600 focus:ring-2 focus:ring-primary-100 cursor-pointer mt-0.5 flex-shrink-0"
+							/>
+							<label htmlFor="acceptTerms" className="text-sm text-gray-600 cursor-pointer">
+								Eu aceito os{" "}
+								<Link 
+									to="/terms" 
+									target="_blank"
+									className="text-primary-600 hover:underline font-medium"
+								>
+									Termos de Serviço
+								</Link>
+								{" "}e a{" "}
+								<Link 
+									to="/privacy" 
+									target="_blank"
+									className="text-primary-600 hover:underline font-medium"
+								>
+									Política de Privacidade
+								</Link>
+							</label>
+						</motion.div>
+
+						<OrDivider />
+
+						<button
+							type="button"
+							onClick={handleGoogleLogin}
+							disabled={loadingOAuth}
+							className="w-full flex items-center justify-center gap-3 py-3.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 cursor-pointer"
+						>
+							<GoogleIcon />
+							Continuar com Google
+						</button>
+
 						<motion.button
 							type="submit"
-							className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 cursor-pointer"
+							className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 cursor-pointer disabled:opacity-50"
+							disabled={!acceptedTerms}
 							whileHover={{ scale: 1.02 }}
 							whileTap={{ scale: 0.98 }}
 						>

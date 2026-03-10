@@ -34,6 +34,16 @@ export const GithubCallback = () => {
 					return;
 				}
 
+				// Verificar se aceitou termos (flag setado antes do redirect)
+				const acceptedTerms = localStorage.getItem("acceptedTermsForOAuth");
+				if (!acceptedTerms) {
+					setError("Você deve aceitar os Termos de Serviço e Política de Privacidade para continuar");
+					localStorage.removeItem("acceptedTermsForOAuth");
+					setLoading(false);
+					return;
+				}
+				localStorage.removeItem("acceptedTermsForOAuth");
+
 				console.log("🔄 Processando callback do GitHub...");
 
 				// Enviar código para o backend
@@ -77,7 +87,7 @@ export const GithubCallback = () => {
 		};
 
 		handleCallback();
-	}, [searchParams, navigate, setUser, showAuthModal]);
+	}, [searchParams, navigate, setUser, showAuthModal, showMessage]);
 
 	if (loading) {
 		return (
