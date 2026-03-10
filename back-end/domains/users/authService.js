@@ -103,13 +103,17 @@ export const authenticateWithGoogleCode = async (code) => {
 
     // Determinar URL correta baseado no ambiente
     const isProduction = process.env.NODE_ENV === 'production';
-    const frontendUrl = isProduction 
-      ? `https://${process.env.PROD_DOMAIN}` 
+    // Se PROD_DOMAIN não estiver definido, usar FRONTEND_URL como fallback (evita https://undefined)
+    const frontendUrl = isProduction
+      ? (process.env.PROD_DOMAIN ? `https://${process.env.PROD_DOMAIN}` : process.env.FRONTEND_URL)
       : process.env.FRONTEND_URL;
-    const redirectUri = `${frontendUrl}/auth/google/callback`;
+    // Normalizar sem barra final
+    const redirectUri = `${(frontendUrl || '').replace(/\/$/, '')}/auth/google/callback`;
 
     console.log('🔐 Autenticando com Google Code:');
     console.log('   Client ID:', process.env.GOOGLE_CLIENT_ID);
+    console.log('   PROD_DOMAIN:', process.env.PROD_DOMAIN);
+    console.log('   Frontend URL (usado):', frontendUrl);
     console.log('   Redirect URI:', redirectUri);
     console.log('   Ambiente:', isProduction ? 'PRODUÇÃO' : 'DESENVOLVIMENTO');
 
