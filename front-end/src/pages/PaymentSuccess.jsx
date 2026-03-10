@@ -13,8 +13,8 @@ const PaymentSuccess = () => {
 	const hasShownMessage = useRef(false);
 	const hasCreatedBooking = useRef(false);
 
-	// Parâmetros retornados pelo Mercado Pago
-	const paymentId = searchParams.get("payment_id");
+	// Parâmetros retornados pelo Stripe Checkout ou Mercado Pago
+	const paymentId = searchParams.get("payment_id") || searchParams.get("session_id");
 	const status = searchParams.get("status");
 	const externalReference = searchParams.get("external_reference");
 
@@ -102,7 +102,8 @@ const PaymentSuccess = () => {
 
 		if (
 			(status || "").toLowerCase() === "approved" ||
-			(status || "").toLowerCase() === "authorized"
+			(status || "").toLowerCase() === "authorized" ||
+			(status || "").toLowerCase() === "succeeded"
 		) {
 			createBookingFromPayment();
 		}

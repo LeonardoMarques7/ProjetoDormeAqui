@@ -1,7 +1,7 @@
 import axios from "axios";
 
 /**
- * Cancela uma reserva aprovada e solicita estorno ao Mercado Pago.
+ * Cancela uma reserva aprovada e solicita estorno ao provedor de pagamento (Stripe ou Mercado Pago).
  * @param {string} bookingId - ID da reserva
  * @returns {Promise<Object>}
  */
