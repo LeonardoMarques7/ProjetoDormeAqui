@@ -47,6 +47,8 @@ import { MobileContextProvider } from "./components/contexts/MobileContext";
 import { AuthModalContextProvider } from "./components/contexts/AuthModalContext";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "./components/common/PageTransition";
+import { NotificationProvider } from "./context/NotificationContext";
+import SnackbarUndo from "./components/SnackbarUndo";
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
 		? "http://localhost:3000/api"
@@ -78,8 +80,10 @@ function App() {
 									<>
 										<MessageProvider>
 											<>
+												<NotificationProvider>
 												<Toaster position="top-right" />
 												<Header />
+												<SnackbarUndo />
 												<ScrollToTop />
 
 												<div className="min-h-screen relative flex flex-1 flex-col p-4 h-full w-full justify-between">
@@ -125,6 +129,7 @@ function App() {
 													</PageTransition>
 													<Footer active={isComponentActive} />
 												</div>
+												</NotificationProvider>
 											</>
 										</MessageProvider>
 									</>
