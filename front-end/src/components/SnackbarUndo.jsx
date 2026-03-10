@@ -5,7 +5,7 @@ const SnackbarUndo = () => {
 	const { pendingDeletes, undoRemove } = useNotifications();
 
 	return (
-		<div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] flex flex-col gap-2 items-center pointer-events-none">
+		<div className="fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-[300] flex flex-col gap-2 items-center pointer-events-none px-4 md:px-0 w-full md:w-auto max-w-sm md:max-w-none">
 			<AnimatePresence>
 				{pendingDeletes.map((notification) => (
 					<motion.div

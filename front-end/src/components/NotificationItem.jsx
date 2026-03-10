@@ -59,7 +59,7 @@ const NotificationItem = ({ notification }) => {
 				}
 			}}
 			onClick={handleClick}
-			className={`relative flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-gray-100 select-none transition-colors hover:bg-gray-50 ${
+			className={`relative flex items-start gap-3 px-4 py-4 md:py-3 cursor-pointer border-b border-gray-100 select-none transition-colors hover:bg-gray-50 ${
 				!notification.read ? "bg-blue-50/40" : ""
 			}`}
 			role="button"
@@ -70,7 +70,7 @@ const NotificationItem = ({ notification }) => {
 			{/* Unread dot */}
 			<div className="flex-shrink-0 mt-1.5">
 				<span
-					className={`inline-block w-2 h-2 rounded-full ${
+					className={`inline-block w-2.5 h-2.5 md:w-2 md:h-2 rounded-full ${
 						!notification.read ? dot : "bg-transparent"
 					}`}
 				/>
@@ -106,9 +106,10 @@ const NotificationItem = ({ notification }) => {
 						type="button"
 						onClick={handleMarkRead}
 						title="Marcar como lida"
-						className="p-1 rounded text-gray-400 hover:text-green-500 hover:bg-green-50 transition-colors"
+						aria-label="Marcar como lida"
+						className="p-2 md:p-1 rounded text-gray-400 hover:text-green-500 hover:bg-green-50 transition-colors touch-manipulation"
 					>
-						<Check className="w-3.5 h-3.5" />
+						<Check className="w-4 h-4 md:w-3.5 md:h-3.5" />
 					</button>
 				)}
 				{notification._id !== "__login_hint__" && (
@@ -116,9 +117,10 @@ const NotificationItem = ({ notification }) => {
 						type="button"
 						onClick={handleRemove}
 						title="Apagar"
-						className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+						aria-label="Apagar notificação"
+						className="p-2 md:p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors touch-manipulation"
 					>
-						<Trash2 className="w-3.5 h-3.5" />
+						<Trash2 className="w-4 h-4 md:w-3.5 md:h-3.5" />
 					</button>
 				)}
 			</div>

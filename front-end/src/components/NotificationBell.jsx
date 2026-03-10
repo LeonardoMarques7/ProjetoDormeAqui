@@ -14,9 +14,9 @@ const NotificationBell = () => {
 					? "Fechar notificações"
 					: `Abrir notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ""}`
 			}
-			className="relative inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+			className="relative inline-flex items-center justify-center w-11 h-11 md:w-10 md:h-10 rounded-full hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 touch-manipulation"
 		>
-			<Bell className="w-5 h-5 text-gray-700" />
+			<Bell className="w-6 h-6 md:w-5 md:h-5 text-gray-700" />
 
 			<AnimatePresence>
 				{unreadCount > 0 && (
@@ -26,7 +26,7 @@ const NotificationBell = () => {
 						animate={{ scale: 1 }}
 						exit={{ scale: 0 }}
 						transition={{ type: "spring", stiffness: 500, damping: 30 }}
-						className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none"
+						className="absolute -top-0.5 -right-0.5 min-w-[20px] h-[20px] md:min-w-[18px] md:h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[11px] md:text-[10px] font-bold leading-none"
 					>
 						{unreadCount > 99 ? "99+" : unreadCount}
 					</motion.span>
