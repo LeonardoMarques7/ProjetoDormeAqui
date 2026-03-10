@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Lock } from "lucide-react";
+import axios from "axios";
 import CheckoutPreview from "./CheckoutPreview";
 import iconPix from "@/assets/icons/icons8-pix-50.png";
 import iconsBrands from "@/assets/icons/iconsBrands.png";
@@ -48,18 +49,12 @@ function CheckoutForm({ checkoutData, onResult, place }) {
 		setLoading(true);
 
 		try {
-			const apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+			const { data: json } = await axios.post(
+				"/payments/checkout-session",
+				checkoutData,
+			);
 
-			const resp = await fetch(`${apiBase}/payments/checkout-session`, {
-				method: "POST",
-				credentials: "include",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(checkoutData),
-			});
-
-			const json = await resp.json();
-
-			if (!resp.ok || !json.sessionUrl) {
+			if (!json.sessionUrl) {
 				throw new Error(json.message || "Erro ao iniciar checkout");
 			}
 
@@ -67,7 +62,8 @@ function CheckoutForm({ checkoutData, onResult, place }) {
 			window.location.href = json.sessionUrl;
 		} catch (err) {
 			console.error("Stripe checkout error:", err);
-			const msg = err.message || String(err);
+			const msg =
+				err?.response?.data?.message || err.message || String(err);
 			setError(msg);
 			setLoading(false);
 			onResult?.({ success: false, error: msg });
