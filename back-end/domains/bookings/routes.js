@@ -268,7 +268,7 @@ router.post("/from-payment", async (req, res) => {
     }
 });
 
-// Endpoint para cancelar uma reserva aprovada e solicitar estorno ao Mercado Pago
+// Endpoint para cancelar uma reserva aprovada e solicitar estorno ao Mercado Pago ou Stripe
 router.post("/:id/cancel", async (req, res) => {
     try {
         const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
@@ -286,30 +286,61 @@ router.post("/:id/cancel", async (req, res) => {
             return res.status(400).json({ message: `Só é possível cancelar reservas aprovadas. Status atual: ${booking.paymentStatus}` });
         }
 
-        // Solicita cancelamento/estorno ao Mercado Pago conforme estado real do pagamento
         if (booking.mercadopagoPaymentId) {
-            try {
-                const { paymentClient } = await import("../../config/mercadopago.js");
+            const paymentId = booking.mercadopagoPaymentId;
 
-                // Consulta estado atual no MP para decidir a ação correta:
-                // - authorized (capture=false): deve ser cancelado via PUT status=cancelled
-                // - approved (capture=true): deve ser estornado via POST /refunds
-                const mpPayment = await paymentClient.get({ id: booking.mercadopagoPaymentId });
-                const mpStatus = mpPayment?.status;
+            // Detecta se é pagamento Stripe (PaymentIntent pi_... ou Checkout Session cs_...)
+            const isStripe = paymentId.startsWith('pi_') || paymentId.startsWith('cs_');
 
-                if (mpStatus === "authorized" || mpStatus === "pending_capture") {
-                    await paymentClient.cancel({ id: booking.mercadopagoPaymentId });
-                    console.log(`Pagamento ${booking.mercadopagoPaymentId} cancelado no MP (era ${mpStatus})`);
-                } else {
-                    await paymentClient.refund({ id: booking.mercadopagoPaymentId });
-                    console.log(`Estorno solicitado para pagamento ${booking.mercadopagoPaymentId} (era ${mpStatus})`);
+            if (isStripe) {
+                try {
+                    const { paymentClient, stripeClient } = await import("../../config/stripe.js");
+
+                    let paymentIntentId = paymentId;
+
+                    // Se for uma Checkout Session, busca o PaymentIntent vinculado
+                    if (paymentId.startsWith('cs_')) {
+                        const session = await stripeClient.checkout.sessions.retrieve(paymentId);
+                        paymentIntentId = session.payment_intent;
+                        if (!paymentIntentId) {
+                            throw new Error('Checkout Session não possui PaymentIntent associado para estorno.');
+                        }
+                    }
+
+                    await paymentClient.refund({ payment_intent: paymentIntentId });
+                    console.log(`Estorno Stripe solicitado para PaymentIntent: ${paymentIntentId} (reserva: ${booking._id})`);
+                } catch (refundErr) {
+                    console.error("Erro ao estornar no Stripe:", refundErr?.message);
+                    return res.status(502).json({
+                        message: "Erro ao solicitar estorno no Stripe. Tente novamente.",
+                        error: refundErr?.message,
+                    });
                 }
-            } catch (refundErr) {
-                console.error("Erro ao cancelar/estornar no MP:", refundErr?.response?.data || refundErr?.message);
-                return res.status(502).json({
-                    message: "Erro ao solicitar cancelamento/estorno no Mercado Pago. Tente novamente.",
-                    error: refundErr?.response?.data?.message || refundErr?.message
-                });
+            } else {
+                // Pagamento via Mercado Pago
+                try {
+                    const { paymentClient: mpClient } = await import("../../config/mercadopago.js");
+
+                    // Consulta estado atual no MP para decidir a ação correta:
+                    // - authorized (capture=false): deve ser cancelado via PUT status=cancelled
+                    // - approved (capture=true): deve ser estornado via POST /refunds
+                    const mpPayment = await mpClient.get({ id: paymentId });
+                    const mpStatus = mpPayment?.status;
+
+                    if (mpStatus === "authorized" || mpStatus === "pending_capture") {
+                        await mpClient.cancel({ id: paymentId });
+                        console.log(`Pagamento ${paymentId} cancelado no MP (era ${mpStatus})`);
+                    } else {
+                        await mpClient.refund({ id: paymentId });
+                        console.log(`Estorno solicitado para pagamento ${paymentId} (era ${mpStatus})`);
+                    }
+                } catch (refundErr) {
+                    console.error("Erro ao cancelar/estornar no MP:", refundErr?.response?.data || refundErr?.message);
+                    return res.status(502).json({
+                        message: "Erro ao solicitar cancelamento/estorno no Mercado Pago. Tente novamente.",
+                        error: refundErr?.response?.data?.message || refundErr?.message
+                    });
+                }
             }
         }
 

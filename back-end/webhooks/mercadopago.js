@@ -1,6 +1,6 @@
 import { processPaymentNotification } from "../domains/payments/service.js";
 import Booking from "../domains/bookings/model.js";
-import fs from "fs";
+import * as fs from "fs";
 import path from "path";
 
 /**

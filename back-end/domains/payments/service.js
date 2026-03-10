@@ -1,4 +1,9 @@
 import { preferenceClient, paymentClient, testToken, validateToken, createPreferenceWithBackUrls } from "../../config/mercadopago.js";
+import * as stripeService from './service_stripe.js';
+
+// Read USE_STRIPE dynamically at runtime so tests can toggle it per-case
+// Avoid capturing the value at module load time.
+
 import Place from "../places/model.js";
 
 
@@ -69,6 +74,19 @@ export const createCheckoutPreference = async ({
     frontendUrl,
     payerEmail
 }) => {
+    // If USE_STRIPE is enabled, validate frontendUrl then delegate to stripeService
+    if (process.env.USE_STRIPE === 'true') {
+        if (!frontendUrl) {
+            const error = new Error("URL do frontend não configurada");
+            error.statusCode = 500;
+            throw error;
+        }
+        const place = await getAccommodationDetails(accommodationId);
+        const nights = calculateNights(checkIn, checkOut);
+        const totalPrice = calculateTotalPrice(place.price, nights);
+        const result = await stripeService.createCheckoutPreference({ accommodationId, userId, checkIn, checkOut, guests, frontendUrl, payerEmail });
+        return { ...result, totalPrice };
+    }
     console.log("🔍 [SERVICE] Iniciando criação de preferência");
     console.log("🔍 [SERVICE] Parâmetros:", {
         accommodationId,
@@ -255,6 +273,10 @@ export const createCheckoutPreference = async ({
  * @returns {Promise<Object>} Resultado da verificação
  */
 export const verifyMercadoPagoConfig = async () => {
+    if (process.env.USE_STRIPE === 'true') {
+        return stripeService.verifyStripeConfig();
+    }
+
     console.log("🔍 Verificando configuração do Mercado Pago...");
     
     // Primeiro valida o formato do token
@@ -280,6 +302,9 @@ export const verifyMercadoPagoConfig = async () => {
 export const getPaymentInfo = async (paymentId) => {
 
     try {
+        if (process.env.USE_STRIPE === 'true') {
+            return stripeService.getPaymentInfo(paymentId);
+        }
         const response = await paymentClient.get({ id: paymentId });
         return response;
     } catch (error) {
@@ -303,8 +328,18 @@ export const processPaymentNotification = async (paymentData) => {
         throw error;
     }
 
-    // Busca informações detalhadas do pagamento
-    const paymentInfo = await getPaymentInfo(incomingId);
+    // Busca informações detalhadas do pagamento (sempre via MP client para webhooks MP)
+    const paymentInfo = await (async () => {
+        try {
+            const response = await paymentClient.get({ id: incomingId });
+            return response;
+        } catch (error) {
+            console.error("Erro ao buscar pagamento:", error);
+            const newError = new Error("Erro ao buscar informações do pagamento");
+            newError.statusCode = 500;
+            throw newError;
+        }
+    })();
     if (!paymentInfo) {
         const error = new Error("Não foi possível obter informações do pagamento");
         error.statusCode = 500;

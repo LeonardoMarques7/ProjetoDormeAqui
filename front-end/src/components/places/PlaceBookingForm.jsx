@@ -7,9 +7,7 @@ import { useUserContext } from "../contexts/UserContext";
 import { useAuthModalContext } from "../contexts/AuthModalContext";
 import { useMessage } from "../contexts/MessageContext";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import PaymentMethodSelector from "../payments/PaymentMethodSelector";
-import TransparentCheckoutForm from "../payments/TransparentCheckoutForm";
-import PixPayment from "../payments/PixPayment";
+import StripeTransparentCheckoutWrapper from "../StripeTransparentCheckout";
 import { useNavigate } from "react-router-dom";
 
 const slideRight = {
@@ -68,7 +66,6 @@ export default function PlaceBookingForm({
 	const [checkin, setCheckin] = useState(today);
 	const [checkout, setCheckout] = useState(addDays(today, 5));
 	const [guests, setGuests] = useState(1);
-	const [paymentMethod, setPaymentMethod] = useState("credit");
 	const [showCheckout, setShowCheckout] = useState(false);
 	const [bookingData, setBookingData] = useState(null);
 
@@ -81,6 +78,7 @@ export default function PlaceBookingForm({
 	};
 
 	const handleBooking = (e) => {
+		setShowCheckout(true);
 		e.preventDefault();
 		if (!checkin || !checkout || !guests) {
 			showMessage("Insira todas as informações!", "warning");
@@ -100,20 +98,29 @@ export default function PlaceBookingForm({
 			pricePerNight,
 			totalPrice: Number((pricePerNight * n).toFixed(2)),
 		});
-		setShowCheckout(true);
 	};
 
 	const handlePaymentSuccess = (data) => {
 		setShowCheckout(false);
 		setBookingData(null);
-		const paymentId = data.paymentId || "";
-		const status = (data.status || "").toLowerCase();
-		if (status === "approved" || status === "authorized") {
+		// Support both Stripe paymentIntent shape and backend response shape
+		const pi = data.paymentIntent || data.payment || data;
+		const paymentId = data.paymentId || pi?.id || "";
+		const status = (data.status || pi?.status || "").toLowerCase();
+		if (
+			status === "approved" ||
+			status === "authorized" ||
+			status === "succeeded"
+		) {
 			showMessage("Pagamento aprovado! Sua reserva foi confirmada.", "success");
 			navigate(
 				`/payment/success?payment_id=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`,
 			);
-		} else if (status === "pending" || status === "in_process") {
+		} else if (
+			status === "pending" ||
+			status === "in_process" ||
+			status === "processing"
+		) {
 			showMessage("Pagamento pendente. Aguardando confirmação.", "info");
 			navigate(
 				`/payment/pending?payment_id=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`,
@@ -142,7 +149,7 @@ export default function PlaceBookingForm({
 		>
 			<form
 				ref={formRef}
-				className="w-full  bg-white rounded-2xl border border-gray-200 p-6"
+				className="w-full rounded-2xl border border-gray-200 p-6"
 			>
 				{/* Price */}
 				<div className="mb-6">
@@ -193,141 +200,45 @@ export default function PlaceBookingForm({
 						</button>
 					</div>
 				</div>
-
-				{/* Book button */}
-				<button
-					className="w-full bg-gray-900 text-white py-4 rounded-xl font-medium hover:bg-gray-800 transition-colors"
-					onClick={
-						user
-							? handleBooking
-							: (e) => {
-									e.preventDefault();
-									showAuthModal("login");
-								}
-					}
-				>
-					{user ? "Reservar Agora" : "Faça login para reservar"}
-				</button>
+				{!user && (
+					<button
+						className="w-full bg-gray-900 text-white py-4 rounded-xl font-medium hover:bg-gray-800 transition-colors"
+						onClick={(e) => {
+							e.preventDefault();
+							showAuthModal("login");
+						}}
+					>
+						Faça login para reservar
+					</button>
+				)}
+				{user && (
+					<StripeTransparentCheckoutWrapper
+						place={place}
+						checkoutData={(() => {
+							const n = checkin && checkout
+								? Math.max(1, Math.ceil((checkout - checkin) / (1000 * 60 * 60 * 24)))
+								: 0;
+							const pricePerNight = Number(place?.price || 0);
+							return {
+								accommodationId: placeId,
+								checkIn: checkin?.toISOString(),
+								checkOut: checkout?.toISOString(),
+								guests,
+								nights: n,
+								pricePerNight,
+								totalPrice: Number((pricePerNight * n).toFixed(2)),
+								payerEmail: user?.email,
+								payerName: user?.name || user?.email,
+							};
+						})()}
+						onResult={(result) => {
+							if (!result.success) {
+								handlePaymentError(result.error || "Erro ao processar pagamento");
+							}
+						}}
+					/>
+				)}
 			</form>
-
-			{/* Payment dialog */}
-			{showCheckout && bookingData && (
-				<Dialog open={showCheckout} onOpenChange={setShowCheckout}>
-					<DialogContent className="!max-w-7xl w-full p-0 lg:p-6">
-						<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-							{/* Payment form */}
-							<div className="border-r border-gray-100 w-full p-6">
-								<PaymentMethodSelector
-									selected={paymentMethod}
-									onChange={setPaymentMethod}
-								/>
-								{paymentMethod === "pix" ? (
-									<PixPayment
-										bookingData={bookingData}
-										onSuccess={(data) => {
-											handlePaymentSuccess(data);
-											setShowCheckout(false);
-										}}
-										onError={handlePaymentError}
-									/>
-								) : (
-									<TransparentCheckoutForm
-										bookingData={bookingData}
-										amountValue={bookingData?.totalPrice || 1}
-										paymentMethod={paymentMethod}
-										onSuccess={(data) => {
-											handlePaymentSuccess(data);
-											setShowCheckout(false);
-										}}
-										onError={handlePaymentError}
-									/>
-								)}
-							</div>
-
-							{/* Booking summary */}
-							<div className="p-6 bg-gray-50 rounded-2xl">
-								<div className="max-w-md mx-auto w-full">
-									<h3 className="text-lg font-semibold text-gray-900 mb-2">
-										Resumo da Reserva
-									</h3>
-									<p className="text-sm text-gray-600 mb-4">
-										Confira os detalhes antes de confirmar o pagamento.
-									</p>
-									<div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-										<div className="text-gray-800 font-medium">
-											{place?.title}
-										</div>
-										<div className="text-sm text-gray-600">{place?.city}</div>
-										<div className="mt-3 text-sm text-gray-700">
-											<div>
-												Check-in:{" "}
-												<span className="font-medium">
-													{formatDate(bookingData.checkIn)}
-												</span>
-											</div>
-											<div>
-												Check-out:{" "}
-												<span className="font-medium">
-													{formatDate(bookingData.checkOut)}
-												</span>
-											</div>
-											<div>
-												Hóspedes:{" "}
-												<span className="font-medium">
-													{bookingData.guests}
-												</span>
-											</div>
-											<div>
-												Noites: <span className="font-medium">{nights}</span>
-											</div>
-										</div>
-									</div>
-									<div className="bg-white rounded-xl border border-gray-200 p-4">
-										<div className="flex justify-between text-sm text-gray-600 mb-2">
-											<span>Preço por noite</span>
-											<span>R$ {place?.price?.toFixed(2)}</span>
-										</div>
-										<div className="flex justify-between text-lg font-semibold text-gray-900">
-											<span>Total</span>
-											<span>R$ {(place?.price * nights)?.toFixed(2)}</span>
-										</div>
-									</div>
-									<div className="mt-4 text-center">
-										<button
-											type="button"
-											className="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 mr-2"
-											onClick={() => {
-												setShowCheckout(false);
-												setBookingData(null);
-											}}
-										>
-											Voltar
-										</button>
-										<button
-											type="button"
-											className="px-4 py-2 rounded-lg bg-gray-900 text-white"
-											onClick={() => {
-												const pixContinue = document.getElementById(
-													"transparent-pix-continue",
-												);
-												if (pixContinue) {
-													pixContinue.click();
-												} else {
-													document
-														.getElementById("transparent-confirm-btn")
-														?.click();
-												}
-											}}
-										>
-											Pagar
-										</button>
-									</div>
-								</div>
-							</div>
-						</div>
-					</DialogContent>
-				</Dialog>
-			)}
 		</motion.div>
 	);
 }

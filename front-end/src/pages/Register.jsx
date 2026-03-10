@@ -47,9 +47,15 @@ const Register = () => {
 	const [password, setPassword] = useState("");
 	const [showPasswordPopover, setShowPasswordPopover] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
+	const [acceptedTerms, setAcceptedTerms] = useState(false);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		if (!acceptedTerms) {
+			showMessage("Você deve aceitar os Termos de Serviço e Política de Privacidade", "warning");
+			return;
+		}
 
 		if (email && password && name) {
 			try {
@@ -167,9 +173,37 @@ const Register = () => {
 							)}
 						</div>
 					</div>
+					<div className="flex items-start gap-3 my-4">
+						<input
+							type="checkbox"
+							id="acceptTerms"
+							checked={acceptedTerms}
+							onChange={(e) => setAcceptedTerms(e.target.checked)}
+							className="w-5 h-5 rounded border-gray-200 text-primary-600 focus:ring-2 focus:ring-primary-100 cursor-pointer mt-0.5 flex-shrink-0"
+						/>
+						<label htmlFor="acceptTerms" className="text-sm text-gray-600 cursor-pointer">
+							Eu aceito os{" "}
+							<Link 
+								to="/terms" 
+								target="_blank"
+								className="text-primary-600 hover:underline font-medium"
+							>
+								Termos de Serviço
+							</Link>
+							{" "}e a{" "}
+							<Link 
+								to="/privacy" 
+								target="_blank"
+								className="text-primary-600 hover:underline font-medium"
+							>
+								Política de Privacidade
+							</Link>
+						</label>
+					</div>
 					<button
 						type="submit"
-						className="font-bold rounded-full text-xl cursor-pointer w-full py-2 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300"
+						disabled={!acceptedTerms}
+						className="font-bold rounded-full text-xl cursor-pointer w-full py-2 bg-primary-600 text-white mt-4 hover:bg-primary-700 transition-all ease-in-out duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						Entrar
 					</button>

@@ -1,4 +1,7 @@
-import { paymentClient } from "../../config/mercadopago.js";
+import { paymentClient } from "../../config/mercadopago.js"; // default MP client
+
+// If USE_STRIPE enabled, delegate to stripe-based pix service
+const USE_STRIPE = process.env.USE_STRIPE === 'true' || false;
 import QRCode from 'qrcode';
 import Place from "../places/model.js";
 
@@ -60,6 +63,10 @@ export const generatePixPayload = ({ key, amount, merchantName, merchantCity, tx
 };
 
 export const createPixPayment = async (data, user) => {
+  if (USE_STRIPE) {
+    const { createPixPayment: stripePix } = await import('./pixService_stripe.js');
+    return stripePix(data, user);
+  }
   const { accommodationId, checkIn, checkOut, guests, email } = data;
 
   if (!accommodationId || !checkIn || !checkOut || !guests || !email) {

@@ -32,6 +32,16 @@ export const GoogleCallback = () => {
 					return;
 				}
 
+				// Verificar se aceitou termos (flag setado antes do redirect)
+				const acceptedTerms = localStorage.getItem("acceptedTermsForOAuth");
+				if (!acceptedTerms) {
+					setError("Você deve aceitar os Termos de Serviço e Política de Privacidade para continuar");
+					localStorage.removeItem("acceptedTermsForOAuth");
+					setLoading(false);
+					return;
+				}
+				localStorage.removeItem("acceptedTermsForOAuth");
+
 				console.log("🔄 Processando callback do Google...");
 
 				// Enviar código para o backend

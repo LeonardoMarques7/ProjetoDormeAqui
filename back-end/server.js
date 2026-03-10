@@ -5,7 +5,7 @@ import compression from "compression";
 import routes from "./routes/index.js";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
-import fs from "fs";
+import * as fs from "fs";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 

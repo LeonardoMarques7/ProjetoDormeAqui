@@ -4,12 +4,23 @@ const mockCreatePreferenceWithBackUrls = jest.fn();
 const mockPaymentClientGet = jest.fn();
 const mockValidateToken = jest.fn();
 
-// Declare mocks before importing the module under test
+// By default mock Mercado Pago config; if USE_STRIPE=true we will mock stripe module instead
 jest.unstable_mockModule('./config/mercadopago.js', () => ({
   createPreferenceWithBackUrls: mockCreatePreferenceWithBackUrls,
+  preferenceClient: { create: jest.fn() },
   paymentClient: { get: mockPaymentClientGet },
   testToken: jest.fn(),
   validateToken: mockValidateToken
+}));
+
+// Also prepare stripe mocks to be used when USE_STRIPE=true
+const mockStripeCreatePreference = jest.fn();
+const mockStripeGetPaymentInfo = jest.fn();
+
+jest.unstable_mockModule('./domains/payments/service_stripe.js', () => ({
+  createCheckoutPreference: mockStripeCreatePreference,
+  verifyStripeConfig: jest.fn().mockResolvedValue({ success: true }),
+  getPaymentInfo: mockStripeGetPaymentInfo,
 }));
 
 jest.unstable_mockModule('./domains/places/model.js', () => ({
@@ -20,10 +31,12 @@ let Place;
 let createPreferenceWithBackUrls;
 let paymentClient;
 let service;
+let stripeServiceMock;
 
 beforeAll(async () => {
   Place = (await import('./domains/places/model.js')).default;
   ({ createPreferenceWithBackUrls, paymentClient } = await import('./config/mercadopago.js'));
+  stripeServiceMock = await import('./domains/payments/service_stripe.js');
   service = await import('./domains/payments/service.js');
 });
 
@@ -31,6 +44,7 @@ describe('payments service', () => {
   beforeEach(()=>{
     jest.resetAllMocks();
     process.env.MERCADO_PAGO_WEBHOOK_URL='http://example.com/webhook';
+    process.env.USE_STRIPE = 'true'; // run tests in stripe mode to validate stripe codepaths
   });
 
   test('calculateNights', ()=>{
@@ -51,9 +65,9 @@ describe('payments service', () => {
   test('createCheckoutPreference success', async ()=> {
     const place = { price:100, guests:2, title:'T', city:'C', photos:[], _id:'a' };
     Place.findById.mockResolvedValue(place);
-    mockCreatePreferenceWithBackUrls.mockResolvedValue({ id:'pref1', init_point:'init', back_urls:{success:'ok'} });
+    mockStripeCreatePreference.mockResolvedValue({ id:'pref1', url:'init', back_urls:{success:'ok'} });
     const result = await service.createCheckoutPreference({ accommodationId:'a', userId:'u', checkIn:new Date('2026-02-01'), checkOut:new Date('2026-02-03'), guests:1, frontendUrl:'https://app.test', payerEmail:'test@example.com' });
-    expect(result.preferenceId).toBe('pref1');
+    expect(result.id || result.preferenceId).toBe('pref1');
     expect(result.totalPrice).toBe(200);
   });
 

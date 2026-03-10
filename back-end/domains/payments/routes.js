@@ -1,5 +1,8 @@
 import { Router } from "express";
 import { createPaymentPreference, checkPaymentStatus, testMercadoPagoConfig, captureAuthorizedPayment } from "./controller.js";
+
+// Feature flag to switch between Mercado Pago and Stripe
+const USE_STRIPE = process.env.USE_STRIPE === 'true' || false;
 import { JWTVerify } from "../../ultis/jwt.js";
 
 
@@ -79,7 +82,11 @@ router.post('/failed/:paymentId/retry', authenticateUser, async (req, res) => {
 
 import transparentRoutes from "./transparentRoutes.js";
 import pixRoutes from "./pixRoutes.js";
+
+// If using Stripe, leave existing route paths but ensure the underlying services (in service.js)
+// will delegate to stripe-backed implementations when USE_STRIPE is enabled.
 router.use(transparentRoutes);
 router.use(pixRoutes);
 
+console.log('🔧 Payments routes loaded. USE_STRIPE =', USE_STRIPE);
 export default router;

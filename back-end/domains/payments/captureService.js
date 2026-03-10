@@ -1,16 +1,17 @@
-import { paymentClient } from "../../config/mercadopago.js";
+import { paymentClient } from "../../config/stripe.js";
 
 export const capturePayment = async (paymentId) => {
   try {
-    console.log("=== MP CAPTURE REQUEST ===", paymentId);
+    console.log("=== Stripe CAPTURE REQUEST ===", paymentId);
 
-    const response = await paymentClient.capture({ id: paymentId });
+    // Stripe: capture a PaymentIntent
+    const response = await paymentClient.capture('paymentIntents', paymentId);
 
-    console.log("=== MP CAPTURE RESULT ===", {
+    console.log("=== Stripe CAPTURE RESULT ===", {
       id: response.id,
       status: response.status,
-      status_detail: response.status_detail,
-      captured: response.captured,
+      // Stripe doesn't expose status_detail similarly; include full object when needed
+      captured: response.status === 'succeeded',
     });
 
     return {
@@ -19,7 +20,7 @@ export const capturePayment = async (paymentId) => {
       payment: response,
     };
   } catch (error) {
-    console.error("❌ MP CAPTURE ERROR:", error.response?.data || error.message);
+    console.error("❌ Stripe CAPTURE ERROR:", error?.response || error.message);
     throw error;
   }
 };
