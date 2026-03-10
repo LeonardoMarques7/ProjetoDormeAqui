@@ -86,10 +86,11 @@ export const authenticateWithGoogle = async (tokenId) => {
       token
     };
   } catch (error) {
-    console.error('❌ Erro ao autenticar com Google:', error.message);
+    console.error('❌ Erro ao autenticar com Google:', error?.response?.status, error?.response?.data || error.message);
+    console.error('   Stack:', error.stack);
     return {
       success: false,
-      error: `Falha ao autenticar com Google: ${error.message}`
+      error: `Falha ao autenticar com Google: ${error?.response?.data?.error_description || error?.message || JSON.stringify(error?.response?.data)}`
     };
   }
 };
@@ -103,33 +104,42 @@ export const authenticateWithGoogleCode = async (code) => {
 
     // Determinar URL correta baseado no ambiente
     const isProduction = process.env.NODE_ENV === 'production';
-    const frontendUrl = isProduction 
-      ? `https://${process.env.PROD_DOMAIN}` 
+    // Se PROD_DOMAIN não estiver definido, usar FRONTEND_URL como fallback (evita https://undefined)
+    const frontendUrl = isProduction
+      ? (process.env.PROD_DOMAIN ? `https://${process.env.PROD_DOMAIN}` : process.env.FRONTEND_URL)
       : process.env.FRONTEND_URL;
-    const redirectUri = `${frontendUrl}/auth/google/callback`;
+    // Normalizar sem barra final
+    const redirectUri = `${(frontendUrl || '').replace(/\/$/, '')}/auth/google/callback`;
 
     console.log('🔐 Autenticando com Google Code:');
     console.log('   Client ID:', process.env.GOOGLE_CLIENT_ID);
+    console.log('   PROD_DOMAIN:', process.env.PROD_DOMAIN);
+    console.log('   Frontend URL (usado):', frontendUrl);
     console.log('   Redirect URI:', redirectUri);
     console.log('   Ambiente:', isProduction ? 'PRODUÇÃO' : 'DESENVOLVIMENTO');
 
     // 1. Trocar código por access token com Google
+    // Google expects application/x-www-form-urlencoded for this endpoint
+    const params = new URLSearchParams();
+    params.append('client_id', process.env.GOOGLE_CLIENT_ID);
+    params.append('client_secret', process.env.GOOGLE_CLIENT_SECRET);
+    params.append('code', code);
+    params.append('grant_type', 'authorization_code');
+    params.append('redirect_uri', redirectUri);
+
     const tokenResponse = await axios.post(
       'https://oauth2.googleapis.com/token',
+      params.toString(),
       {
-        client_id: process.env.GOOGLE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        code,
-        grant_type: 'authorization_code',
-        redirect_uri: redirectUri
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       }
     );
 
-    const { access_token, error, error_description } = tokenResponse.data;
+    const { access_token, error, error_description } = tokenResponse.data || {};
 
     if (error || !access_token) {
-      console.error('❌ Erro ao obter token do Google:', { error, error_description });
-      throw new Error(`Google token error: ${error} - ${error_description}`);
+      console.error('❌ Erro ao obter token do Google:', { status: tokenResponse.status, data: tokenResponse.data });
+      throw new Error(`Google token error: ${error || 'no_access_token'} - ${error_description || JSON.stringify(tokenResponse.data)}`);
     }
 
     console.log('✅ Token do Google obtido com sucesso');
@@ -192,10 +202,11 @@ export const authenticateWithGoogleCode = async (code) => {
       token
     };
   } catch (error) {
-    console.error('❌ Erro ao autenticar com Google (Code):', error.message);
+    console.error('❌ Erro ao autenticar com Google (Code):', error?.response?.status, error?.response?.data || error.message);
+    console.error('   Stack:', error.stack);
     return {
       success: false,
-      error: `Falha ao autenticar com Google: ${error.message}`
+      error: `Falha ao autenticar com Google: ${error?.response?.data?.error_description || error?.message || JSON.stringify(error?.response?.data)}`
     };
   }
 };
@@ -261,10 +272,11 @@ export const authenticateWithGoogleAccessToken = async (accessToken) => {
       token
     };
   } catch (error) {
-    console.error('❌ Erro ao autenticar com Google (Access Token):', error.message);
+    console.error('❌ Erro ao autenticar com Google (Access Token):', error?.response?.status, error?.response?.data || error.message);
+    console.error('   Stack:', error.stack);
     return {
       success: false,
-      error: `Falha ao autenticar com Google: ${error.message}`
+      error: `Falha ao autenticar com Google: ${error?.response?.data?.error_description || error?.message || JSON.stringify(error?.response?.data)}`
     };
   }
 };
