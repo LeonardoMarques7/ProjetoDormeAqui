@@ -1,4 +1,5 @@
-import { paymentClient } from "../../config/mercadopago.js";
+import { paymentClient, stripeClient } from "../../config/stripe.js"; // switched to Stripe wrapper (compatible interface)
+
 import Place from "../places/model.js";
 import Booking from "../bookings/model.js";
 
@@ -17,7 +18,7 @@ export const processTransparentPayment = async (data, user) => {
     const guests = data.guests || 1;
     const token = data.token;
 
-    const email = data.email || payer.email;
+    const email = data.email || data.payerEmail || payer.email || user?.email;
     const paymentMethodId = data.paymentMethodId || data.payment_method_id;
     const issuerId = data.issuerId || data.issuer_id;
     const installments = Number(data.installments) || 1;
@@ -39,7 +40,7 @@ export const processTransparentPayment = async (data, user) => {
     // ==============================
     // VALIDACOES BASICAS
     // ==============================
-    if (!accommodationId || !checkIn || !checkOut || !guests || !token || !email || !paymentMethodId || !identificationNumber) {
+    if (!accommodationId || !checkIn || !checkOut || !email) {
       console.error("❌ Dados incompletos para pagamento:", { data });
       return { success: false, message: "Dados incompletos para pagamento.", data };
     }
@@ -62,18 +63,27 @@ export const processTransparentPayment = async (data, user) => {
     const pricePerNight = Number(place.price) || 0;
     const totalPrice = pricePerNight * nights;
 
-    if (!process.env.MERCADO_PAGO_WEBHOOK_URL) {
-      console.error("❌ MERCADO_PAGO_WEBHOOK_URL não configurado.");
-      return { success: false, message: "MERCADO_PAGO_WEBHOOK_URL não configurado." };
-    }
+    // MERCADO_PAGO_WEBHOOK_URL is only required for MercadoPago flows
+    // (kept for legacy compatibility but not enforced when USE_STRIPE=true)
 
     // ==============================
     // CONFLITO DE RESERVA
     // ==============================
-    const conflicting = await Booking.find({
+    // Support both Mongoose Query (with .limit()) and mocked arrays in tests
+    let conflictingQuery = Booking.find({
       place: accommodationId,
       $or: [{ checkin: { $lt: checkoutDate }, checkout: { $gt: checkinDate } }],
-    }).limit(1);
+    });
+
+    let conflicting;
+    if (conflictingQuery && typeof conflictingQuery.limit === 'function') {
+      conflicting = await conflictingQuery.limit(1);
+    } else {
+      // In tests Booking.find may be a mocked function returning an array
+      conflicting = await conflictingQuery;
+      if (!Array.isArray(conflicting)) conflicting = [conflicting].filter(Boolean);
+      conflicting = conflicting.slice(0,1);
+    }
 
     if (conflicting?.length > 0) {
       console.warn("⚠️ Datas conflitantes com reservas existentes:", conflicting);
@@ -81,47 +91,21 @@ export const processTransparentPayment = async (data, user) => {
     }
 
     // ==============================
-    // PREPARAR PAYMENT DATA MP
+    // CRIAR PAYMENT INTENT NO STRIPE
     // ==============================
+    // Standard Stripe flow: backend creates the PaymentIntent with metadata,
+    // returns client_secret, and the frontend confirms the payment with the card data.
+    // This keeps sensitive card data on the client (PCI-compliant).
     const externalReference = `booking_${Date.now()}_${accommodationId}`;
-    const isDebit = String(paymentMethodId).toLowerCase().includes("debit");
 
     const paymentData = {
-      transaction_amount: totalPrice,
-      token,
+      amount: Math.round(totalPrice * 100), // Stripe uses cents
+      currency: process.env.STRIPE_CURRENCY || 'brl',
+      payment_method_types: ['card'],
+      capture_method: 'automatic',
       description: `Reserva em ${place.title}`,
-      installments: isDebit ? 1 : installments,
-      payment_method_id: paymentMethodId,
-      issuer_id: issuerId,
-      payer: {
-        email,
-        first_name: firstName,
-        last_name: lastName,
-        identification: { type: identificationType, number: identificationNumber },
-        phone: { area_code: phoneAreaCode, number: phoneNumber },
-        address: { street_number: streetNumber, zip_code: zipCode, street_name: street },
-      },
-      additional_info: {
-        payer: {
-          first_name: firstName,
-          last_name: lastName,
-          phone: { area_code: phoneAreaCode, number: phoneNumber },
-          address: { zip_code: zipCode, street_name: street, street_number: streetNumber },
-        },
-        items: [
-          {
-            id: accommodationId,
-            title: place.title,
-            description: place.description,
-            quantity: 1,
-            unit_price: totalPrice,
-            category_id: "lodging",
-          },
-        ],
-      },
-      notification_url: process.env.MERCADO_PAGO_WEBHOOK_URL,
-      external_reference: externalReference,
       metadata: {
+        external_reference: externalReference,
         userId: user?._id?.toString() || "",
         userEmail: user?.email || email || "",
         accommodationId: accommodationId?.toString() || "",
@@ -132,51 +116,157 @@ export const processTransparentPayment = async (data, user) => {
         checkIn: checkIn,
         checkOut: checkOut
       },
-      // débito: captura imediata; crédito: fluxo dois passos (authorize → capture via webhook)
-      capture: !isDebit,
     };
 
-    console.log("🔁 Enviando paymentData MP:", JSON.stringify(paymentData, null, 2));
+    console.log("🔁 Criando PaymentIntent no Stripe:", JSON.stringify(paymentData, null, 2));
 
-    // ==============================
-    // CRIAR PAGAMENTO NO MP
-    // ==============================
-    const response = await paymentClient.create({ body: paymentData });
-    console.log("💳 MP RESPONSE:", response);
+    const response = await paymentClient.createPaymentIntent(paymentData, { idempotencyKey: externalReference });
+    console.log("💳 Stripe Response:", { id: response.id, status: response.status });
 
-    const paymentStatus = String(response.status).toLowerCase();
-
-    // ==============================
-    // TRATAR STATUS DE PAGAMENTO
-    // ==============================
-    switch (paymentStatus) {
-      case "approved":
-        console.log("✅ Pagamento aprovado pelo MP.");
-        return { success: true, message: "Pagamento aprovado. Reserva será criada após webhook.", status: paymentStatus, payment: response };
-
-      case "authorized":
-      case "pending_capture":
-        console.log("⚠️ Pagamento autorizado, aguardando captura:", paymentStatus);
-        return { success: false, message: "Pagamento autorizado aguardando captura.", status: paymentStatus, payment: response };
-
-      case "pending":
-        console.log("⏳ Pagamento pendente:", paymentStatus);
-        return { success: false, message: "Pagamento pendente.", status: paymentStatus, payment: response };
-
-      case "in_process":
-        console.log("🔍 Pagamento em análise (in_process):", response.status_detail);
-        return { success: false, message: "Pagamento em análise.", status: paymentStatus, status_detail: response.status_detail, payment: response };
-
-      case "rejected":
-        console.log("❌ Pagamento rejeitado pelo MP:", response.status_detail);
-        return { success: false, message: "Pagamento rejeitado.", status: paymentStatus, status_detail: response.status_detail, payment: response };
-
-      default:
-        console.warn("⚠️ Status de pagamento desconhecido:", paymentStatus);
-        return { success: false, message: "Pagamento não autorizado.", status: paymentStatus, status_detail: response.status_detail, payment: response };
-    }
+    console.log("🔁 Retornando client_secret para confirmação no frontend.");
+    return {
+      success: true,
+      message: "PaymentIntent criado. Confirme o pagamento no frontend.",
+      clientSecret: response.client_secret,
+      paymentIntentId: response.id,
+      status: response.status,
+      payment: response
+    };
   } catch (error) {
     console.error("❌ Erro ao processar pagamento:", error.response?.data || error.message);
     return { success: false, message: error.response?.data?.message || error.message || "Erro ao processar pagamento.", error: error.response?.data || error, status: error.response?.status || 500 };
+  }
+};
+
+/**
+ * Cria uma Stripe Checkout Session (hosted checkout).
+ * O usuário é redirecionado para a página do Stripe para concluir o pagamento.
+ * O webhook `checkout.session.completed` é responsável por criar a reserva.
+ */
+export const createCheckoutSession = async (data, user) => {
+  console.log("🔹 Criando Stripe Checkout Session...");
+
+  try {
+    const accommodationId = data.accommodationId || data.accommodation_id;
+    const checkIn = data.checkIn || data.check_in;
+    const checkOut = data.checkOut || data.check_out;
+    const guests = data.guests || 1;
+    const email = data.email || data.payerEmail || user?.email;
+
+    if (!accommodationId || !checkIn || !checkOut || !email) {
+      console.error("❌ Dados incompletos para Checkout Session:", { data });
+      return { success: false, message: "Dados incompletos para pagamento.", data };
+    }
+
+    const place = await Place.findById(accommodationId);
+    if (!place) {
+      console.error("❌ Acomodação não encontrada:", accommodationId);
+      return { success: false, message: "Acomodação não encontrada." };
+    }
+
+    const checkinDate = new Date(checkIn);
+    const checkoutDate = new Date(checkOut);
+
+    if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime())) {
+      console.error("❌ Formato de data inválido:", { checkIn, checkOut });
+      return { success: false, message: "Formato de data inválido para checkin/checkout." };
+    }
+
+    const nights = Math.ceil((checkoutDate - checkinDate) / (1000 * 60 * 60 * 24)) || 1;
+    const pricePerNight = Number(place.price) || 0;
+    const totalPrice = pricePerNight * nights;
+
+    // Verifica conflito de datas antes de redirecionar o usuário
+    let conflictingQuery = Booking.find({
+      place: accommodationId,
+      $or: [{ checkin: { $lt: checkoutDate }, checkout: { $gt: checkinDate } }],
+    });
+
+    let conflicting;
+    if (conflictingQuery && typeof conflictingQuery.limit === "function") {
+      conflicting = await conflictingQuery.limit(1);
+    } else {
+      conflicting = await conflictingQuery;
+      if (!Array.isArray(conflicting)) conflicting = [conflicting].filter(Boolean);
+      conflicting = conflicting.slice(0, 1);
+    }
+
+    if (conflicting?.length > 0) {
+      console.warn("⚠️ Datas conflitantes ao criar Checkout Session:", conflicting);
+      return { success: false, message: "Datas conflitantes com reservas existentes.", status: "conflict" };
+    }
+
+    if (!stripeClient) {
+      return { success: false, message: "Stripe não está configurado no servidor." };
+    }
+
+    const frontendUrl = (process.env.FRONTEND_URL || "").replace(/\/$/, "");
+    if (!frontendUrl) {
+      console.error("❌ FRONTEND_URL não configurado");
+      return { success: false, message: "URL do frontend não configurada. Defina FRONTEND_URL no backend." };
+    }
+
+    // Metadata completa para criar a reserva no webhook
+    const metadata = {
+      userId: user?._id?.toString() || "",
+      userEmail: user?.email || email || "",
+      accommodationId: accommodationId?.toString() || "",
+      guests: String(guests),
+      nights: String(nights),
+      totalPrice: String(totalPrice),
+      pricePerNight: String(pricePerNight),
+      checkIn: String(checkIn),
+      checkOut: String(checkOut),
+    };
+
+    const supportsPix = process.env.STRIPE_SUPPORTS_PIX === "true";
+    const paymentMethodTypes = ["card"];
+    if (supportsPix) paymentMethodTypes.push("pix");
+
+    const paymentMethodOptions = {
+      // Habilita parcelado (installments) para cartão — disponível no Brasil
+      card: {
+        installments: { enabled: true },
+      },
+      // PIX expira em 1 hora se habilitado
+      ...(supportsPix && { pix: { expires_after_seconds: 3600 } }),
+    };
+
+    console.log("🔁 Criando Checkout Session no Stripe:", JSON.stringify({ accommodationId, nights, totalPrice, supportsPix }, null, 2));
+
+    const session = await stripeClient.checkout.sessions.create({
+      payment_method_types: paymentMethodTypes,
+      mode: "payment",
+      customer_email: email,
+      line_items: [
+        {
+          price_data: {
+            currency: process.env.STRIPE_CURRENCY || "brl",
+            product_data: {
+              name: `Reserva: ${place.title}`,
+              description: `${nights} noite(s) · Check-in: ${checkinDate.toLocaleDateString("pt-BR")} · Check-out: ${checkoutDate.toLocaleDateString("pt-BR")}`,
+            },
+            unit_amount: Math.round(totalPrice * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      metadata,
+      // Propaga metadata ao PaymentIntent para compatibilidade com getPaymentInfo()
+      payment_intent_data: { metadata },
+      payment_method_options: paymentMethodOptions,
+      success_url: `${frontendUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}&status=succeeded`,
+      cancel_url: `${frontendUrl}/places/${accommodationId}?cancelled=true`,
+    });
+
+    console.log("✅ Stripe Checkout Session criada:", session.id);
+    return { success: true, sessionId: session.id, sessionUrl: session.url };
+  } catch (error) {
+    console.error("❌ Erro ao criar Checkout Session:", error.message);
+    return {
+      success: false,
+      message: error.message || "Erro ao criar sessão de checkout.",
+      error: error,
+    };
   }
 };

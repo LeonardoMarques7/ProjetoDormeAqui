@@ -13,7 +13,8 @@ const Footer = () => {
 			<div className="py-8 max-sm:pt-4  flex-1 flex px-8 ">
 				<div className="flex flex-1 justify-between items-center">
 					<p className="text-black text-sm text-center">
-						© 2025 DormeAqui. Todos os direitos reservados.
+						© 2025 DormeAqui / Plataforma de reservas de hospedagem / Suporte:
+						projeto.dormeaqui@gmail.com
 					</p>
 					<div className="flex gap-5">
 						<a

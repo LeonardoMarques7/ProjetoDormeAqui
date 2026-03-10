@@ -5,6 +5,7 @@ import BookingRoutes from "../domains/bookings/routes.js";
 import ReviewRoutes from "../domains/reviews/routes.js";
 import PaymentRoutes from "../domains/payments/routes.js";
 import { handleMercadoPagoWebhook, verifyWebhook } from "../webhooks/mercadopago.js";
+import stripeWebhookRouter from "../webhooks/stripe.js"; // Stripe webhook handler
 
 const router = Router();
 
@@ -21,4 +22,7 @@ router.post("/webhooks/mercadopago", handleMercadoPagoWebhook); // rota adiciona
 router.get("/webhook/mercadopago", verifyWebhook);
 router.get("/webhooks/mercadopago", verifyWebhook); // health check também disponível no plural
 
+// Stripe webhook (uses express.raw inside the router)
+router.use("/webhook/stripe", stripeWebhookRouter);
+router.use("/webhooks/stripe", stripeWebhookRouter);
 export default router;

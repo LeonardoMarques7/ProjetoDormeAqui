@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createTransparentPayment } from "./transparentController.js";
+import { createTransparentPayment, createStripeCheckoutSession } from "./transparentController.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 
 const router = Router();
@@ -36,6 +36,9 @@ const optionalAuthenticate = async (req, res, next) => {
 
 // Use authentication optional para permitir pagamentos sem sessão (ex.: checkout rápido)
 router.post("/transparent", optionalAuthenticate, createTransparentPayment);
+
+// Stripe Checkout (hosted): requer autenticação pois o userId é necessário para criar a reserva via webhook
+router.post("/checkout-session", authenticateUser, createStripeCheckoutSession);
 
 import { captureAuthorizedPayment } from "./controller.js";
 
