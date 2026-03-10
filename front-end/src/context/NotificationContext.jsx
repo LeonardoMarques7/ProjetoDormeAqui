@@ -167,7 +167,7 @@ export const NotificationProvider = ({ children }) => {
 	const markAllAsRead = useCallback(async () => {
 		dispatch({ type: "MARK_ALL_READ" });
 		try {
-			await axios.patch("/notifications/read-all");
+			await axios.patch("/notifications/mark-all-read");
 		} catch {
 			// silently ignore sync errors
 		}
@@ -208,7 +208,7 @@ export const NotificationProvider = ({ children }) => {
 	const clearAll = useCallback(async () => {
 		dispatch({ type: "CLEAR_ALL" });
 		try {
-			await axios.delete("/notifications");
+			await axios.delete("/notifications/clear");
 		} catch {
 			// silently ignore sync errors
 		}
@@ -239,9 +239,11 @@ export const NotificationProvider = ({ children }) => {
 				loading: state.loading,
 				error: state.error,
 				total: state.total,
+				page: state.page,
 				hasMore: state.hasMore,
 				unreadCount,
 				panelOpen,
+				isPanelOpen: panelOpen,
 				pendingDeletes,
 				addNotification,
 				markAsRead,
