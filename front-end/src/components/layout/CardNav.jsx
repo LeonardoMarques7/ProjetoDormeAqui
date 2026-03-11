@@ -279,7 +279,6 @@ const CardNav = ({ active, className = "" }) => {
 
 					<div className="flex items-center relative gap-4 ">
 						{/* Notification Bell */}
-						<NotificationBell />
 
 						{/* CTA Button */}
 						{!user ? (
@@ -291,20 +290,23 @@ const CardNav = ({ active, className = "" }) => {
 								Entre ou Cadastre-se
 							</button>
 						) : (
-							<Link
-								to="/account/profile"
-								onClick={closeMenu}
-								className="hidden md:inline-flex items-center gap-2  p-1 rounded-full hover:bg-gray-100 transition-colors duration-300"
-							>
-								<img
-									src={user.photo}
-									alt={user.name}
-									className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
-								/>
-								{/* <span className="text-sm font-semibold text-gray-800 max-w-[100px] truncate">
+							<>
+								<NotificationBell />
+								<Link
+									to="/account/profile"
+									onClick={closeMenu}
+									className="hidden md:inline-flex items-center gap-2  p-1 rounded-full hover:bg-gray-100 transition-colors duration-300"
+								>
+									<img
+										src={user.photo}
+										alt={user.name}
+										className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+									/>
+									{/* <span className="text-sm font-semibold text-gray-800 max-w-[100px] truncate">
 								{user.name?.split(" ")[0]}
 							</span> */}
-							</Link>
+								</Link>
+							</>
 						)}
 						{/* Hamburger */}
 						<div

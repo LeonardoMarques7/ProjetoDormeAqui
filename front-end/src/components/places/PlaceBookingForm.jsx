@@ -186,7 +186,7 @@ export default function PlaceBookingForm({
 							type="button"
 							onClick={() => setGuests(Math.max(1, guests - 1))}
 							disabled={guests <= 1}
-							className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+							className="w-10 h-10 cursor-pointer flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
 						>
 							<Minus className="w-4 h-4" />
 						</button>
@@ -194,7 +194,7 @@ export default function PlaceBookingForm({
 						<button
 							type="button"
 							onClick={() => setGuests(Math.min(10, guests + 1))}
-							className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+							className="w-10 h-10 cursor-pointer flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
 						>
 							<Plus className="w-4 h-4" />
 						</button>
@@ -215,9 +215,13 @@ export default function PlaceBookingForm({
 					<StripeTransparentCheckoutWrapper
 						place={place}
 						checkoutData={(() => {
-							const n = checkin && checkout
-								? Math.max(1, Math.ceil((checkout - checkin) / (1000 * 60 * 60 * 24)))
-								: 0;
+							const n =
+								checkin && checkout
+									? Math.max(
+											1,
+											Math.ceil((checkout - checkin) / (1000 * 60 * 60 * 24)),
+										)
+									: 0;
 							const pricePerNight = Number(place?.price || 0);
 							return {
 								accommodationId: placeId,
@@ -233,7 +237,9 @@ export default function PlaceBookingForm({
 						})()}
 						onResult={(result) => {
 							if (!result.success) {
-								handlePaymentError(result.error || "Erro ao processar pagamento");
+								handlePaymentError(
+									result.error || "Erro ao processar pagamento",
+								);
 							}
 						}}
 					/>

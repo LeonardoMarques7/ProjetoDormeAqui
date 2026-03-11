@@ -10,9 +10,9 @@ import "lightgallery/css/lg-thumbnail.css";
 import "lightgallery/css/lg-fullscreen.css";
 import { useRef, useState } from "react";
 import photoDefaultLoading from "../../assets/loadingGif2.gif";
+import { Skeleton } from "@/components/ui/skeleton";
 import photoDefault from "../../assets/photoDefault.jpg";
 import { useMobileContext } from "../contexts/MobileContext";
-
 const stagger = {
 	hidden: {},
 	visible: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } },

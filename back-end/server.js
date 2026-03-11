@@ -47,12 +47,23 @@ app.use((req, res, next) => {
       https://api.mercadolibre.com
       https://www.mercadolibre.com;
 
+    /* Allow Framer remote modules to be loaded as scripts */
     script-src
       'self'
       'unsafe-inline'
       'unsafe-eval'
       https://accounts.google.com
-      https://sdk.mercadopago.com;
+      https://sdk.mercadopago.com
+      https://framerusercontent.com;
+
+    /* More specific directive for script elements (recommended) */
+    script-src-elem
+      'self'
+      https://framerusercontent.com
+      https://accounts.google.com
+      https://sdk.mercadopago.com
+      'unsafe-inline'
+      'unsafe-eval';
 
     frame-src
       'self'

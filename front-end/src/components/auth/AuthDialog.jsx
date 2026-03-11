@@ -257,7 +257,9 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 	// ========== GOOGLE LOGIN ==========
 	const handleGoogleLogin = async () => {
 		if (mode === "register" && !acceptedTerms) {
-			setMessage("Você deve aceitar os Termos de Serviço e Política de Privacidade");
+			setMessage(
+				"Você deve aceitar os Termos de Serviço e Política de Privacidade",
+			);
 			return;
 		}
 
@@ -302,7 +304,9 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 	// ========== GITHUB LOGIN ==========
 	const handleGithubLogin = () => {
 		if (mode === "register" && !acceptedTerms) {
-			setMessage("Você deve aceitar os Termos de Serviço e Política de Privacidade");
+			setMessage(
+				"Você deve aceitar os Termos de Serviço e Política de Privacidade",
+			);
 			return;
 		}
 
@@ -370,7 +374,8 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 					}
 					setUser(userDoc);
 				} catch (error) {
-					setMessage(`Ops, erro ao logar.. ${error.response.data}`);
+					console.error("Login error:", error);
+					setMessage(`Ops, erro ao logar.. ${error.response?.data || error.message}`);
 				}
 			} else {
 				setMessage("Erro ao fazer login. Verifique seus dados.");
@@ -401,7 +406,9 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 				}
 
 				if (!acceptedTerms) {
-					setMessage("Você deve aceitar os Termos de Serviço e Política de Privacidade");
+					setMessage(
+						"Você deve aceitar os Termos de Serviço e Política de Privacidade",
+					);
 					return;
 				}
 
@@ -696,7 +703,9 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 								onBlur={(e) => checkEmailExists(e.target.value)}
 							/>
 							{isCheckingEmail && (
-								<p className="text-xs text-gray-400 mt-1 ml-1">Verificando...</p>
+								<p className="text-xs text-gray-400 mt-1 ml-1">
+									Verificando...
+								</p>
 							)}
 							{emailError && (
 								<p className="text-xs text-red-500 mt-1 ml-1">{emailError}</p>
@@ -783,18 +792,21 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 								onChange={(e) => setAcceptedTerms(e.target.checked)}
 								className="w-5 h-5 rounded border-gray-200 text-primary-600 focus:ring-2 focus:ring-primary-100 cursor-pointer mt-0.5 flex-shrink-0"
 							/>
-							<label htmlFor="acceptTerms" className="text-sm text-gray-600 cursor-pointer">
+							<label
+								htmlFor="acceptTerms"
+								className="text-sm text-gray-600 cursor-pointer"
+							>
 								Eu aceito os{" "}
-								<Link 
-									to="/terms" 
+								<Link
+									to="/terms"
 									target="_blank"
 									className="text-primary-600 hover:underline font-medium"
 								>
 									Termos de Serviço
-								</Link>
-								{" "}e a{" "}
-								<Link 
-									to="/privacy" 
+								</Link>{" "}
+								e a{" "}
+								<Link
+									to="/privacy"
 									target="_blank"
 									className="text-primary-600 hover:underline font-medium"
 								>
