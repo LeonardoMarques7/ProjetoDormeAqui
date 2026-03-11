@@ -7,12 +7,12 @@ import {
 	useParams,
 } from "react-router-dom";
 
-import { Toaster } from "sonner";
-
 import { UserContextProvider } from "./components/contexts/UserContext";
+import { NotificationProvider } from "./components/contexts/NotificationContext";
 import { MessageProvider } from "./components/contexts/MessageContext";
 
 import Header from "./components/layout/Header";
+import NotificationToast from "./components/common/NotificationToast";
 import Home from "./pages/Home";
 import Account from "./pages/Account";
 import Place from "./pages/Place";
@@ -76,57 +76,59 @@ function App() {
 							<>
 								<AuthModalContextProvider>
 									<>
-										<MessageProvider>
-											<>
-												<Toaster position="top-right" />
-												<Header />
-												<ScrollToTop />
+										<NotificationProvider>
+											<MessageProvider>
+												<>
+													<Header />
+													<NotificationToast />
+													<ScrollToTop />
 
-												<div className="min-h-screen relative flex flex-1 flex-col p-4 h-full w-full justify-between">
-													<PageTransition>
-														<Routes>
-															<Route path="/" element={<Home />} />
-															<Route path="/about" element={<About />} />
-															<Route path="/contact" element={<Contact />} />
-															<Route path="/privacy" element={<Privacy />} />
-															<Route path="/terms" element={<Terms />} />
-															<Route
-																path="/reset-password"
-																element={<ResetPassword />}
-															/>
-															<Route
-																path="/account/:subpage/:action?/:id?"
-																element={<Account />}
-															/>
-															<Route path="/places/:id" element={<Place />} />
-															<Route
-																path="/payment/success"
-																element={<PaymentSuccess />}
-															/>
-															<Route
-																path="/payment/pending"
-																element={<PaymentPending />}
-															/>
-															<Route
-																path="/payment/failure"
-																element={<PaymentFailure />}
-															/>
-															<Route path="/*" element={<NotFound />} />
+													<div className="min-h-screen relative flex flex-1 flex-col p-4 h-full w-full justify-between">
+														<PageTransition>
+															<Routes>
+																<Route path="/" element={<Home />} />
+																<Route path="/about" element={<About />} />
+																<Route path="/contact" element={<Contact />} />
+																<Route path="/privacy" element={<Privacy />} />
+																<Route path="/terms" element={<Terms />} />
+																<Route
+																	path="/reset-password"
+																	element={<ResetPassword />}
+																/>
+																<Route
+																	path="/account/:subpage/:action?/:id?"
+																	element={<Account />}
+																/>
+																<Route path="/places/:id" element={<Place />} />
+																<Route
+																	path="/payment/success"
+																	element={<PaymentSuccess />}
+																/>
+																<Route
+																	path="/payment/pending"
+																	element={<PaymentPending />}
+																/>
+																<Route
+																	path="/payment/failure"
+																	element={<PaymentFailure />}
+																/>
+																<Route path="/*" element={<NotFound />} />
 
-															<Route
-																path="/auth/github/callback"
-																element={<GithubCallback />}
-															/>
-															<Route
-																path="/auth/google/callback"
-																element={<GoogleCallback />}
-															/>
-														</Routes>
-													</PageTransition>
-													<Footer active={isComponentActive} />
-												</div>
-											</>
-										</MessageProvider>
+																<Route
+																	path="/auth/github/callback"
+																	element={<GithubCallback />}
+																/>
+																<Route
+																	path="/auth/google/callback"
+																	element={<GoogleCallback />}
+																/>
+															</Routes>
+														</PageTransition>
+														<Footer active={isComponentActive} />
+													</div>
+												</>
+											</MessageProvider>
+										</NotificationProvider>
 									</>
 								</AuthModalContextProvider>
 							</>

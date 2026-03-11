@@ -8,6 +8,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useUserContext } from "@/components/contexts/UserContext";
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 import { useMessage } from "@/components/contexts/MessageContext";
+import { useNotification } from "@/components/contexts/NotificationContext";
+import NotificationBell from "@/components/common/NotificationBell";
 import logoPrimary from "@/assets/logos/logo__primary.png";
 import logoSecondary from "@/assets/logos/logo__secondary.png";
 
@@ -17,6 +19,7 @@ const CardNav = ({ active, className = "" }) => {
 	const { user, setUser } = useUserContext();
 	const { showAuthModal } = useAuthModalContext();
 	const { showMessage } = useMessage();
+	const { addNotification } = useNotification();
 	const navigate = useNavigate();
 	const location = useLocation();
 
@@ -33,10 +36,22 @@ const CardNav = ({ active, className = "" }) => {
 			localStorage.clear();
 			sessionStorage.clear();
 			setUser(null);
-			showMessage("Logout realizado com sucesso!", "success");
+			// Use notificação nova
+			addNotification({
+				title: "Até logo 👋",
+				message:
+					"Esperamos que tenha curtido sua experiência no DormeAqui. Volte sempre que precisar de um lugar para descansar.",
+				type: "goodbye",
+				icon: "👋",
+			});
 			navigate("/");
 		} catch {
-			showMessage("Erro ao sair. Tente novamente.", "error");
+			addNotification({
+				title: "❌ Erro",
+				message: "Erro ao sair. Tente novamente.",
+				type: "error",
+				icon: "❌",
+			});
 		}
 	};
 
@@ -239,7 +254,7 @@ const CardNav = ({ active, className = "" }) => {
 				className={`card-nav ${isExpanded ? "open bg-white shadow-lg" : ""} block h-[60px] p-0 rounded-2xl relative overflow-hidden will-change-[height]`}
 			>
 				{/* Top bar */}
-				<div className="card-nav-top absolute inset-x-0 top-0 h-[60px] flex items-center justify-between p-2 pl-[1.1rem] z-[2]">
+				<div className="card-nav-top absolute inset-x-0 top-0 h-[60px] flex items-center justify-between p-2 max-md:pl-0 pl-[1.1rem] z-[2]">
 					{/* Logo centralizada */}
 					<div className="logo-container flex items-center">
 						<Link to="/" onClick={closeMenu}>
@@ -251,7 +266,10 @@ const CardNav = ({ active, className = "" }) => {
 						</Link>
 					</div>
 
-					<div className="flex items-center gap-4 ">
+					<div className="flex items-center relative gap-4 ">
+						{/* Notification Bell */}
+						<NotificationBell />
+
 						{/* CTA Button */}
 						{!user ? (
 							<button
