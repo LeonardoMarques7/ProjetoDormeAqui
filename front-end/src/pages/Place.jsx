@@ -18,6 +18,7 @@ import PlaceRules from "../components/places/PlaceRules";
 import PlaceReviews from "../components/places/PlaceReviews";
 import PlaceExistingBooking from "../components/places/PlaceExistingBooking";
 import PlaceBookingForm from "../components/places/PlaceBookingForm";
+import PlaceHolder from "../components/places/placeholder/PlaceHolder";
 
 const fadeUp = {
 	hidden: { opacity: 0, y: 32 },
@@ -170,122 +171,126 @@ const Place = () => {
 
 	if (placeNotFound) return <NotFound />;
 
-	if (loading || !place) {
-		return (
-			<div className="container__infos mx-auto max-sm:max-w-full md:max-w-7xl flex flex-col gap-2 p-4">
-				<Skeleton className="h-64 w-full rounded-xl" />
-				<Skeleton className="h-64 w-full rounded-xl" />
-			</div>
-		);
+	if (!place) {
+		return <></>;
 	}
 
 	return (
 		<AnimatePresence className="relative">
-			<motion.div
-				className=" relative mx-auto h-full max-sm:max-w-full md:max-w-7xl"
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-			>
-				{/* GALERIA */}
-
-				<div className="sm:px-4">
-					<PlaceGallery photos={place.photos || []} />
-				</div>
-
-				{/* BARRA MOBILE */}
-
-				{showFixedBar && (
-					// <motion.div className="fixed bottom-4 shadow-2xl z-100 my-4 mx-6 rounded-full left-0 right-0 bg-white p-4 px-6 items-center flex justify-between">
-					// 	<div>
-					// 		<span className="text-xl font-bold">R$ {place.price}</span>
-					// 		<span className="text-gray-500 text-sm"> /noite</span>
-					// 	</div>
-
-					// 	<button
-					// 		className="bg-gray-900 text-white px-6 py-2 rounded-2xl"
-					// 		onClick={() =>
-					// 			document.getElementById("bookingForm")?.scrollIntoView({
-					// 				behavior: "smooth",
-					// 			})
-					// 		}
-					// 	>
-					// 		Reservar
-					// 	</button>
-					// </motion.div>
-					<motion.div
-						initial={{ y: 100, opacity: 0 }}
-						animate={{
-							y: showFixedBar ? 0 : 100,
-							opacity: showFixedBar ? 1 : 0,
-						}}
-						transition={{ duration: 0.35, ease: "easeOut" }}
-						className="fixed bottom-4 shadow-2xl z-100 my-4 mx-4 rounded-full left-0 right-0 bg-white p-4 px-6 items-center flex justify-between"
-					>
-						<div>
-							<span className="text-xl font-bold">R$ {place.price}</span>
-							<span className="text-gray-500 text-sm"> /noite</span>
-						</div>
-
-						<button
-							className="bg-gray-900 text-white px-6 py-2 rounded-2xl"
-							onClick={() =>
-								document.getElementById("bookingForm")?.scrollIntoView({
-									behavior: "smooth",
-								})
-							}
-						>
-							Reservar
-						</button>
-					</motion.div>
-				)}
-
-				{/* GRID */}
-
+			{loading == true ? (
 				<motion.div
-					className="sm:grid sm:grid-cols-5 md:ml-5 gap-5 mt-2"
-					variants={stagger}
-					initial="hidden"
-					whileInView="visible"
+					className=" relative mx-auto h-full max-sm:max-w-full md:max-w-7xl"
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
 				>
-					{/* COLUNA ESQUERDA */}
+					<PlaceHolder />
+				</motion.div>
+			) : (
+				<motion.div
+					className=" relative mx-auto h-full max-sm:max-w-full md:max-w-7xl"
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+				>
+					{/* GALERIA */}
 
-					<motion.div className="col-span-3" variants={fadeUp}>
-						<PlaceHeader place={place} />
+					<div>
+						<PlaceGallery photos={place.photos || []} />
+					</div>
 
-						{owner && <PlaceOwner owner={place.owner} />}
+					{/* BARRA MOBILE */}
 
-						{place.description && (
-							<PlaceDescription description={place.description} />
-						)}
+					{showFixedBar && (
+						// <motion.div className="fixed bottom-4 shadow-2xl z-100 my-4 mx-6 rounded-full left-0 right-0 bg-white p-4 px-6 items-center flex justify-between">
+						// 	<div>
+						// 		<span className="text-xl font-bold">R$ {place.price}</span>
+						// 		<span className="text-gray-500 text-sm"> /noite</span>
+						// 	</div>
 
-						{place.perks?.length > 0 && <PlacePerks perks={place.perks} />}
+						// 	<button
+						// 		className="bg-gray-900 text-white px-6 py-2 rounded-2xl"
+						// 		onClick={() =>
+						// 			document.getElementById("bookingForm")?.scrollIntoView({
+						// 				behavior: "smooth",
+						// 			})
+						// 		}
+						// 	>
+						// 		Reservar
+						// 	</button>
+						// </motion.div>
+						<motion.div
+							initial={{ y: 100, opacity: 0 }}
+							animate={{
+								y: showFixedBar ? 0 : 100,
+								opacity: showFixedBar ? 1 : 0,
+							}}
+							transition={{ duration: 0.35, ease: "easeOut" }}
+							className="fixed bottom-4 shadow-2xl z-100 my-4 mx-4 rounded-full left-0 right-0 bg-white p-4 px-6 items-center flex justify-between"
+						>
+							<div>
+								<span className="text-xl font-bold">R$ {place.price}</span>
+								<span className="text-gray-500 text-sm"> /noite</span>
+							</div>
 
-						{place.city && <PlaceLocation city={place.city} />}
+							<button
+								className="bg-gray-900 text-white px-6 py-2 rounded-2xl"
+								onClick={() =>
+									document.getElementById("bookingForm")?.scrollIntoView({
+										behavior: "smooth",
+									})
+								}
+							>
+								Reservar
+							</button>
+						</motion.div>
+					)}
 
-						<PlaceRules place={place} refundPolicy={refundPolicy} />
-
-						{reviews.length > 0 && <PlaceReviews reviews={reviews} />}
-					</motion.div>
-
-					{/* COLUNA DIREITA */}
+					{/* GRID */}
 
 					<motion.div
-						id="bookingForm"
-						className="col-span-2 w-full  md:-ml-5"
-						variants={fadeUp}
+						className="sm:grid sm:grid-cols-5 md:ml-5 gap-5 mt-2"
+						variants={stagger}
+						initial="hidden"
+						whileInView="visible"
 					>
-						{/* COLE AQUI TODO O BLOCO GRANDE QUE VOCÊ ENVIOU */}
-						{/* booking card + calendario + checkout + dialog */}
+						{/* COLUNA ESQUERDA */}
 
-						<PlaceBookingForm
-							place={place}
-							placeId={id}
-							bookingsPlace={bookingsPlace}
-							formRef={formRef}
-						/>
+						<motion.div className="col-span-3" variants={fadeUp}>
+							<PlaceHeader place={place} />
+
+							{owner && <PlaceOwner owner={place.owner} />}
+
+							{place.description && (
+								<PlaceDescription description={place.description} />
+							)}
+
+							{place.perks?.length > 0 && <PlacePerks perks={place.perks} />}
+
+							{place.city && <PlaceLocation city={place.city} />}
+
+							<PlaceRules place={place} refundPolicy={refundPolicy} />
+
+							{reviews.length > 0 && <PlaceReviews reviews={reviews} />}
+						</motion.div>
+
+						{/* COLUNA DIREITA */}
+
+						<motion.div
+							id="bookingForm"
+							className="col-span-2 w-full  md:-ml-5"
+							variants={fadeUp}
+						>
+							{/* COLE AQUI TODO O BLOCO GRANDE QUE VOCÊ ENVIOU */}
+							{/* booking card + calendario + checkout + dialog */}
+
+							<PlaceBookingForm
+								place={place}
+								placeId={id}
+								bookingsPlace={bookingsPlace}
+								formRef={formRef}
+							/>
+						</motion.div>
 					</motion.div>
-				</motion.div>
-				{/* {mobile && (
+					{/* {mobile && (
 					<a
 						href="#bookingForm"
 						className="fixed bottom-0 w-full h-10 rounded-2xl m-2"
@@ -294,7 +299,8 @@ const Place = () => {
 						Reservar agora
 					</a>
 				)} */}
-			</motion.div>
+				</motion.div>
+			)}
 		</AnimatePresence>
 	);
 };
