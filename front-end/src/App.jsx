@@ -27,6 +27,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 
 import Footer from "@/components/layout/Footer";
+import StaggeredMenu from "@/components/layout/StaggeredMenu";
 import AppSidebar from "@/components/layout/Sidebar";
 import {
 	SidebarInset,
@@ -40,14 +41,15 @@ import "@mantine/core/styles.css";
 import GithubCallback from "./pages/GithubCallback";
 import GoogleCallback from "./pages/GoogleCallback";
 
-import { MantineProvider } from "@mantine/core";
 import { useEffect } from "react";
 import { MobileContextProvider } from "./components/contexts/MobileContext";
 
 import { AuthModalContextProvider } from "./components/contexts/AuthModalContext";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "./components/common/PageTransition";
+import FramerRemote from "./components/FramerRemote";
 import SnackbarUndo from "./components/SnackbarUndo";
+import { MantineProvider } from "@mantine/core";
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
 		? "http://localhost:3000/api"

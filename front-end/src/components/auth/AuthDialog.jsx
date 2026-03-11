@@ -374,7 +374,8 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 					}
 					setUser(userDoc);
 				} catch (error) {
-					setMessage(`Ops, erro ao logar.. ${error.response.data}`);
+					console.error("Login error:", error);
+					setMessage(`Ops, erro ao logar.. ${error.response?.data || error.message}`);
 				}
 			} else {
 				setMessage("Erro ao fazer login. Verifique seus dados.");
