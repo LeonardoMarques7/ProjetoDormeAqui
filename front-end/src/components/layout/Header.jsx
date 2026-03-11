@@ -1,4 +1,3 @@
-import NotificationBell from "../common/NotificationBell";
 import CardNav from "./CardNav";
 
 const Header = ({ active }) => {

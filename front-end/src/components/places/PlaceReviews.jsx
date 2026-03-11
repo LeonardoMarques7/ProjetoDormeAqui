@@ -3,12 +3,10 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { Select } from "@mantine/core";
-import {
-	Drawer,
-	DrawerContent,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useMobileContext } from "../contexts/MobileContext";
 import photoDefault from "../../assets/photoDefault.jpg";
+import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 
 const stagger = {
 	hidden: {},
@@ -17,12 +15,19 @@ const stagger = {
 
 const fadeUp = {
 	hidden: { opacity: 0, y: 28 },
-	visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+	visible: {
+		opacity: 1,
+		y: 0,
+		transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+	},
 };
 
 const maskReveal = {
 	hidden: { y: "105%" },
-	visible: { y: "0%", transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] } },
+	visible: {
+		y: "0%",
+		transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] },
+	},
 };
 
 function dataFormat(date) {
@@ -78,7 +83,9 @@ export default function PlaceReviews({ reviews }) {
 		setRatingFilter(tempRating > 0 ? tempRating.toString() : "all");
 		setCommentFilter(tempCommentFilter);
 		setSheetOpen(false);
-		document.getElementById("avaliacoes")?.scrollIntoView({ behavior: "smooth" });
+		document
+			.getElementById("avaliacoes")
+			?.scrollIntoView({ behavior: "smooth" });
 	};
 
 	return (
@@ -92,17 +99,32 @@ export default function PlaceReviews({ reviews }) {
 				viewport={{ once: true, margin: "-50px" }}
 			>
 				<div className="overflow-hidden">
-					<motion.p variants={maskReveal} className="text-primary-500 uppercase font-light">
+					<motion.p
+						variants={maskReveal}
+						className="text-primary-500 uppercase font-light"
+					>
 						Avaliações
 					</motion.p>
 				</div>
 
 				<div className="flex items-center justify-between">
-					<div className="overflow-hidden">
+					<div className="overflow-hidden ">
 						<motion.p variants={maskReveal} className="text-3xl font-bold">
 							O que Dizem
 						</motion.p>
+						{/* Mobile filter button */}
 					</div>
+					{mobile && (
+						<button
+							onClick={() => setSheetOpen(true)}
+							className="text-center cursor-pointer justify-center text-xl w-10 h-10 p-1 shadow-sm flex  items-center gap-2 bg-primary-900 hover:bg-primary-black transition-colors rounded-full text-white font-medium"
+						>
+							<AdjustmentsHorizontalIcon
+								className="text-white w-6 h-6"
+								color="#fff"
+							/>
+						</button>
+					)}
 
 					{/* Mobile filter drawer trigger */}
 					{mobile && (
@@ -114,7 +136,9 @@ export default function PlaceReviews({ reviews }) {
 								<div className="flex flex-col gap-6 mt-6">
 									{/* Sort */}
 									<div className="flex flex-col gap-2">
-										<label className="text-sm font-medium text-gray-700">Ordenar por:</label>
+										<label className="text-sm font-medium text-gray-700">
+											Ordenar por:
+										</label>
 										<div className="flex flex-col gap-4">
 											{["recent", "oldest"].map((val) => (
 												<label
@@ -128,11 +152,15 @@ export default function PlaceReviews({ reviews }) {
 													<input
 														type="checkbox"
 														checked={sortByTemp === val}
-														onChange={(e) => { if (e.target.checked) setSortByTemp(val); }}
+														onChange={(e) => {
+															if (e.target.checked) setSortByTemp(val);
+														}}
 														className="hidden"
 													/>
 													{val === "recent" ? "Mais recente" : "Mais antigo"}
-													<span className={`w-2 h-2 ml-auto rounded-full bg-transparent ${sortByTemp === val && "!bg-primary-900"}`} />
+													<span
+														className={`w-2 h-2 ml-auto rounded-full bg-transparent ${sortByTemp === val && "!bg-primary-900"}`}
+													/>
 												</label>
 											))}
 										</div>
@@ -140,14 +168,18 @@ export default function PlaceReviews({ reviews }) {
 
 									{/* Stars */}
 									<div className="flex flex-col gap-2">
-										<label className="text-sm font-medium text-gray-700">Estrelas:</label>
+										<label className="text-sm font-medium text-gray-700">
+											Estrelas:
+										</label>
 										<div className="flex gap-1">
 											{[1, 2, 3, 4, 5].map((star) => (
 												<button
 													key={star}
 													type="button"
 													className={`p-3 hover:scale-110 rounded-2xl bg-primary-100/50 transition-all ${
-														star <= (tempHoverRating || tempRating) ? "bg-primary-900" : ""
+														star <= (tempHoverRating || tempRating)
+															? "bg-primary-900"
+															: ""
 													}`}
 													onMouseEnter={() => setTempHoverRating(star)}
 													onMouseLeave={() => setTempHoverRating(0)}
@@ -168,7 +200,9 @@ export default function PlaceReviews({ reviews }) {
 
 									{/* Comment filter */}
 									<div className="flex flex-col gap-2">
-										<label className="text-sm font-medium text-gray-700">Comentários:</label>
+										<label className="text-sm font-medium text-gray-700">
+											Comentários:
+										</label>
 										<div className="flex flex-col gap-4">
 											{["all", "with", "without"].map((val) => (
 												<label
@@ -182,11 +216,19 @@ export default function PlaceReviews({ reviews }) {
 													<input
 														type="checkbox"
 														checked={tempCommentFilter === val}
-														onChange={(e) => { if (e.target.checked) setTempCommentFilter(val); }}
+														onChange={(e) => {
+															if (e.target.checked) setTempCommentFilter(val);
+														}}
 														className="hidden"
 													/>
-													{val === "all" ? "Todos" : val === "with" ? "Com comentário" : "Sem comentário"}
-													<span className={`w-2 h-2 ml-auto rounded-full bg-transparent ${tempCommentFilter === val && "!bg-primary-900"}`} />
+													{val === "all"
+														? "Todos"
+														: val === "with"
+															? "Com comentário"
+															: "Sem comentário"}
+													<span
+														className={`w-2 h-2 ml-auto rounded-full bg-transparent ${tempCommentFilter === val && "!bg-primary-900"}`}
+													/>
 												</label>
 											))}
 										</div>
@@ -216,7 +258,7 @@ export default function PlaceReviews({ reviews }) {
 
 				{/* Desktop filters */}
 				{!mobile && (
-					<div className="flex flex-wrap gap-4 mt-5 mb-5">
+					<div className="flex flex-wrap gap-4 mt-5 mb-5 ">
 						{[
 							{
 								label: "Ordenar por:",
@@ -255,14 +297,19 @@ export default function PlaceReviews({ reviews }) {
 							},
 						].map(({ label, value, onChange, data, placeholder }) => (
 							<div key={label} className="flex flex-col gap-2">
-								<label className="text-sm font-medium text-gray-700">{label}</label>
+								<label className="text-sm font-medium text-gray-700">
+									{label}
+								</label>
 								<Select
 									value={value}
 									onChange={onChange}
 									data={data}
 									placeholder={placeholder}
 									className="w-[180px]"
-									styles={{ input: { borderRadius: "12px" }, dropdown: { borderRadius: "12px" } }}
+									styles={{
+										input: { borderRadius: "12px" },
+										dropdown: { borderRadius: "12px" },
+									}}
 								/>
 							</div>
 						))}
@@ -271,7 +318,7 @@ export default function PlaceReviews({ reviews }) {
 
 				{/* Reviews grid */}
 				<motion.div
-					className="grid max-w-full relative grid-cols-[repeat(auto-fit,minmax(300px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-3 mt-5 mb-15 max-sm:mb-0"
+					className="grid max-w-full relative  grid-cols-[repeat(auto-fit,minmax(300px,1fr))] max-sm:grid-cols-1 max-sm:gap-3.5 gap-3 mt-5 mb-15 max-sm:mb-0"
 					variants={stagger}
 					initial="hidden"
 					whileInView="visible"
@@ -300,15 +347,21 @@ export default function PlaceReviews({ reviews }) {
 											<Verified className="size-5 text-blue-600 absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow" />
 										</div>
 										<div>
-											<p className="font-semibold text-neutral-900">{review.user.name}</p>
-											<p className="text-sm text-neutral-500">{review.user.city || "Hóspede"}</p>
+											<p className="font-semibold text-neutral-900">
+												{review.user.name}
+											</p>
+											<p className="text-sm text-neutral-500">
+												{review.user.city || "Hóspede"}
+											</p>
 										</div>
 									</Link>
 								</div>
 
 								{/* Rating */}
 								<div className="flex items-center gap-1 mt-4">
-									<span className="font-semibold">{Number(review.rating).toFixed(1)}</span>
+									<span className="font-semibold">
+										{Number(review.rating).toFixed(1)}
+									</span>
 									<div className="flex text-yellow-500 text-xl">
 										{[1, 2, 3, 4, 5].map((star) => (
 											<span key={star}>
@@ -341,16 +394,6 @@ export default function PlaceReviews({ reviews }) {
 						</p>
 					)}
 				</motion.div>
-
-				{/* Mobile filter button */}
-				{mobile && (
-					<button
-						onClick={() => setSheetOpen(true)}
-						className="sticky bottom-2.5 ml-auto text-center -mt-7.5 cursor-pointer justify-center text-xl p-4 w-fit shadow-sm flex flex-1 items-center gap-2 bg-primary-900 hover:bg-primary-black transition-colors rounded-full text-white font-medium"
-					>
-						<Filter size={18} />
-					</button>
-				)}
 			</motion.div>
 		</div>
 	);

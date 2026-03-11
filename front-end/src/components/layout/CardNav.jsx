@@ -11,7 +11,9 @@ import { useMessage } from "@/components/contexts/MessageContext";
 import { useNotification } from "@/components/contexts/NotificationContext";
 import NotificationBell from "@/components/common/NotificationBell";
 import logoPrimary from "@/assets/logos/logo__primary.png";
+import logoPrimaryMobile from "@/assets/logo__primary__mobile.png";
 import logoSecondary from "@/assets/logos/logo__secondary.png";
+import { useMobileContext } from "../contexts/MobileContext";
 
 const EASE = "power3.out";
 
@@ -19,6 +21,7 @@ const CardNav = ({ active, className = "" }) => {
 	const { user, setUser } = useUserContext();
 	const { showAuthModal } = useAuthModalContext();
 	const { showMessage } = useMessage();
+	const { mobile } = useMobileContext();
 	const { addNotification } = useNotification();
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -258,11 +261,19 @@ const CardNav = ({ active, className = "" }) => {
 					{/* Logo centralizada */}
 					<div className="logo-container flex items-center">
 						<Link to="/" onClick={closeMenu}>
-							<img
-								src={logoPrimary}
-								alt="Logo DormeAqui"
-								className="h-20 object-contain"
-							/>
+							{mobile ? (
+								<img
+									src={logoPrimaryMobile}
+									alt="Logo DormeAqui"
+									className="h-12 object-contain"
+								/>
+							) : (
+								<img
+									src={logoPrimary}
+									alt="Logo DormeAqui"
+									className="h-20 object-contain"
+								/>
+							)}
 						</Link>
 					</div>
 
