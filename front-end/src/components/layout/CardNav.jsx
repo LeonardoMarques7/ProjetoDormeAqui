@@ -257,9 +257,9 @@ const CardNav = ({ active, className = "" }) => {
 							<button
 								type="button"
 								onClick={() => showAuthModal("login")}
-								className="hidden md:inline-flex border-0 rounded-[calc(1rem-0.2rem)] px-5 items-center h-[44px] font-semibold text-sm cursor-pointer transition-colors duration-300 bg-gray-900 text-white hover:bg-gray-700"
+								className="hidden md:inline-flex border-0 rounded-[calc(1rem-0.2rem)] px-5 items-center h-[44px] font-semibold text-sm cursor-pointer transition-colors duration-300 text-gray-900 hover:text-gray-700 hover:underline"
 							>
-								Entrar
+								Entre ou Cadastre-se
 							</button>
 						) : (
 							<Link

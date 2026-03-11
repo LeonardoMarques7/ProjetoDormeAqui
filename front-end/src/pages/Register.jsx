@@ -15,6 +15,8 @@ import { useMessage } from "../components/contexts/MessageContext";
 import axios from "axios";
 import { motion } from "framer-motion";
 
+import { Checkbox } from "@/components/ui/checkbox";
+
 function PasswordRequirement({ meets, label }) {
 	return (
 		<div
@@ -53,7 +55,10 @@ const Register = () => {
 		e.preventDefault();
 
 		if (!acceptedTerms) {
-			showMessage("Você deve aceitar os Termos de Serviço e Política de Privacidade", "warning");
+			showMessage(
+				"Você deve aceitar os Termos de Serviço e Política de Privacidade",
+				"warning",
+			);
 			return;
 		}
 
@@ -73,7 +78,7 @@ const Register = () => {
 		} else {
 			showMessage(
 				"Você precisa preencher o e-mail, o nome e a senha!",
-				"warning"
+				"warning",
 			);
 		}
 	};
@@ -106,10 +111,10 @@ const Register = () => {
 				animate={{ x: 0, opacity: 1 }}
 				exit={{ x: "-100%", opacity: 0 }}
 				transition={{ duration: 0.8, ease: "easeInOut" }}
-				className="max-w-96 mx-auto gap-4 flex flex-col items-center w-full"
+				className="max-w-96 mx-auto gap-2 flex flex-col items-center w-full"
 			>
 				<h1 className="text-3xl font-bold">Cadastre-se e descubra</h1>
-				<p className="mb-4">Crie uma conta para continuar</p>
+				<p className="-mb-2 text-xs">Crie uma conta para continuar</p>
 				<form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
 					<div className="group__input relative flex justify-center items-center">
 						<CircleUserRound className="absolute left-4 text-gray-400 size-6" />
@@ -173,26 +178,29 @@ const Register = () => {
 							)}
 						</div>
 					</div>
-					<div className="flex items-start gap-3 my-4">
-						<input
+					<div className="flex items-center gap-3 ">
+						<Checkbox
 							type="checkbox"
 							id="acceptTerms"
 							checked={acceptedTerms}
 							onChange={(e) => setAcceptedTerms(e.target.checked)}
-							className="w-5 h-5 rounded border-gray-200 text-primary-600 focus:ring-2 focus:ring-primary-100 cursor-pointer mt-0.5 flex-shrink-0"
+							name="terms-checkbox-basic"
 						/>
-						<label htmlFor="acceptTerms" className="text-sm text-gray-600 cursor-pointer">
+						<label
+							htmlFor="acceptTerms"
+							className="text-xs text-gray-600 cursor-pointer"
+						>
 							Eu aceito os{" "}
-							<Link 
-								to="/terms" 
+							<Link
+								to="/terms"
 								target="_blank"
 								className="text-primary-600 hover:underline font-medium"
 							>
 								Termos de Serviço
-							</Link>
-							{" "}e a{" "}
-							<Link 
-								to="/privacy" 
+							</Link>{" "}
+							e a{" "}
+							<Link
+								to="/privacy"
 								target="_blank"
 								className="text-primary-600 hover:underline font-medium"
 							>
