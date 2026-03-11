@@ -47,7 +47,6 @@ import { MobileContextProvider } from "./components/contexts/MobileContext";
 import { AuthModalContextProvider } from "./components/contexts/AuthModalContext";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "./components/common/PageTransition";
-import { NotificationProvider } from "./context/NotificationContext";
 import SnackbarUndo from "./components/SnackbarUndo";
 axios.defaults.baseURL =
 	import.meta.env.MODE === "development"
