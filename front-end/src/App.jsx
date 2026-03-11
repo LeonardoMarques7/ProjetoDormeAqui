@@ -47,7 +47,6 @@ import { MobileContextProvider } from "./components/contexts/MobileContext";
 import { AuthModalContextProvider } from "./components/contexts/AuthModalContext";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "./components/common/PageTransition";
-import FramerRemote from "./components/FramerRemote";
 import SnackbarUndo from "./components/SnackbarUndo";
 import { MantineProvider } from "@mantine/core";
 axios.defaults.baseURL =
