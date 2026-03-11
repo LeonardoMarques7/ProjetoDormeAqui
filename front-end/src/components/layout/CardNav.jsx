@@ -8,10 +8,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useUserContext } from "@/components/contexts/UserContext";
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 import { useMessage } from "@/components/contexts/MessageContext";
+import { useNotification } from "@/components/contexts/NotificationContext";
+import NotificationBell from "@/components/common/NotificationBell";
 import logoPrimary from "@/assets/logos/logo__primary.png";
+import logoPrimaryMobile from "@/assets/logo__primary__mobile.png";
 import logoSecondary from "@/assets/logos/logo__secondary.png";
-import NotificationBell from "@/components/NotificationBell";
-import NotificationPanel from "@/components/NotificationPanel";
+import { useMobileContext } from "../contexts/MobileContext";
 
 const EASE = "power3.out";
 
@@ -19,6 +21,8 @@ const CardNav = ({ active, className = "" }) => {
 	const { user, setUser } = useUserContext();
 	const { showAuthModal } = useAuthModalContext();
 	const { showMessage } = useMessage();
+	const { mobile } = useMobileContext();
+	const { addNotification } = useNotification();
 	const navigate = useNavigate();
 	const location = useLocation();
 
@@ -35,10 +39,22 @@ const CardNav = ({ active, className = "" }) => {
 			localStorage.clear();
 			sessionStorage.clear();
 			setUser(null);
-			showMessage("Logout realizado com sucesso!", "success");
+			// Use notificação nova
+			addNotification({
+				title: "Até logo 👋",
+				message:
+					"Esperamos que tenha curtido sua experiência no DormeAqui. Volte sempre que precisar de um lugar para descansar.",
+				type: "goodbye",
+				icon: "👋",
+			});
 			navigate("/");
 		} catch {
-			showMessage("Erro ao sair. Tente novamente.", "error");
+			addNotification({
+				title: "❌ Erro",
+				message: "Erro ao sair. Tente novamente.",
+				type: "error",
+				icon: "❌",
+			});
 		}
 	};
 
@@ -241,34 +257,38 @@ const CardNav = ({ active, className = "" }) => {
 				className={`card-nav ${isExpanded ? "open bg-white shadow-lg" : ""} block h-[60px] p-0 rounded-2xl relative overflow-hidden will-change-[height]`}
 			>
 				{/* Top bar */}
-				<div className="card-nav-top absolute inset-x-0 top-0 h-[60px] flex items-center justify-between p-2 pl-[1.1rem] z-[2]">
+				<div className="card-nav-top absolute inset-x-0 top-0 h-[60px] flex items-center justify-between p-2 max-md:pl-0 pl-[1.1rem] z-[2]">
 					{/* Logo centralizada */}
 					<div className="logo-container flex items-center">
 						<Link to="/" onClick={closeMenu}>
-							<img
-								src={logoPrimary}
-								alt="Logo DormeAqui"
-								className="h-20 object-contain"
-							/>
+							{mobile ? (
+								<img
+									src={logoPrimaryMobile}
+									alt="Logo DormeAqui"
+									className="h-12 object-contain"
+								/>
+							) : (
+								<img
+									src={logoPrimary}
+									alt="Logo DormeAqui"
+									className="h-20 object-contain"
+								/>
+							)}
 						</Link>
 					</div>
 
-					<div className="flex items-center gap-4 ">
-						{/* Notification Bell - only shown for authenticated users */}
-						{user && (
-							<div className="relative hidden md:block">
-								<NotificationBell />
-								<NotificationPanel />
-							</div>
-						)}
+					<div className="flex items-center relative gap-4 ">
+						{/* Notification Bell */}
+						<NotificationBell />
+
 						{/* CTA Button */}
 						{!user ? (
 							<button
 								type="button"
 								onClick={() => showAuthModal("login")}
-								className="hidden md:inline-flex border-0 rounded-[calc(1rem-0.2rem)] px-5 items-center h-[44px] font-semibold text-sm cursor-pointer transition-colors duration-300 bg-gray-900 text-white hover:bg-gray-700"
+								className="hidden md:inline-flex border-0 rounded-[calc(1rem-0.2rem)] px-5 items-center h-[44px] font-semibold text-sm cursor-pointer transition-colors duration-300 text-gray-900 hover:text-gray-700 hover:underline"
 							>
-								Entrar
+								Entre ou Cadastre-se
 							</button>
 						) : (
 							<Link

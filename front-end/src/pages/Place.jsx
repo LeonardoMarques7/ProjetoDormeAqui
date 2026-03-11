@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState, useRef } from "react";
 import { Navigate, useParams, Link } from "react-router-dom";
 import { useMessage } from "../components/contexts/MessageContext";
+import { useMobileContext } from "@/components/contexts/MobileContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import photoDefaultLoading from "../assets/loadingGif2.gif";
 import NotFound from "./NotFound";
@@ -35,6 +36,7 @@ const stagger = {
 const Place = () => {
 	const { id } = useParams();
 	const { showMessage } = useMessage();
+	const { mobile } = useMobileContext();
 
 	const [place, setPlace] = useState(null);
 	const [owner, setOwner] = useState(null);
@@ -130,6 +132,27 @@ const Place = () => {
 			.catch(() => {});
 	}, [id]);
 
+	useEffect(() => {
+		const handleScroll = () => {
+			const form = document.getElementById("bookingForm");
+			if (!form) return;
+
+			const rect = form.getBoundingClientRect();
+
+			// se o formulário estiver visível na tela
+			if (rect.top < window.innerHeight && rect.bottom > 0) {
+				setshowFixedBar(false);
+			} else {
+				setshowFixedBar(true);
+			}
+		};
+
+		window.addEventListener("scroll", handleScroll);
+		handleScroll();
+
+		return () => window.removeEventListener("scroll", handleScroll);
+	}, []);
+
 	/* FIXED BAR */
 
 	useEffect(() => {
@@ -157,25 +180,46 @@ const Place = () => {
 	}
 
 	return (
-		<AnimatePresence>
+		<AnimatePresence className="relative">
 			<motion.div
-				className="container__infos mx-auto max-sm:max-w-full md:max-w-7xl"
+				className=" relative mx-auto h-full max-sm:max-w-full md:max-w-7xl"
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 			>
 				{/* GALERIA */}
 
-				<div className="px-4">
+				<div className="sm:px-4">
 					<PlaceGallery photos={place.photos || []} />
 				</div>
 
 				{/* BARRA MOBILE */}
 
 				{showFixedBar && (
+					// <motion.div className="fixed bottom-4 shadow-2xl z-100 my-4 mx-6 rounded-full left-0 right-0 bg-white p-4 px-6 items-center flex justify-between">
+					// 	<div>
+					// 		<span className="text-xl font-bold">R$ {place.price}</span>
+					// 		<span className="text-gray-500 text-sm"> /noite</span>
+					// 	</div>
+
+					// 	<button
+					// 		className="bg-gray-900 text-white px-6 py-2 rounded-2xl"
+					// 		onClick={() =>
+					// 			document.getElementById("bookingForm")?.scrollIntoView({
+					// 				behavior: "smooth",
+					// 			})
+					// 		}
+					// 	>
+					// 		Reservar
+					// 	</button>
+					// </motion.div>
 					<motion.div
-						className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex justify-between md:hidden"
-						initial={{ y: 80 }}
-						animate={{ y: 0 }}
+						initial={{ y: 100, opacity: 0 }}
+						animate={{
+							y: showFixedBar ? 0 : 100,
+							opacity: showFixedBar ? 1 : 0,
+						}}
+						transition={{ duration: 0.35, ease: "easeOut" }}
+						className="fixed bottom-4 shadow-2xl z-100 my-4 mx-4 rounded-full left-0 right-0 bg-white p-4 px-6 items-center flex justify-between"
 					>
 						<div>
 							<span className="text-xl font-bold">R$ {place.price}</span>
@@ -183,9 +227,11 @@ const Place = () => {
 						</div>
 
 						<button
-							className="bg-gray-900 text-white px-6 py-2 rounded-xl"
+							className="bg-gray-900 text-white px-6 py-2 rounded-2xl"
 							onClick={() =>
-								formRef.current?.scrollIntoView({ behavior: "smooth" })
+								document.getElementById("bookingForm")?.scrollIntoView({
+									behavior: "smooth",
+								})
 							}
 						>
 							Reservar
@@ -223,7 +269,11 @@ const Place = () => {
 
 					{/* COLUNA DIREITA */}
 
-					<motion.div className="col-span-2 w-full  md:-ml-5" variants={fadeUp}>
+					<motion.div
+						id="bookingForm"
+						className="col-span-2 w-full  md:-ml-5"
+						variants={fadeUp}
+					>
 						{/* COLE AQUI TODO O BLOCO GRANDE QUE VOCÊ ENVIOU */}
 						{/* booking card + calendario + checkout + dialog */}
 
@@ -235,6 +285,15 @@ const Place = () => {
 						/>
 					</motion.div>
 				</motion.div>
+				{/* {mobile && (
+					<a
+						href="#bookingForm"
+						className="fixed bottom-0 w-full h-10 rounded-2xl m-2"
+						ref={formRef}
+					>
+						Reservar agora
+					</a>
+				)} */}
 			</motion.div>
 		</AnimatePresence>
 	);

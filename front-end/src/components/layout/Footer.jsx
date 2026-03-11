@@ -13,7 +13,7 @@ const Footer = () => {
 			initial="hidden"
 			whileInView="visible"
 			viewport={{ once: true, amount: 0.3 }}
-			className="mx-auto w-full max-w-7xl text-gray-900 bg-accent rounded-2xl border border-gray-100"
+			className="mx-auto mt-5 w-full max-w-7xl text-gray-900 bg-accent rounded-2xl border border-gray-100"
 		>
 			<div className="py-12 px-8 max-sm:px-6 max-sm:py-8">
 				{/* Top Section - Logo, Description, Payment Methods */}

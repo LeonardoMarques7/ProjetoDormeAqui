@@ -73,22 +73,22 @@ export default function PlaceGallery({ photos }) {
 
 			<div
 				ref={galleryRef}
-				className="max-sm:p-0 max-sm:shadow-none max-h-full max-sm:mt-15 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center relative overflow-hidden"
+				className="max-sm:p-0 max-sm:shadow-none max-h-full max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center relative overflow-hidden"
 			>
 				<motion.div style={{ y: parallaxY }}>
 					<motion.div
-						className="grid relative grid-cols-5 grid-rows-2 max-sm:grid-cols-3 h-100 max-sm:p-2 gap-2 2xl:h-150 max-sm:h-[50svh]"
+						className="grid relative grid-cols-5 grid-rows-2 max-sm:grid-cols-3 h-100 max-sm:p-0 gap-2 2xl:h-150 max-sm:h-[50svh]"
 						variants={stagger}
 						initial="hidden"
 						animate="visible"
 					>
 						{/* Imagem principal */}
 						<motion.div
-							className="col-span-3 row-span-2 max-sm:col-span-4 max-sm:row-span-2 overflow-hidden rounded-2xl"
+							className="col-span-3 row-span-2 max-sm:col-span-4 max-sm:row-span-2 overflow-hidden"
 							variants={galleryItem}
 						>
 							<img
-								className="w-full h-full object-cover cursor-pointer hover:scale-[1.04] transition-transform duration-700"
+								className="w-full h-full object-cover cursor-pointer rounded-3xl hover:scale-[1.04] transition-transform duration-700"
 								src={getImageSrc(0)}
 								onError={() => handleImageError(0)}
 								alt="Imagem da acomodação"
@@ -97,7 +97,7 @@ export default function PlaceGallery({ photos }) {
 						</motion.div>
 
 						<motion.div
-							className="col-span-1 row-span-1 max-sm:col-span-2 overflow-hidden rounded-2xl"
+							className="col-span-1 row-span-1 max-sm:col-span-2 overflow-hidden rounded-3xl"
 							variants={galleryItem}
 						>
 							<img
@@ -110,7 +110,7 @@ export default function PlaceGallery({ photos }) {
 						</motion.div>
 
 						<motion.div
-							className="col-span-1 row-span-1 max-sm:col-span-2 overflow-hidden rounded-2xl"
+							className="col-span-1 row-span-1 max-sm:col-span-2 overflow-hidden rounded-3xl"
 							variants={galleryItem}
 						>
 							<img
@@ -125,7 +125,7 @@ export default function PlaceGallery({ photos }) {
 						{!mobile && (
 							<>
 								<motion.div
-									className="col-span-1 row-span-1 max-sm:col-span-4 overflow-hidden rounded-2xl"
+									className="col-span-1 row-span-1 max-sm:col-span-4 overflow-hidden rounded-3xl"
 									variants={galleryItem}
 								>
 									<img
@@ -137,7 +137,7 @@ export default function PlaceGallery({ photos }) {
 								</motion.div>
 
 								<motion.div
-									className="col-span-1 row-span-1 overflow-hidden rounded-2xl"
+									className="col-span-1 row-span-1 overflow-hidden rounded-3xl"
 									variants={galleryItem}
 								>
 									<img
