@@ -44,7 +44,7 @@ const NotificationItem = ({ notification, onClose }) => {
 		if (!notification.read) {
 			markAsRead(notification.id);
 		}
-		
+
 		// Se houver uma ação associada, executa
 		if (notification.action) {
 			notification.action();
@@ -55,14 +55,17 @@ const NotificationItem = ({ notification, onClose }) => {
 		<motion.div
 			onClick={handleItemClick}
 			className={`px-4 py-3 cursor-pointer transition-all ${
-				notification.read ? "bg-white hover:bg-gray-50" : "bg-blue-50 hover:bg-blue-100"
+				notification.read
+					? "bg-white hover:bg-gray-50"
+					: "bg-blue-50 hover:bg-blue-100"
 			}`}
-			whileHover={{ backgroundColor: notification.read ? "#f9fafb" : "#eff6ff", scale: 1.01 }}
+			whileHover={{
+				backgroundColor: notification.read ? "#f9fafb" : "#eff6ff",
+				scale: 1.01,
+			}}
 			whileTap={{ scale: 0.98 }}
 		>
 			<div className="flex items-start gap-3">
-				<span className="text-2xl flex-shrink-0">{icon}</span>
-
 				<div className="flex-1 min-w-0">
 					<div className="flex items-start justify-between">
 						<div>

@@ -254,7 +254,7 @@ const CardNav = ({ active, className = "" }) => {
 		>
 			<nav
 				ref={navRef}
-				className={`card-nav ${isExpanded ? "open bg-white shadow-lg" : ""} block h-[60px] p-0 rounded-2xl relative overflow-hidden will-change-[height]`}
+				className={`card-nav ${isExpanded ? "open bg-white shadow-lg" : ""}  block min-h-[60px] p-0 rounded-2xl`}
 			>
 				{/* Top bar */}
 				<div className="card-nav-top absolute inset-x-0 top-0 h-[60px] flex items-center justify-between p-2 max-md:pl-0 pl-[1.1rem] z-[2]">
