@@ -171,9 +171,6 @@ const NotificationPanel = () => {
 					<>
 						{groups.map(([label, items]) => (
 							<div key={label}>
-								<div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide bg-gray-50 sticky top-0">
-									{label}
-								</div>
 								<AnimatePresence initial={false}>
 									{items.map((notification) => (
 										<NotificationItem

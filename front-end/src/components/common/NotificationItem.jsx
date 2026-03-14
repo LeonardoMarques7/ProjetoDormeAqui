@@ -4,23 +4,8 @@ import { useNotification } from "@/components/contexts/NotificationContext";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-const typeIcons = {
-	system: "🔔",
-	reservation: "🎉",
-	payment: "💳",
-	message: "💬",
-	platform: "⭐",
-	welcome: "👋",
-	goodbye: "👋",
-	success: "✅",
-	warning: "⚠️",
-	error: "❌",
-	info: "ℹ️",
-};
-
 const NotificationItem = ({ notification, onClose }) => {
 	const { removeNotification, markAsRead } = useNotification();
-	const icon = notification.icon || typeIcons[notification.type] || "🔔";
 
 	const timeAgo = formatDistanceToNow(new Date(notification.createdAt), {
 		addSuffix: true,
@@ -67,7 +52,7 @@ const NotificationItem = ({ notification, onClose }) => {
 		>
 			<div className="flex items-start gap-3">
 				<div className="flex-1 min-w-0">
-					<div className="flex items-start justify-between">
+					<div className="flex items-start  justify-between">
 						<div>
 							{notification.title && (
 								<h4 className="font-semibold text-gray-900 text-sm">

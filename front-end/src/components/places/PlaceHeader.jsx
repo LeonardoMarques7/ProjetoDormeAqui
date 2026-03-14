@@ -1,6 +1,7 @@
-import { MapPin, Star } from "lucide-react";
+import { MapPin, Minus, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useMobileContext } from "../contexts/MobileContext";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 const stagger = {
 	hidden: {},
@@ -9,23 +10,47 @@ const stagger = {
 
 const fadeUp = {
 	hidden: { opacity: 0, y: 28 },
-	visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+	visible: {
+		opacity: 1,
+		y: 0,
+		transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+	},
+};
+
+const notification = {
+	title: "Reserva confirmada!",
+	message: "Sua reserva para 'Casa na Praia' foi confirmada.",
+	read: false,
+};
+
+const config = {
+	icon: CheckCircleIcon,
+	primaryColor: "#3b82f6",
+	bgColor: "#dbeafe",
 };
 
 export default function PlaceHeader({ place }) {
 	const { mobile } = useMobileContext();
+	const IconComponent = config.icon;
+	const timeAgo = "Agora mesmo";
 
 	return (
-		<div className="max-sm:py-0 w-full">
+		<div className="max-sm:py-0 w-full ">
 			{/* Mobile info pills */}
-			<div className="flex sm:hidden mt-1 max-sm:visible !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
+			<div className="flex sm:hidden  max-sm:visible my-2 !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
 				<span>{place.guests} hóspedes</span>
 				<Dot />
-				<span>{place.rooms} {place.rooms > 1 ? "quartos" : "quarto"}</span>
+				<span>
+					{place.rooms} {place.rooms > 1 ? "quartos" : "quarto"}
+				</span>
 				<Dot />
-				<span>{place.beds} {place.beds > 1 ? "camas" : "cama"}</span>
+				<span>
+					{place.beds} {place.beds > 1 ? "camas" : "cama"}
+				</span>
 				<Dot />
-				<span>{place.bathrooms} {place.bathrooms > 1 ? "banheiros" : "banheiro"}</span>
+				<span>
+					{place.bathrooms} {place.bathrooms > 1 ? "banheiros" : "banheiro"}
+				</span>
 			</div>
 
 			{/* Title + rating + city */}
@@ -44,7 +69,10 @@ export default function PlaceHeader({ place }) {
 				</motion.div>
 
 				{place.averageRating > 0 && (
-					<motion.div variants={fadeUp} className="flex gap-2 rounded-2xl items-center">
+					<motion.div
+						variants={fadeUp}
+						className="flex gap-2 rounded-2xl items-center"
+					>
 						<div className="flex items-center gap-2">
 							<div className="flex items-center gap-1">
 								{[...Array(5)].map((_, i) => (
@@ -55,8 +83,8 @@ export default function PlaceHeader({ place }) {
 											i < Math.floor(place.averageRating)
 												? "text-yellow-500 fill-current"
 												: i < place.averageRating
-												? "text-yellow-500 fill-current opacity-50"
-												: "text-gray-300"
+													? "text-yellow-500 fill-current opacity-50"
+													: "text-gray-300"
 										}
 									/>
 								))}
@@ -86,11 +114,17 @@ export default function PlaceHeader({ place }) {
 				>
 					<span>{place.guests} hóspedes</span>
 					<Dot />
-					<span>{place.rooms} {place.rooms > 1 ? "quartos" : "quarto"}</span>
+					<span>
+						{place.rooms} {place.rooms > 1 ? "quartos" : "quarto"}
+					</span>
 					<Dot />
-					<span>{place.beds} {place.beds > 1 ? "camas" : "cama"}</span>
+					<span>
+						{place.beds} {place.beds > 1 ? "camas" : "cama"}
+					</span>
 					<Dot />
-					<span>{place.bathrooms} {place.bathrooms > 1 ? "banheiros" : "banheiro"}</span>
+					<span>
+						{place.bathrooms} {place.bathrooms > 1 ? "banheiros" : "banheiro"}
+					</span>
 				</motion.div>
 			)}
 		</div>

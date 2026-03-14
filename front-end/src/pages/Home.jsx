@@ -35,6 +35,11 @@ import DatePickerAirbnb from "@/components/places/DatePickerAirbnb";
 import searchSchema from "@/components/schemas/searchSchema.jsx";
 import { useMobileContext } from "../components/contexts/MobileContext";
 import { useLocation } from "react-router";
+import SearchBar from "../components/layout/SearchBar";
+import Cards from "./Cards";
+import IOSVideoPlayer from "./IOSVideoPlayer";
+
+import imageTRansparent from "@/assets/iPhone-16.png";
 
 const Home = () => {
 	const location = useLocation();
@@ -149,11 +154,14 @@ const Home = () => {
 	return (
 		<div className="">
 			{/* ─── HERO: Grainient + texto centralizado ─── */}
-			<div ref={heroRef} className="relative flex flex-col items-center justify-center overflow-hidden">
+			<div
+				ref={heroRef}
+				className="relative flex max-sm:mt-10 flex-col items-center justify-center overflow-hidden"
+			>
 				{/* Centered hero content */}
 				<motion.div
 					style={{ y: heroY }}
-					className="relative z-10 h-full 2xl:mt-45 text-center px-6 my-auto mx-auto"
+					className="relative z-10 h-full 2xl:mt-45 text-center px-6 max-sm:px-1 my-auto mx-auto"
 				>
 					<div className="overflow-hidden">
 						<motion.h1
@@ -163,7 +171,11 @@ const Home = () => {
 							custom={0}
 							className="text-7xl max-md:text-5xl max-sm:text-4xl font-extrabold text-primary-900 leading-tight mb-6"
 						>
-							<img src={logoPrimary} className="max-w-2xl" alt="" />
+							<img
+								src={logoPrimary}
+								className="max-w-2xl max-sm:max-w-xs  mx-auto"
+								alt=""
+							/>
 						</motion.h1>
 					</div>
 
@@ -176,115 +188,94 @@ const Home = () => {
 							className="text-gray-900 mb-10 text-xl max-sm:text-base leading-relaxed"
 						>
 							Encontre acomodações únicas em Sorocaba e em todo o Brasil.
-							<br className="max-sm:hidden" />
 							Reserve com segurança e descubra novos lugares.
 						</motion.p>
 					</div>
-
-					{/* <motion.div
-						initial={{ opacity: 0, y: 60 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.4 }}
-						className="flex flex-col sm:flex-row gap-4 justify-center"
-					>
-						<Link
-							to="/account/places"
-							className="bg-white text-black px-8 py-4 rounded-full font-medium hover:bg-primary-800 transition-all hover:scale-105"
-						>
-							Explorar acomodações
-						</Link>
-						<Link
-							to="/account/places/new"
-							className="border border-white text-white px-8 py-4 rounded-full font-medium hover:bg-white/60 transition-all hover:scale-105 backdrop-blur-sm"
-						>
-							Anunciar acomodação
-						</Link>
-					</motion.div> */}
 				</motion.div>
-
-				{/* SEARCH MOBILE */}
-				{mobile && (
-					<div className="relative z-10 w-full px-3.5 mt-8">
-						<Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-							<DrawerTrigger asChild>
-								<button
-									className="w-full bg-white/90 backdrop-blur-sm shadow-lg rounded-2xl px-4 py-4 
-                  flex items-center gap-3 hover:shadow-xl transition-shadow"
-								>
-									<div className="flex-1 text-left">
-										<p className="text-sm font-semibold text-gray-900">
-											{city ? "Pesquisa personalizada" : "Inicie sua busca"}
-										</p>
-										<p className="text-xs text-gray-500">
-											{city || "Para onde? • Quando? • Quem?"}
-										</p>
-									</div>
-									<Search />
-								</button>
-							</DrawerTrigger>
-
-							<DrawerContent>
-								<DrawerHeader>
-									<DrawerTitle>Buscar acomodações</DrawerTitle>
-								</DrawerHeader>
-
-								<div className="p-6 space-y-6">
-									<input
-										type="text"
-										placeholder="Cidade"
-										className="w-full border p-3 rounded-xl"
-										{...register("city")}
-									/>
-
-									<Controller
-										name="checkin"
-										control={control}
-										render={({ field }) => (
-											<Controller
-												name="checkout"
-												control={control}
-												render={({ field: checkoutField }) => (
-													<DatePickerAirbnb
-														key={datePickerKey}
-														onDateSelect={({ checkin, checkout }) => {
-															field.onChange(checkin);
-															checkoutField.onChange(checkout);
-														}}
-													/>
-												)}
-											/>
-										)}
-									/>
-
-									<input
-										type="number"
-										placeholder="Hóspedes"
-										className="w-full border p-3 rounded-xl"
-										{...register("guests", { valueAsNumber: true })}
-									/>
-
-									<Button
-										onClick={handleSubmit(onSubmit)}
-										className="w-full bg-primary-800 text-white"
-									>
-										{isSearching ? "Buscando..." : "Buscar"}
-									</Button>
-
-									<button
-										onClick={limparPesquisa}
-										className="w-full bg-red-500 text-white rounded-xl p-3"
-									>
-										Limpar filtros
-									</button>
-								</div>
-							</DrawerContent>
-						</Drawer>
-					</div>
-				)}
 			</div>
 
-			{/* ─── FEATURED SECTION ─── */}
-			<FeaturedSection />
+			<img src={imageTRansparent} cla alt="" />
+			{/* <IOSVideoPlayer /> */}
+			{/* <FeaturedSection /> */}
+
+			{/* {mobile && (
+				<div className="relative z-10 w-full max-w-sm px-3.5 mt-8">
+					<Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+						<DrawerTrigger asChild>
+							<button
+								className="w-full bg-white/90 backdrop-blur-sm shadow-lg rounded-2xl px-4 py-4 
+                  flex items-center gap-3 hover:shadow-xl transition-shadow"
+							>
+								<div className="flex-1 text-left">
+									<p className="text-sm font-semibold text-gray-900">
+										{city ? "Pesquisa personalizada" : "Inicie sua busca"}
+									</p>
+									<p className="text-xs text-gray-500">
+										{city || "Para onde? • Quando? • Quem?"}
+									</p>
+								</div>
+								<Search />
+							</button>
+						</DrawerTrigger>
+
+						<DrawerContent>
+							<DrawerHeader>
+								<DrawerTitle>Buscar acomodações</DrawerTitle>
+							</DrawerHeader>
+
+							<div className="p-6 space-y-6">
+								<input
+									type="text"
+									placeholder="Cidade"
+									className="w-full border p-3 rounded-xl"
+									{...register("city")}
+								/>
+
+								<Controller
+									name="checkin"
+									control={control}
+									render={({ field }) => (
+										<Controller
+											name="checkout"
+											control={control}
+											render={({ field: checkoutField }) => (
+												<DatePickerAirbnb
+													key={datePickerKey}
+													onDateSelect={({ checkin, checkout }) => {
+														field.onChange(checkin);
+														checkoutField.onChange(checkout);
+													}}
+												/>
+											)}
+										/>
+									)}
+								/>
+
+								<input
+									type="number"
+									placeholder="Hóspedes"
+									className="w-full border p-3 rounded-xl"
+									{...register("guests", { valueAsNumber: true })}
+								/>
+
+								<Button
+									onClick={handleSubmit(onSubmit)}
+									className="w-full bg-primary-800 text-white"
+								>
+									{isSearching ? "Buscando..." : "Buscar"}
+								</Button>
+
+								<button
+									onClick={limparPesquisa}
+									className="w-full bg-red-500 text-white rounded-xl p-3"
+								>
+									Limpar filtros
+								</button>
+							</div>
+						</DrawerContent>
+					</Drawer>
+				</div>
+			)} */}
 
 			{/* ─── GRID DE PLACES ─── */}
 			<section className="relative mb-16 px-4">
@@ -294,25 +285,27 @@ const Home = () => {
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
 					transition={{ duration: 0.6 }}
-					className="text-center mb-10 max-w-2xl mx-auto"
+					className="text-center mb-10 mt-5 flex items-center justify-center gap-5  mx-auto"
 				>
-					<h2 className="text-4xl max-sm:text-2xl font-extrabold text-primary-900 mb-3">
-						{city ? `Resultados para "${city}"` : "Todas as acomodações"}
-					</h2>
-					<p className="text-gray-500 text-lg">
-						{city
-							? `${placesSearch.length} acomodação${placesSearch.length !== 1 ? "ões" : ""} encontrada${placesSearch.length !== 1 ? "s" : ""}`
-							: "Explore hospedagens únicas espalhadas pelo Brasil"}
-					</p>
-					{city && (
-						<button
-							onClick={limparPesquisa}
-							className="mt-4 inline-flex items-center gap-2 text-sm text-red-500 hover:text-red-700 transition-colors"
-						>
-							<X size={14} />
-							Limpar filtros
-						</button>
-					)}
+					<div className="flex flex-col ">
+						<h2 className="text-4xl  max-sm:text-2xl font-extrabold text-primary-900 mb-1">
+							{city ? `Resultados para "${city}"` : "Todas as acomodações"}
+						</h2>
+						<p className="text-gray-500 text-sm">
+							{city
+								? `${placesSearch.length} acomodação${placesSearch.length !== 1 ? "ões" : ""} encontrada${placesSearch.length !== 1 ? "s" : ""}`
+								: "Explore hospedagens únicas espalhadas pelo Brasil"}
+						</p>
+						{city && (
+							<button
+								onClick={limparPesquisa}
+								className="mt-4 underline cursor-pointer inline-flex items-center gap-2 text-sm text-red-500 hover:text-red-700 transition-colors"
+							>
+								Limpar filtros
+							</button>
+						)}
+					</div>
+					{!mobile && <SearchBar />}
 				</motion.div>
 
 				{loading && (
@@ -325,7 +318,7 @@ const Home = () => {
 
 				{!loading && (
 					<motion.div
-						className="grid max-w-7xl mx-auto grid-cols-[repeat(auto-fit,minmax(225px,1fr))] gap-8"
+						className="grid max-w-7xl mx-auto grid-cols-[repeat(auto-fit,minmax(225px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(180px,0.5fr))] max-sm:gap-2 gap-8"
 						variants={staggerContainer(0.06)}
 						initial="hidden"
 						whileInView="visible"

@@ -85,7 +85,7 @@ function App() {
 													<NotificationToast />
 													<ScrollToTop />
 
-													<div className="min-h-screen relative flex flex-1 flex-col p-4 h-full w-full justify-between">
+													<div className="min-h-screen  relative flex flex-1 flex-col p-4 h-full w-full justify-between">
 														<PageTransition>
 															<Routes>
 																<Route path="/" element={<Home />} />

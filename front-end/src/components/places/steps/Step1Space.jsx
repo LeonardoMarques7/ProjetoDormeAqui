@@ -11,6 +11,7 @@ import {
 	DoorOpen,
 } from "lucide-react";
 import { GuestsInput } from "@/components/ui/GuestsInput";
+import GooglePlacesInput from "@/components/places/GooglePlacesInput";
 
 // ============================================
 // TIPOS DE ESPAÇO
@@ -102,18 +103,13 @@ const Step1Space = ({ data, dispatch, errors }) => {
 				<label className="block text-base font-semibold text-gray-700">
 					Cidade e Estado
 				</label>
-				<input
-					type="text"
-					placeholder="Ex: Florianópolis, SC"
+				<GooglePlacesInput
 					value={data.city}
 					onChange={(e) => set("city", e.target.value)}
-					className={`
-						w-full px-4 py-3 border rounded-2xl text-sm
-						focus:outline-none focus:ring-2 focus:ring-primary-400 transition-all
-						${errors?.city ? "border-red-400 bg-red-50" : "border-gray-300"}
-					`}
+					placeholder="Ex: Florianópolis, SC"
+					error={errors?.city}
+					icon={true}
 				/>
-				{errors?.city && <FieldError message={errors.city} />}
 			</section>
 
 			{/* Capacidade - 4 counters */}
