@@ -109,7 +109,7 @@ const SearchBar = ({ compact = false }) => {
 				onSubmit={handleSubmit(onSubmit)}
 				className="w-full max-w-xl mx-auto"
 			>
-				<div className="flex items-center gap-5 bg-white rounded-3xl shadow-2xl text-primary-900 px-3 py-2 hover:shadow-lg transition-shadow">
+				<div className="flex items-center gap-5 bg-white rounded-3xl shadow-2xl text-primary-900 px-3 py-2  transition-shadow">
 					{/* Input de cidade com Google Places */}
 					<div className="flex-1">
 						<GooglePlacesInput
@@ -204,7 +204,7 @@ const SearchBar = ({ compact = false }) => {
 
 	// Versão padrão (como estava antes)
 	return (
-		<form onSubmit={handleSubmit(onSubmit)} className="flex-1 mx-auto">
+		<form onSubmit={handleSubmit(onSubmit)} className="flex-1 w-full mx-auto">
 			<div className="flex items-center gap-5 bg-white rounded-3xl shadow-2xl text-primary-900 px-3 py-2 hover:shadow-lg transition-shadow">
 				{/* Input de cidade com Google Places */}
 				<div className="flex-1">
@@ -214,7 +214,7 @@ const SearchBar = ({ compact = false }) => {
 						placeholder="Para onde você vai?"
 						error={errors.city?.message}
 						className="border-0 rounded-full px-0"
-						icon={false}
+						icon={true}
 					/>
 				</div>
 
