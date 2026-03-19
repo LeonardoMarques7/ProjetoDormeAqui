@@ -14,12 +14,29 @@ const COOKIE_NAME = isProduction ? 'prod_auth_token' : 'dev_auth_token';
 
 
 router.get("/", async (req, res) => {
-    const { city } = req.query;
+    const { city, guests, rooms, minRating } = req.query;
 
     try {
         let query = {};
-        if (city) {
+        
+        // Filtro por cidade
+        if (city && city.trim() !== "") {
             query.city = { $regex: city, $options: "i" };
+        }
+
+        // Filtro por mínimo de hóspedes
+        if (guests && parseInt(guests) > 0) {
+            query.guests = { $gte: parseInt(guests) };
+        }
+
+        // Filtro por mínimo de quartos
+        if (rooms && parseInt(rooms) > 0) {
+            query.rooms = { $gte: parseInt(rooms) };
+        }
+
+        // Filtro por avaliação mínima
+        if (minRating && parseFloat(minRating) > 0) {
+            query.averageRating = { $gte: parseFloat(minRating) };
         }
 
         const placeDocs = await Place.find(query);

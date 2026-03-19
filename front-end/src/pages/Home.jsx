@@ -46,7 +46,6 @@ const Home = () => {
 	const { mobile } = useMobileContext();
 
 	const [city, setCity] = useState("");
-	const [places, setPlaces] = useState([]);
 	const [placesSearch, setPlacesSearch] = useState([]);
 	const [isSearching, setIsSearching] = useState(false);
 	const [loading, setLoading] = useState(true);
@@ -68,16 +67,19 @@ const Home = () => {
 			checkin: null,
 			checkout: null,
 			guests: null,
+			rooms: null,
+			minRating: null,
 		},
 	});
 
 	const fetchPlaces = async () => {
 		try {
 			const { data } = await axios.get("/places");
-			setPlaces(data);
+			setPlacesSearch(data);
 			setLoading(false);
 		} catch (error) {
 			console.error("Erro ao carregar acomodações:", error);
+			setLoading(false);
 		}
 	};
 
@@ -89,46 +91,44 @@ const Home = () => {
 		if (location.state?.searchResults) {
 			setCity(location.state.searchCity || "");
 			setPlacesSearch(location.state.searchResults);
+			setLoading(false);
 			window.history.replaceState({}, document.title);
 		}
 	}, [location.state]);
-
-	const normalize = (str) =>
-		str
-			? str
-					.normalize("NFD")
-					.replace(/[\u0300-\u036f]/g, "")
-					.toLowerCase()
-			: "";
 
 	const onSubmit = async (formData) => {
 		setIsSearching(true);
 		setCity(formData.city || "");
 
-		const searchTerm = normalize(formData.city);
+		try {
+			// Construir query params
+			const queryParams = new URLSearchParams();
+			if (formData.city && formData.city.trim() !== "") {
+				queryParams.append("city", formData.city);
+			}
+			if (formData.guests) {
+				queryParams.append("guests", formData.guests);
+			}
+			if (formData.rooms) {
+				queryParams.append("rooms", formData.rooms);
+			}
+			if (formData.minRating) {
+				queryParams.append("minRating", formData.minRating);
+			}
 
-		let filteredResults = places.filter((place) => {
-			const normalizedCity = normalize(place.city);
-			const normalizedState = normalize(place.state);
-			const normalizedUf = normalize(place.uf);
-
-			const matchLocation =
-				normalizedCity.includes(searchTerm) ||
-				normalizedState.includes(searchTerm) ||
-				normalizedUf.includes(searchTerm);
-
-			return formData.city ? matchLocation : true;
-		});
-
-		if (formData.guests) {
-			filteredResults = filteredResults.filter(
-				(place) => place.guests >= formData.guests,
+			// Fazer requisição ao backend com filtros
+			const { data: filteredResults } = await axios.get(
+				`/places?${queryParams.toString()}`,
 			);
+			setPlacesSearch(filteredResults);
+			setLoading(false);
+		} catch (error) {
+			console.error("Erro na busca:", error);
+			setLoading(false);
+		} finally {
+			setIsSearching(false);
+			setDrawerOpen(false);
 		}
-
-		setPlacesSearch(filteredResults);
-		setIsSearching(false);
-		setDrawerOpen(false);
 	};
 
 	const heroRef = useRef(null);
@@ -145,19 +145,35 @@ const Home = () => {
 			checkin: null,
 			checkout: null,
 			guests: null,
+			rooms: null,
 		});
 
 		clearErrors();
 		setDatePickerKey((prev) => prev + 1);
+
+		// Recarregar todos os places
+		fetchPlaces();
+	};
+
+	const handleSearch = (results, searchCity) => {
+		setCity(searchCity);
+		setPlacesSearch(results);
+		setLoading(false);
 	};
 
 	return (
 		<div>
 			{" "}
-			<img
-				src="https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609"
-				alt=""
-			/>
+			<section className="relative h-[400px] max-sm:h-[300px]">
+				<img
+					src="https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609"
+					alt=""
+					className="h-full w-full rounded-2xl object-cover object-top"
+				/>
+				<div className="absolute w-full bottom-4 left-1/2 -translate-x-1/2 text-center">
+					{!mobile && <SearchBar onSearch={handleSearch} />}
+				</div>
+			</section>
 			{/* ─── GRID DE PLACES ─── */}
 			<section className="relative mb-16 px-4">
 				{/* Section header */}
@@ -187,7 +203,6 @@ const Home = () => {
 						)}
 					</div>
 					<span className="w-1 h-10 bg-gray-100 rounded-2xl"></span>
-					{!mobile && <SearchBar />}
 				</motion.div>
 
 				{loading && (
@@ -206,7 +221,7 @@ const Home = () => {
 						whileInView="visible"
 						viewport={{ once: true }}
 					>
-						{(city ? placesSearch : places).map((place) => (
+						{(city ? placesSearch : placesSearch).map((place) => (
 							<motion.div key={place._id} variants={staggerItem}>
 								<Item place={place} />
 							</motion.div>
