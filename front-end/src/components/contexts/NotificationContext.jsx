@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import {
+	createContext,
+	useContext,
+	useState,
+	useCallback,
+	useEffect,
+} from "react";
 
 const NotificationContext = createContext();
 
@@ -32,7 +38,9 @@ const isNotificationExpired = (createdAt) => {
 };
 
 const cleanupExpiredNotifications = (notifications) => {
-	return notifications.filter((notif) => !isNotificationExpired(notif.createdAt));
+	return notifications.filter(
+		(notif) => !isNotificationExpired(notif.createdAt),
+	);
 };
 
 export const NotificationProvider = ({ children }) => {
@@ -48,34 +56,32 @@ export const NotificationProvider = ({ children }) => {
 		saveNotifications(notifications);
 	}, [notifications]);
 
-	const generateId = () => `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+	const generateId = () =>
+		`notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-	const addNotification = useCallback(
-		(notification) => {
-			const newNotification = {
-				id: notification.id || generateId(),
-				title: notification.title || "Notificação",
-				message: notification.message || "",
-				type: notification.type || "system",
-				createdAt: notification.createdAt || new Date().toISOString(),
-				read: notification.read || false,
-				icon: notification.icon || null,
-				actions: notification.actions || [],
-			};
+	const addNotification = useCallback((notification) => {
+		const newNotification = {
+			id: notification.id || generateId(),
+			title: notification.title || "Notificação",
+			message: notification.message || "",
+			type: notification.type || "system",
+			createdAt: notification.createdAt || new Date().toISOString(),
+			read: notification.read || false,
+			icon: notification.icon || null,
+			actions: notification.actions || [],
+		};
 
-			setNotifications((prev) => {
-				const updated = [newNotification, ...prev];
-				// Manter apenas as últimas MAX_NOTIFICATIONS
-				return updated.slice(0, MAX_NOTIFICATIONS);
-			});
+		setNotifications((prev) => {
+			const updated = [newNotification, ...prev];
+			// Manter apenas as últimas MAX_NOTIFICATIONS
+			return updated.slice(0, MAX_NOTIFICATIONS);
+		});
 
-			// Adicionar à fila de toasts
-			setToastQueue((prev) => [...prev, newNotification]);
+		// Adicionar à fila de toasts
+		setToastQueue((prev) => [...prev, newNotification]);
 
-			return newNotification;
-		},
-		[]
-	);
+		return newNotification;
+	}, []);
 
 	const removeNotification = useCallback((id) => {
 		setNotifications((prev) => prev.filter((notif) => notif.id !== id));
@@ -84,16 +90,12 @@ export const NotificationProvider = ({ children }) => {
 
 	const markAsRead = useCallback((id) => {
 		setNotifications((prev) =>
-			prev.map((notif) =>
-				notif.id === id ? { ...notif, read: true } : notif
-			)
+			prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif)),
 		);
 	}, []);
 
 	const markAllAsRead = useCallback(() => {
-		setNotifications((prev) =>
-			prev.map((notif) => ({ ...notif, read: true }))
-		);
+		setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
 	}, []);
 
 	const clearAllNotifications = useCallback(() => {
@@ -132,10 +134,10 @@ export const useNotification = () => {
 	const context = useContext(NotificationContext);
 	if (!context) {
 		throw new Error(
-			"useNotification deve ser usado dentro de NotificationProvider"
+			"useNotification deve ser usado dentro de NotificationProvider",
 		);
 	}
 	return context;
 };
 
-export default NotificationContext;
+

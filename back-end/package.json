@@ -28,7 +28,7 @@
     "image-downloader": "^4.3.0",
     "jsonwebtoken": "^9.0.2",
     "mime-types": "^3.0.1",
-    "mongoose": "^8.17.1",
+    "mongoose": "^9.3.0",
     "multer": "^2.0.2",
     "nodemailer": "^6.9.7",
     "projetodormeaqui": "file:..",

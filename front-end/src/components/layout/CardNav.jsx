@@ -17,7 +17,7 @@ import { useMobileContext } from "../contexts/MobileContext";
 
 const EASE = "power3.out";
 
-const CardNav = ({ active, className = "" }) => {
+const CardNav = ({ active, className = "", isAbsolute }) => {
 	const { user, setUser } = useUserContext();
 	const { showAuthModal } = useAuthModalContext();
 	const { showMessage } = useMessage();
@@ -250,30 +250,31 @@ const CardNav = ({ active, className = "" }) => {
 
 	return (
 		<div
-			className={`card-nav-container absolute left-1/2 -translate-x-1/2 w-full max-w-7xl z-[99] top-[1.2em] md:top-[2em] ${className}`}
+			className={`card-nav-container absolute left-1/2 -translate-x-1/2 w-full max-w-7xl z-[99] max-sm:mx-2! top-[1.2em] md:top-[2em] ${className}`}
 		>
 			<nav
 				ref={navRef}
-				className={`card-nav ${isExpanded ? "open bg-white shadow-lg" : ""} block h-[60px] p-0 rounded-2xl relative overflow-hidden will-change-[height]`}
+				className={`card-nav ${isExpanded ? "open bg-white shadow-lg" : ""}  block min-h-[60px] p-0 rounded-2xl`}
 			>
 				{/* Top bar */}
 				<div className="card-nav-top absolute inset-x-0 top-0 h-[60px] flex items-center justify-between p-2 max-md:pl-0 pl-[1.1rem] z-[2]">
 					{/* Logo centralizada */}
 					<div className="logo-container flex items-center">
 						<Link to="/" onClick={closeMenu}>
-							{mobile ? (
-								<img
-									src={logoPrimaryMobile}
-									alt="Logo DormeAqui"
-									className="h-12 object-contain"
-								/>
-							) : (
-								<img
-									src={logoPrimary}
-									alt="Logo DormeAqui"
-									className="h-20 object-contain"
-								/>
-							)}
+							{!isAbsolute &&
+								(mobile ? (
+									<img
+										src={logoPrimaryMobile}
+										alt="Logo DormeAqui"
+										className="h-12 object-contain"
+									/>
+								) : (
+									<img
+										src={logoPrimary}
+										alt="Logo DormeAqui"
+										className="h-20 object-contain"
+									/>
+								))}
 						</Link>
 					</div>
 
@@ -285,7 +286,7 @@ const CardNav = ({ active, className = "" }) => {
 							<button
 								type="button"
 								onClick={() => showAuthModal("login")}
-								className="hidden md:inline-flex border-0 rounded-[calc(1rem-0.2rem)] px-5 items-center h-[44px] font-semibold text-sm cursor-pointer transition-colors duration-300 text-gray-900 hover:text-gray-700 hover:underline"
+								className={`${isAbsolute && "text-white hover:text-white"} hidden md:inline-flex border-0 rounded-[calc(1rem-0.2rem)] px-5 items-center h-[44px] font-semibold text-sm cursor-pointer transition-colors duration-300 text-gray-900 hover:text-gray-700 hover:underline`}
 							>
 								Entre ou Cadastre-se
 							</button>
@@ -310,7 +311,7 @@ const CardNav = ({ active, className = "" }) => {
 						)}
 						{/* Hamburger */}
 						<div
-							className={`hamburger-menu ${isHamburgerOpen ? "open" : ""} group h-full flex flex-col items-center justify-center cursor-pointer gap-[6px] md:order-none`}
+							className={`hamburger-menu ${isHamburgerOpen ? "open" : ""} ${isAbsolute && isHamburgerOpen && "text-black"} group h-full flex flex-col items-center justify-center cursor-pointer gap-[6px] md:order-none`}
 							onClick={toggleMenu}
 							role="button"
 							aria-label={isExpanded ? "Fechar menu" : "Abrir menu"}

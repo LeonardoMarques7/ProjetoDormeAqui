@@ -69,6 +69,7 @@ function App() {
 	const location = useLocation();
 	const isComponentActive =
 		location.pathname === "/login" || location.pathname === "/register";
+	const isHome = location.pathname === "/";
 	return (
 		<MantineProvider>
 			<>
@@ -81,11 +82,13 @@ function App() {
 										<NotificationProvider>
 											<MessageProvider>
 												<>
-													<Header />
+													<Header isAbsolute={isHome} />
 													<NotificationToast />
 													<ScrollToTop />
 
-													<div className="min-h-screen relative flex flex-1 flex-col p-4 h-full w-full justify-between">
+													<div
+														className={`${isHome ? "h-screen" : "min-h-screen"} relative max-sm:justify-center! flex flex-1 flex-col ${isHome ? "" : "p-4"} h-full w-full ${isHome ? "" : "justify-between"}`}
+													>
 														<PageTransition>
 															<Routes>
 																<Route path="/" element={<Home />} />
@@ -126,7 +129,7 @@ function App() {
 																/>
 															</Routes>
 														</PageTransition>
-														<Footer active={isComponentActive} />
+														{!isHome && <Footer active={isComponentActive} />}
 													</div>
 												</>
 											</MessageProvider>

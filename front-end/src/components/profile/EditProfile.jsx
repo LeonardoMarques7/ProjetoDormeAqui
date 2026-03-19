@@ -4,6 +4,7 @@ import { Link, Navigate } from "react-router-dom";
 import { useMessage } from "@/components/contexts/MessageContext";
 import { withMask } from "use-mask-input";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import GooglePlacesInput from "@/components/places/GooglePlacesInput";
 
 import {
 	ArrowLeft,
@@ -391,22 +392,15 @@ const EditProfile = ({ user }) => {
 					>
 						Cidade e Estado
 						<div className="text-sm font-normal">
-							Preencha sua cidade, Estado, com formato Barubigança, PO.
+							Preencha sua cidade e estado.
 						</div>
 					</label>
-					<div className="group__input relative flex justify-center items-center">
-						<MapPin className="absolute left-4 text-gray-400 size-6" />
-						<input
-							id="city"
-							type="text"
-							placeholder="Digite a sua cidade e país"
-							className="border border-gray-300 px-14 py-4 rounded-2xl w-full outline-primary-400"
-							value={city}
-							onChange={(e) => {
-								setCity(e.target.value);
-							}}
-						/>
-					</div>
+					<GooglePlacesInput
+						value={city}
+						onChange={(e) => setCity(e.target.value)}
+						placeholder="Digite sua cidade e estado"
+						icon={true}
+					/>
 				</div>
 				<div className="label__input text-start justify-start flex flex-col  gap-5 w-full">
 					<label

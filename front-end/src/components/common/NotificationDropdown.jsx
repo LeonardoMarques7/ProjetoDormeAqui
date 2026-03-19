@@ -2,10 +2,11 @@ import { useNotification } from "@/components/contexts/NotificationContext";
 import NotificationItemDesktop from "./NotificationItemDesktop";
 import EmptyNotificationState from "./EmptyNotificationState";
 import { motion } from "framer-motion";
-import { Trash2, Check } from "lucide-react";
+import { Trash2, Check, X, Minus } from "lucide-react";
 import { useState } from "react";
+import { MobileContext, useMobileContext } from "../contexts/MobileContext";
 
-const NotificationDropdown = ({ onClose }) => {
+const NotificationDropdown = ({ className, onClose }) => {
 	const {
 		notifications,
 		clearAllNotifications,
@@ -14,6 +15,7 @@ const NotificationDropdown = ({ onClose }) => {
 	} = useNotification();
 
 	const [activeTab, setActiveTab] = useState("all");
+	const { mobile } = useMobileContext();
 
 	const unreadCount = getUnreadCount();
 
@@ -29,12 +31,7 @@ const NotificationDropdown = ({ onClose }) => {
 			opacity: 1,
 			scale: 1,
 			y: 0,
-			transition: {
-				type: "spring",
-				stiffness: 300,
-				damping: 30,
-				mass: 0.8,
-			},
+			transition: { type: "spring", stiffness: 300, damping: 30, mass: 0.8 },
 		},
 		exit: {
 			opacity: 0,
@@ -48,10 +45,7 @@ const NotificationDropdown = ({ onClose }) => {
 		hidden: { opacity: 0 },
 		visible: {
 			opacity: 1,
-			transition: {
-				staggerChildren: 0.03,
-				delayChildren: 0.1,
-			},
+			transition: { staggerChildren: 0.03, delayChildren: 0.1 },
 		},
 	};
 
@@ -60,42 +54,51 @@ const NotificationDropdown = ({ onClose }) => {
 		visible: {
 			opacity: 1,
 			y: 0,
-			transition: {
-				type: "spring",
-				stiffness: 200,
-				damping: 20,
-			},
+			transition: { type: "spring", stiffness: 200, damping: 20 },
 		},
 	};
 
+	const isFullscreen = !!onClose;
+
 	return (
 		<motion.div
-			className="bg-white rounded-2xl shadow-xl border border-gray-100 w-96 max-h-[600px] flex flex-col overflow-hidden backdrop-blur-sm"
-			variants={containerVariants}
-			initial="hidden"
-			animate="visible"
-			exit="exit"
+			className={
+				className ??
+				"bg-white rounded-2xl shadow-xl border border-gray-100 w-96 max-h-[600px] flex flex-col overflow-hidden backdrop-blur-sm"
+			}
+			variants={isFullscreen ? undefined : containerVariants}
+			initial={isFullscreen ? undefined : "hidden"}
+			animate={isFullscreen ? undefined : "visible"}
+			exit={isFullscreen ? undefined : "exit"}
 		>
-			{/* Header com Avatar */}
+			{/* Header */}
 			<div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50">
 				<div className="flex items-center justify-between mb-4">
 					<h2 className="text-lg font-semibold text-gray-900">Notificações</h2>
-					<div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 cursor-pointer transition-colors">
-						<div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
-							D
-						</div>
-						<span className="text-xs font-medium text-gray-700">DormeAqui</span>
-					</div>
+					{mobile ? (
+						<button
+							onClick={onClose}
+							className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+							aria-label="Fechar notificações"
+						>
+							<X className="w-5 h-5 text-gray-600" />
+						</button>
+					) : (
+						<button
+							className="p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+							aria-label="Fechar notificações"
+							onClick={onClose}
+						>
+							<Minus className="w-5 h-5 text-gray-600" />
+						</button>
+					)}
 				</div>
 
 				{/* Tabs */}
 				<div className="flex gap-2">
 					{[
 						{ id: "all", label: "Geral" },
-						{
-							id: "unread",
-							label: `Não lidas (${unreadCount})`,
-						},
+						{ id: "unread", label: `Não lidas (${unreadCount})` },
 					].map((tab) => (
 						<button
 							key={tab.id}
@@ -124,15 +127,8 @@ const NotificationDropdown = ({ onClose }) => {
 						className="divide-y divide-gray-100"
 					>
 						{filteredNotifications.map((notification) => (
-							<motion.div
-								key={notification.id}
-								variants={itemVariants}
-								className="hover:bg-gray-50 transition-colors duration-200"
-							>
-								<NotificationItemDesktop
-									notification={notification}
-									onClose={onClose}
-								/>
+							<motion.div key={notification.id} variants={itemVariants}>
+								<NotificationItemDesktop notification={notification} />
 							</motion.div>
 						))}
 					</motion.div>

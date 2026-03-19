@@ -254,7 +254,10 @@ const Place = () => {
 					>
 						{/* COLUNA ESQUERDA */}
 
-						<motion.div className="col-span-3" variants={fadeUp}>
+						<motion.div
+							className="col-span-3 max-sm:flex max-sm:flex-col max-sm:gap-5"
+							variants={fadeUp}
+						>
 							<PlaceHeader place={place} />
 
 							{owner && <PlaceOwner owner={place.owner} />}

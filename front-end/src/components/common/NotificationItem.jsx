@@ -4,23 +4,8 @@ import { useNotification } from "@/components/contexts/NotificationContext";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-const typeIcons = {
-	system: "🔔",
-	reservation: "🎉",
-	payment: "💳",
-	message: "💬",
-	platform: "⭐",
-	welcome: "👋",
-	goodbye: "👋",
-	success: "✅",
-	warning: "⚠️",
-	error: "❌",
-	info: "ℹ️",
-};
-
 const NotificationItem = ({ notification, onClose }) => {
 	const { removeNotification, markAsRead } = useNotification();
-	const icon = notification.icon || typeIcons[notification.type] || "🔔";
 
 	const timeAgo = formatDistanceToNow(new Date(notification.createdAt), {
 		addSuffix: true,
@@ -44,7 +29,7 @@ const NotificationItem = ({ notification, onClose }) => {
 		if (!notification.read) {
 			markAsRead(notification.id);
 		}
-		
+
 		// Se houver uma ação associada, executa
 		if (notification.action) {
 			notification.action();
@@ -55,16 +40,19 @@ const NotificationItem = ({ notification, onClose }) => {
 		<motion.div
 			onClick={handleItemClick}
 			className={`px-4 py-3 cursor-pointer transition-all ${
-				notification.read ? "bg-white hover:bg-gray-50" : "bg-blue-50 hover:bg-blue-100"
+				notification.read
+					? "bg-white hover:bg-gray-50"
+					: "bg-blue-50 hover:bg-blue-100"
 			}`}
-			whileHover={{ backgroundColor: notification.read ? "#f9fafb" : "#eff6ff", scale: 1.01 }}
+			whileHover={{
+				backgroundColor: notification.read ? "#f9fafb" : "#eff6ff",
+				scale: 1.01,
+			}}
 			whileTap={{ scale: 0.98 }}
 		>
 			<div className="flex items-start gap-3">
-				<span className="text-2xl flex-shrink-0">{icon}</span>
-
 				<div className="flex-1 min-w-0">
-					<div className="flex items-start justify-between">
+					<div className="flex items-start  justify-between">
 						<div>
 							{notification.title && (
 								<h4 className="font-semibold text-gray-900 text-sm">

@@ -4,6 +4,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<link rel="icon" type="image/png" href="./src/assets/logos/logo__favicon.png" />
+	
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>DormeAqui - Reserve sua acomodação</title>
 
@@ -15,7 +16,7 @@
 	<meta property="og:type" content="website" />
 	<meta property="og:url" content="https://dorme-aqui.vercel.app" />
 	<meta name="twitter:card" content="summary_large_image" />
-
+	
 	<!-- Preconnect para fontes externas -->
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,6 +29,8 @@
 	      http://localhost:3000
 	      http://localhost:5173
 	      https://dorme-aqui.vercel.app
+	      https://maps.googleapis.com
+	      https://maps.gstatic.com
 	      https://accounts.google.com
 	      https://oauth2.googleapis.com
 	      https://api.mercadopago.com
@@ -50,12 +53,14 @@
 	    img-src
 	      'self'
 	      data:
+	      https://maps.gstatic.com
 	      https:;
 	
 	    script-src
 	      'self'
 	      'unsafe-inline'
 	      'unsafe-eval'
+	      https://maps.googleapis.com
 	      https://accounts.google.com
 	      https://sdk.mercadopago.com;
 	

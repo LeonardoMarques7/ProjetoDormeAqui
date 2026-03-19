@@ -34,6 +34,25 @@ const searchSchema = z
 			.max(20, "Máximo de 20 hóspedes")
 			.optional()
 			.nullable(),
+
+		rooms: z.coerce
+			.number({
+				invalid_type_error: "Número de quartos deve ser um número",
+			})
+			.int("Número de quartos deve ser um número inteiro")
+			.min(1, "Mínimo de 1 quarto")
+			.max(10, "Máximo de 10 quartos")
+			.optional()
+			.nullable(),
+
+		minRating: z.coerce
+			.number({
+				invalid_type_error: "Avaliação deve ser um número",
+			})
+			.min(0, "Mínimo de 0 estrelas")
+			.max(5, "Máximo de 5 estrelas")
+			.optional()
+			.nullable(),
 	})
 	.refine(
 		(data) => {
@@ -47,7 +66,7 @@ const searchSchema = z
 		{
 			message: "Data de check-in deve ser hoje ou no futuro",
 			path: ["checkin"],
-		}
+		},
 	)
 	.refine(
 		(data) => {
@@ -60,7 +79,7 @@ const searchSchema = z
 		{
 			message: "Check-out deve ser após o check-in",
 			path: ["checkout"],
-		}
+		},
 	)
 	.refine(
 		(data) => {
@@ -73,7 +92,7 @@ const searchSchema = z
 		{
 			message: "Selecione primeiro a data de check-in",
 			path: ["checkin"],
-		}
+		},
 	);
 
 export default searchSchema;

@@ -16,7 +16,6 @@ export const useNotificationSystem = () => {
 				message,
 				type,
 				titleType: "sistema",
-				icon,
 			});
 		},
 		// Função auxiliar para sucesso
@@ -26,7 +25,6 @@ export const useNotificationSystem = () => {
 				message,
 				type: "success",
 				titleType: "sucesso",
-				icon: "✅",
 			});
 		},
 		// Função auxiliar para erro
@@ -36,7 +34,6 @@ export const useNotificationSystem = () => {
 				message,
 				type: "error",
 				titleType: "erro",
-				icon: "❌",
 			});
 		},
 		// Função auxiliar para aviso
@@ -46,7 +43,6 @@ export const useNotificationSystem = () => {
 				message,
 				type: "warning",
 				titleType: "aviso",
-				icon: "⚠️",
 			});
 		},
 		// Função auxiliar para informação
@@ -56,7 +52,6 @@ export const useNotificationSystem = () => {
 				message,
 				type: "info",
 				titleType: "informações",
-				icon: "ℹ️",
 			});
 		},
 	};

@@ -4,10 +4,10 @@
 export const notificationTemplates = {
 	// Boas-vindas
 	welcome: {
-		title: "👋 Bem-vindo ao DormeAqui!",
+		title: "Bem-vindo ao DormeAqui!",
 		message: "Esperamos que você encontre o lugar perfeito para descansar.",
 		type: "welcome",
-		icon: "👋",
+		icon: "",
 	},
 
 	// Login
@@ -15,136 +15,139 @@ export const notificationTemplates = {
 		title: "Olá novamente!",
 		message: "Que bom ver você de volta ao DormeAqui.",
 		type: "system",
-		icon: "👋",
+		icon: "",
 	},
 
 	// Logout
 	logoutSuccess: {
-		title: "Até logo 👋",
+		title: "Até logo ",
 		message:
 			"Esperamos que tenha curtido sua experiência no DormeAqui. Volte sempre que precisar de um lugar para descansar.",
 		type: "goodbye",
-		icon: "👋",
+		icon: "",
 	},
 
 	// Cadastro de acomodação
 	accommodationCreated: {
-		title: "🏠 Sua acomodação foi cadastrada!",
+		title: "Sua acomodação foi cadastrada!",
 		message: "Agora ela já pode ser encontrada por viajantes.",
 		type: "system",
-		icon: "🏠",
+		icon: "",
 	},
 
 	// Atualização de preço
 	priceUpdated: {
-		title: "💸 Boa notícia!",
-		message: "O valor de uma acomodação ficou mais barato. Talvez seja um ótimo momento para reservar.",
+		title: "Boa notícia!",
+		message:
+			"O valor de uma acomodação ficou mais barato. Talvez seja um ótimo momento para reservar.",
 		type: "platform",
-		icon: "💸",
+		icon: "",
 	},
 
 	// Reserva confirmada
 	reservationConfirmed: {
-		title: "🎉 Reserva confirmada!",
+		title: "Reserva confirmada!",
 		message: "Sua estadia está garantida.",
 		type: "reservation",
-		icon: "🎉",
+		icon: "",
 	},
 
 	// Reserva cancelada
 	reservationCanceled: {
-		title: "❌ Reserva cancelada",
-		message: "A sua reserva foi cancelada. Se foi engano, você ainda pode fazer uma nova reserva.",
+		title: "Reserva cancelada",
+		message:
+			"A sua reserva foi cancelada. Se foi engano, você ainda pode fazer uma nova reserva.",
 		type: "reservation",
-		icon: "❌",
+		icon: "",
 	},
 
 	// Lembretes de reserva - 5 dias
 	reservationReminder5Days: {
-		title: "📅 Sua viagem está chegando!",
-		message: "Faltam 5 dias para sua reserva. Aproveite os últimos dias para planejar sua viagem!",
+		title: "Sua viagem está chegando!",
+		message:
+			"Faltam 5 dias para sua reserva. Aproveite os últimos dias para planejar sua viagem!",
 		type: "reservation",
-		icon: "📅",
+		icon: "",
 	},
 
 	// Lembretes de reserva - 1 dia
 	reservationReminder1Day: {
-		title: "🧳 Amanhã é o dia!",
+		title: "Amanhã é o dia!",
 		message: "Prepare suas malas e aproveite sua estadia.",
 		type: "reservation",
-		icon: "🧳",
+		icon: "",
 	},
 
 	// Pagamento bem-sucedido
 	paymentSuccess: {
-		title: "💳 Pagamento recebido!",
+		title: "Pagamento recebido!",
 		message: "Seu pagamento foi processado com sucesso.",
 		type: "payment",
-		icon: "💳",
+		icon: "",
 	},
 
 	// Pagamento falhou
 	paymentFailed: {
-		title: "⚠️ Erro no pagamento",
+		title: "Erro no pagamento",
 		message: "Não conseguimos processar seu pagamento. Tente novamente.",
 		type: "error",
-		icon: "⚠️",
+		icon: "",
 	},
 
 	// Avaliação solicitada
 	reviewRequested: {
-		title: "⭐ Como foi sua estadia?",
+		title: "Como foi sua estadia?",
 		message: "Sua avaliação ajuda outros viajantes a encontrar ótimos lugares.",
 		type: "message",
-		icon: "⭐",
+		icon: "",
 	},
 
 	// Mensagem de hospedeiro
 	hostMessage: {
-		title: "💬 Você recebeu uma mensagem",
+		title: "Você recebeu uma mensagem",
 		message: "Um hospedeiro respondeu sua mensagem.",
 		type: "message",
-		icon: "💬",
+		icon: "",
 	},
 
 	// Documentos pendentes
 	documentsPending: {
-		title: "📄 Documentos pendentes",
+		title: "Documentos pendentes",
 		message: "Complete seu perfil enviando os documentos necessários.",
 		type: "system",
-		icon: "📄",
+		icon: "",
 	},
 
 	// Sucesso genérico
 	success: {
-		title: "✅ Sucesso!",
+		title: "Sucesso!",
 		message: "Operação realizada com sucesso.",
 		type: "success",
-		icon: "✅",
+		icon: "",
 	},
 
 	// Erro genérico
 	error: {
-		title: "❌ Erro",
+		title: "Erro",
 		message: "Ocorreu um erro na operação. Tente novamente.",
 		type: "error",
-		icon: "❌",
+		icon: "",
 	},
 
 	// Aviso genérico
 	warning: {
-		title: "⚠️ Atenção",
+		title: "Atenção",
 		message: "Verifique sua ação e tente novamente.",
 		type: "warning",
-		icon: "⚠️",
+		icon: "",
 	},
 
 	// Informação genérica
 	info: {
-		title: "ℹ️ Informação",
+		title: "Informação",
 		message: "Aqui está a informação que você solicitou.",
 		type: "info",
-		icon: "ℹ️",
+		icon: "",
 	},
 };
 
@@ -160,7 +163,9 @@ export const createNotificationFromTemplate = (templateKey, overrides = {}) => {
 	return {
 		...template,
 		...overrides,
-		id: overrides.id || `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+		id:
+			overrides.id ||
+			`notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
 		createdAt: overrides.createdAt || new Date().toISOString(),
 		read: overrides.read ?? false,
 	};
@@ -170,77 +175,65 @@ export const createNotificationFromTemplate = (templateKey, overrides = {}) => {
 export const useNotificationTemplates = (addNotification) => {
 	return {
 		showWelcome: (overrides) =>
-			addNotification(
-				createNotificationFromTemplate("welcome", overrides)
-			),
+			addNotification(createNotificationFromTemplate("welcome", overrides)),
 		showLoginSuccess: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("loginSuccess", overrides)
+				createNotificationFromTemplate("loginSuccess", overrides),
 			),
 		showLogoutSuccess: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("logoutSuccess", overrides)
+				createNotificationFromTemplate("logoutSuccess", overrides),
 			),
 		showAccommodationCreated: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("accommodationCreated", overrides)
+				createNotificationFromTemplate("accommodationCreated", overrides),
 			),
 		showPriceUpdated: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("priceUpdated", overrides)
+				createNotificationFromTemplate("priceUpdated", overrides),
 			),
 		showReservationConfirmed: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("reservationConfirmed", overrides)
+				createNotificationFromTemplate("reservationConfirmed", overrides),
 			),
 		showReservationCanceled: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("reservationCanceled", overrides)
+				createNotificationFromTemplate("reservationCanceled", overrides),
 			),
 		showReservationReminder5Days: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("reservationReminder5Days", overrides)
+				createNotificationFromTemplate("reservationReminder5Days", overrides),
 			),
 		showReservationReminder1Day: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("reservationReminder1Day", overrides)
+				createNotificationFromTemplate("reservationReminder1Day", overrides),
 			),
 		showPaymentSuccess: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("paymentSuccess", overrides)
+				createNotificationFromTemplate("paymentSuccess", overrides),
 			),
 		showPaymentFailed: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("paymentFailed", overrides)
+				createNotificationFromTemplate("paymentFailed", overrides),
 			),
 		showReviewRequested: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("reviewRequested", overrides)
+				createNotificationFromTemplate("reviewRequested", overrides),
 			),
 		showHostMessage: (overrides) =>
-			addNotification(
-				createNotificationFromTemplate("hostMessage", overrides)
-			),
+			addNotification(createNotificationFromTemplate("hostMessage", overrides)),
 		showDocumentsPending: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("documentsPending", overrides)
+				createNotificationFromTemplate("documentsPending", overrides),
 			),
 		showSuccess: (overrides) =>
-			addNotification(
-				createNotificationFromTemplate("success", overrides)
-			),
+			addNotification(createNotificationFromTemplate("success", overrides)),
 		showError: (overrides) =>
-			addNotification(
-				createNotificationFromTemplate("error", overrides)
-			),
+			addNotification(createNotificationFromTemplate("error", overrides)),
 		showWarning: (overrides) =>
-			addNotification(
-				createNotificationFromTemplate("warning", overrides)
-			),
+			addNotification(createNotificationFromTemplate("warning", overrides)),
 		showInfo: (overrides) =>
-			addNotification(
-				createNotificationFromTemplate("info", overrides)
-			),
+			addNotification(createNotificationFromTemplate("info", overrides)),
 	};
 };
 

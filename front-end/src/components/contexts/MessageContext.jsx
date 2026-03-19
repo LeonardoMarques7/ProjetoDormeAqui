@@ -10,9 +10,7 @@ const MessageContext = createContext();
 
 export const MessageProvider = ({ children }) => {
 	return (
-		<MessageContext.Provider value={{}}>
-			{children}
-		</MessageContext.Provider>
+		<MessageContext.Provider value={{}}>{children}</MessageContext.Provider>
 	);
 };
 
@@ -23,22 +21,22 @@ export const useMessage = () => {
 		// Mapa de tipos antigos para templates novos
 		const templateMap = {
 			success: () => ({
-				title: title || "✓ Sucesso!",
+				title: title || "Sucesso",
 				message: message,
 				type: "success",
 			}),
 			error: () => ({
-				title: title || "❌ Erro",
+				title: title || "Erro",
 				message: message,
 				type: "error",
 			}),
 			warning: () => ({
-				title: title || "⚠️ Atenção",
+				title: title || "Aviso",
 				message: message,
 				type: "warning",
 			}),
 			info: () => ({
-				title: title || "ℹ️ Informação",
+				title: title || "Informação",
 				message: message,
 				type: "info",
 			}),
@@ -51,11 +49,10 @@ export const useMessage = () => {
 					title: title || "Notificação",
 					message: message,
 					type: "system",
-			  };
+				};
 
 		addNotification(notificationData);
 	};
 
 	return { showMessage };
 };
-

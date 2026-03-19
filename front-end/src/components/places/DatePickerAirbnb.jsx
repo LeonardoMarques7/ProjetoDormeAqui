@@ -8,12 +8,7 @@ import {
 	ArrowRight,
 	Trash,
 } from "lucide-react";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { useMobileContext } from "@/components/contexts/MobileContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -101,6 +96,7 @@ const DatePickerAirbnb = ({
 	onDateSelect,
 	initialCheckin,
 	search,
+	compact = false,
 	initialCheckout,
 	price = 250,
 	placeId,
@@ -157,7 +153,7 @@ const DatePickerAirbnb = ({
 
 	const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-	const handleDateClick = (date) => {
+	const handleDateClick = (date, onClose = null) => {
 		if (!checkinDate || (checkinDate && checkoutDate)) {
 			setCheckinDate(date);
 			setCheckoutDate(null);
@@ -166,6 +162,13 @@ const DatePickerAirbnb = ({
 			if (isAfter(date, checkinDate)) {
 				setCheckoutDate(date);
 				setSelectingCheckout(false);
+				// Na versão minimalista, chamar callback e fechar o popover após selecionar checkout
+				if (onClose) {
+					setTimeout(() => {
+						onDateSelect({ checkin: checkinDate, checkout: date });
+						onClose();
+					}, 150);
+				}
 			} else {
 				setCheckinDate(date);
 				setCheckoutDate(null);
@@ -219,7 +222,7 @@ const DatePickerAirbnb = ({
 		return classes;
 	};
 
-	const renderMonth = (monthDate, days) => {
+	const renderMonth = (monthDate, days, onClose = null) => {
 		const firstDayOfWeek = days[0].getDay();
 		const emptyDays = Array(firstDayOfWeek).fill(null);
 
@@ -247,7 +250,7 @@ const DatePickerAirbnb = ({
 					{days.map((day, idx) => (
 						<button
 							key={day.toString() + idx}
-							onClick={() => !isDisabled(day) && handleDateClick(day)}
+							onClick={() => !isDisabled(day) && handleDateClick(day, onClose)}
 							disabled={isDisabled(day)}
 							type="button"
 							className={getDayClassName(day)}
@@ -465,129 +468,241 @@ const DatePickerAirbnb = ({
 		);
 	}
 
-	// ── modo search: comportamento original com Dialog ──
+	// ── modo search normal: Popover headlessui com animação ──
 	return (
-		<div className="w-full mx-auto ">
-			{/* Botão para abrir o modal */}
-			<button
-				type="button"
-				onClick={() => setIsOpen(true)}
-				className="border-none p-0 !text-gray-900 w-full border rounded-xl overflow-hidden cursor-pointer hover:bg-white! transition-all flex items-center gap-4"
-			>
-				<div className="flex items-center gap-4">
-					<CalendarDateRangeIcon className="w-6 h-6" />
-					Quando?
-				</div>
-			</button>
-
-			{/* Modal com Calendário */}
-			<Dialog open={isOpen} onOpenChange={setIsOpen}>
-				<DialogContent
-					className="max-w-[95vw] sm:max-w-3xl lg:max-w-3xl p-0 gap-0 overflow-hidden"
-					hideCloseButton
-				>
-					<DialogHeader className="border-b border-gray-200 px-4 md:px-6 py-4 bg-gradient-to-r from-gray-50 to-white">
-						<div className="flex items-center justify-between">
-							<DialogTitle className="text-lg md:text-xl max-sm:text-md! !font-medium text-gray-900">
-								Selecione as datas
-							</DialogTitle>
-							<div className="flex items-center gap-2">
-								<button
-									type="button"
-									onClick={() => setIsOpen(false)}
-									className="p-2 hover:bg-primary-200 cursor-pointer rounded-full transition-all ml-2"
-								>
-									<X size={20} className="text-gray-600" />
-								</button>
-							</div>
-						</div>
-					</DialogHeader>
-
-					{/* Calendários */}
-					<div className="p-4 md:p-6 lg:p-8 max-h-[60vh] relative overflow-y-auto">
-						{loadingDates ? (
-							<div className="flex items-center justify-center py-16">
-								<div className="text-center">
-									<div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-800 rounded-full animate-spin mb-2" />
-									<p className="text-sm text-gray-500">Carregando datas disponíveis...</p>
-								</div>
-							</div>
-						) : (
+		<>
+			{search ? (
+				<div className="w-full">
+					<Popover as="div">
+						{({ open, close }) => (
 							<>
-								<button
-									type="button"
-									onClick={() => setCurrentMonth(addMonths(currentMonth, -1))}
-									className="p-2 absolute left-10 cursor-pointer hover:bg-gray-200 rounded-full transition-all"
-								>
-									<ChevronLeft size={20} />
-								</button>
-								<button
-									type="button"
-									onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-									className="p-2 absolute right-10 cursor-pointer hover:bg-gray-200 rounded-full transition-all"
-								>
-									<ChevronRight size={20} />
-								</button>
-								<div className="flex flex-col lg:flex-row gap-6 lg:gap-8 justify-center">
-									<div className="flex-1 max-w-[340px] mx-auto lg:mx-0">
-										{renderMonth(currentMonth, daysInMonth)}
+								{/* Trigger */}
+								<PopoverButton className="border-none p-0 !text-gray-600 w-full cursor-pointer hover:bg-white! transition-all flex items-center gap-2 outline-none">
+									<div className="flex items-center w-full gap-2">
+										<CalendarDateRangeIcon className="w-5 h-5" />
+										<span className="text-sm text-nowrap">
+											{checkinDate && checkoutDate
+												? `${formatDate(checkinDate, "dd/MM")} - ${formatDate(checkoutDate, "dd/MM")}`
+												: "Quando?"}
+										</span>
 									</div>
-								</div>
+								</PopoverButton>
+
+								{/* Dropdown minimalista */}
+								<AnimatePresence>
+									{open && (
+										<PopoverPanel
+											static
+											anchor={{ to: "bottom", gap: 8 }}
+											as={motion.div}
+											initial={{ opacity: 0, scale: 0.95, y: -8 }}
+											animate={{ opacity: 1, scale: 1, y: 0 }}
+											exit={{ opacity: 0, scale: 0.95, y: -8 }}
+											transition={{
+												type: "spring",
+												stiffness: 300,
+												damping: 30,
+												mass: 0.8,
+											}}
+											className="z-[9999] w-auto bg-white rounded-2xl shadow-xl border border-gray-100 outline-none origin-top p-5"
+										>
+											{/* Apenas o calendário, sem header/footer */}
+											{loadingDates ? (
+												<div className="flex items-center justify-center py-12">
+													<div className="text-center">
+														<div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-800 rounded-full animate-spin mb-2" />
+														<p className="text-sm text-gray-500">
+															Carregando...
+														</p>
+													</div>
+												</div>
+											) : (
+												<div className="relative">
+													<button
+														type="button"
+														onClick={() =>
+															setCurrentMonth(addMonths(currentMonth, -1))
+														}
+														className="p-1.5 absolute left-0 top-0 cursor-pointer hover:bg-gray-200 rounded-full transition-all z-10"
+													>
+														<ChevronLeft size={16} />
+													</button>
+													<button
+														type="button"
+														onClick={() =>
+															setCurrentMonth(addMonths(currentMonth, 1))
+														}
+														className="p-1.5 absolute right-0 top-0 cursor-pointer hover:bg-gray-200 rounded-full transition-all z-10"
+													>
+														<ChevronRight size={16} />
+													</button>
+													<div className="flex justify-center pt-6">
+														<div className="w-full max-w-[300px]">
+															{renderMonth(currentMonth, daysInMonth, close)}
+														</div>
+													</div>
+												</div>
+											)}
+										</PopoverPanel>
+									)}
+								</AnimatePresence>
 							</>
 						)}
-					</div>
+					</Popover>
+				</div>
+			) : (
+				<div className="w-full">
+					<Popover as="div">
+						{({ open, close }) => (
+							<>
+								{/* Trigger */}
+								<PopoverButton className="border-none p-0 !text-gray-600 w-full cursor-pointer hover:bg-white! transition-all flex items-center gap-4 outline-none">
+									<div className="flex items-center gap-4">
+										<CalendarDateRangeIcon className="w-6 h-6" />
+										<span className="text-sm">Quando?</span>
+									</div>
+								</PopoverButton>
 
-					{/* Footer do Modal */}
-					<div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white px- md:px-6 py-4 md:py-5">
-						<div className="flex flex-col md:flex-row max-sm:px-5 items-center justify-between gap-4">
-							<div className="flex items-center max-sm:justify-between gap-4 md:gap-6 max-sm:gap-2 w-full md:w-auto">
-								<div className="">
-									<p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">
-										Check-in
-									</p>
-									<p className="text-md xl:text-xl text-gray-900">
-										{checkinDate
-											? formatDate(checkinDate, "dd/MM/YYYY")
-											: "--/--/--"}
-									</p>
-								</div>
-								<ArrowRight size={15} className="text-primary-500" />
-								<div className="flex flex-col items-end">
-									<p className="text-xs text-primary-500 mb-1 uppercase tracking-wide">
-										Check-out
-									</p>
-									<p className="text-md xl:text-xl text-gray-900">
-										{checkoutDate
-											? formatDate(checkoutDate, "dd/MM/YYYY")
-											: "--/--/--"}
-									</p>
-								</div>
-							</div>
+								{/* Dropdown com animação */}
+								<AnimatePresence>
+									{open && (
+										<PopoverPanel
+											static
+											anchor={{ to: "bottom", gap: 12 }}
+											as={motion.div}
+											initial={{ opacity: 0, scale: 0.95, y: -8 }}
+											animate={{ opacity: 1, scale: 1, y: 0 }}
+											exit={{ opacity: 0, scale: 0.95, y: -8 }}
+											transition={{
+												type: "spring",
+												stiffness: 300,
+												damping: 30,
+												mass: 0.8,
+											}}
+											className="z-[9999] w-[370px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-xl border border-gray-100 outline-none origin-top"
+										>
+											{/* Header */}
+											<div className="border-b border-gray-200 px-5 py-4 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between rounded-t-2xl">
+												<h3 className="text-base font-medium text-gray-900">
+													Selecione as datas
+												</h3>
+												<button
+													type="button"
+													onClick={close}
+													className="p-2 hover:bg-primary-200 cursor-pointer rounded-full transition-all"
+												>
+													<X size={18} className="text-gray-600" />
+												</button>
+											</div>
 
-							<div className="flex items-center gap-4 w-full md:w-auto">
-								<InteractiveHoverButton
-									type="button"
-									icon={Check}
-									onClick={handleConfirm}
-									disabled={!checkinDate || !checkoutDate}
-									className="bg-primary-900 cursor-pointer flex-1 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-primary-800 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
-								>
-									Selecionar datas
-								</InteractiveHoverButton>
-								<button
-									type="button"
-									disabled={!checkinDate || !checkoutDate}
-									onClick={handleClear}
-									className="bg-red-500 cursor-pointer text-white p-3 rounded-xl text-sm font-bold hover:bg-red-700 transition-all disabled:bg-red-100 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg disabled:shadow-none"
-								>
-									<Trash />
-								</button>
-							</div>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
-		</div>
+											{/* Calendário */}
+											<div className="p-5 relative">
+												{loadingDates ? (
+													<div className="flex items-center justify-center py-12">
+														<div className="text-center">
+															<div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-800 rounded-full animate-spin mb-2" />
+															<p className="text-sm text-gray-500">
+																Carregando datas disponíveis...
+															</p>
+														</div>
+													</div>
+												) : (
+													<>
+														<button
+															type="button"
+															onClick={() =>
+																setCurrentMonth(addMonths(currentMonth, -1))
+															}
+															className="p-2 absolute left-5 top-5 cursor-pointer hover:bg-gray-200 rounded-full transition-all z-10"
+														>
+															<ChevronLeft size={18} />
+														</button>
+														<button
+															type="button"
+															onClick={() =>
+																setCurrentMonth(addMonths(currentMonth, 1))
+															}
+															className="p-2 absolute right-5 top-5 cursor-pointer hover:bg-gray-200 rounded-full transition-all z-10"
+														>
+															<ChevronRight size={18} />
+														</button>
+														<div className="flex justify-center">
+															<div className="w-full max-w-[320px]">
+																{renderMonth(currentMonth, daysInMonth)}
+															</div>
+														</div>
+													</>
+												)}
+											</div>
+
+											{/* Footer */}
+											<div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white px-5 py-4 rounded-b-2xl">
+												<div className="flex items-center justify-between gap-3">
+													<div className="flex items-center gap-4">
+														<div>
+															<p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">
+																Check-in
+															</p>
+															<p className="text-sm font-medium text-gray-900">
+																{checkinDate
+																	? formatDate(checkinDate, "dd/MM/yyyy")
+																	: "--/--/--"}
+															</p>
+														</div>
+														<ArrowRight
+															size={14}
+															className="text-primary-400"
+														/>
+														<div>
+															<p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">
+																Check-out
+															</p>
+															<p className="text-sm font-medium text-gray-900">
+																{checkoutDate
+																	? formatDate(checkoutDate, "dd/MM/yyyy")
+																	: "--/--/--"}
+															</p>
+														</div>
+													</div>
+
+													<div className="flex items-center gap-2 flex-shrink-0">
+														<button
+															type="button"
+															disabled={!checkinDate && !checkoutDate}
+															onClick={handleClear}
+															className="bg-red-500 cursor-pointer text-white p-2.5 rounded-xl text-sm hover:bg-red-700 transition-all disabled:bg-red-100 disabled:cursor-not-allowed flex items-center shadow"
+														>
+															<Trash size={16} />
+														</button>
+														<InteractiveHoverButton
+															type="button"
+															icon={Check}
+															onClick={() => {
+																if (checkinDate && checkoutDate) {
+																	onDateSelect({
+																		checkin: checkinDate,
+																		checkout: checkoutDate,
+																	});
+																	close();
+																}
+															}}
+															disabled={!checkinDate || !checkoutDate}
+															className="bg-primary-900 cursor-pointer text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-primary-800 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow"
+														>
+															Confirmar
+														</InteractiveHoverButton>
+													</div>
+												</div>
+											</div>
+										</PopoverPanel>
+									)}
+								</AnimatePresence>
+							</>
+						)}
+					</Popover>
+				</div>
+			)}
+		</>
 	);
 };
 
