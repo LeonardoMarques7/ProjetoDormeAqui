@@ -96,7 +96,7 @@ const SearchBar = ({ compact = false, onSearch }) => {
 				});
 			}
 
-			reset();
+			// Não fazer reset para manter os dados da pesquisa visíveis
 			setDatePickerKey((prev) => prev + 1);
 
 			// Aguarda 300ms adicional para finalizar animação do spinner
@@ -129,7 +129,7 @@ const SearchBar = ({ compact = false, onSearch }) => {
 		return (
 			<form
 				onSubmit={handleSubmit(onSubmit)}
-				className="w-full max-w-xl mx-auto"
+				className="w-full max-w-2xl mx-auto"
 			>
 				<div className="flex items-center gap-5 bg-white rounded-3xl shadow-2xl text-primary-900 px-3 py-2  transition-shadow">
 					{/* Input de cidade com Google Places */}
@@ -228,7 +228,7 @@ const SearchBar = ({ compact = false, onSearch }) => {
 	return (
 		<form
 			onSubmit={handleSubmit(onSubmit)}
-			className="w-full max-w-2xl mx-auto"
+			className="w-full max-w-full mx-auto"
 		>
 			<div className="flex flex-col bg-white rounded-3xl shadow-2xl text-primary-900 px-3 py-2 hover:shadow-lg transition-shadow">
 				{/* Input de cidade com Google Places */}

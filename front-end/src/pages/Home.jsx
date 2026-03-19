@@ -206,7 +206,7 @@ const Home = () => {
 					{/* SearchBar com parallax subindo */}
 					<motion.div
 						style={{ y: searchBarY }}
-						className="mt-12 w-full max-w-2xl px-4 max-sm:mt-6"
+						className="mt-12 w-full max-w-4xl px-4 max-sm:mt-6"
 					>
 						{!mobile && <SearchBar onSearch={handleSearch} />}
 					</motion.div>
