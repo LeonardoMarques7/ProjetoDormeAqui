@@ -220,7 +220,12 @@ export const GooglePlacesInput = ({
 			(place, status) => {
 				const isOk =
 					status === window.google.maps.places.PlacesServiceStatus.OK;
-				const address = (place?.formatted_address || fallbackAddress || place?.name || "")
+				const address = (
+					place?.formatted_address ||
+					fallbackAddress ||
+					place?.name ||
+					""
+				)
 					.split(",")
 					.map((part) => part.trim())
 					.slice(0, 2)
@@ -331,7 +336,7 @@ export const GooglePlacesInput = ({
 						autoComplete="off"
 						className={[
 							"w-full bg-transparent text-sm text-gray-900 outline-none",
-							"placeholder:text-gray-900",
+							"placeholder:text-gray-600",
 							"min-h-7",
 							inputClassName,
 						]

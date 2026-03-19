@@ -133,7 +133,13 @@ const Home = () => {
 
 	const heroRef = useRef(null);
 	const { scrollY } = useScroll();
-	const heroY = useTransform(scrollY, [0, 500], [0, -80]);
+
+	// Parallax transforms para diferentes elementos
+	const logoY = useTransform(scrollY, [0, 400], [0, 120]);
+	const textY = useTransform(scrollY, [0, 400], [0, 80]);
+	const searchBarY = useTransform(scrollY, [0, 300], [0, -100]);
+	const textOpacity = useTransform(scrollY, [0, 300], [1, 0]);
+	const textScale = useTransform(scrollY, [0, 300], [1, 0.9]);
 
 	const limparPesquisa = (e) => {
 		e.preventDefault();
@@ -164,8 +170,9 @@ const Home = () => {
 	return (
 		<div>
 			{" "}
-			<section
-				className="relative h-200 flex-col flex justify-center items-center py-4 rounded-4xl max-sm:h-[300px]"
+			<motion.section
+				ref={heroRef}
+				className="relative h-screen overflow-hidden flex-col flex justify-center items-center py-4 rounded-4xl max-sm:h-screen"
 				style={{
 					perspective: 1000,
 					backgroundImage: `url("https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609")`,
@@ -173,18 +180,40 @@ const Home = () => {
 					backgroundPosition: "center",
 				}}
 			>
-				<div className="z-11 flex h-200 flex-col justify-center items-center py-4 rounded-4xl max-sm:h-[300px]">
-					<div className="flex flex-col items-center  text-center justify-center gap-5 mb-10 mt-10 mx-auto">
-						<img src={logoPrimary} alt="" />
-						<span className="text-xl max-w-xl max-sm:text-2xl text-white mb-1">
-							Encontre acomodações únicas em Sorocaba e em todo o Brasil.
-							Reserve com segurança e descubra novos lugares.
-						</span>
-					</div>
-					{!mobile && <SearchBar onSearch={handleSearch} />}
+				{/* Conteúdo com parallax */}
+				<div className="relative z-20 w-full h-full flex flex-col justify-center items-center">
+					{/* Logo com parallax */}
+					<motion.div
+						style={{ y: logoY }}
+						className="flex flex-col items-center text-center justify-center gap-5 mb-10 mt-10 mx-auto"
+					>
+						<img src={logoPrimary} alt="" className="h-50 w-auto" />
+					</motion.div>
+
+					{/* Texto principal com parallax e fade */}
+					<motion.span
+						style={{
+							y: textY,
+							opacity: textOpacity,
+							scale: textScale,
+						}}
+						className="text-xl max-w-xl max-sm:text-2xl text-white mb-1 text-center font-light"
+					>
+						Encontre acomodações únicas em Sorocaba e em todo o Brasil. Reserve
+						com segurança e descubra novos lugares.
+					</motion.span>
+
+					{/* SearchBar com parallax subindo */}
+					<motion.div
+						style={{ y: searchBarY }}
+						className="mt-12 w-full max-w-2xl px-4 max-sm:mt-6"
+					>
+						{!mobile && <SearchBar onSearch={handleSearch} />}
+					</motion.div>
 				</div>
-				<span className="absolute bottom-0 left-0 w-full h-full inset-0 z-10 bg-black/20 rounded-4xl pointer-events-none" />
-			</section>
+
+				{/* Overlay de sombra */}
+			</motion.section>
 			{/* ─── GRID DE PLACES ─── */}
 			<section className="relative mb-16 px-4">
 				{/* Section header */}

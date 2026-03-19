@@ -467,7 +467,7 @@ const DatePickerAirbnb = ({
 				{({ open, close }) => (
 					<>
 						{/* Trigger */}
-						<PopoverButton className="border-none p-0 !text-gray-900 w-full cursor-pointer hover:bg-white! transition-all flex items-center gap-4 outline-none">
+						<PopoverButton className="border-none p-0 !text-gray-600 w-full cursor-pointer hover:bg-white! transition-all flex items-center gap-4 outline-none">
 							<div className="flex items-center gap-4">
 								<CalendarDateRangeIcon className="w-6 h-6" />
 								<span className="text-sm">Quando?</span>

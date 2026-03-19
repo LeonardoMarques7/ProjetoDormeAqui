@@ -139,7 +139,7 @@ const SearchBar = ({ compact = false, onSearch }) => {
 							onChange={(e) => setValue("city", e.target.value)}
 							placeholder="Para onde você vai?"
 							error={errors.city?.message}
-							className="border-0 rounded-full px-0"
+							className="border-0 rounded-full px-0 placeholder:text-primary-500"
 							icon={false}
 						/>
 					</div>
@@ -184,7 +184,7 @@ const SearchBar = ({ compact = false, onSearch }) => {
 					<input
 						type="number"
 						placeholder="Quem?"
-						className="outline-none w-30 text-sm bg-transparent placeholder:text-primary-900"
+						className="outline-none w-30 text-sm bg-transparent placeholder:text-primary-600!"
 						{...register("guests", {
 							valueAsNumber: true,
 							setValueAs: (v) => (v === "" ? null : parseInt(v)),
@@ -390,10 +390,11 @@ const SearchBar = ({ compact = false, onSearch }) => {
 									]}
 									placeholder="Quem?"
 									clearable
-									className="w-[140px]"
+									className="w-[140px]  "
 									styles={{
 										input: {
 											border: "transparent",
+											"--input-placeholder-color": "#4b5563 ",
 										},
 										dropdown: {
 											borderRadius: "12px",
@@ -426,12 +427,13 @@ const SearchBar = ({ compact = false, onSearch }) => {
 										{ value: "9", label: "9 quartos" },
 										{ value: "10", label: "10 quartos" },
 									]}
-									placeholder="Salas?"
+									placeholder="Quartos?"
 									clearable
 									className="w-[140px]"
 									styles={{
 										input: {
 											border: "transparent",
+											"--input-placeholder-color": "#4b5563 ",
 										},
 										dropdown: {
 											borderRadius: "12px",
