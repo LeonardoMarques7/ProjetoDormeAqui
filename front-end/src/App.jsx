@@ -87,7 +87,7 @@ function App() {
 													<ScrollToTop />
 
 													<div
-														className={`${isHome ? "h-screen" : "min-h-screen"} relative flex flex-1 flex-col ${isHome ? "" : "p-4"} h-full w-full ${isHome ? "" : "justify-between"}`}
+														className={`${isHome ? "h-screen" : "min-h-screen"} relative max-sm:justify-center! flex flex-1 flex-col ${isHome ? "" : "p-4"} h-full w-full ${isHome ? "" : "justify-between"}`}
 													>
 														<PageTransition>
 															<Routes>

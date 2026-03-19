@@ -172,7 +172,7 @@ const Home = () => {
 			{" "}
 			<motion.section
 				ref={heroRef}
-				className="relative h-screen z-50 flex-col flex rounded-bl-[50%] justify-center items-center py-4 shadow-2xl max-sm:h-screen"
+				className="relative h-screen z-50 flex-col max-sm:px-2 flex rounded-bl-[50%] max-sm:rounded-bl-none justify-center items-center py-4 shadow-2xl max-sm:h-screen"
 				style={{
 					perspective: 1000,
 					backgroundImage: `url("https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609")`,
@@ -185,9 +185,13 @@ const Home = () => {
 					{/* Logo com parallax */}
 					<motion.div
 						style={{ y: logoY }}
-						className="flex flex-col items-center text-center justify-center gap-5 mb-10 mt-10 mx-auto"
+						className="flex flex-col items-center text-center justify-center gap-5 mb-10 max-sm:mb-0 mt-10 mx-auto"
 					>
-						<img src={logoPrimary} alt="" className="h-50 w-auto" />
+						<img
+							src={logoPrimary}
+							alt=""
+							className="h-50 w-auto max-sm:object-contain"
+						/>
 					</motion.div>
 
 					{/* Texto principal com parallax e fade */}
@@ -208,7 +212,7 @@ const Home = () => {
 						style={{ y: searchBarY }}
 						className="mt-12 w-full max-w-4xl px-4 max-sm:mt-6"
 					>
-						{!mobile && <SearchBar onSearch={handleSearch} />}
+						<SearchBar onSearch={handleSearch} />
 					</motion.div>
 				</div>
 
