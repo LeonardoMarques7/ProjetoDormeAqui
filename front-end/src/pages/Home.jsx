@@ -172,7 +172,7 @@ const Home = () => {
 			{" "}
 			<motion.section
 				ref={heroRef}
-				className="relative h-screen overflow-hidden flex-col flex justify-center items-center py-4 rounded-bl-[50%] shadow-2xl max-sm:h-screen"
+				className="relative h-screen z-50 flex-col flex rounded-bl-[50%] justify-center items-center py-4 shadow-2xl max-sm:h-screen"
 				style={{
 					perspective: 1000,
 					backgroundImage: `url("https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609")`,
@@ -212,7 +212,7 @@ const Home = () => {
 					</motion.div>
 				</div>
 
-				<span className="inset-0 bg-black/20 h-full w-full absolute"></span>
+				<span className="inset-0 bg-black/20 rounded-bl-[50%] h-full w-full absolute"></span>
 				{/* Overlay de sombra */}
 			</motion.section>
 			{/* ─── GRID DE PLACES ─── */}
