@@ -9,7 +9,7 @@ import FeaturedSection from "@/components/common/FeaturedSection";
 import Grainient from "@/components/Grainient";
 import axios from "axios";
 
-import logoPrimary from "@/assets/logo__primary.png";
+import logoPrimary from "@/assets/logo__secondary.png";
 import { Link } from "react-router-dom";
 import {
 	Eraser,
@@ -164,15 +164,26 @@ const Home = () => {
 	return (
 		<div>
 			{" "}
-			<section className="relative h-[400px] max-sm:h-[300px]">
-				<img
-					src="https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609"
-					alt=""
-					className="h-full w-full rounded-2xl object-cover object-top"
-				/>
-				<div className="absolute w-full bottom-4 left-1/2 -translate-x-1/2 text-center">
+			<section
+				className="relative h-200 flex-col flex justify-center items-center py-4 rounded-4xl max-sm:h-[300px]"
+				style={{
+					perspective: 1000,
+					backgroundImage: `url("https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609")`,
+					backgroundSize: "cover",
+					backgroundPosition: "center",
+				}}
+			>
+				<div className="z-11 flex h-200 flex-col justify-center items-center py-4 rounded-4xl max-sm:h-[300px]">
+					<div className="flex flex-col items-center  text-center justify-center gap-5 mb-10 mt-10 mx-auto">
+						<img src={logoPrimary} alt="" />
+						<span className="text-xl max-w-xl max-sm:text-2xl text-white mb-1">
+							Encontre acomodações únicas em Sorocaba e em todo o Brasil.
+							Reserve com segurança e descubra novos lugares.
+						</span>
+					</div>
 					{!mobile && <SearchBar onSearch={handleSearch} />}
 				</div>
+				<span className="absolute bottom-0 left-0 w-full h-full inset-0 z-10 bg-black/20 rounded-4xl pointer-events-none" />
 			</section>
 			{/* ─── GRID DE PLACES ─── */}
 			<section className="relative mb-16 px-4">
@@ -182,13 +193,13 @@ const Home = () => {
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
 					transition={{ duration: 0.6 }}
-					className="text-start mb-10 mt-5 flex  items-center justify-center gap-5  mx-auto"
+					className="text-center mb-10 mt-10 flex items-center justify-center gap-5  mx-auto"
 				>
-					<div className="flex flex-col items-start justify-start">
-						<h2 className="text-4xl  max-sm:text-2xl font-extrabold text-primary-900 mb-1">
+					<div className="flex flex-col items-center text-center justify-center">
+						<span className="text-5xl  max-sm:text-2xl font-extrabold text-primary-900 mb-1">
 							{city ? `Resultados para "${city}"` : "Todas as acomodações"}
-						</h2>
-						<p className="text-gray-500 text-sm">
+						</span>
+						<p className="text-gray-500">
 							{city
 								? `${placesSearch.length} acomodação${placesSearch.length !== 1 ? "ões" : ""} encontrada${placesSearch.length !== 1 ? "s" : ""}`
 								: "Explore hospedagens únicas espalhadas pelo Brasil"}
@@ -202,7 +213,6 @@ const Home = () => {
 							</button>
 						)}
 					</div>
-					<span className="w-1 h-10 bg-gray-100 rounded-2xl"></span>
 				</motion.div>
 
 				{loading && (
