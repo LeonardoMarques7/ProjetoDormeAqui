@@ -232,7 +232,7 @@ const SearchBar = ({ compact = false, onSearch }) => {
 		>
 			<div className="flex flex-col bg-white rounded-3xl shadow-2xl text-primary-900 px-3 py-2 hover:shadow-lg transition-shadow">
 				{/* Input de cidade com Google Places */}
-				<div className="flex-1">
+				<div className="flex-1 z-50">
 					<GooglePlacesInput
 						value={watchedValues.city}
 						onChange={(e) => setValue("city", e.target.value)}

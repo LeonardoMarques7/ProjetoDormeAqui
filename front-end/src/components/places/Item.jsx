@@ -92,7 +92,7 @@ const Item = ({ place = null, placeHolder }) => {
 				<motion.div
 					whileHover={{ y: -6, boxShadow: "0 16px 48px rgba(0,0,0,0.18)" }}
 					transition={{ type: "spring", stiffness: 260, damping: 20 }}
-					className="h-full w-full sm:max-w-[350px]"
+					className="h-full w-full sm:max-w-[350px] rounded-2xl"
 				>
 					<Link
 						ref={cardRef}
@@ -101,7 +101,7 @@ const Item = ({ place = null, placeHolder }) => {
 						onMouseLeave={() => setIsHovered(false)}
 						className={`${
 							isHovered && "border-2 border-primary-200 z-1 shadow-xl"
-						} flex bg-white shadow-md h-full rounded-2xl gap-4 flex-col w-full transition-all duration-300`}
+						} flex bg-white  h-full rounded-2xl gap-4 flex-col w-full transition-all duration-300`}
 					>
 						{/* Carrossel de imagens */}
 						<div className="relative">
@@ -183,7 +183,8 @@ const Item = ({ place = null, placeHolder }) => {
 							>
 								<MapPin size={12} className="flex-shrink-0" />
 								<span className="line-clamp-1">
-									{place.city}{place.uf ? `, ${place.uf}` : ""}
+									{place.city}
+									{place.uf ? `, ${place.uf}` : ""}
 								</span>
 							</motion.div>
 							<motion.p

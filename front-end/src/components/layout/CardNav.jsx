@@ -17,7 +17,7 @@ import { useMobileContext } from "../contexts/MobileContext";
 
 const EASE = "power3.out";
 
-const CardNav = ({ active, className = "" }) => {
+const CardNav = ({ active, className = "", isAbsolute }) => {
 	const { user, setUser } = useUserContext();
 	const { showAuthModal } = useAuthModalContext();
 	const { showMessage } = useMessage();
@@ -261,19 +261,20 @@ const CardNav = ({ active, className = "" }) => {
 					{/* Logo centralizada */}
 					<div className="logo-container flex items-center">
 						<Link to="/" onClick={closeMenu}>
-							{mobile ? (
-								<img
-									src={logoPrimaryMobile}
-									alt="Logo DormeAqui"
-									className="h-12 object-contain"
-								/>
-							) : (
-								<img
-									src={logoPrimary}
-									alt="Logo DormeAqui"
-									className="h-20 object-contain"
-								/>
-							)}
+							{!isAbsolute &&
+								(mobile ? (
+									<img
+										src={logoPrimaryMobile}
+										alt="Logo DormeAqui"
+										className="h-12 object-contain"
+									/>
+								) : (
+									<img
+										src={logoPrimary}
+										alt="Logo DormeAqui"
+										className="h-20 object-contain"
+									/>
+								))}
 						</Link>
 					</div>
 
@@ -285,7 +286,7 @@ const CardNav = ({ active, className = "" }) => {
 							<button
 								type="button"
 								onClick={() => showAuthModal("login")}
-								className="hidden md:inline-flex border-0 rounded-[calc(1rem-0.2rem)] px-5 items-center h-[44px] font-semibold text-sm cursor-pointer transition-colors duration-300 text-gray-900 hover:text-gray-700 hover:underline"
+								className={`${isAbsolute && "text-white"} hidden md:inline-flex border-0 rounded-[calc(1rem-0.2rem)] px-5 items-center h-[44px] font-semibold text-sm cursor-pointer transition-colors duration-300 text-gray-900 hover:text-gray-700 hover:underline`}
 							>
 								Entre ou Cadastre-se
 							</button>

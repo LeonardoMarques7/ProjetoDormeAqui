@@ -172,7 +172,7 @@ const Home = () => {
 			{" "}
 			<motion.section
 				ref={heroRef}
-				className="relative h-screen overflow-hidden flex-col flex justify-center items-center py-4 rounded-4xl max-sm:h-screen"
+				className="relative h-screen overflow-hidden flex-col flex justify-center items-center py-4 rounded-bl-[50%] shadow-2xl max-sm:h-screen"
 				style={{
 					perspective: 1000,
 					backgroundImage: `url("https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609")`,
@@ -212,10 +212,11 @@ const Home = () => {
 					</motion.div>
 				</div>
 
+				<span className="inset-0 bg-black/20 h-full w-full absolute"></span>
 				{/* Overlay de sombra */}
 			</motion.section>
 			{/* ─── GRID DE PLACES ─── */}
-			<section className="relative mb-16 px-4">
+			<section className="relative mx-auto mb-16 px-4">
 				{/* Section header */}
 				<motion.div
 					initial={{ opacity: 0, y: 30 }}
@@ -254,7 +255,7 @@ const Home = () => {
 
 				{!loading && (
 					<motion.div
-						className="grid max-w-7xl mx-auto grid-cols-[repeat(auto-fit,minmax(225px,250px))] max-sm:grid-cols-[repeat(auto-fit,minmax(180px,0.5fr))] max-sm:gap-2 gap-8"
+						className="grid max-w-7xl mx-auto justify-center grid-cols-[repeat(auto-fit,minmax(225px,250px))] max-sm:grid-cols-[repeat(auto-fit,minmax(180px,0.5fr))] max-sm:gap-2 gap-8"
 						variants={staggerContainer(0.06)}
 						initial="hidden"
 						whileInView="visible"
