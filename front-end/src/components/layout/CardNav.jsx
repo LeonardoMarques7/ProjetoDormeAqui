@@ -286,7 +286,7 @@ const CardNav = ({ active, className = "", isAbsolute }) => {
 							<button
 								type="button"
 								onClick={() => showAuthModal("login")}
-								className={`${isAbsolute && "text-white"} hidden md:inline-flex border-0 rounded-[calc(1rem-0.2rem)] px-5 items-center h-[44px] font-semibold text-sm cursor-pointer transition-colors duration-300 text-gray-900 hover:text-gray-700 hover:underline`}
+								className={`${isAbsolute && "text-white hover:text-white"} hidden md:inline-flex border-0 rounded-[calc(1rem-0.2rem)] px-5 items-center h-[44px] font-semibold text-sm cursor-pointer transition-colors duration-300 text-gray-900 hover:text-gray-700 hover:underline`}
 							>
 								Entre ou Cadastre-se
 							</button>
@@ -311,7 +311,7 @@ const CardNav = ({ active, className = "", isAbsolute }) => {
 						)}
 						{/* Hamburger */}
 						<div
-							className={`hamburger-menu ${isHamburgerOpen ? "open" : ""} group h-full flex flex-col items-center justify-center cursor-pointer gap-[6px] md:order-none`}
+							className={`hamburger-menu ${isHamburgerOpen ? "open" : ""} ${isAbsolute && isHamburgerOpen && "text-black"} group h-full flex flex-col items-center justify-center cursor-pointer gap-[6px] md:order-none`}
 							onClick={toggleMenu}
 							role="button"
 							aria-label={isExpanded ? "Fechar menu" : "Abrir menu"}
