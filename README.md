@@ -1,122 +1,215 @@
-# Fluxo de form step-by-step
+<div align="center">
 
-Temos o projeto dormeaqui e na hora de criar um place/acomodação quero fazer estilo step-by-step mas quero ajuda para separar cada passo a passo por categoria tbmm eu tenho o meu componente ainda desmontado so com passos separados mas desorganizado, eu quero fazer de uma forma que torne leve e dinâmico, com categorias e perguntas simples e leves, me ajude a montar esse fluxo e depois eu vou programar em cima dele, olhe meu componente para entender todas as perguntas e categorias, e os novos inputs que ainda serão criados, mas já podem constar no nosso fluxo, quartos, banheiros e camas. Arquivo: NewPlace.jsx
+# 🏠 DormeAqui
 
-# Checkout Transparente Mercado Pago
+### Plataforma Full Stack de Hospedagem — inspirada no Airbnb
 
-## Instalação
+[![Ver Online](https://img.shields.io/badge/Ver_Online-00C851?style=for-the-badge&logo=render&logoColor=white)](https://projetodormeaqui.onrender.com/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/leonardo-emanuel-3695451a0/)
+[![Portfólio](https://img.shields.io/badge/Portfólio-000000?style=for-the-badge&logo=netlify&logoColor=white)](https://leonardomdev.netlify.app/)
 
-### Backend
-
-1. Instale a dependência Mercado Pago (caso não exista):
-   ```bash
-   npm install mercadopago
-   ```
-2. Adicione as variáveis de ambiente no `.env`:
-
-   ```
-   MERCADO_PAGO_ACCESS_TOKEN=SEU_TOKEN
-   MERCADO_PAGO_WEBHOOK_URL=https://suaapi.com/api/webhooks/mercadopago (rota pública que o Mercado Pago deve chamar)
-   FRONTEND_URL=http://localhost:5173
-   NODE_ENV=development
-   ```
-
-3. Importe e use as rotas do checkout transparente:
-   ```js
-   import transparentRoutes from "./domains/payments/transparentRoutes.js";
-   app.use("/api/payments", transparentRoutes);
-   ```
-
-### Frontend
-
-1. Instale a dependência axios (caso não exista):
-   ```bash
-   npm install axios
-   ```
-2. Adicione o componente `TransparentCheckoutForm.jsx` onde desejar exibir o checkout.
-
-## Guia de Uso
-
-- O componente `TransparentCheckoutForm` recebe os dados da reserva (`bookingData`) e callbacks para sucesso/erro.
-- O backend expõe o endpoint `POST /api/payments/transparent` para processar pagamentos com cartão.
-- Para produção, utilize o MercadoPago.js no frontend para gerar o token do cartão e envie para o backend.
-
-## Configuração de Sandbox e Produção
-
-- Use tokens de teste do Mercado Pago para ambiente sandbox.
-- Para produção, gere o token do cartão no frontend usando MercadoPago.js e envie para o backend.
-- Nunca envie dados sensíveis de cartão diretamente ao backend em produção.
-
-## Novas Dependências
-
-- **Backend:** `mercadopago`
-- **Frontend:** `axios` (já utilizado)
-- **Frontend:** `qrcode` (para gerar QR Codes no cliente)
+</div>
 
 ---
 
-## Fluxo Authorize / Capture (Mercado Pago)
+## 📖 Sobre o Projeto
 
-Este projeto suporta o fluxo authorize/capture do Mercado Pago (pagamentos criados com capture=false). Resumo do comportamento implementado:
+O **DormeAqui** é uma aplicação web full stack de hospedagem, construída do zero com foco em experiência do usuário, segurança e boas práticas de desenvolvimento. A plataforma permite que usuários cadastrem acomodações, realizem reservas e efetuem pagamentos de forma segura — cobrindo todo o fluxo de uma plataforma real de hospedagem.
 
-- Pagamento criado (capture=false) → status inicial: "authorized" ou "pending_capture". O payment_id retornado pelo Mercado Pago é persistido (mercadopagoPaymentId) quando a reserva é confirmada via webhook.
-- Endpoint backend adicionado: POST /api/payments/capture/:paymentId — captura um pagamento previamente autorizado usando a API Mercado Pago (/v1/payments/{id}/capture).
-- Fluxo seguro: A confirmação final da reserva e sua criação no banco de dados ocorrem apenas no webhook do Mercado Pago. O webhook tentará capturar pagamentos em estado 'authorized' ou 'pending_capture' quando apropriado e, somente se o status final for 'approved', a reserva será criada.
-- Idempotência: Se uma reserva já existir para o payment_id, o webhook ignora a criação adicional e atualiza status quando necessário.
-- Erros: Se a captura falhar, a criação da reserva é interrompida e um log/retorno será gerado; o cliente deve aguardar nova notificação do Mercado Pago.
-
-Rotas relevantes:
-
-- POST /api/payments/capture/:paymentId — Captura pagamento autorizado (autenticado).
-- POST /api/bookings/from-payment — Endpoint para consulta/integração manual que valida o pagamento, mas NÃO cria reservas; a criação é delegada ao webhook do Mercado Pago.
-- POST /api/webhooks/mercadopago — Rota pública que o Mercado Pago chama para confirmar pagamentos e criar reservas idempotentemente.
-
-Notas de implementação:
-
-- O serviço de captura foi corrigido para usar o método correto do client REST (paymentClient.capture).
-- A criação de reservas foi removida dos fluxos síncronos (transparent/pix/from-payment) e centralizada no webhook para evitar reservas com status 'authorized' ou 'pending_capture'.
+> 🚀 Deploy em produção no **Render** (backend) e **Vercel** (frontend)
 
 ---
 
-## PIX (Checkout Transparente)
+## ✨ Funcionalidades
 
-Foi adicionada a opção de pagamento via PIX usando a API do Mercado Pago.
+| Funcionalidade | Detalhe |
+|---|---|
+| 🔐 Autenticação | JWT + Login social com Google e GitHub (OAuth2) |
+| 🏡 Gestão de Acomodações | Criação, edição e remoção de imóveis |
+| 🖼️ Upload de Imagens | Armazenamento via AWS S3 |
+| 📅 Reservas | Sistema de reservas com seleção de datas e hóspedes |
+| 💳 Pagamentos | Stripe · Mercado Pago (Checkout Transparente + PIX) |
+| ⭐ Avaliações | Sistema de reviews por acomodação |
+| 🔔 Notificações | Notificações em tempo real via WebSocket |
+| 📧 E-mail | Envio de e-mails transacionais com Nodemailer |
+| 🔑 Recuperação de Senha | Fluxo de reset de senha por e-mail |
 
-- Endpoint backend: `POST /api/payments/pix` (autenticado) — cria pagamento PIX e retorna qr_code e qr_code_base64 quando disponível.
-- Verificação de status: `GET /api/payments/status/:paymentId` (autenticado) — retorna status (approved, pending, rejected, etc.).
+---
 
-Como ativar e testar:
+## 🛠️ Stack Técnica
 
-1. Ative o PIX na sua conta Mercado Pago e gere as credenciais necessárias.
-2. Use o token de teste `TEST-...` para sandbox ou `APP_USR-...` em produção no `.env` (MERCADO_PAGO_ACCESS_TOKEN).
-3. Configure `MERCADO_PAGO_WEBHOOK_URL` para receber notificações e atualizar status automaticamente.
-4. Para testes manuais, chame `POST /api/payments/pix` enviando:
-   ```json
-   {
-   	"accommodationId": "<id>",
-   	"checkIn": "YYYY-MM-DD",
-   	"checkOut": "YYYY-MM-DD",
-   	"guests": 2,
-   	"email": "cliente@example.com"
-   }
-   ```
+**Front-end**
 
-Resposta esperada (success):
+![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)
 
-```json
-{
-	"success": true,
-	"message": "Pagamento PIX criado com sucesso.",
-	"paymentId": "123456789",
-	"status": "pending",
-	"qr_code": "000201...",
-	"qr_code_base64": "<base64_png>"
-}
+**Back-end**
+
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express_v5-000000?style=for-the-badge&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+
+**Autenticação & Segurança**
+
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![OAuth2](https://img.shields.io/badge/OAuth2-EB5424?style=for-the-badge&logo=auth0&logoColor=white)
+![bcrypt](https://img.shields.io/badge/bcrypt-003A70?style=for-the-badge&logo=letsencrypt&logoColor=white)
+
+**Pagamentos**
+
+![Stripe](https://img.shields.io/badge/Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white)
+![Mercado Pago](https://img.shields.io/badge/Mercado_Pago-009EE3?style=for-the-badge&logo=mercadopago&logoColor=white)
+
+**Cloud & Ferramentas**
+
+![AWS S3](https://img.shields.io/badge/AWS_S3-FF9900?style=for-the-badge&logo=amazons3&logoColor=white)
+![WebSocket](https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socket.io&logoColor=white)
+![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
+
+---
+
+## 🚀 Instalação e Uso
+
+### Pré-requisitos
+
+- [Node.js](https://nodejs.org/) v18+
+- [MongoDB](https://www.mongodb.com/) (local ou Atlas)
+- Contas configuradas: AWS S3, Google OAuth2, GitHub OAuth2, Stripe ou Mercado Pago
+
+---
+
+### 1. Clone o repositório
+
+```bash
+git clone https://github.com/LeonardoMarques7/ProjetoDormeAqui.git
+cd ProjetoDormeAqui
 ```
 
-Notas de segurança:
+---
 
-- Não armazene dados sensíveis de cartões no servidor sem tokenização pelo MercadoPago.js.
-- Utilize webhooks para atualizar o status real do pagamento e confirmar reservas.
+### 2. Configure o Back-end
+
+```bash
+cd back-end
+npm install
+```
+
+Crie o arquivo `.env` na pasta `back-end/` com as variáveis abaixo:
+
+```env
+# Banco de dados
+MONGO_URL=mongodb://localhost:27017/dormeaqui
+
+# JWT
+JWT_SECRET=sua_chave_secreta
+
+# OAuth2 - Google
+GOOGLE_CLIENT_ID=seu_google_client_id
+GOOGLE_CLIENT_SECRET=seu_google_client_secret
+
+# OAuth2 - GitHub
+GITHUB_CLIENT_ID=seu_github_client_id
+GITHUB_CLIENT_SECRET=seu_github_client_secret
+
+# AWS S3
+AWS_ACCESS_KEY_ID=sua_access_key
+AWS_SECRET_ACCESS_KEY=sua_secret_key
+AWS_REGION=us-east-1
+AWS_BUCKET_NAME=nome_do_bucket
+
+# E-mail (Nodemailer)
+EMAIL_USER=seu_email@gmail.com
+EMAIL_PASS=sua_senha_de_app
+
+# Pagamentos
+STRIPE_SECRET_KEY=sk_test_...
+MERCADO_PAGO_ACCESS_TOKEN=TEST-...
+MERCADO_PAGO_WEBHOOK_URL=https://suaapi.com/api/webhooks/mercadopago
+
+# URLs
+FRONTEND_URL=http://localhost:5173
+NODE_ENV=development
+```
+
+Inicie o servidor em modo desenvolvimento:
+
+```bash
+npm run dev
+```
+
+O servidor estará disponível em `http://localhost:4000`.
 
 ---
+
+### 3. Configure o Front-end
+
+```bash
+cd ../front-end
+npm install
+```
+
+Crie o arquivo `.env` na pasta `front-end/` com as variáveis abaixo:
+
+```env
+VITE_API_URL=http://localhost:4000
+VITE_GOOGLE_CLIENT_ID=seu_google_client_id
+VITE_STRIPE_PUBLIC_KEY=pk_test_...
+```
+
+Inicie a aplicação:
+
+```bash
+npm run dev
+```
+
+A aplicação estará disponível em `http://localhost:5173`.
+
+---
+
+## 📂 Estrutura do Projeto
+
+```
+ProjetoDormeAqui/
+├── back-end/
+│   ├── config/          # Configurações de banco, Stripe e Mercado Pago
+│   ├── domains/         # Módulos por domínio (users, places, bookings, payments, reviews)
+│   ├── middleware/       # Middlewares de autenticação e validação
+│   ├── routes/          # Rotas principais da API
+│   ├── webhooks/        # Handlers de webhooks (Mercado Pago, Stripe)
+│   └── index.js         # Ponto de entrada do servidor
+└── front-end/
+    └── src/
+        ├── components/  # Componentes reutilizáveis
+        ├── context/     # Contextos React (auth, notificações)
+        ├── hooks/       # Hooks customizados
+        ├── pages/       # Páginas da aplicação
+        └── services/    # Integrações com a API
+```
+
+---
+
+## 🌐 Deploy
+
+| Serviço | Plataforma |
+|---|---|
+| Frontend | [Vercel](https://vercel.com/) |
+| Backend | [Render](https://render.com/) |
+| Banco de dados | [MongoDB Atlas](https://www.mongodb.com/atlas) |
+| Imagens | [AWS S3](https://aws.amazon.com/s3/) |
+
+[![Ver Online](https://img.shields.io/badge/Acessar_Aplicação-00C851?style=for-the-badge&logo=render&logoColor=white)](https://projetodormeaqui.onrender.com/)
+
+---
+
+## 📫 Contato
+
+<div align="center">
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Vamos_conversar!-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/leonardo-emanuel-3695451a0/)
+[![Portfólio](https://img.shields.io/badge/Portfólio-leonardomdev.netlify.app-000000?style=for-the-badge&logo=netlify&logoColor=white)](https://leonardomdev.netlify.app/)
+[![Gmail](https://img.shields.io/badge/Email-leonardo.emcsantos@gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:leonardo.emcsantos@gmail.com)
+
+</div>
