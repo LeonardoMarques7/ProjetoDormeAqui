@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import CardNav from "./CardNav";
+import SimpleNavbar from "./SimpleNavbar";
 
 const Header = ({ active, isAbsolute }) => {
 	useEffect(() => {
@@ -8,9 +8,9 @@ const Header = ({ active, isAbsolute }) => {
 
 	return (
 		<header
-			className={`${isAbsolute ? "absolute top-0 left-0 right-0 z-50 text-white!" : "relative"} w-full min-h-24 max-h-full`}
+			className={`${isAbsolute ? "absolute top-0 left-0 right-0 z-50 text-white!" : "relative"} w-full min-h-20 max-h-full`}
 		>
-			<CardNav active={active} isAbsolute={isAbsolute} />
+			<SimpleNavbar isAbsolute={isAbsolute} />
 		</header>
 	);
 };
