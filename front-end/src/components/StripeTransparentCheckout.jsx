@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Lock } from "lucide-react";
 import axios from "axios";
+import { useUserContext } from "@/components/contexts/UserContext";
+import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 import CheckoutPreview from "./CheckoutPreview";
 import iconPix from "@/assets/icons/icons8-pix-50.png";
 import iconsBrands from "@/assets/icons/iconsBrands.png";
@@ -31,9 +33,18 @@ const PAYMENT_BADGES = [
 function CheckoutForm({ checkoutData, onResult, place }) {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
+	const { user } = useUserContext();
+	const { showAuthModal } = useAuthModalContext();
 
 	const handleCheckout = async () => {
 		setError(null);
+
+		// Check authentication before proceeding
+		if (!user) {
+			showAuthModal("login");
+			setLoading(false);
+			return;
+		}
 
 		if (
 			!checkoutData?.checkIn ||
@@ -62,6 +73,16 @@ function CheckoutForm({ checkoutData, onResult, place }) {
 			window.location.href = json.sessionUrl;
 		} catch (err) {
 			console.error("Stripe checkout error:", err);
+			
+			// Handle 401 Unauthorized
+			if (err.response?.status === 401) {
+				setError("Sua sessão expirou. Por favor, faça login novamente.");
+				showAuthModal("login");
+				setLoading(false);
+				onResult?.({ success: false, error: "Sessão expirada" });
+				return;
+			}
+			
 			const msg =
 				err?.response?.data?.message || err.message || String(err);
 			setError(msg);

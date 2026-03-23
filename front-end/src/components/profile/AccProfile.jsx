@@ -53,7 +53,7 @@ import Banner from "@/assets/banner.jpg";
 import bannerDefault from "@/assets/banner__default2.jpg";
 import { motion, AnimatePresence } from "framer-motion";
 
-const AccProfile = () => {
+const AccProfile = ({ userId }) => {
 	const { user, setUser, ready: userContextReady } = useUserContext();
 	const { showMessage } = useMessage();
 	const { state } = useLocation();
@@ -61,6 +61,9 @@ const AccProfile = () => {
 
 	const isEditMode = params.action === "edit";
 	const paramId = isEditMode ? params.id : params.action;
+	
+	// Se userId foi passado como prop, usa. Senão usa paramId
+	const targetUserId = userId || paramId;
 
 	const [profileUser, setProfileUser] = useState(null);
 	const [mobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -90,14 +93,14 @@ const AccProfile = () => {
 	useEffect(() => {
 		const fetchProfile = async () => {
 			try {
-				// Se tem paramId, busca o perfil público desse usuário
+				// Se tem userId prop ou paramId, busca o perfil público desse usuário
 				// Senão, busca o perfil do usuário logado
 				let userId;
 				let endpoint;
 
-				if (paramId) {
+				if (targetUserId) {
 					// Perfil público de outro usuário
-					userId = paramId;
+					userId = targetUserId;
 					endpoint = `/users/${userId}`;
 				} else if (user?._id) {
 					// Perfil do próprio usuário logado
@@ -122,7 +125,7 @@ const AccProfile = () => {
 		};
 
 		fetchProfile();
-	}, [paramId, user?._id, state?.updated]);
+	}, [targetUserId, user?._id, state?.updated]);
 
 	useEffect(() => {
 		if (!api) return;
@@ -172,7 +175,7 @@ const AccProfile = () => {
 		if (ready && profileUser) {
 			fetchPlaces();
 		}
-	}, [paramId, user?._id, ready, profileUser]);
+	}, [targetUserId, user?._id, ready, profileUser]);
 
 	useEffect(() => {
 		const fetchTotalGuestsSatisfied = async () => {
@@ -587,7 +590,7 @@ const AccProfile = () => {
 	// Verifica se está visualizando o próprio perfil
 	// Só é próprio perfil se o usuário está logado E o ID bate
 	const isOwnProfile =
-		user && (!paramId || String(paramId) === String(user._id));
+		user && (!targetUserId || String(targetUserId) === String(user._id));
 
 	const nameUser = displayUser?.name ? displayUser.name.split(" ") : ["", ""];
 

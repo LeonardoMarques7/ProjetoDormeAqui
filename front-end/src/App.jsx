@@ -25,12 +25,14 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import PublicProfileWrapper from "./pages/PublicProfileWrapper";
 
 import Footer from "@/components/layout/Footer";
 import StaggeredMenu from "@/components/layout/StaggeredMenu";
 import AppSidebar from "@/components/layout/Sidebar";
 import MobileTopBar from "@/components/layout/MobileTopBar";
 import MobileBottomNavigation from "@/components/layout/MobileNavBar";
+import PrivateRoute from "@/components/PrivateRoute";
 import {
 	SidebarInset,
 	SidebarProvider,
@@ -106,22 +108,39 @@ function AppContent() {
 										<Route path="/privacy" element={<Privacy />} />
 										<Route path="/terms" element={<Terms />} />
 										<Route path="/reset-password" element={<ResetPassword />} />
+										<Route path="/account/profile/:id" element={<PublicProfileWrapper />} />
 										<Route
 											path="/account/:subpage/:action?/:id?"
-											element={<Account />}
+											element={
+												<PrivateRoute>
+													<Account />
+												</PrivateRoute>
+											}
 										/>
 										<Route path="/places/:id" element={<Place />} />
 										<Route
 											path="/payment/success"
-											element={<PaymentSuccess />}
+											element={
+												<PrivateRoute>
+													<PaymentSuccess />
+												</PrivateRoute>
+											}
 										/>
 										<Route
 											path="/payment/pending"
-											element={<PaymentPending />}
+											element={
+												<PrivateRoute>
+													<PaymentPending />
+												</PrivateRoute>
+											}
 										/>
 										<Route
 											path="/payment/failure"
-											element={<PaymentFailure />}
+											element={
+												<PrivateRoute>
+													<PaymentFailure />
+												</PrivateRoute>
+											}
 										/>
 										<Route path="/*" element={<NotFound />} />
 										<Route
