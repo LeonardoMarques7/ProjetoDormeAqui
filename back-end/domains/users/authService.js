@@ -6,8 +6,8 @@ import bcrypt from "bcrypt";
 import { JWTSign } from "../../ultis/jwt.js";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const DEFAULT_PHOTO_URL = `https://${process.env.BUCKET}.s3.us-east-2.amazonaws.com/user__default.png`;
-const DEFAULT_BANNER_URL = `https://${process.env.BUCKET}.s3.us-east-2.amazonaws.com/banner__default2.jpg`;
+const DEFAULT_PHOTO_URL = `${process.env.SUPABASE_URL}/storage/v1/object/public/${process.env.SUPABASE_BUCKET}/user__default.png`;
+const DEFAULT_BANNER_URL = `${process.env.SUPABASE_URL}/storage/v1/object/public/${process.env.SUPABASE_BUCKET}/banner__default2.jpg`;
 
 // ========== FUNÇÃO PARA OBTER GITHUB CREDENTIALS CORRETAS ==========
 const getGithubCredentials = () => {

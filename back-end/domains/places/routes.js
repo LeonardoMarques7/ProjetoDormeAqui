@@ -4,7 +4,7 @@ import User from "../users/model.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 import { downloadImage } from "../../ultis/imageDownloader.js";
 import { __dirname } from "../../ultis/dirname.js";
-import { sendToS3, uploadImage } from "../controller.js";
+import { sendToSupabase, uploadImage } from "../controller.js";
 
 const router = Router();
 
@@ -195,7 +195,7 @@ router.post("/upload/link", async (req, res) => {
     try {
         const {filename, fullPath, mimeType} = await downloadImage(link,  path);
 
-        const fileUrl = await sendToS3(filename, fullPath, mimeType)
+        const fileUrl = await sendToSupabase(filename, fullPath, mimeType)
 
         res.json(fileUrl);
     } catch (error) {
@@ -213,11 +213,11 @@ router.post("/upload", uploadImage().array("files", 10), async (req, res) => {
         files.forEach(async (file, index) => {
             const { filename, path, mimetype } = file;
             try {
-                const fileUrl = await sendToS3(filename, path, mimetype)
+                const fileUrl = await sendToSupabase(filename, path, mimetype)
 
                 fileURLArray.push(fileUrl);
             } catch (error) {
-                console.error("Deu errado ao subir para o S3", error);
+                console.error("Deu errado ao subir para o Supabase", error);
                 reject(error);
             }
         })
