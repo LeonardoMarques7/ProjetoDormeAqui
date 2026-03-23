@@ -9,15 +9,15 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { JWTSign, JWTVerify } from "../../ultis/jwt.js";
-import { sendToS3, uploadImage } from "../controller.js";
+import { sendToSupabase, uploadImage } from "../controller.js";
 import { authenticateWithGoogle, authenticateWithGoogleCode, authenticateWithGoogleAccessToken, authenticateWithGithub } from "./authService.js";
 
 const router = Router();
 const bcryptSalt = bcrypt.genSaltSync();
 
 // URLs padrão para foto e banner
-const DEFAULT_PHOTO_URL = `https://${process.env.BUCKET}.s3.us-east-2.amazonaws.com/user__default.png`;
-const DEFAULT_BANNER_URL = `https://${process.env.BUCKET}.s3.us-east-2.amazonaws.com/banner__default2.jpg`;
+const DEFAULT_PHOTO_URL = `${process.env.SUPABASE_URL}/storage/v1/object/public/${process.env.SUPABASE_BUCKET}/user__default.png`;
+const DEFAULT_BANNER_URL = `${process.env.SUPABASE_URL}/storage/v1/object/public/${process.env.SUPABASE_BUCKET}/banner__default2.jpg`;
 
 // ⭐ CONFIGURAÇÃO SEPARADA POR AMBIENTE
 const isProduction = process.env.NODE_ENV === 'production';
@@ -170,7 +170,7 @@ router.post("/upload", requireAuth, uploadImage().single("files"), async (req, r
   const { filename, path, mimetype } = file;
 
   try {
-    const fileUrl = await sendToS3(filename, path, mimetype);
+    const fileUrl = await sendToSupabase(filename, path, mimetype);
 
     if (!req.user || !req.user._id) {
       return res.status(401).json({ error: "Usuário não autenticado" });
@@ -201,7 +201,7 @@ router.post("/upload-banner", requireAuth, uploadImage().single("files"), async 
   const { filename, path, mimetype } = file;
 
   try {
-    const fileUrl = await sendToS3(filename, path, mimetype);
+    const fileUrl = await sendToSupabase(filename, path, mimetype);
 
     if (!req.user || !req.user._id) {
       return res.status(401).json({ error: "Usuário não autenticado" });

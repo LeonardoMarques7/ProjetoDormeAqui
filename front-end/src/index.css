@@ -200,3 +200,25 @@ html {
   outline: none;
 }
 
+/* ─── Mobile Navigation Styles ──────────────────────────────────────────── */
+body {
+  @apply overflow-x-hidden;
+}
+
+/* Ensure content doesn't go under fixed navbars on mobile */
+@media (max-width: 768px) {
+  main, [role="main"] {
+    padding-top: 1rem;
+  }
+  
+  /* Smooth transitions for mobile nav items */
+  .mobile-nav-item {
+    @apply transition-all duration-200;
+  }
+}
+
+/* Active state indicator for bottom navigation */
+.bottom-nav-active {
+  @apply text-purple-600 font-semibold;
+}
+

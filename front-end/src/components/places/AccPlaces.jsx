@@ -52,28 +52,28 @@ const AccPlaces = () => {
 				<div className=" flex border-l-3 pl-4 justify-between items-center w-full ">
 					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
 						<span className=" text-3xl max-sm:text-xl text-nowrap flex items-end gap-3 text-black">
-							{edit
-								? "Editando acomodação"
-								: action !== "new"
-									? "Meus lugares"
-									: ""}{" "}
+							<span className=" text-3xl max-sm:text-xl text-black">
+								{edit
+									? "Editando acomodação"
+									: action !== "new"
+										? "Meus lugares"
+										: ""}{" "}
+								<span className="text-sm text-gray-500">({places.length})</span>
+							</span>
 							<span className="text-lg max-sm:text-sm flex items-center gap-3">
 								{action !== "new" && (
-									<>
-										{places.length} Acomodações
-										<Link
-											to="/account/places/new"
-											className=" text-sm underline max-sm:hidden"
-											title="Anuncie seu espaço"
-										>
-											Anuncie seu espaço
-										</Link>
-									</>
+									<Link
+										to="/account/places/new"
+										className="text-sm underline max-sm:hidden"
+										title="Anuncie seu espaço"
+									>
+										Anuncie seu espaço
+									</Link>
 								)}
 							</span>
 						</span>
 					</span>
-					{action !== "new" && <>Visualize suas acomodações</>}
+
 					{edit && (
 						<Link
 							to="/account/places/new"
@@ -97,7 +97,7 @@ const AccPlaces = () => {
 					<></>
 				)}
 
-				<div className="flex gap-5 items-center justify-center w-full max-sm:p-0">
+				<div className="flex gap-5 items-center justify-center max-sm:flex-col w-full max-sm:p-0">
 					{/* {!action && !mobile && (
 						<Tooltip>
 							<TooltipTrigger asChild>

@@ -1,4 +1,4 @@
-import { ArrowRight, Edit, Trash2 } from "lucide-react";
+import { ArrowRight, Edit, ExternalLink, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ScrollReveal from "scrollreveal";
 import PaginationControls from "@/components/ui/PaginationControls";
@@ -87,7 +87,7 @@ const PlaceCard = ({ place, index }) => {
 					</p>
 					<Link
 						to={`/places/${place._id}`}
-						className="cursor-pointer hover:underline font-bold text-3xl text-[#0F172B] text-wrap max-w-md overflow-hidden"
+						className="cursor-pointer hover:underline font-bold max-sm:text-xl max-sm:max-w-full text-3xl text-[#0F172B] text-wrap max-w-md overflow-hidden"
 					>
 						{place.title}
 					</Link>
@@ -104,14 +104,11 @@ const PlaceCard = ({ place, index }) => {
 							<TooltipTrigger asChild>
 								<Link
 									to={`/places/${place._id}`}
-									className="group cursor-pointer w-fit hover:bg-primary-600 hover:text-white px-3 justify-center flex items-center gap-0 hover:gap-3 ease-in-out duration-300 rounded-xl text-center py-2.5 overflow-hidden"
+									className="edit__btn group cursor-pointer flex items-center hover:text-white justify-center transition-all duration-300 ease-in-out px-3 hover:bg-gray-600 gap-0 hover:gap-3 text-gray-500 rounded-xl text-center py-2.5 overflow-hidden"
 								>
-									<ArrowRight size={18} className="group-hover:-rotate-12" />
+									<ExternalLink size={18} className="group-hover:-rotate-12" />
 								</Link>
 							</TooltipTrigger>
-							<TooltipContent className="bg-primary-600">
-								<p>Acessar acomodação</p>
-							</TooltipContent>
 						</Tooltip>
 						<Tooltip>
 							<TooltipTrigger asChild>

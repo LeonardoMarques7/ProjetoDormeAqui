@@ -250,7 +250,7 @@ const CardNav = ({ active, className = "", isAbsolute }) => {
 
 	return (
 		<div
-			className={`card-nav-container absolute left-1/2 -translate-x-1/2 w-full max-w-7xl z-[99] max-sm:mx-2! top-[1.2em] md:top-[2em] ${className}`}
+			className={`card-nav-container hidden md:block absolute left-1/2 -translate-x-1/2 w-full max-w-7xl z-[99] max-sm:mx-2! top-[1.2em] md:top-[2em] ${className}`}
 		>
 			<nav
 				ref={navRef}
