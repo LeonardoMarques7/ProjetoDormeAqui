@@ -6,6 +6,252 @@ import { Skeleton } from "@/components/ui/skeleton";
 import "@/components/bookings/Booking.css";
 import { useParams } from "react-router-dom";
 import { useUserContext } from "@/components/contexts/UserContext";
+import photoDefault from "@/assets/photoDefault.jpg";
+import { ArrowRight, Trash2, MessageSquare } from "lucide-react";
+import { Link } from "react-router-dom";
+
+// Badge Status Component
+function BadgeStatus({ status = "confirmada" }) {
+	const getBadgeConfig = (status) => {
+		const configs = {
+			avaliacao: {
+				bg: "bg-yellow-500",
+				text: "Avaliação",
+			},
+			cancelada: {
+				bg: "bg-red-500",
+				text: "Cancelada",
+			},
+			andamento: {
+				bg: "bg-blue-500",
+				text: "Em andamento",
+			},
+			confirmada: {
+				bg: "bg-green-500",
+				text: "Confirmada",
+			},
+		};
+		return configs[status] || configs.confirmada;
+	};
+
+	const config = getBadgeConfig(status);
+
+	return (
+		<div
+			className={`${config.bg} rounded-full px-6 py-3 text-white font-medium flex items-center gap-2 w-fit absolute top-4 left-4 z-10`}
+		>
+			<span className="text-lg">•</span>
+			<span className="text-base">{config.text}</span>
+		</div>
+	);
+}
+
+// Booking Card Component
+function BookingCard({ booking, index }) {
+	const [imageErrors, setImageErrors] = useState({});
+
+	const handleImageError = (photoIndex) => {
+		setImageErrors((prev) => ({ ...prev, [photoIndex]: true }));
+	};
+
+	const getImageSrc = (photoIndex) => {
+		if (imageErrors[photoIndex]) {
+			return photoDefault;
+		}
+		return booking.place?.photos?.[photoIndex] || photoDefault;
+	};
+
+	const photos = [getImageSrc(0), getImageSrc(1), getImageSrc(2)];
+
+	const getStatusColor = (status) => {
+		const colors = {
+			confirmada: "text-green-600",
+			cancelada: "text-red-600",
+			andamento: "text-blue-600",
+			avaliacao: "text-yellow-600",
+		};
+		return colors[status] || colors.confirmada;
+	};
+
+	const formatDate = (date) => {
+		if (!date) return "—";
+		const d = new Date(date);
+		return d.toLocaleDateString("pt-BR");
+	};
+
+	return (
+		<motion.div
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.3, delay: index * 0.1 }}
+			className="flex flex-col gap-6 mb-8 w-full"
+		>
+			{/* Main Card */}
+			<div className="flex gap-8 max-md:flex-col max-md:gap-4">
+				{/* Left side - Large Image */}
+				<div className="flex-1 min-w-0">
+					<div className="relative">
+						<img
+							src={photos[0]}
+							onError={() => handleImageError(0)}
+							alt={booking.place?.title}
+							className="w-full h-[410px] object-cover rounded-[25px]"
+						/>
+						<BadgeStatus status={booking.status || "confirmada"} />
+					</div>
+				</div>
+
+				{/* Right side - Images Grid and Info */}
+				<div className="flex flex-col gap-6 flex-1 min-w-0">
+					{/* Images Grid */}
+					<div className="grid grid-cols-2 gap-2.5 h-[200px]">
+						<img
+							src={photos[1]}
+							onError={() => handleImageError(1)}
+							alt={`${booking.place?.title} - 2`}
+							className="w-full h-full object-cover rounded-[25px]"
+						/>
+						<img
+							src={photos[2]}
+							onError={() => handleImageError(2)}
+							alt={`${booking.place?.title} - 3`}
+							className="w-full h-full object-cover rounded-[25px]"
+						/>
+					</div>
+
+					{/* Booking Info */}
+					<div className="flex flex-col gap-4">
+						{/* Title and Location */}
+						<div className="flex flex-col gap-2">
+							<Link
+								to={`/places/${booking.place?._id}`}
+								className="text-2xl font-bold text-gray-900 hover:underline cursor-pointer line-clamp-2"
+							>
+								{booking.place?.title}
+							</Link>
+							<div className="flex items-center gap-1 text-gray-600 text-sm">
+								<span>📍</span>
+								<span>
+									{booking.place?.city}, {booking.place?.state}
+								</span>
+							</div>
+						</div>
+
+						{/* Details */}
+						<div className="grid grid-cols-3 gap-4 text-center bg-gray-50 p-4 rounded-lg">
+							<div className="flex flex-col">
+								<span className="text-xs text-gray-500 font-medium">
+									CHECK-IN
+								</span>
+								<span className="text-sm font-semibold text-gray-900">
+									{formatDate(booking.checkIn)}
+								</span>
+							</div>
+							<div className="flex flex-col">
+								<span className="text-xs text-gray-500 font-medium">
+									CHECK-OUT
+								</span>
+								<span className="text-sm font-semibold text-gray-900">
+									{formatDate(booking.checkOut)}
+								</span>
+							</div>
+							<div className="flex flex-col">
+								<span className="text-xs text-gray-500 font-medium">
+									HÓSPEDES
+								</span>
+								<span className="text-sm font-semibold text-gray-900">
+									{booking.guests || "—"}
+								</span>
+							</div>
+						</div>
+
+						{/* Status */}
+						<div className="flex items-center gap-2">
+							<span className="text-gray-600 text-sm font-medium">
+								Situação:
+							</span>
+							<span
+								className={`text-sm font-semibold ${getStatusColor(booking.status || "confirmada")}`}
+							>
+								{booking.status === "confirmada"
+									? "Confirmada"
+									: booking.status === "cancelada"
+										? "Cancelada"
+										: booking.status === "andamento"
+											? "Em andamento"
+											: "Avaliação"}
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Actions Bar */}
+			<div className="flex justify-between items-center px-6 py-4 bg-gray-50 rounded-lg">
+				<div className="flex items-center gap-3">
+					<button
+						className="p-2.5 rounded-xl text-blue-600 hover:bg-blue-100 transition-colors"
+						title="Mensagem"
+					>
+						<MessageSquare size={20} />
+					</button>
+					{booking.status === "cancelada" && (
+						<button
+							className="p-2.5 rounded-xl text-red-600 hover:bg-red-100 transition-colors"
+							title="Cancelada"
+						>
+							<Trash2 size={20} />
+						</button>
+					)}
+				</div>
+
+				{booking.status === "avaliacao" ? (
+					<button className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors font-medium text-sm">
+						Publicar avaliação
+						<span className="text-lg">→</span>
+					</button>
+				) : booking.status === "confirmada" ? (
+					<button className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors font-medium text-sm">
+						Cancelar reserva
+						<Trash2 size={16} />
+					</button>
+				) : (
+					<div className="text-gray-600 text-sm font-medium">
+						Reserva {booking.status}
+					</div>
+				)}
+			</div>
+		</motion.div>
+	);
+}
+
+// Loading Skeleton
+function BookingCardSkeleton() {
+	return (
+		<motion.div
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			className="flex flex-col gap-6 mb-8 w-full"
+		>
+			<div className="flex gap-8 max-md:flex-col max-md:gap-4">
+				<Skeleton className="flex-1 h-[410px] rounded-[25px]" />
+				<div className="flex flex-col gap-6 flex-1">
+					<div className="grid grid-cols-2 gap-2.5 h-[200px]">
+						<Skeleton className="rounded-[25px]" />
+						<Skeleton className="rounded-[25px]" />
+					</div>
+					<div className="flex flex-col gap-4">
+						<Skeleton className="h-8 w-3/4" />
+						<Skeleton className="h-4 w-1/2" />
+						<Skeleton className="h-24 w-full" />
+						<Skeleton className="h-6 w-1/3" />
+					</div>
+				</div>
+			</div>
+			<Skeleton className="h-16 w-full rounded-lg" />
+		</motion.div>
+	);
+}
 
 const AccBookings = ({ bookingId }) => {
 	const [bookings, setBookings] = useState([]);
@@ -28,158 +274,63 @@ const AccBookings = ({ bookingId }) => {
 	}, [user?._id]);
 
 	return (
-		<>
-			{/* Conteúdo */}
+		<div className="w-full bg-white">
+			{/* Header */}
+			<div className="max-w-7xl mx-auto px-6 py-8 max-md:px-4">
+				<div className="flex justify-between items-center">
+					<div className="flex flex-col gap-2">
+						<h1 className="text-4xl max-md:text-2xl font-bold text-gray-900">
+							Minhas reservas
+						</h1>
+						<p className="text-gray-600">
+							({bookings.length}{" "}
+							{bookings.length === 1 ? "reserva" : "reservas"})
+						</p>
+					</div>
+				</div>
+			</div>
 
-			<div className="flex w-full mx-auto  max-sm:max-w-full md:max-w-7xl md:px-5 max-h-full h-full flex-col gap-8 relative justify-start items-start  max-sm:my-0 max-sm:px-3.5">
-				<motion.div
-					className=" flex border-l-3 pl-4 justify-between items-center w-full "
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5 }}
-				>
-					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
-						<span className=" text-3xl max-sm:text-xl text-black">
-							Minhas reservas{" "}
-							<small className="text-lg">({bookings.length} Reservas)</small>
-						</span>
-						Visualize suas reservas
-					</span>
-				</motion.div>
-				{bookings.length === 0 && (
-					<motion.p
-						className="text-gray-500 text-center py-8"
-						initial={{ opacity: 0, scale: 0.9 }}
-						animate={{ opacity: 1, scale: 1 }}
-						transition={{ type: "spring", stiffness: 200, damping: 20 }}
-					>
-						Você não possue reservas.
-					</motion.p>
-				)}
-
+			{/* Content */}
+			<div className="max-w-7xl mx-auto px-6 pb-16 max-md:px-4">
 				{!readyBookings ? (
-					<>
-						<motion.div
-							className=" max-sm:flex-col mx-auto  max-sm:max-w-full md:max-w-7xl bg-white/80 border border-primary-100 h-fit relative w-full flex-1 flex rounded-3xl   gap-5 "
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							transition={{ delay: 0 * 0.1 }}
-						>
-							<div className="w-85 h-90 max-sm:aspect-square max-sm:w-full max-sm:h-full ">
-								<Skeleton className="w-full rounded-r-none h-full max-sm:rounded-3xl max-sm:rounded-b-none rounded-l-3xl" />
-							</div>
-							<div className="p-4 mr-4 max-sm:py-0 flex flex-col justify-between w-full">
-								<div className="">
-									<div className="flex justify-between w-full max-sm:mb-3 leading-5">
-										<Skeleton className="h-4 w-[250px]" />
-										<Skeleton className="px-14 max-sm:hidden py-3 h-full rounded-md" />
-									</div>
-									<Skeleton className="h-4 mt-2 w-[200px]" />
-									<div className="mt-5 ">
-										<div className="flex justify-start gap-8 flex-1 w-full">
-											<span className="flex flex-col gap-1">
-												<Skeleton className="h-4 w-25" />
-												<Skeleton className="h-4 w-30" />
-											</span>
-											<span className="flex flex-col gap-1">
-												<Skeleton className="h-4 w-25" />
-												<Skeleton className="h-4 w-30" />
-											</span>
-											<span className="flex flex-col gap-1">
-												<Skeleton className="h-4 w-25" />
-												<Skeleton className="h-4 w-30" />
-											</span>
-										</div>
-									</div>
-								</div>
-								<div className="mt-4 border-t flex max-sm:flex-col max-sm:items-start items-center py-4">
-									<div className="flex flex-col max-sm:pb-4 flex-1">
-										<div className="flex items-baseline flex-col gap-2">
-											<Skeleton className="text-2xl h-7 w-25 font-normal text-gray-900"></Skeleton>
-											<div className="flex items-center gap-2">
-												<Skeleton className="font-light w-15 h-5 text-gray-700"></Skeleton>
-												<Skeleton className="w-1 h-1 bg-primary-400 rounded-full"></Skeleton>
-												<Skeleton className="font-light w-20 h-5 text-gray-700"></Skeleton>
-											</div>
-										</div>
-									</div>
-									<Skeleton className="w-35 h-7 rounded-xl max-sm:w-full text-center font-medium"></Skeleton>
-								</div>
-							</div>
-						</motion.div>
-						<motion.div
-							className=" max-sm:flex-col bg-white/80 border border-primary-100 h-fit relative w-full flex-1 flex rounded-3xl   gap-5 "
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							transition={{ delay: 1 * 0.1 }}
-						>
-							<div className="w-85 h-90 max-sm:aspect-square max-sm:w-full max-sm:h-full ">
-								<Skeleton className="w-full rounded-r-none h-full max-sm:rounded-3xl max-sm:rounded-b-none rounded-l-3xl" />
-							</div>
-							<div className="p-4 mr-4 max-sm:py-0 flex flex-col justify-between w-full">
-								<div className="">
-									<div className="flex justify-between w-full max-sm:mb-3 leading-5">
-										<Skeleton className="h-4 w-[250px]" />
-										<Skeleton className="px-14 max-sm:hidden py-3 h-full rounded-md" />
-									</div>
-									<Skeleton className="h-4 mt-2 w-[200px]" />
-									<div className="mt-5 ">
-										<div className="flex justify-start gap-8 flex-1 w-full">
-											<span className="flex flex-col gap-1">
-												<Skeleton className="h-4 w-25" />
-												<Skeleton className="h-4 w-30" />
-											</span>
-											<span className="flex flex-col gap-1">
-												<Skeleton className="h-4 w-25" />
-												<Skeleton className="h-4 w-30" />
-											</span>
-											<span className="flex flex-col gap-1">
-												<Skeleton className="h-4 w-25" />
-												<Skeleton className="h-4 w-30" />
-											</span>
-										</div>
-									</div>
-								</div>
-								<div className="mt-4 border-t flex max-sm:flex-col max-sm:items-start items-center py-4">
-									<div className="flex flex-col max-sm:pb-4 flex-1">
-										<div className="flex items-baseline flex-col gap-2">
-											<Skeleton className="text-2xl h-7 w-25 font-normal text-gray-900"></Skeleton>
-											<div className="flex items-center gap-2">
-												<Skeleton className="font-light w-15 h-5 text-gray-700"></Skeleton>
-												<Skeleton className="w-1 h-1 bg-primary-400 rounded-full"></Skeleton>
-												<Skeleton className="font-light w-20 h-5 text-gray-700"></Skeleton>
-											</div>
-										</div>
-									</div>
-									<Skeleton className="w-35 h-7 rounded-xl max-sm:w-full text-center font-medium"></Skeleton>
-								</div>
-							</div>
-						</motion.div>
-					</>
-				) : bookings.length == 0 ? (
-					<motion.h2
-						className="text-3xl font-bold text-white/50"
+					<div className="space-y-8">
+						<BookingCardSkeleton />
+						<BookingCardSkeleton />
+					</div>
+				) : bookings.length === 0 ? (
+					<motion.div
+						className="text-center py-16"
 						initial={{ opacity: 0, scale: 0.9 }}
 						animate={{ opacity: 1, scale: 1 }}
 						transition={{ type: "spring", stiffness: 200, damping: 20 }}
 					>
-						Seu diário de viagens está vazio.
-					</motion.h2>
-				) : (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ duration: 0.4, delay: 0.2 }}
-					>
-						<BookingAll
-							bookingsArray={bookings}
-							bookingId={bookingId}
-							onBookingCanceled={fetchBookings}
-						/>
+						<div className="mb-4 text-6xl">📅</div>
+						<h2 className="text-2xl font-bold text-gray-900 mb-2">
+							Nenhuma reserva encontrada
+						</h2>
+						<p className="text-gray-600 mb-6">
+							{user
+								? "Você não possue reservas. Explore nossos lugares e faça uma reserva!"
+								: "Você precisa estar logado para ver suas reservas."}
+						</p>
+						{user && (
+							<Link
+								to="/places"
+								className="inline-block px-8 py-3 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-colors"
+							>
+								Explorar lugares
+							</Link>
+						)}
 					</motion.div>
+				) : (
+					<div className="space-y-0">
+						{bookings.map((booking, index) => (
+							<BookingCard key={booking._id} booking={booking} index={index} />
+						))}
+					</div>
 				)}
 			</div>
-		</>
+		</div>
 	);
 };
 
