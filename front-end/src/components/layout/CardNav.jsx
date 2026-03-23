@@ -278,7 +278,7 @@ const CardNav = ({ active, className = "", isAbsolute }) => {
 						</Link>
 					</div>
 
-					<div className="flex items-center relative gap-4 ">
+					<div className="flex items-center relative bg-white/20 rounded-full p-1 gap-4 ">
 						{/* Notification Bell */}
 
 						{/* CTA Button */}
@@ -292,11 +292,11 @@ const CardNav = ({ active, className = "", isAbsolute }) => {
 							</button>
 						) : (
 							<>
-								<NotificationBell />
+								<NotificationBell isAbsolute={isAbsolute} />
 								<Link
 									to="/account/profile"
 									onClick={closeMenu}
-									className="hidden md:inline-flex items-center gap-2  p-1 rounded-full hover:bg-gray-100 transition-colors duration-300"
+									className="hidden md:inline-flex items-center gap-2  p-1 rounded-full hover:bg-white/10 transition-colors duration-300"
 								>
 									<img
 										src={user.photo}
@@ -311,7 +311,7 @@ const CardNav = ({ active, className = "", isAbsolute }) => {
 						)}
 						{/* Hamburger */}
 						<div
-							className={`hamburger-menu ${isHamburgerOpen ? "open" : ""} ${isAbsolute && isHamburgerOpen && "text-black"} group h-full flex flex-col items-center justify-center cursor-pointer gap-[6px] md:order-none`}
+							className={`hamburger-menu ${isHamburgerOpen ? "open" : ""} ${isAbsolute && isHamburgerOpen && "text-black"} group hover:bg-white/10 p-2.5 rounded-full flex flex-col items-center  justify-center cursor-pointer gap-[6px] md:order-none`}
 							onClick={toggleMenu}
 							role="button"
 							aria-label={isExpanded ? "Fechar menu" : "Abrir menu"}
@@ -327,7 +327,7 @@ const CardNav = ({ active, className = "", isAbsolute }) => {
 										viewBox="0 0 24 24"
 										strokeWidth="1.5"
 										stroke="currentColor"
-										className="size-6"
+										className="w-5 h-5"
 										initial={{ rotate: -90, opacity: 0, scale: 0.8 }}
 										animate={{ rotate: 0, opacity: 1, scale: 1 }}
 										exit={{ rotate: 90, opacity: 0, scale: 0.8 }}
@@ -347,7 +347,7 @@ const CardNav = ({ active, className = "", isAbsolute }) => {
 										viewBox="0 0 24 24"
 										strokeWidth={1.5}
 										stroke="currentColor"
-										className="size-6"
+										className="w-5 h-5"
 										initial={{ rotate: 90, opacity: 0, scale: 0.8 }}
 										animate={{ rotate: 0, opacity: 1, scale: 1 }}
 										exit={{ rotate: -90, opacity: 0, scale: 0.8 }}
