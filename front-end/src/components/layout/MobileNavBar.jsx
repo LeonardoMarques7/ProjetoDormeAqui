@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
 	HomeIcon,
-	BuildingOfficeIcon,
 	CalendarDaysIcon,
 	UserIcon,
 	HomeModernIcon,
 } from "@heroicons/react/24/outline";
 import {
 	HomeIcon as HomeIconSolid,
-	BuildingOfficeIcon as BuildingOfficeIconSolid,
 	CalendarDaysIcon as CalendarDaysIconSolid,
 	UserIcon as UserIconSolid,
 	HomeModernIcon as HomeModernIconSolid,
@@ -17,48 +16,73 @@ import {
 import { useUserContext } from "@/components/contexts/UserContext";
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
 
+const RippleEffect = ({ x, y }) => (
+	<motion.div
+		className="absolute w-10 h-10 bg-primary-600 rounded-full pointer-events-none"
+		initial={{ scale: 0, opacity: 0.5 }}
+		animate={{ scale: 4, opacity: 0 }}
+		transition={{ duration: 0.6, ease: "easeOut" }}
+		style={{
+			left: x,
+			top: y,
+			translateX: "-50%",
+			translateY: "-50%",
+		}}
+	/>
+);
+
 const MobileBottomNavigation = () => {
 	const location = useLocation();
 	const { user } = useUserContext();
 	const { showAuthModal } = useAuthModalContext();
 	const [activeTab, setActiveTab] = useState("home");
+	const [ripples, setRipples] = useState([]); // ✅ corrigido
+	const [scrollY, setScrollY] = useState(0);
 
-	// Atualizar tab ativo baseado na rota
 	useEffect(() => {
-		if (location.pathname === "/") {
-			setActiveTab("home");
-		} else if (location.pathname.includes("/places")) {
-			setActiveTab("places");
-		} else if (location.pathname.includes("/account/bookings")) {
+		const handleScroll = () => setScrollY(window.scrollY);
+		window.addEventListener("scroll", handleScroll, { passive: true });
+		return () => window.removeEventListener("scroll", handleScroll);
+	}, []);
+
+	useEffect(() => {
+		if (location.pathname === "/") setActiveTab("home");
+		else if (location.pathname.includes("/places")) setActiveTab("places");
+		else if (location.pathname.includes("/account/bookings"))
 			setActiveTab("bookings");
-		} else if (location.pathname.includes("/account/profile")) {
+		else if (location.pathname.includes("/account/profile"))
 			setActiveTab("profile");
-		}
 	}, [location.pathname]);
 
-	const handlePlacesClick = (href) => {
-		// Se não houver usuário logado, mostra login para places
-		if (!user && href === "/account/places") {
-			showAuthModal("login");
-		} else {
-			setActiveTab("places");
-		}
+	const parallaxY = scrollY > 100 ? (scrollY - 100) * 0.05 : 0;
+
+	const handlePlacesClick = () => {
+		if (!user) showAuthModal("login");
+		else setActiveTab("places");
 	};
 
-	const handleBookingsClick = (href) => {
-		if (!user) {
-			showAuthModal("login");
-		} else {
-			setActiveTab("bookings");
-		}
+	const handleBookingsClick = () => {
+		if (!user) showAuthModal("login");
+		else setActiveTab("bookings");
 	};
 
-	const handleProfileClick = (href) => {
-		if (!user) {
-			showAuthModal("login");
-		} else {
-			setActiveTab("profile");
-		}
+	const handleProfileClick = () => {
+		if (!user) showAuthModal("login");
+		else setActiveTab("profile");
+	};
+
+	const handleMouseDown = (e, itemId) => {
+		const rect = e.currentTarget.getBoundingClientRect();
+		const newRipple = {
+			id: Date.now(),
+			itemId,
+			x: rect.width / 2, // ✅ sempre centralizado
+			y: rect.height / 2, // ✅ sempre centralizado
+		};
+		setRipples((prev) => [...prev, newRipple]);
+		setTimeout(() => {
+			setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
+		}, 600);
 	};
 
 	const navItems = [
@@ -97,77 +121,144 @@ const MobileBottomNavigation = () => {
 	];
 
 	return (
-		<nav
-			className="fixed bottom-2 left-0 right-0 mx-6 rounded-full md:hidden z-40 bg-white border  border-gray-200 shadow-lg"
+		<motion.nav
+			className="fixed bottom-2 left-0 right-0 mx-6 rounded-full md:hidden z-40 bg-white border border-gray-200 shadow-lg"
 			aria-label="Navegação principal móvel"
+			initial={{ y: 100, opacity: 0 }}
+			animate={{ y: parallaxY, opacity: 1 }}
+			transition={{ type: "spring", stiffness: 100, damping: 15 }}
 		>
 			<div className="flex items-center rounded-full justify-around h-20 max-w-full">
-				{navItems.map((item) => {
+				{navItems.map((item, index) => {
 					const isActive = activeTab === item.id;
 					const Icon = isActive ? item.solidIcon : item.icon;
 
+					const containerVariants = {
+						hidden: { opacity: 0, y: 10 },
+						visible: {
+							opacity: 1,
+							y: 0,
+							transition: {
+								delay: index * 0.1,
+								duration: 0.4,
+								type: "spring",
+								stiffness: 100,
+							},
+						},
+					};
+
 					const itemContent = (
-						<div
-							className={`flex flex-col items-center justify-center rounded-full gap-1 flex-1 py-2 px-1 transition-all duration-200 ${
-								isActive ? "scale-100" : "scale-95 hover:scale-100"
-							}`}
+						<motion.div
+							className="flex flex-col items-center justify-center rounded-full gap-1 flex-1 py-2 px-1 relative"
+							animate={{ scale: isActive ? 1 : 0.95 }}
+							transition={{ duration: 0.3, type: "spring" }}
 						>
-							<Icon
-								className={`w-6 h-6 transition-all duration-300 ${
-									isActive
-										? "text-primary-600 scale-110"
-										: "text-gray-600 group-hover:text-gray-900 group-active:scale-90"
-								}`}
-							/>
-							{/* <span
-								className={`text-xs font-medium transition-all duration-300 ${
-									isActive
-										? "text-primary-600 font-semibold opacity-100"
-										: "text-gray-600 opacity-75 group-hover:opacity-100"
-								}`}
-							>
-								{item.label}
-							</span> */}
-							<span
-								className={`${isActive ? "block" : "hidden"} w-1 h-1 rounded-full bg-primary-600`}
-							></span>
-						</div>
+							<div className="relative flex items-center justify-center w-8 h-8">
+								{/* Ripple fora do AnimatePresence do ícone, com overflow hidden para não vazar */}
+								<div className="absolute inset-0 overflow-hidden rounded-full">
+									<AnimatePresence>
+										{ripples
+											.filter((ripple) => ripple.itemId === item.id)
+											.map((ripple) => (
+												<RippleEffect
+													key={ripple.id}
+													x={ripple.x}
+													y={ripple.y}
+												/>
+											))}
+									</AnimatePresence>
+								</div>
+
+								{/* Ícone separado, sem interferência do AnimatePresence */}
+								<motion.div
+									animate={{
+										y: isActive ? -2 : 0,
+										scale: isActive ? 1.15 : 1,
+									}}
+									transition={{
+										duration: 0.3,
+										type: "spring",
+										stiffness: 200,
+									}}
+								>
+									<Icon
+										className={`w-6 h-6 transition-colors duration-300 ${
+											isActive
+												? "text-primary-600"
+												: "text-gray-600 group-hover:text-gray-900"
+										}`}
+									/>
+								</motion.div>
+							</div>
+
+							<AnimatePresence>
+								{isActive && (
+									<motion.span
+										className="w-1.5 h-1.5 rounded-full bg-primary-600"
+										initial={{ scale: 0, opacity: 0 }}
+										animate={{ scale: 1, opacity: 1 }}
+										exit={{ scale: 0, opacity: 0 }}
+										transition={{
+											type: "spring",
+											stiffness: 300,
+											damping: 20,
+										}}
+									/>
+								)}
+							</AnimatePresence>
+						</motion.div>
 					);
 
 					if (item.href && item.href !== "#") {
 						return (
-							<Link
+							<motion.div
 								key={item.id}
-								to={item.href}
-								onClick={item.onClick}
-								className={`flex-1 flex flex-col items-center rounded-full justify-center gap-1 py-2 px-1 transition-all duration-200 group h-full no-underline active:bg-primary-50 ${
-									isActive ? "bg-primary-50" : "hover:bg-gray-50"
-								}`}
-								aria-current={isActive ? "page" : undefined}
+								variants={containerVariants}
+								initial="hidden"
+								animate="visible"
+								className="flex-1"
+								onMouseDown={(e) => handleMouseDown(e, item.id)}
+								whileHover={{ y: -2 }}
+								whileTap={{ scale: 0.95 }}
 							>
-								{itemContent}
-							</Link>
+								<Link
+									to={item.href}
+									onClick={item.onClick}
+									className={`flex-1 flex flex-col items-center rounded-full justify-center gap-1 py-2 px-1 group h-full no-underline transition-all duration-200 ${
+										isActive ? "bg-primary-50" : "hover:bg-gray-50"
+									}`}
+									aria-current={isActive ? "page" : undefined}
+								>
+									{itemContent}
+								</Link>
+							</motion.div>
 						);
 					}
 
 					return (
-						<button
+						<motion.button
 							key={item.id}
+							variants={containerVariants}
+							initial="hidden"
+							animate="visible"
 							type="button"
-							onClick={() => item.onClick(item.href)}
-							className={`flex-1 flex flex-col items-center rounded-full justify-center gap-1 py-2 px-1 transition-all duration-200 group h-full bg-transparent border-0 cursor-pointer  active:bg-primary-50 ${
+							onClick={item.onClick}
+							className={`flex-1 flex flex-col items-center rounded-full justify-center gap-1 py-2 px-1 group h-full bg-transparent border-0 cursor-pointer transition-all duration-200 ${
 								isActive
 									? "bg-primary-50"
 									: "hover:bg-gray-50 active:bg-primary-50"
 							}`}
 							aria-label={item.label}
+							onMouseDown={(e) => handleMouseDown(e, item.id)}
+							whileHover={{ y: -2 }}
+							whileTap={{ scale: 0.95 }}
 						>
 							{itemContent}
-						</button>
+						</motion.button>
 					);
 				})}
 			</div>
-		</nav>
+		</motion.nav>
 	);
 };
 

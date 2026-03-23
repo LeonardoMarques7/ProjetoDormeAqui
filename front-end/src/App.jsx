@@ -86,8 +86,8 @@ function AppContent() {
 				<AuthModalContextProvider>
 					<NotificationProvider>
 						<MessageProvider>
-							<MobileTopBar />
-							<Header isAbsolute={isHome} />
+							{/* <MobileTopBar /> */}
+							{!mobile && <Header isAbsolute={isHome} />}
 							<NotificationToast />
 							<ScrollToTop />
 
@@ -96,7 +96,7 @@ function AppContent() {
 									isHome && !mobile ? "h-screen" : "min-h-screen"
 								} relative max-sm:justify-center! flex flex-1 flex-col ${
 									isHome ? "" : "p-4"
-								} h-full w-full ${isHome ? "" : "justify-between"} md:pb-0 pb-24 pt-16 md:pt-0`}
+								} h-full w-full ${isHome ? "" : "justify-between"} md:pb-0 pb-24 md:pt-0`}
 							>
 								<PageTransition>
 									<Routes>
