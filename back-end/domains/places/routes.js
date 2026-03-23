@@ -5,6 +5,7 @@ import { JWTVerify } from "../../ultis/jwt.js";
 import { downloadImage } from "../../ultis/imageDownloader.js";
 import { __dirname } from "../../ultis/dirname.js";
 import { sendToSupabase, uploadImage } from "../controller.js";
+import { requireAuth } from "../middleware.js";
 
 const router = Router();
 
@@ -108,13 +109,25 @@ router.get("/:id", async (req, res) => {
 
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", requireAuth, async (req, res) => {
 
     const { id: _id } = req.params;
 
     const { type, title, city, photos, description, extras, perks, price, checkin, checkout, guests, rooms, bathrooms, beds } = req.body;
 
         try {
+            // Verify ownership - only owner can edit
+            const placeDoc = await Place.findById(_id);
+            
+            if (!placeDoc) {
+                return res.status(404).json({ error: "Acomodação não encontrada" });
+            }
+
+            // Check if current user is the owner
+            if (placeDoc.owner.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ error: "Você não tem permissão para editar esta acomodação" });
+            }
+
             const updatePlaceDoc = await Place.findOneAndUpdate({_id}, {
                 type,
                 title,
@@ -140,15 +153,22 @@ router.put("/:id", async (req, res) => {
         }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", requireAuth, async (req, res) => {
     const { id: _id } = req.params;
 
     try {
-        const deletedPlace = await Place.findOneAndDelete({ _id });
-
-        if (!deletedPlace) {
+        const placeDoc = await Place.findById(_id);
+        
+        if (!placeDoc) {
             return res.status(404).json({ message: "Acomodação não encontrada." });
         }
+
+        // Check if current user is the owner
+        if (placeDoc.owner.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: "Você não tem permissão para deletar esta acomodação" });
+        }
+
+        const deletedPlace = await Place.findOneAndDelete({ _id });
 
         res.json({ message: "Acomodação deletada com sucesso!", deletedPlace });
     } catch (error) {

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
 export const UserContext = createContext(null);
 
@@ -29,8 +29,15 @@ export const UserContextProvider = ({ children }) => {
 		axiosGet();
 	}, []);
 
+	// Logout function - clears user and token
+	const logout = useCallback(() => {
+		setUser(null);
+		localStorage.removeItem("token");
+		axios.defaults.headers.common["Authorization"] = "";
+	}, []);
+
 	return (
-		<UserContext.Provider value={{ user, setUser, ready }}>
+		<UserContext.Provider value={{ user, setUser, ready, logout }}>
 			{children}
 		</UserContext.Provider>
 	);

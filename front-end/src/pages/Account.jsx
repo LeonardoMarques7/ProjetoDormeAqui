@@ -28,7 +28,7 @@ const Account = () => {
 
 	return (
 		<div className="flex flex-col gap-4">
-			{subpage === "profile" && <AccProfile />}
+			{subpage === "profile" && <AccProfile userId={id} />}
 			{subpage === "places" && <AccPlaces />}
 			{subpage === "bookings" && <AccBookings bookingId={bookingId} />}
 		</div>
