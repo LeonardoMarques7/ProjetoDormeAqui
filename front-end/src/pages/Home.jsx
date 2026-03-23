@@ -136,6 +136,7 @@ const Home = () => {
 
 	// Parallax transforms para diferentes elementos
 	const logoY = useTransform(scrollY, [0, 400], [0, 120]);
+	const logoScale = useTransform(scrollY, [0, 200], [1, 0.5]); // 100% → 50%
 	const textY = useTransform(scrollY, [0, 400], [0, 80]);
 	const searchBarY = useTransform(scrollY, [0, 300], [0, -100]);
 	const textOpacity = useTransform(scrollY, [0, 300], [1, 0]);
@@ -172,7 +173,7 @@ const Home = () => {
 			{" "}
 			<motion.section
 				ref={heroRef}
-				className="relative h-screen z-50 flex-col max-sm:px-2 flex rounded-bl-[50%] max-sm:rounded-bl-none justify-center items-center py-4 shadow-2xl max-sm:h-screen"
+				className="relative h-screen z-50 flex-col max-sm:rounded-b-4xl max-sm:px-2 flex rounded-bl-[50%] max-sm:rounded-bl-4xl max-sm:h-full justify-center items-center py-4 shadow-2xl"
 				style={{
 					perspective: 1000,
 					backgroundImage: `url("https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609")`,
@@ -181,14 +182,15 @@ const Home = () => {
 				}}
 			>
 				{/* Conteúdo com parallax */}
-				<div className="relative z-20 w-full h-full flex flex-col justify-center items-center">
+				<div className="relative z-20 w-full  h-full flex flex-col justify-center items-center">
 					{/* Logo com parallax */}
 					<motion.div
 						style={{ y: logoY }}
-						className="flex flex-col items-center text-center justify-center gap-5 mb-10 max-sm:mb-0 mt-10 mx-auto"
+						className="flex flex-col items-center max-sm:px-4  text-center justify-center gap-5 mb-10 max-sm:mb-0 mt-10 mx-auto"
 					>
-						<img
+						<motion.img
 							src={logoPrimary}
+							style={{ scale: logoScale }}
 							alt=""
 							className="h-50 w-auto max-sm:object-contain"
 						/>
@@ -201,22 +203,19 @@ const Home = () => {
 							opacity: textOpacity,
 							scale: textScale,
 						}}
-						className="text-xl max-w-xl max-sm:text-2xl text-white mb-1 text-center font-light"
+						className="text-xl max-w-xl max-sm:hidden max-sm:px-4  max-sm:text-xl text-white mb-1 text-center font-light"
 					>
 						Encontre acomodações únicas em Sorocaba e em todo o Brasil. Reserve
 						com segurança e descubra novos lugares.
 					</motion.span>
 
 					{/* SearchBar com parallax subindo */}
-					<motion.div
-						style={{ y: searchBarY }}
-						className="mt-12 w-full max-w-4xl px-4 max-sm:mt-6"
-					>
+					<motion.div className="mt-12 w-full max-w-4xl px-4 max-sm:mt-0 max-sm:mb-2">
 						<SearchBar onSearch={handleSearch} />
 					</motion.div>
 				</div>
 
-				<span className="inset-0 bg-black/20 rounded-bl-[50%] h-full w-full absolute"></span>
+				<span className="inset-0 bg-black/20 rounded-bl-[50%] max-sm:rounded-b-4xl max-sm:rounded-bl-4xl h-full w-full absolute"></span>
 				{/* Overlay de sombra */}
 			</motion.section>
 			{/* ─── GRID DE PLACES ─── */}
@@ -259,7 +258,7 @@ const Home = () => {
 
 				{!loading && (
 					<motion.div
-						className="grid max-w-7xl mx-auto justify-center grid-cols-[repeat(auto-fit,minmax(225px,250px))] max-sm:grid-cols-[repeat(auto-fit,minmax(180px,0.5fr))] max-sm:gap-2 gap-8"
+						className="grid max-w-7xl mx-auto justify-center grid-cols-[repeat(auto-fit,minmax(225px,250px))] max-sm:grid-cols-[repeat(auto-fit,minmax(175px,0.5fr))] max-sm:gap-2 gap-8"
 						variants={staggerContainer(0.06)}
 						initial="hidden"
 						whileInView="visible"
