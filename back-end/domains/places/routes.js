@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
     const { city, guests, rooms, minRating } = req.query;
 
     try {
-        let query = {};
+        let query = { $or: [{ isActive: true }, { isActive: { $exists: false } }] };
         
         // Filtro por cidade
         if (city && city.trim() !== "") {
@@ -53,7 +53,7 @@ router.get("/owner", async (req, res) => {
         const { _id } = await JWTVerify(req, COOKIE_NAME);
 
         try {
-            const placeDocs = await Place.find({owner: _id});
+            const placeDocs = await Place.find({owner: _id, isActive: true});
 
             res.json(placeDocs);
         } catch (error) {
@@ -71,7 +71,7 @@ router.get("/user/:userId", async (req, res) => {
     const { userId } = req.params;
 
     try {
-        const placeDocs = await Place.find({ owner: userId });
+        const placeDocs = await Place.find({ owner: userId, $or: [{ isActive: true }, { isActive: { $exists: false } }] });
 
         res.json(placeDocs);
     } catch (error) {
@@ -84,7 +84,7 @@ router.get("/owner/:id", async (req, res) => {
     const { id } = req.params;
 
     try {
-        const placeDocs = await Place.find({ owner: id });
+        const placeDocs = await Place.find({ owner: id, isActive: true });
 
         res.json(placeDocs);
     } catch (error) {
@@ -98,7 +98,7 @@ router.get("/:id", async (req, res) => {
     const { id: _id } = req.params;
 
     try {
-        const placeDoc = await Place.findOne({_id}).populate('owner', '-password');
+        const placeDoc = await Place.findOne({_id, $or: [{ isActive: true }, { isActive: { $exists: false } }]}).populate('owner', '-password');
 
         res.json(placeDoc);
     } catch (error) {
@@ -168,7 +168,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
             return res.status(403).json({ error: "Você não tem permissão para deletar esta acomodação" });
         }
 
-        const deletedPlace = await Place.findOneAndDelete({ _id });
+        const deletedPlace = await Place.findOneAndUpdate({ _id }, { isActive: false }, { new: true });
 
         res.json({ message: "Acomodação deletada com sucesso!", deletedPlace });
     } catch (error) {

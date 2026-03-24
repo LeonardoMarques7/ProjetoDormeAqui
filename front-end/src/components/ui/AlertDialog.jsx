@@ -24,13 +24,14 @@ export default function AlertDialog({
 		<ShadAlertDialog
 			open={controlled ? open : undefined}
 			onOpenChange={controlled ? onOpenChange : undefined}
+			className="max-w-xl!"
 		>
 			{!controlled && (
 				<AlertDialogTrigger className="cursor-pointer hover:bg-red-600 transition-all bg-red-500 text-white font-bold w-fit px-5 py-2.5 rounded-md">
 					{trigger}
 				</AlertDialogTrigger>
 			)}
-			<AlertDialogContent>
+			<AlertDialogContent className="max-w-xl!">
 				<AlertDialogHeader>
 					<AlertDialogTitle>{title}</AlertDialogTitle>
 					<AlertDialogDescription>{description}</AlertDialogDescription>

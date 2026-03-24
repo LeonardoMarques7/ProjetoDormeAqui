@@ -132,6 +132,12 @@ router.post("/", async (req, res) => {
             return res.status(404).json({ message: "Lugar não encontrado." });
         }
 
+        if (!placeDoc.isActive) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(410).json({ message: "Lugar não está disponível." });
+        }
+
         const checkinDate = new Date(checkin);
         const checkoutDate = new Date(checkout);
 
