@@ -8,6 +8,7 @@ import ScrollCarousel from "@/components/common/ScrollCarousel";
 import FeaturedSection from "@/components/common/FeaturedSection";
 import Grainient from "@/components/Grainient";
 import axios from "axios";
+import { filterAccommodations, fetchBookingsForAccommodations } from "@/lib/searchFilters";
 
 import logoPrimary from "@/assets/logo__secondary.png";
 import { Link } from "react-router-dom";
@@ -20,6 +21,7 @@ import {
 	X,
 	Trash,
 	ScrollIcon,
+	SearchX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,6 +53,8 @@ const Home = () => {
 	const [loading, setLoading] = useState(true);
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [datePickerKey, setDatePickerKey] = useState(0);
+	const [currentFilters, setCurrentFilters] = useState(null);
+	const [alternativeAccommodations, setAlternativeAccommodations] = useState([]);
 
 	const {
 		register,
@@ -80,6 +84,16 @@ const Home = () => {
 		} catch (error) {
 			console.error("Erro ao carregar acomodações:", error);
 			setLoading(false);
+		}
+	};
+
+	const getAlternativeAccommodations = async () => {
+		try {
+			const { data } = await axios.get("/places?limit=8");
+			return data.slice(0, 8);
+		} catch (error) {
+			console.error("Erro ao carregar acomodações alternativas:", error);
+			return [];
 		}
 	};
 
@@ -117,10 +131,53 @@ const Home = () => {
 			}
 
 			// Fazer requisição ao backend com filtros
-			const { data: filteredResults } = await axios.get(
+			const { data: apiResults } = await axios.get(
 				`/places?${queryParams.toString()}`,
 			);
+
+			console.log("🔎 [Home] Resultados do backend:", apiResults.length, "acomodações");
+
+			// Enriquecer com dados de bookings apenas se tiver datas
+			let enrichedResults = apiResults;
+			if (formData.checkin && formData.checkout) {
+				console.log("📦 [Home] Enriquecendo com bookings...");
+				enrichedResults = await fetchBookingsForAccommodations(
+					apiResults,
+					axios
+				);
+				console.log("✅ [Home] Enriquecimento concluído");
+			} else {
+				console.log("ℹ️ [Home] Sem datas, pulando enriquecimento");
+			}
+
+			// Aplicar filtros adicionais localmente (validação de datas)
+			console.log("🔧 [Home] Aplicando filtros locais...");
+			const filteredResults = filterAccommodations(enrichedResults, {
+				city: formData.city || "",
+				guests: formData.guests,
+				rooms: formData.rooms,
+				checkIn: formData.checkin,
+				checkOut: formData.checkout,
+			});
+
+			console.log("📊 [Home] Resultado final:", filteredResults.length, "acomodações");
+
+			// Se não encontrou resultados, carregar alternativas
+			if (filteredResults.length === 0 && formData.city) {
+				const alternatives = await getAlternativeAccommodations();
+				setAlternativeAccommodations(alternatives);
+			} else {
+				setAlternativeAccommodations([]);
+			}
+
 			setPlacesSearch(filteredResults);
+			setCurrentFilters({
+				city: formData.city,
+				guests: formData.guests,
+				rooms: formData.rooms,
+				checkIn: formData.checkin,
+				checkOut: formData.checkout,
+			});
 			setLoading(false);
 		} catch (error) {
 			console.error("Erro na busca:", error);
@@ -256,7 +313,52 @@ const Home = () => {
 					</div>
 				)}
 
-				{!loading && (
+				{!loading && placesSearch.length === 0 && city && (
+					<div className="max-w-7xl mx-auto">
+						{/* Mensagem de nenhum resultado */}
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.4 }}
+							className="text-center mb-16 py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border border-gray-200"
+						>
+							<div className="flex justify-center mb-4">
+								<SearchX className="w-12 h-12 text-gray-400" />
+							</div>
+							<h3 className="text-xl font-semibold text-gray-700 mb-2">
+								Nenhuma acomodação encontrada
+							</h3>
+							<p className="text-gray-500 text-sm max-w-md mx-auto">
+								Infelizmente não encontramos acomodações que correspondem aos seus critérios.
+								Confira algumas outras opções abaixo ou tente ajustar seus filtros.
+							</p>
+						</motion.div>
+
+						{/* Acomodações alternativas */}
+						{alternativeAccommodations.length > 0 && (
+							<div className="mt-12">
+								<h3 className="text-2xl font-bold text-primary-900 mb-6 text-center">
+									Outras opções que você pode gostar
+								</h3>
+								<motion.div
+									className="grid max-w-7xl mx-auto justify-center grid-cols-[repeat(auto-fit,minmax(225px,250px))] max-sm:grid-cols-2 max-sm:gap-2 gap-8"
+									variants={staggerContainer(0.06)}
+									initial="hidden"
+									whileInView="visible"
+									viewport={{ once: true }}
+								>
+									{alternativeAccommodations.map((place) => (
+										<motion.div key={place._id} variants={staggerItem}>
+											<Item place={place} />
+										</motion.div>
+									))}
+								</motion.div>
+							</div>
+						)}
+					</div>
+				)}
+
+				{!loading && placesSearch.length > 0 && (
 					<motion.div
 						className="grid max-w-7xl mx-auto justify-center grid-cols-[repeat(auto-fit,minmax(225px,250px))] max-sm:grid-cols-2 max-sm:gap-2 gap-8 "
 						variants={staggerContainer(0.06)}
