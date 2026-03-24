@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import NewPlace from "@/components/places/NewPlace";
 import Places from "@/components/places/Places";
+import DeletePlaceDialog from "@/components/places/DeletePlaceDialog";
 import "@/components/places/Places.css";
 import { useMobileContext } from "@/components/contexts/MobileContext";
 import { useUserContext } from "@/components/contexts/UserContext";
@@ -18,13 +19,14 @@ import {
 } from "@/components/ui/tooltip";
 
 const AccPlaces = () => {
-	const { action } = useParams();
+	const { action, id, edit } = useParams();
 	const { mobile } = useMobileContext();
 	const { user } = useUserContext();
 	const [places, setPlaces] = useState([]);
 	const [redirect, setRedirect] = useState(false);
 	const [loadingPlaces, setLoadingPlaces] = useState(true);
-	const { edit } = useParams();
+	const [showDeletePlaceDialog, setShowDeletePlaceDialog] = useState(false);
+	const [selectedPlace, setSelectedPlace] = useState(null);
 
 	useEffect(() => {
 		if (!user) {
@@ -43,6 +45,37 @@ const AccPlaces = () => {
 
 		axiosGet();
 	}, [action, user?._id]);
+
+	// Handle delete place when action is "r" (remove)
+	useEffect(() => {
+		if (action === "r" && id && user && places.length > 0) {
+			const place = places.find((p) => String(p._id) === String(id));
+			if (place) {
+				setSelectedPlace(place);
+				setShowDeletePlaceDialog(true);
+			}
+		}
+	}, [action, id, user, places]);
+
+	const handleDeletePlace = (place) => {
+		setSelectedPlace(place);
+		setShowDeletePlaceDialog(true);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (!selectedPlace) return;
+
+		try {
+			await axios.delete(`/places/${selectedPlace._id}`);
+			setShowDeletePlaceDialog(false);
+			setSelectedPlace(null);
+			setRedirect(true);
+		} catch (error) {
+			console.error("Erro ao deletar acomodação:", error);
+			setShowDeletePlaceDialog(false);
+			setSelectedPlace(null);
+		}
+	};
 
 	if (redirect) return <Navigate to="/account/places" />;
 
@@ -140,7 +173,7 @@ const AccPlaces = () => {
 							</>
 						</div>
 					) : (
-						action !== "new" && <Places places={places} />
+						action !== "new" && <Places places={places} onDelete={handleDeletePlace} />
 					)}
 
 					{action !== "new" ? (
@@ -152,6 +185,13 @@ const AccPlaces = () => {
 					)}
 				</div>
 			</div>
+
+			<DeletePlaceDialog
+				open={showDeletePlaceDialog}
+				onOpenChange={setShowDeletePlaceDialog}
+				onDelete={handleConfirmDelete}
+				placeName={selectedPlace?.title}
+			/>
 		</>
 	);
 };

@@ -19,6 +19,7 @@ import PlaceReviews from "../components/places/PlaceReviews";
 import PlaceExistingBooking from "../components/places/PlaceExistingBooking";
 import PlaceBookingForm from "../components/places/PlaceBookingForm";
 import PlaceHolder from "../components/places/placeholder/PlaceHolder";
+import { AlertTriangle } from "lucide-react";
 
 const fadeUp = {
 	hidden: { opacity: 0, y: 32 },
@@ -46,6 +47,7 @@ const Place = () => {
 	const [reviews, setReviews] = useState([]);
 	const [loading, setLoading] = useState(false);
 	const [placeNotFound, setPlaceNotFound] = useState(false);
+	const [placeInactive, setPlaceInactive] = useState(false);
 	const [experienceTime, setExperienceTime] = useState("");
 	const [refundPolicy, setRefundPolicy] = useState(null);
 	const [showFixedBar, setShowFixedBar] = useState(false);
@@ -64,8 +66,13 @@ const Place = () => {
 		axios
 			.get(`/places/${id}`)
 			.then(({ data }) => {
-				setPlace(data);
-				setPlaceNotFound(false);
+				if (!data || !data.isActive) {
+					setPlaceInactive(true);
+				} else {
+					setPlace(data);
+					setPlaceNotFound(false);
+					setPlaceInactive(false);
+				}
 			})
 			.catch(() => setPlaceNotFound(true))
 			.finally(() => setTimeout(() => setLoading(false), 50));
@@ -170,6 +177,61 @@ const Place = () => {
 	}, [place]);
 
 	if (placeNotFound) return <NotFound />;
+
+	if (placeInactive) {
+		return (
+			<motion.div
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100"
+			>
+				<div className="text-center max-w-md mx-4">
+					<motion.div
+						initial={{ scale: 0 }}
+						animate={{ scale: 1 }}
+						transition={{ delay: 0.2, duration: 0.4 }}
+						className="flex justify-center mb-6"
+					>
+						<div className="p-4 bg-red-100 rounded-full">
+							<AlertTriangle className="w-12 h-12 text-red-600" />
+						</div>
+					</motion.div>
+
+					<motion.h1
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.3, duration: 0.4 }}
+						className="text-3xl font-bold text-gray-900 mb-3"
+					>
+						Acomodação Indisponível
+					</motion.h1>
+
+					<motion.p
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.4, duration: 0.4 }}
+						className="text-gray-600 mb-6 text-lg"
+					>
+						Desculpe, esta acomodação não está mais disponível. O anúncio pode ter sido removido ou está temporariamente indisponível.
+					</motion.p>
+
+					<motion.div
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.5, duration: 0.4 }}
+						className="flex gap-4 justify-center flex-col sm:flex-row"
+					>
+						<Link
+							to="/"
+							className="px-6 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors inline-block"
+						>
+							← Voltar para Home
+						</Link>
+					</motion.div>
+				</div>
+			</motion.div>
+		);
+	}
 
 	if (!place) {
 		return <></>;

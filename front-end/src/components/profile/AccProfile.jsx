@@ -61,7 +61,7 @@ const AccProfile = ({ userId }) => {
 
 	const isEditMode = params.action === "edit";
 	const paramId = isEditMode ? params.id : params.action;
-	
+
 	// Se userId foi passado como prop, usa. Senão usa paramId
 	const targetUserId = userId || paramId;
 
@@ -141,7 +141,7 @@ const AccProfile = ({ userId }) => {
 	useEffect(() => {
 		const fetchPlaces = async () => {
 			try {
-				const userId = paramId || user?._id;
+				const userId = targetUserId || user?._id;
 
 				if (!userId || userId === "false") {
 					return;
@@ -692,7 +692,12 @@ const AccProfile = ({ userId }) => {
 									className=" relative w-60 h-60 max-sm:w-50 max-sm:h-50 rounded-full border-2 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white"
 									initial={{ scale: 0.8, opacity: 0 }}
 									animate={{ scale: 1, opacity: 1 }}
-									transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+									transition={{
+										type: "spring",
+										stiffness: 260,
+										damping: 20,
+										delay: 0.1,
+									}}
 									whileHover={{ scale: 1.05 }}
 								>
 									<img
@@ -891,7 +896,7 @@ const AccProfile = ({ userId }) => {
 									</span>
 								</div>
 								<div className="flex flex-col gap-10">
-									<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
+									<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-8 lg:max-w-7xl">
 										{places.length > 0 ? (
 											places.map((item, index) => (
 												<div

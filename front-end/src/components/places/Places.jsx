@@ -17,7 +17,7 @@ import {
 import photoDefault from "@/assets/photoDefault.jpg";
 
 // NOVO COMPONENTE: PlaceCard - cada card tem seus próprios estados
-const PlaceCard = ({ place, index }) => {
+const PlaceCard = ({ place, index, onDelete }) => {
 	const [api, setApi] = useState(null);
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [imageErrors, setImageErrors] = useState({});
@@ -50,6 +50,11 @@ const PlaceCard = ({ place, index }) => {
 			return photoDefault;
 		}
 		return item.photos?.[index];
+	};
+
+	const handleDeleteClick = (e) => {
+		e.preventDefault();
+		onDelete(place);
 	};
 
 	return (
@@ -129,15 +134,15 @@ const PlaceCard = ({ place, index }) => {
 
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<Link
-									to={`/account/places/r/${place._id}`}
+								<button
+									onClick={handleDeleteClick}
 									className="edit__btn group cursor-pointer group-hover:text-white hover:text-white flex items-center justify-center transition-all duration-300 ease-in-out px-3 hover:bg-red-600 gap-0 hover:gap-3 text-red-500 rounded-xl text-center py-2.5 overflow-hidden"
 								>
 									<Trash2
 										size={18}
 										className="transition-transform duration-300 group-hover:scale-110"
 									/>
-								</Link>
+								</button>
 							</TooltipTrigger>
 							<TooltipContent className="bg-red-600">
 								<p>Excluir acomodação</p>
@@ -150,7 +155,7 @@ const PlaceCard = ({ place, index }) => {
 	);
 };
 
-const Places = ({ places }) => {
+const Places = ({ places, onDelete }) => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 4;
 
@@ -161,16 +166,6 @@ const Places = ({ places }) => {
 	const indexOfLastItem = currentPage * itemsPerPage;
 	const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 	const currentPlaces = places.slice(indexOfFirstItem, indexOfLastItem);
-
-	const handleDelete = async () => {
-		try {
-			const { data } = await axios.delete(`/places/${place._id}`);
-			console.log("Conta deletada!", data);
-			setRedirect(true);
-		} catch (error) {
-			console.error("Erro ao deletar:", error);
-		}
-	};
 
 	useEffect(() => {
 		ScrollReveal().reveal(".headline", {
@@ -185,7 +180,7 @@ const Places = ({ places }) => {
 	return (
 		<>
 			{currentPlaces.map((place, index) => (
-				<PlaceCard key={place._id} index={index} place={place} />
+				<PlaceCard key={place._id} index={index} place={place} onDelete={onDelete} />
 			))}
 
 			{/* Componente de paginação reutilizável */}

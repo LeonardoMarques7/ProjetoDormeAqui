@@ -17,6 +17,7 @@ const placeSchema = new Schema({
     beds: Number,
     bathrooms: Number,
     averageRating: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true },
 });
 
 export default model("Place", placeSchema);
