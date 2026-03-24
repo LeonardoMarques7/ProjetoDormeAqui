@@ -23,7 +23,7 @@ function useIsMobile() {
 	return isMobile;
 }
 
-const NotificationBell = () => {
+const NotificationBell = ({ isAbsolute }) => {
 	const { getUnreadCount } = useNotification();
 	const unreadCount = getUnreadCount();
 	const isMobile = useIsMobile();
@@ -84,10 +84,12 @@ const NotificationBell = () => {
 			{({ open }) => (
 				<>
 					<MenuButton
-						className="relative p-2.5 rounded-lg hover:bg-gray-100 active:scale-95 transition-all duration-200 outline-none cursor-pointer"
+						className={`relative p-2.5 rounded-full hover:bg-gray-100 active:scale-95 transition-all duration-200 outline-none cursor-pointer ${isAbsolute && "hover:bg-white/10 "}`}
 						aria-label="Notificações"
 					>
-						<Bell className="w-5 h-5 text-gray-700" />
+						<Bell
+							className={` w-5 h-5 text-gray-700 ${isAbsolute && "text-white!"}`}
+						/>
 						{badge}
 					</MenuButton>
 
@@ -99,7 +101,12 @@ const NotificationBell = () => {
 								initial={{ opacity: 0, scale: 0.95, y: -8 }}
 								animate={{ opacity: 1, scale: 1, y: 0 }}
 								exit={{ opacity: 0, scale: 0.95, y: -8 }}
-								transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
+								transition={{
+									type: "spring",
+									stiffness: 300,
+									damping: 30,
+									mass: 0.8,
+								}}
 								className="absolute right-0 top-full mt-3 z-50 w-96 max-w-[calc(100vw-1rem)] outline-none origin-top-right"
 							>
 								<NotificationDropdown />

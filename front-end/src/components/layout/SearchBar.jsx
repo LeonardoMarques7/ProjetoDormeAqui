@@ -24,6 +24,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import GooglePlacesInput from "@/components/places/GooglePlacesInput";
+import { filterAccommodations, fetchBookingsForAccommodations } from "@/lib/searchFilters";
 
 const SearchBar = ({ compact = false, onSearch }) => {
 	const navigate = useNavigate();
@@ -83,14 +84,41 @@ const SearchBar = ({ compact = false, onSearch }) => {
 				`/places?${queryParams.toString()}`,
 			);
 
+			console.log("🔎 [SearchBar] Resultados do backend:", searchResults.length, "acomodações");
+
+			// Enriquecer com dados de bookings apenas se tiver datas
+			let enrichedResults = searchResults;
+			if (formData.checkin && formData.checkout) {
+				console.log("📦 [SearchBar] Enriquecendo com bookings...");
+				enrichedResults = await fetchBookingsForAccommodations(
+					searchResults,
+					axios
+				);
+				console.log("✅ [SearchBar] Enriquecimento concluído");
+			} else {
+				console.log("ℹ️ [SearchBar] Sem datas, pulando enriquecimento de bookings");
+			}
+
+			// Aplicar filtros adicionais localmente (datas, validações)
+			console.log("🔧 [SearchBar] Aplicando filtros locais...");
+			const filteredResults = filterAccommodations(enrichedResults, {
+				city: formData.city || "",
+				guests: formData.guests,
+				rooms: formData.rooms,
+				checkIn: formData.checkin,
+				checkOut: formData.checkout,
+			});
+
+			console.log("📊 [SearchBar] Resultado final:", filteredResults.length, "acomodações");
+
 			// Se estiver na Home e houver callback, usar callback local
 			if (location.pathname === "/" && onSearch) {
-				onSearch(searchResults, formData.city || "");
+				onSearch(filteredResults, formData.city || "");
 			} else {
 				// Caso contrário, navega para a home com os resultados
 				navigate("/", {
 					state: {
-						searchResults: searchResults,
+						searchResults: filteredResults,
 						searchCity: formData.city || "",
 					},
 				});
@@ -244,9 +272,9 @@ const SearchBar = ({ compact = false, onSearch }) => {
 				</div>
 
 				{/* Separador */}
-				<div className="flex items-center gap-5 bg-white border-t text-primary-900 px-3 py-2  transition-shadow">
+				<div className="flex items-center gap-5 bg-white border-t text-primary-900 px-3 py-2 max-w-full transition-shadow">
 					{/* DatePicker */}
-					<div className="flex-1 ">
+					<div className="flex-1">
 						<Controller
 							name="checkin"
 							control={control}

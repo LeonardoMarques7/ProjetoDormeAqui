@@ -206,65 +206,185 @@ router.post("/from-payment", async (req, res) => {
         const paymentInfo = await getPaymentInfo(paymentId);
 
         if (!paymentInfo || !paymentInfo.metadata) {
+            console.error('❌ /from-payment: Não foi possível obter informações do pagamento', { paymentId });
             return res.status(400).json({ message: "Não foi possível obter informações do pagamento." });
         }
 
         const metadata = paymentInfo.metadata;
 
         // Normaliza campos da metadata (suporte a diferentes formatos)
-        const userId = metadata.userId || metadata.user_id || (metadata.payer && metadata.payer.id);
-        const accommodationId = metadata.accommodationId || metadata.accommodation_id || metadata.id;
-        const checkin = metadata.checkin || metadata.checkin || metadata.check_in;
-        const checkout = metadata.checkout || metadata.checkout || metadata.check_out;
+        const userId = metadata.userId || metadata.user_id;
+        const accommodationId = metadata.accommodationId || metadata.accommodation_id;
+        let checkIn = metadata.checkIn || metadata.check_in || metadata.checkin;
+        let checkOut = metadata.checkOut || metadata.check_out || metadata.checkout;
         const guests = parseInt(metadata.guests || metadata.guest_count || "1", 10) || 1;
-        const nights = parseInt(metadata.nights || Math.max(1, Math.ceil((new Date(checkout) - new Date(checkin)) / (1000*60*60*24))), 10);
+        
+        // 🔧 Parse de datas como strings
+        if (typeof checkIn === 'string') {
+            checkIn = new Date(checkIn);
+        }
+        if (typeof checkOut === 'string') {
+            checkOut = new Date(checkOut);
+        }
+
+        const nights = parseInt(metadata.nights || Math.max(1, Math.ceil((checkOut - checkIn) / (1000*60*60*24))), 10);
         const priceTotal = parseFloat(metadata.priceTotal || metadata.total_price || 0) || 0;
         const pricePerNight = parseFloat(metadata.pricePerNight || metadata.price_per_night || 0) || 0;
 
-        const mapPaymentStatus = (mpStatus) => {
-            const statusMap = {
-                "approved": "approved",
-                "pending": "pending",
-                "in_process": "pending",
-                "in_mediation": "pending",
-                "rejected": "rejected",
-                "cancelled": "rejected",
-                "refunded": "rejected",
-                "charged_back": "rejected"
-            };
-            return statusMap[(mpStatus || "").toLowerCase()] || "pending";
-        };
-
-        const paymentStatus = mapPaymentStatus(paymentInfo.status || paymentInfo.payment?.status || "");
+        // Validação básica
+        if (!userId || !accommodationId) {
+            console.error('❌ /from-payment: Metadata incompleta', { userId, accommodationId, paymentId });
+            return res.status(400).json({ message: "Metadata incompleta no pagamento." });
+        }
 
         // IDEMPOTÊNCIA: verifica se existe reserva com esse paymentId
         const existingBooking = await Booking.findOne({ mercadopagoPaymentId: String(paymentId) });
         if (existingBooking) {
+            console.log('✅ /from-payment: Reserva já existe', { paymentId, bookingId: existingBooking._id });
             return res.status(200).json(existingBooking);
         }
 
-        // Não criar reserva de forma síncrona aqui. A confirmação e criação devem ser feitas pelo webhook do Mercado Pago para garantir idempotência e consistência.
-        const mpRawStatus = (paymentInfo.status || paymentInfo.payment?.status || "").toLowerCase();
+        // Verifica status do pagamento
+        const mpRawStatus = (paymentInfo.status || "").toLowerCase();
+        const mappedStatus = {
+            "approved": "approved",
+            "paid": "approved",
+            "pending": "pending",
+            "in_process": "pending",
+            "in_mediation": "pending",
+            "rejected": "rejected",
+            "cancelled": "rejected",
+            "canceled": "rejected",
+            "refunded": "rejected",
+            "charged_back": "rejected"
+        }[mpRawStatus] || "pending";
 
-        if (mpRawStatus !== "approved") {
-            return res.status(400).json({ message: "Pagamento não aprovado ou não confirmado. Aguarde a confirmação via webhook.", paymentStatus: mpRawStatus });
+        if (mappedStatus !== "approved") {
+            console.warn('⚠️ /from-payment: Pagamento não aprovado', { paymentId, status: mpRawStatus, mapped: mappedStatus });
+            return res.status(400).json({ 
+                message: "Pagamento não aprovado. Aguarde a confirmação.", 
+                paymentStatus: mappedStatus 
+            });
         }
 
-        // Pagamento aprovado — mas NÃO criaremos a reserva aqui. O webhook do Mercado Pago é responsável por criar a reserva e persistir o paymentId de forma idempotente.
-        return res.status(200).json({ message: "Pagamento aprovado. A confirmação da reserva será realizada automaticamente pelo webhook do Mercado Pago.", paymentStatus: mpRawStatus, paymentInfo });
+        // Criar a reserva
+        const createdBooking = await Booking.createFromPayment({
+            place: accommodationId,
+            user: userId,
+            pricePerNight,
+            priceTotal,
+            checkin: checkIn,
+            checkout: checkOut,
+            guests,
+            nights,
+            mercadopagoPaymentId: paymentId.toString(),
+            paymentStatus: "approved",
+        });
+
+        console.log(`✅ /from-payment: Reserva criada com sucesso`, { bookingId: createdBooking._id, paymentId });
+        return res.status(200).json(createdBooking);
     } catch (error) {
         // Propaga statusCode se definido na lógica do modelo
         if (error && error.statusCode) {
+            console.error(`❌ /from-payment: Erro com status ${error.statusCode}`, { message: error.message });
             return res.status(error.statusCode).json({ message: error.message });
         }
 
         // Conflito de datas detectado no modelo
         if (error && error.message && error.message.toLowerCase().includes("datas conflitantes")) {
+            console.warn('⚠️ /from-payment: Conflito de datas', { message: error.message });
             return res.status(409).json({ message: error.message });
         }
 
-        console.error("Erro ao criar reserva a partir do pagamento:", error);
+        console.error("❌ /from-payment: Erro ao criar reserva", error);
         return res.status(500).json({ message: "Erro interno ao criar reserva a partir do pagamento." });
+    }
+});
+
+// ✅ Endpoint de teste para verificar se o webhook está funcionando
+router.get("/test/stripe-status", async (req, res) => {
+    try {
+        const { stripeClient, webhookSecret } = await import("../../config/stripe.js");
+        
+        const status = {
+            stripConfigured: !!stripeClient,
+            webhookSecretConfigured: !!webhookSecret,
+            useStripe: process.env.USE_STRIPE === 'true',
+            environment: process.env.NODE_ENV || 'development',
+        };
+
+        console.log('🧪 Test endpoint: Stripe status check', status);
+        return res.json(status);
+    } catch (error) {
+        console.error('❌ Test endpoint: Erro ao verificar Stripe', error.message);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
+// ✅ Endpoint de teste para simular webhook (APENAS EM DESENVOLVIMENTO)
+router.post("/test/simulate-webhook", async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ error: "Endpoint não disponível em produção" });
+    }
+
+    try {
+        const { paymentIntentId, checkIn, checkOut, accommodationId, userId } = req.body;
+
+        if (!paymentIntentId || !checkIn || !checkOut || !accommodationId || !userId) {
+            return res.status(400).json({ 
+                error: "Campos obrigatórios: paymentIntentId, checkIn, checkOut, accommodationId, userId" 
+            });
+        }
+
+        // Simula um evento de webhook
+        const fakeEvent = {
+            type: 'checkout.session.completed',
+            data: {
+                object: {
+                    object: 'checkout.session',
+                    id: `cs_test_${Date.now()}`,
+                    payment_intent: paymentIntentId,
+                    payment_status: 'paid',
+                    metadata: {
+                        userId,
+                        accommodationId,
+                        checkIn,
+                        checkOut,
+                        guests: '1',
+                        nights: '1',
+                        totalPrice: '100',
+                        pricePerNight: '100',
+                    }
+                }
+            }
+        };
+
+        // Processa manualmente (igual ao webhook real)
+        const { metadata, paymentId } = {
+            metadata: fakeEvent.data.object.metadata,
+            paymentId: fakeEvent.data.object.payment_intent
+        };
+
+        console.log('🧪 Simulando webhook:', { fakeEvent });
+
+        const createdBooking = await Booking.createFromPayment({
+            place: accommodationId,
+            user: userId,
+            pricePerNight: 100,
+            priceTotal: 100,
+            checkin: new Date(checkIn),
+            checkout: new Date(checkOut),
+            guests: 1,
+            nights: 1,
+            mercadopagoPaymentId: paymentId.toString(),
+            paymentStatus: 'approved',
+        });
+
+        console.log(`✅ Webhook simulado: Reserva criada ${createdBooking._id}`);
+        return res.json({ success: true, booking: createdBooking });
+    } catch (error) {
+        console.error('❌ Erro ao simular webhook:', error.message);
+        return res.status(500).json({ error: error.message });
     }
 });
 

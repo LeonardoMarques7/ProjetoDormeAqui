@@ -78,14 +78,32 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
 
     const userId = metadata.userId || metadata.user_id;
     const accommodationId = metadata.accommodationId || metadata.accommodation_id;
-    const checkIn = metadata.checkIn || metadata.check_in;
-    const checkOut = metadata.checkOut || metadata.check_out;
+    let checkIn = metadata.checkIn || metadata.check_in;
+    let checkOut = metadata.checkOut || metadata.check_out;
     const guests = Number(metadata.guests) || 1;
     const nights = Number(metadata.nights) || 1;
     const rawTotalPrice = Number(metadata.totalPrice || metadata.total_price);
     const rawPricePerNight = Number(metadata.pricePerNight || metadata.price_per_night);
     const totalPrice = isNaN(rawTotalPrice) ? 0 : rawTotalPrice;
     const pricePerNight = isNaN(rawPricePerNight) ? 0 : rawPricePerNight;
+
+    // 🔧 Garante que checkIn e checkOut sejam Dates válidas
+    if (checkIn && typeof checkIn === 'string') {
+      try {
+        checkIn = new Date(checkIn);
+      } catch (err) {
+        console.error('❌ Stripe webhook: checkIn inválido', { checkIn: metadata.checkIn, error: err.message });
+        return res.status(200).json({ received: true, message: 'invalid-checkin-date' });
+      }
+    }
+    if (checkOut && typeof checkOut === 'string') {
+      try {
+        checkOut = new Date(checkOut);
+      } catch (err) {
+        console.error('❌ Stripe webhook: checkOut inválido', { checkOut: metadata.checkOut, error: err.message });
+        return res.status(200).json({ received: true, message: 'invalid-checkout-date' });
+      }
+    }
 
     if (!userId || !accommodationId || !checkIn || !checkOut) {
       console.error('❌ Stripe webhook: metadata incompleta', { userId, accommodationId, checkIn, checkOut, paymentId });

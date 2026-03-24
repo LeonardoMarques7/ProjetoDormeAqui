@@ -228,7 +228,7 @@ const DatePickerAirbnb = ({
 
 		return (
 			<div className="w-full">
-				<h3 className="text-center font-bold text-base md:text-lg mb-4 text-primary-800 capitalize">
+				<h3 className="text-center font-bold text-base md:text-lg max-sm:text-sm mb-4 text-primary-800 capitalize">
 					{formatDate(monthDate, "MMMM yyyy")}
 				</h3>
 
@@ -504,7 +504,7 @@ const DatePickerAirbnb = ({
 												damping: 30,
 												mass: 0.8,
 											}}
-											className="z-[9999] w-auto bg-white rounded-2xl shadow-xl border border-gray-100 outline-none origin-top p-5"
+											className="z-[9999] w-auto mx-5 bg-white rounded-2xl shadow-xl border border-gray-100 outline-none origin-top p-2.5 py-5 overflow-y-hidden!"
 										>
 											{/* Apenas o calendário, sem header/footer */}
 											{loadingDates ? (
@@ -517,7 +517,7 @@ const DatePickerAirbnb = ({
 													</div>
 												</div>
 											) : (
-												<div className="relative">
+												<div className="relative  flex items-center justify-center">
 													<button
 														type="button"
 														onClick={() =>
@@ -536,10 +536,8 @@ const DatePickerAirbnb = ({
 													>
 														<ChevronRight size={16} />
 													</button>
-													<div className="flex justify-center pt-6">
-														<div className="w-full max-w-[300px]">
-															{renderMonth(currentMonth, daysInMonth, close)}
-														</div>
+													<div className="w-full max-w-4xl! ">
+														{renderMonth(currentMonth, daysInMonth, close)}
 													</div>
 												</div>
 											)}

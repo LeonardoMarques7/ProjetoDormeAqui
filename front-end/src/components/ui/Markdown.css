@@ -8,10 +8,6 @@ h6 {
     font-weight: revert;
 } 
 
-li {
-    margin-left: 20px;
-}
-
 .ProseMirror {
     white-space: normal !important;
 }
