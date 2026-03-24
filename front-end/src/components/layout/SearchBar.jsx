@@ -244,9 +244,9 @@ const SearchBar = ({ compact = false, onSearch }) => {
 				</div>
 
 				{/* Separador */}
-				<div className="flex items-center gap-5 bg-white border-t text-primary-900 px-3 py-2  transition-shadow">
+				<div className="flex items-center gap-5 bg-white border-t text-primary-900 px-3 py-2 max-w-full transition-shadow">
 					{/* DatePicker */}
-					<div className="flex-1 ">
+					<div className="flex-1">
 						<Controller
 							name="checkin"
 							control={control}

@@ -173,7 +173,7 @@ const Home = () => {
 			{" "}
 			<motion.section
 				ref={heroRef}
-				className="relative h-screen z-50 flex-col max-sm:rounded-b-4xl max-sm:px-2 flex rounded-bl-[50%] max-sm:rounded-bl-4xl max-sm:h-full justify-center items-center py-4 shadow-2xl"
+				className="relative h-screen max-sm:h-[70dvh] z-50 flex-col max-sm:rounded-b-4xl max-sm:px-2 flex rounded-bl-[50%] max-sm:rounded-bl-4xl justify-center items-center py-4 shadow-2xl"
 				style={{
 					perspective: 1000,
 					backgroundImage: `url("https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609")`,
@@ -226,7 +226,7 @@ const Home = () => {
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
 					transition={{ duration: 0.6 }}
-					className="text-center mb-10 mt-10 flex items-center justify-center gap-5  mx-auto"
+					className="text-center mb-10 mt-10 flex items-center justify-center max-sm:px-4 gap-5  mx-auto"
 				>
 					<div className="flex flex-col items-center text-center justify-center">
 						<span className="text-5xl  max-sm:text-2xl font-extrabold text-primary-900 mb-1">
@@ -258,7 +258,7 @@ const Home = () => {
 
 				{!loading && (
 					<motion.div
-						className="grid max-w-7xl mx-auto justify-center grid-cols-[repeat(auto-fit,minmax(225px,250px))] max-sm:grid-cols-[repeat(auto-fit,minmax(175px,0.5fr))] max-sm:gap-2 gap-8"
+						className="grid max-w-7xl mx-auto justify-center grid-cols-[repeat(auto-fit,minmax(225px,250px))] max-sm:grid-cols-2 max-sm:gap-2 gap-8 "
 						variants={staggerContainer(0.06)}
 						initial="hidden"
 						whileInView="visible"
