@@ -84,7 +84,7 @@ export default function PlaceGallery({ photos }) {
 					>
 						{/* Imagem principal */}
 						<motion.div
-							className="col-span-3 row-span-2 max-sm:col-span-4 max-sm:row-span-2 overflow-hidden"
+							className="col-span-3 row-span-2 max-sm:col-span-4 rounded-3xl max-sm:row-span-2 overflow-hidden"
 							variants={galleryItem}
 						>
 							<img
