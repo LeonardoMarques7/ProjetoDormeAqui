@@ -12,7 +12,7 @@ const Perk = ({ place = false, perk, minimal = null, width = 20 }) => {
 			>
 				{Icon && !Image ? (
 					<Icon
-						className={`${minimal && width == 20 ? "w-5 h-5" : "w-7 h-7"} ${place && "!w-5 !h-5"} `}
+						className={`${minimal && width == 20 ? "w-5 h-5 mx-auto" : "w-7 h-7"} ${place && "!w-5 !h-5"} `}
 					/>
 				) : (
 					<img
