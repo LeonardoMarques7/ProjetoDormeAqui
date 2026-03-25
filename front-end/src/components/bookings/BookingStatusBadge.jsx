@@ -1,31 +1,15 @@
-const STATUS_CONFIG = {
-	pending: {
-		label: "Pendente",
-		className: "bg-yellow-100 text-yellow-800 border-yellow-200",
-	},
-	approved: {
-		label: "Aprovado",
-		className: "bg-green-100 text-green-800 border-green-200",
-	},
-	rejected: {
-		label: "Rejeitado",
-		className: "bg-red-100 text-red-800 border-red-200",
-	},
-	canceled: {
-		label: "Cancelado",
-		className: "bg-gray-100 text-gray-600 border-gray-200",
-	},
-};
+import { BOOKING_STATUS_CONFIG } from "../../lib/bookingStatuses.js";
 
 const BookingStatusBadge = ({ status }) => {
-	const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+	const config = BOOKING_STATUS_CONFIG[status] || BOOKING_STATUS_CONFIG.pending;
+	const className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.bgClass} ${config.textClass} ${config.borderClass}`;
 
 	return (
-		<span
-			className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.className}`}
-		>
-			{config.label}
-		</span>
+		<div title={config.description}>
+			<span className={className}>
+				{config.label}
+			</span>
+		</div>
 	);
 };
 

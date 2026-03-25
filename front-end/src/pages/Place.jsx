@@ -212,7 +212,8 @@ const Place = () => {
 						transition={{ delay: 0.4, duration: 0.4 }}
 						className="text-gray-600 mb-6 text-lg"
 					>
-						Desculpe, esta acomodação não está mais disponível. O anúncio pode ter sido removido ou está temporariamente indisponível.
+						Desculpe, esta acomodação não está mais disponível. O anúncio pode
+						ter sido removido ou está temporariamente indisponível.
 					</motion.p>
 
 					<motion.div
@@ -262,23 +263,6 @@ const Place = () => {
 					{/* BARRA MOBILE */}
 
 					{showFixedBar && (
-						// <motion.div className="fixed bottom-4 shadow-2xl z-100 my-4 mx-6 rounded-full left-0 right-0 bg-white p-4 px-6 items-center flex justify-between">
-						// 	<div>
-						// 		<span className="text-xl font-bold">R$ {place.price}</span>
-						// 		<span className="text-gray-500 text-sm"> /noite</span>
-						// 	</div>
-
-						// 	<button
-						// 		className="bg-gray-900 text-white px-6 py-2 rounded-2xl"
-						// 		onClick={() =>
-						// 			document.getElementById("bookingForm")?.scrollIntoView({
-						// 				behavior: "smooth",
-						// 			})
-						// 		}
-						// 	>
-						// 		Reservar
-						// 	</button>
-						// </motion.div>
 						<motion.div
 							initial={{ y: 100, opacity: 0 }}
 							animate={{
@@ -286,7 +270,7 @@ const Place = () => {
 								opacity: showFixedBar ? 1 : 0,
 							}}
 							transition={{ duration: 0.35, ease: "easeOut" }}
-							className="fixed bottom-4 shadow-2xl z-100 my-4 mx-4 rounded-full left-0 right-0 bg-white p-4 px-6 items-center flex justify-between"
+							className="fixed bottom-4 shadow-2xl w-fit gap-5 transition-all duration-700 z-100 my-4 mx-4 rounded-full right-0 bg-white p-4 px-6 items-center flex justify-between"
 						>
 							<div>
 								<span className="text-xl font-bold">R$ {place.price}</span>
@@ -309,7 +293,7 @@ const Place = () => {
 					{/* GRID */}
 
 					<motion.div
-						className="sm:grid sm:grid-cols-5 md:ml-5 gap-5 mt-2"
+						className="grid relative grid-cols-5 max-sm:grid-cols-3  gap-2 mt-2"
 						variants={stagger}
 						initial="hidden"
 						whileInView="visible"
@@ -317,7 +301,7 @@ const Place = () => {
 						{/* COLUNA ESQUERDA */}
 
 						<motion.div
-							className="col-span-3 max-sm:flex max-sm:flex-col max-sm:gap-5"
+							className="col-span-3  w-full max-w-2xl max-sm:flex max-sm:flex-col max-sm:gap-5"
 							variants={fadeUp}
 						>
 							<PlaceHeader place={place} />
@@ -341,7 +325,7 @@ const Place = () => {
 
 						<motion.div
 							id="bookingForm"
-							className="col-span-2 w-full  md:-ml-5"
+							className="col-span-2  w-full"
 							variants={fadeUp}
 						>
 							{/* COLE AQUI TODO O BLOCO GRANDE QUE VOCÊ ENVIOU */}

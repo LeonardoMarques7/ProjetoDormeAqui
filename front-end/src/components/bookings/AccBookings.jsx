@@ -7,7 +7,7 @@ import "@/components/bookings/Booking.css";
 import { useParams } from "react-router-dom";
 import { useUserContext } from "@/components/contexts/UserContext";
 import photoDefault from "@/assets/photoDefault.jpg";
-import { ArrowRight, Trash2, MessageSquare } from "lucide-react";
+import { ArrowRight, Trash2, MessageSquare, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 // Badge Status Component
@@ -76,7 +76,7 @@ function BookingCard({ booking, index }) {
 	const formatDate = (date) => {
 		if (!date) return "—";
 		const d = new Date(date);
-		return d.toLocaleDateString("pt-BR");
+		return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 	};
 
 	return (
@@ -84,142 +84,147 @@ function BookingCard({ booking, index }) {
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.3, delay: index * 0.1 }}
-			className="flex flex-col gap-6 mb-8 w-full"
+			className="relative flex gap-[10px] rounded-[25px] overflow-hidden bg-white shadow-lg max-md:flex-col mb-8 w-full"
 		>
-			{/* Main Card */}
-			<div className="flex gap-8 max-md:flex-col max-md:gap-4">
-				{/* Left side - Large Image */}
-				<div className="flex-1 min-w-0">
-					<div className="relative">
-						<img
-							src={photos[0]}
-							onError={() => handleImageError(0)}
-							alt={booking.place?.title}
-							className="w-full h-[410px] object-cover rounded-[25px]"
-						/>
+			{/* Seção de Imagens */}
+			<div className="grid grid-cols-[1fr_200px] grid-rows-2 gap-[10px] h-[410px] w-[707px] max-md:w-full max-md:h-[300px] flex-shrink-0">
+				{/* Imagem Principal Grande - ocupa toda a coluna esquerda */}
+				<div className="relative row-span-2 rounded-[25px] overflow-hidden">
+					<img
+						src={photos[0]}
+						onError={() => handleImageError(0)}
+						alt={booking.place?.title}
+						className="w-full h-full object-cover"
+					/>
+					{/* Badge de Status */}
+					<div className="absolute top-2 left-2 z-10">
 						<BadgeStatus status={booking.status || "confirmada"} />
 					</div>
 				</div>
 
-				{/* Right side - Images Grid and Info */}
-				<div className="flex flex-col gap-6 flex-1 min-w-0">
-					{/* Images Grid */}
-					<div className="grid grid-cols-2 gap-2.5 h-[200px]">
-						<img
-							src={photos[1]}
-							onError={() => handleImageError(1)}
-							alt={`${booking.place?.title} - 2`}
-							className="w-full h-full object-cover rounded-[25px]"
-						/>
-						<img
-							src={photos[2]}
-							onError={() => handleImageError(2)}
-							alt={`${booking.place?.title} - 3`}
-							className="w-full h-full object-cover rounded-[25px]"
-						/>
-					</div>
+				{/* Imagem Menor Superior */}
+				<div className="rounded-[25px] overflow-hidden max-md:hidden">
+					<img
+						src={photos[1]}
+						onError={() => handleImageError(1)}
+						alt={`${booking.place?.title} - 2`}
+						className="w-full h-full object-cover"
+					/>
+				</div>
 
-					{/* Booking Info */}
-					<div className="flex flex-col gap-4">
-						{/* Title and Location */}
-						<div className="flex flex-col gap-2">
-							<Link
-								to={`/places/${booking.place?._id}`}
-								className="text-2xl font-bold text-gray-900 hover:underline cursor-pointer line-clamp-2"
-							>
-								{booking.place?.title}
-							</Link>
-							<div className="flex items-center gap-1 text-gray-600 text-sm">
-								<span>📍</span>
-								<span>
-									{booking.place?.city}, {booking.place?.state}
-								</span>
-							</div>
-						</div>
-
-						{/* Details */}
-						<div className="grid grid-cols-3 gap-4 text-center bg-gray-50 p-4 rounded-lg">
-							<div className="flex flex-col">
-								<span className="text-xs text-gray-500 font-medium">
-									CHECK-IN
-								</span>
-								<span className="text-sm font-semibold text-gray-900">
-									{formatDate(booking.checkIn)}
-								</span>
-							</div>
-							<div className="flex flex-col">
-								<span className="text-xs text-gray-500 font-medium">
-									CHECK-OUT
-								</span>
-								<span className="text-sm font-semibold text-gray-900">
-									{formatDate(booking.checkOut)}
-								</span>
-							</div>
-							<div className="flex flex-col">
-								<span className="text-xs text-gray-500 font-medium">
-									HÓSPEDES
-								</span>
-								<span className="text-sm font-semibold text-gray-900">
-									{booking.guests || "—"}
-								</span>
-							</div>
-						</div>
-
-						{/* Status */}
-						<div className="flex items-center gap-2">
-							<span className="text-gray-600 text-sm font-medium">
-								Situação:
-							</span>
-							<span
-								className={`text-sm font-semibold ${getStatusColor(booking.status || "confirmada")}`}
-							>
-								{booking.status === "confirmada"
-									? "Confirmada"
-									: booking.status === "cancelada"
-										? "Cancelada"
-										: booking.status === "andamento"
-											? "Em andamento"
-											: "Avaliação"}
-							</span>
-						</div>
-					</div>
+				{/* Imagem Menor Inferior */}
+				<div className="rounded-[25px] overflow-hidden max-md:hidden">
+					<img
+						src={photos[2]}
+						onError={() => handleImageError(2)}
+						alt={`${booking.place?.title} - 3`}
+						className="w-full h-full object-cover"
+					/>
 				</div>
 			</div>
 
-			{/* Actions Bar */}
-			<div className="flex justify-between items-center px-6 py-4 bg-gray-50 rounded-lg">
-				<div className="flex items-center gap-3">
-					<button
-						className="p-2.5 rounded-xl text-blue-600 hover:bg-blue-100 transition-colors"
-						title="Mensagem"
-					>
-						<MessageSquare size={20} />
-					</button>
-					{booking.status === "cancelada" && (
-						<button
-							className="p-2.5 rounded-xl text-red-600 hover:bg-red-100 transition-colors"
-							title="Cancelada"
+			{/* Seção de Informações */}
+			<div className="relative flex flex-col justify-between p-6 flex-1 max-md:p-4">
+				{/* Título e Localização */}
+				<div className="flex flex-col gap-3 mb-4">
+					<div className="flex flex-col gap-2">
+						<Link
+							to={`/places/${booking.place?._id}`}
+							className="font-bold text-3xl max-md:text-2xl text-[#0F172B] hover:underline cursor-pointer break-words"
 						>
-							<Trash2 size={20} />
-						</button>
-					)}
+							{booking.place?.title}
+						</Link>
+						<div className="flex items-center gap-1 text-xs text-gray-600">
+							<MapPin size={14} />
+							<span>{booking.place?.city}</span>
+						</div>
+					</div>
 				</div>
 
-				{booking.status === "avaliacao" ? (
-					<button className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors font-medium text-sm">
-						Publicar avaliação
-						<span className="text-lg">→</span>
-					</button>
-				) : booking.status === "confirmada" ? (
-					<button className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors font-medium text-sm">
-						Cancelar reserva
-						<Trash2 size={16} />
-					</button>
-				) : (
-					<div className="text-gray-600 text-sm font-medium">
-						Reserva {booking.status}
+				{/* Datas e Detalhes */}
+				<div className="flex flex-col gap-3 mb-4 max-md:gap-2">
+					<div className="grid grid-cols-3 gap-4 max-md:gap-2">
+						<div className="flex flex-col gap-1">
+							<small className="text-xs uppercase font-semibold text-gray-600">
+								Check-In
+							</small>
+							<span className="text-sm max-md:text-xs font-medium text-gray-900">
+								{formatDate(booking.checkin)} às {booking.place?.checkin}
+							</span>
+						</div>
+						<div className="flex flex-col gap-1">
+							<small className="text-xs uppercase font-semibold text-gray-600">
+								Check-out
+							</small>
+							<span className="text-sm max-md:text-xs font-medium text-gray-900">
+								{formatDate(booking.checkout)} às {booking.place?.checkout}
+							</span>
+						</div>
+						<div className="flex flex-col gap-1">
+							<small className="text-xs uppercase font-semibold text-gray-600">
+								Hóspedes
+							</small>
+							<span className="text-sm max-md:text-xs font-medium text-gray-900">
+								{booking.guests || "—"}
+							</span>
+						</div>
 					</div>
-				)}
+				</div>
+
+				{/* Status */}
+				<div className="flex flex-col gap-1 mb-4 pb-4 border-t border-b border-gray-200 py-3">
+					<span className="text-xs uppercase font-semibold text-gray-600">
+						Situação
+					</span>
+					<span
+						className={`text-sm font-semibold ${getStatusColor(booking.status || "confirmada")}`}
+					>
+						{booking.status === "confirmada"
+							? "Confirmada"
+							: booking.status === "cancelada"
+								? "Cancelada"
+								: booking.status === "andamento"
+									? "Em andamento"
+									: "Avaliação"}
+					</span>
+				</div>
+
+				{booking._id}
+				{/* Botões de Ação */}
+				<div className="flex flex-col gap-2 max-md:flex-col">
+					<div className="flex items-center gap-2">
+						<button
+							className="p-2.5 rounded-xl text-blue-600 hover:bg-blue-100 transition-colors"
+							title="Mensagem"
+						>
+							<MessageSquare size={18} />
+						</button>
+						{booking.status === "cancelada" && (
+							<button
+								className="p-2.5 rounded-xl text-red-600 hover:bg-red-100 transition-colors"
+								title="Cancelada"
+							>
+								<Trash2 size={18} />
+							</button>
+						)}
+					</div>
+
+					{booking.status === "avaliacao" ? (
+						<button className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium text-sm">
+							Publicar avaliação
+							<ArrowRight size={16} />
+						</button>
+					) : booking.status === "confirmada" ? (
+						<button className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium text-sm">
+							Cancelar reserva
+							<Trash2 size={16} />
+						</button>
+					) : (
+						<div className="text-gray-600 text-sm font-medium text-center py-2">
+							Reserva {booking.status}
+						</div>
+					)}
+				</div>
 			</div>
 		</motion.div>
 	);
