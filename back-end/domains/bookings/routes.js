@@ -3,6 +3,7 @@ import { __dirname } from "../../ultis/dirname.js";
 import Booking from "./model.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 import mongoose from "mongoose";
+import * as transitionService from "./transitionService.js";
 
 const router = Router();
 
@@ -408,8 +409,11 @@ router.post("/:id/cancel", async (req, res) => {
             return res.status(403).json({ message: "Você não tem permissão para cancelar esta reserva." });
         }
 
-        if (booking.paymentStatus !== "approved") {
-            return res.status(400).json({ message: `Só é possível cancelar reservas aprovadas. Status atual: ${booking.paymentStatus}` });
+        // Validar que a reserva está confirmada
+        if (booking.status !== "confirmed") {
+            return res.status(400).json({ 
+                message: `Só é possível cancelar reservas confirmadas. Status atual: ${booking.status}` 
+            });
         }
 
         if (booking.mercadopagoPaymentId) {
@@ -470,14 +474,134 @@ router.post("/:id/cancel", async (req, res) => {
             }
         }
 
-        booking.paymentStatus = "canceled";
-        await booking.save();
+        // Usar o serviço de transição para atualizar o status
+        try {
+            const updatedBooking = await transitionService.cancelBooking(
+                req.params.id,
+                userId,
+                "Cancelado pelo hóspede"
+            );
 
-        console.log(`Reserva ${booking._id} cancelada pelo usuário ${userId}`);
-        return res.status(200).json({ message: "Reserva cancelada e estorno solicitado com sucesso.", booking });
+            console.log(`Reserva ${booking._id} cancelada pelo usuário ${userId}`);
+            return res.status(200).json({ 
+                message: "Reserva cancelada e estorno solicitado com sucesso.", 
+                booking: updatedBooking 
+            });
+        } catch (transitionError) {
+            return res.status(transitionError.statusCode || 400).json({
+                message: transitionError.message,
+            });
+        }
     } catch (error) {
         console.error("Erro ao cancelar reserva:", error);
         return res.status(500).json({ message: "Erro interno ao cancelar reserva." });
+    }
+});
+
+// Endpoint para transicionar o status de uma reserva (moderador/admin)
+router.post("/:id/transition", async (req, res) => {
+    try {
+        const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
+        const { toStatus, reason } = req.body;
+
+        if (!toStatus) {
+            return res.status(400).json({ message: "Campo 'toStatus' é obrigatório." });
+        }
+
+        const booking = await Booking.findById(req.params.id);
+
+        if (!booking) {
+            return res.status(404).json({ message: "Reserva não encontrada." });
+        }
+
+        try {
+            const updatedBooking = await transitionService.transitionBookingStatus(
+                req.params.id,
+                toStatus,
+                { reason: reason || "", changedBy: userId }
+            );
+
+            console.log(`Reserva ${req.params.id} transitou de ${booking.status} para ${toStatus} por ${userId}`);
+            return res.status(200).json({
+                message: `Status da reserva atualizado para '${toStatus}' com sucesso.`,
+                booking: updatedBooking,
+            });
+        } catch (transitionError) {
+            return res.status(transitionError.statusCode || 400).json({
+                message: transitionError.message,
+            });
+        }
+    } catch (error) {
+        console.error("Erro ao transicionar status da reserva:", error);
+        return res.status(500).json({ message: "Erro interno ao transicionar status." });
+    }
+});
+
+// Endpoint para solicitar revisão de uma reserva (moderador)
+router.post("/:id/request-review", async (req, res) => {
+    try {
+        const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
+        const { reason } = req.body;
+
+        const booking = await Booking.findById(req.params.id);
+
+        if (!booking) {
+            return res.status(404).json({ message: "Reserva não encontrada." });
+        }
+
+        try {
+            const updatedBooking = await transitionService.requestBookingReview(
+                req.params.id,
+                userId,
+                reason || ""
+            );
+
+            console.log(`Revisão solicitada para reserva ${req.params.id} por ${userId}`);
+            return res.status(200).json({
+                message: "Revisão solicitada com sucesso.",
+                booking: updatedBooking,
+            });
+        } catch (reviewError) {
+            return res.status(reviewError.statusCode || 400).json({
+                message: reviewError.message,
+            });
+        }
+    } catch (error) {
+        console.error("Erro ao solicitar revisão:", error);
+        return res.status(500).json({ message: "Erro interno ao solicitar revisão." });
+    }
+});
+
+// Endpoint para finalizar uma reserva (moderador)
+router.post("/:id/complete", async (req, res) => {
+    try {
+        const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
+
+        const booking = await Booking.findById(req.params.id);
+
+        if (!booking) {
+            return res.status(404).json({ message: "Reserva não encontrada." });
+        }
+
+        try {
+            const updatedBooking = await transitionService.completeBooking(
+                req.params.id,
+                userId
+            );
+
+            console.log(`Reserva ${req.params.id} finalizada por ${userId}`);
+            return res.status(200).json({
+                message: "Reserva finalizada com sucesso.",
+                booking: updatedBooking,
+            });
+        } catch (completeError) {
+            return res.status(completeError.statusCode || 400).json({
+                message: completeError.message,
+            });
+        }
+    } catch (error) {
+        console.error("Erro ao finalizar reserva:", error);
+        return res.status(500).json({ message: "Erro interno ao finalizar reserva." });
     }
 });
 

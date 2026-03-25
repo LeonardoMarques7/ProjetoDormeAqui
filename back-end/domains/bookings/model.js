@@ -15,6 +15,22 @@ const bookingSchema = new Schema({
         default: "pending" 
     },
     mercadopagoPaymentId: { type: String, index: true },
+    status: {
+        type: String,
+        enum: ["pending", "confirmed", "in_progress", "evaluation", "review", "completed", "canceled"],
+        default: "pending",
+        index: true
+    },
+    statusHistory: [{
+        status: String,
+        changedAt: { type: Date, default: Date.now },
+        changedBy: { type: Schema.Types.ObjectId, ref: "User" },
+        reason: String
+    }],
+    lastStatusChange: { type: Date, default: Date.now },
+    reviewRequestedAt: Date,
+    reviewRequestedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    reviewReason: String,
 }, { timestamps: true });
 
 bookingSchema.statics.createFromPayment = async function ({

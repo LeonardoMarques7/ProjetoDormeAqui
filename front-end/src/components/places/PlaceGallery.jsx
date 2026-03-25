@@ -73,9 +73,9 @@ export default function PlaceGallery({ photos }) {
 
 			<div
 				ref={galleryRef}
-				className="max-sm:p-0 max-sm:shadow-none max-h-full max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center relative overflow-hidden"
+				className="max-sm:p-0 max-sm:shadow-none max-h-full mb-5 max-sm:bg-transparent max-w-full mx-auto w-full object-cover bg-center relative overflow-hidden"
 			>
-				<motion.div style={{ y: parallaxY }}>
+				<motion.div>
 					<motion.div
 						className="grid relative grid-cols-5 grid-rows-2 max-sm:grid-cols-3 h-100 max-sm:p-0 gap-2 2xl:h-150 max-sm:h-[50svh]"
 						variants={stagger}
@@ -84,7 +84,7 @@ export default function PlaceGallery({ photos }) {
 					>
 						{/* Imagem principal */}
 						<motion.div
-							className="col-span-3 row-span-2 max-sm:col-span-4 max-sm:row-span-2 overflow-hidden"
+							className="col-span-3 row-span-2 max-sm:col-span-4 rounded-3xl max-sm:row-span-2 overflow-hidden"
 							variants={galleryItem}
 						>
 							<img
