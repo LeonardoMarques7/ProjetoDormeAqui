@@ -33,7 +33,7 @@ const Login = () => {
 				setRedirect(true);
 			} catch (error) {
 				console.error("Login error:", error);
-				setMessage(`Ops, erro ao logar.. ${error.response?.data || error.message}`);
+				setMessage(`Email ou senha incorretos. Tente novamente.`);
 			}
 		} else {
 			setMessage("Erro ao fazer login. Verifique seus dados.");
