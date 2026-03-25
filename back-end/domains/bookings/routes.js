@@ -235,7 +235,7 @@ router.post("/from-payment", async (req, res) => {
         }
 
         const nights = parseInt(metadata.nights || Math.max(1, Math.ceil((checkOut - checkIn) / (1000*60*60*24))), 10);
-        const priceTotal = parseFloat(metadata.priceTotal || metadata.total_price || 0) || 0;
+        const priceTotal = parseFloat(metadata.priceTotal || metadata.totalPrice || 0) || 0;
         const pricePerNight = parseFloat(metadata.pricePerNight || metadata.price_per_night || 0) || 0;
 
         // Validação básica
@@ -247,8 +247,21 @@ router.post("/from-payment", async (req, res) => {
         // IDEMPOTÊNCIA: verifica se existe reserva com esse paymentId
         const existingBooking = await Booking.findOne({ mercadopagoPaymentId: String(paymentId) });
         if (existingBooking) {
-            console.log('✅ /from-payment: Reserva já existe', { paymentId, bookingId: existingBooking._id });
-            return res.status(200).json(existingBooking);
+            const populatedBooking = await existingBooking.populate([
+                {
+                    path: "place",
+                    populate: {
+                        path: "owner",
+                        select: "name email avatar"
+                    }
+                },
+                {
+                    path: "user",
+                    select: "name email avatar"
+                }
+            ]);
+
+            return res.status(200).json(populatedBooking);
         }
 
         // Verifica status do pagamento
@@ -266,10 +279,12 @@ router.post("/from-payment", async (req, res) => {
             "charged_back": "rejected"
         }[mpRawStatus] || "pending";
 
+
+
         if (mappedStatus !== "approved") {
-            console.warn('⚠️ /from-payment: Pagamento não aprovado', { paymentId, status: mpRawStatus, mapped: mappedStatus });
+            // console.warn('/from-payment: Pagamento não aprovado', { paymentId, status: mpRawStatus, mapped: mappedStatus });
             return res.status(400).json({ 
-                message: "Pagamento não aprovado. Aguarde a confirmação.", 
+                message: "Pagamento não aprovado.",
                 paymentStatus: mappedStatus 
             });
         }

@@ -1,20 +1,32 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import { fadeUp } from "@/lib/animations";
+import { useFooterHeight } from "@/components/contexts/FooterContext";
 import iconsBrands from "@/assets/icons/iconsBrands.png";
 import logoPrimary from "@/assets/logo__primary.png";
 import { Mail, Phone, MapPin } from "lucide-react";
 
 const Footer = () => {
 	const currentYear = new Date().getFullYear();
+	const footerElementRef = useRef(null);
+	const { observeFooterHeight } = useFooterHeight();
+
+	useEffect(() => {
+		if (footerElementRef.current) {
+			const unsubscribe = observeFooterHeight(footerElementRef.current);
+			return unsubscribe;
+		}
+	}, [observeFooterHeight]);
 
 	return (
 		<motion.footer
+			ref={footerElementRef}
 			variants={fadeUp}
 			initial="hidden"
 			whileInView="visible"
 			viewport={{ once: true, amount: 0.3 }}
-			className="mx-auto my-5 w-full max-w-7xl  text-gray-900 bg-accent rounded-2xl border border-gray-100"
+			className="mx-auto mt-10 mb-5 w-full max-w-7xl text-gray-900 bg-accent rounded-2xl border border-gray-100"
 		>
 			<div className="py-10 px-8 max-sm:px-6 max-sm:py-8">
 				{/* Top Section - Logo, Description, Payment Methods */}

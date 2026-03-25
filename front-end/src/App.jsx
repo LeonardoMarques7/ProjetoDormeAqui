@@ -10,6 +10,7 @@ import {
 import { UserContextProvider } from "./components/contexts/UserContext";
 import { NotificationProvider } from "./components/contexts/NotificationContext";
 import { MessageProvider } from "./components/contexts/MessageContext";
+import { FooterProvider } from "./components/contexts/FooterContext";
 
 import Header from "./components/layout/Header";
 import NotificationToast from "./components/common/NotificationToast";
@@ -84,82 +85,102 @@ function AppContent() {
 
 	return (
 		<MantineProvider>
-			<UserContextProvider>
-				<AuthModalContextProvider>
-					<NotificationProvider>
-						<MessageProvider>
-							{/* <MobileTopBar /> */}
-							{!mobile && <Header isAbsolute={isHome} />}
-							<NotificationToast />
-							<ScrollToTop />
+			<FooterProvider>
+				<UserContextProvider>
+					<AuthModalContextProvider>
+						<NotificationProvider>
+							<MessageProvider>
+								<div className="relative flex flex-col min-h-screen w-full bg-white">
+									{/* Header */}
+									{!mobile && <Header isAbsolute={isHome} />}
+									<NotificationToast />
+									<ScrollToTop />
 
-							<div
-								className={`${
-									isHome && !mobile ? "h-screen" : "min-h-screen"
-								} relative max-sm:justify-center! flex flex-1 flex-col ${
-									isHome ? "" : "p-4"
-								} h-full w-full ${isHome ? "" : "justify-between"} md:pb-0 pb-24 md:pt-0`}
-							>
-								<PageTransition>
-									<Routes>
-										<Route path="/" element={<Home />} />
-										<Route path="/about" element={<About />} />
-										<Route path="/contact" element={<Contact />} />
-										<Route path="/privacy" element={<Privacy />} />
-										<Route path="/terms" element={<Terms />} />
-										<Route path="/reset-password" element={<ResetPassword />} />
-										<Route path="/account/profile/:id" element={<PublicProfileWrapper />} />
-										<Route
-											path="/account/:subpage/:action?/:id?"
-											element={
-												<PrivateRoute>
-													<Account />
-												</PrivateRoute>
-											}
-										/>
-										<Route path="/places/:id" element={<Place />} />
-										<Route
-											path="/payment/success"
-											element={
-												<PrivateRoute>
-													<PaymentSuccess />
-												</PrivateRoute>
-											}
-										/>
-										<Route
-											path="/payment/pending"
-											element={
-												<PrivateRoute>
-													<PaymentPending />
-												</PrivateRoute>
-											}
-										/>
-										<Route
-											path="/payment/failure"
-											element={
-												<PrivateRoute>
-													<PaymentFailure />
-												</PrivateRoute>
-											}
-										/>
-										<Route path="/*" element={<NotFound />} />
-										<Route
-											path="/auth/github/callback"
-											element={<GithubCallback />}
-										/>
-										<Route
-											path="/auth/google/callback"
-											element={<GoogleCallback />}
-										/>
-									</Routes>
-								</PageTransition>
-								{!isHome && <Footer active={isComponentActive} />}
-							</div>
-							<MobileBottomNavigation />
-						</MessageProvider>
-					</NotificationProvider>
-				</AuthModalContextProvider>
-			</UserContextProvider>
+									{/* Main Content - grows to fill available space */}
+									<div className="flex-1">
+										<div
+											className={`${
+												isHome && !mobile ? "min-h-screen" : "min-h-full"
+											} relative max-sm:justify-center flex flex-col ${
+												isHome ? "" : "p-4"
+											} w-full md:pt-0`}
+										>
+											<PageTransition>
+												<Routes>
+													<Route path="/" element={<Home />} />
+													<Route path="/about" element={<About />} />
+													<Route path="/contact" element={<Contact />} />
+													<Route path="/privacy" element={<Privacy />} />
+													<Route path="/terms" element={<Terms />} />
+													<Route
+														path="/reset-password"
+														element={<ResetPassword />}
+													/>
+													<Route
+														path="/account/profile/:id"
+														element={<PublicProfileWrapper />}
+													/>
+													<Route
+														path="/account/:subpage/:action?/:id?"
+														element={
+															<PrivateRoute>
+																<Account />
+															</PrivateRoute>
+														}
+													/>
+													<Route path="/places/:id" element={<Place />} />
+													<Route
+														path="/payment/success"
+														element={
+															<PrivateRoute>
+																<PaymentSuccess />
+															</PrivateRoute>
+														}
+													/>
+													<Route
+														path="/payment/pending"
+														element={
+															<PrivateRoute>
+																<PaymentPending />
+															</PrivateRoute>
+														}
+													/>
+													<Route
+														path="/payment/failure"
+														element={
+															<PrivateRoute>
+																<PaymentFailure />
+															</PrivateRoute>
+														}
+													/>
+													<Route path="/*" element={<NotFound />} />
+													<Route
+														path="/auth/github/callback"
+														element={<GithubCallback />}
+													/>
+													<Route
+														path="/auth/google/callback"
+														element={<GoogleCallback />}
+													/>
+												</Routes>
+											</PageTransition>
+										</div>
+									</div>
+
+									{/* Footer - always at bottom, never overlaps */}
+									{!isHome && (
+										<div className="z-0 inset-0 p-4 w-full flex justify-center">
+											<Footer active={isComponentActive} />
+										</div>
+									)}
+									{/* Mobile Navigation */}
+									<MobileBottomNavigation />
+								</div>
+							</MessageProvider>
+						</NotificationProvider>
+					</AuthModalContextProvider>
+				</UserContextProvider>
+			</FooterProvider>
 		</MantineProvider>
 	);
 }
