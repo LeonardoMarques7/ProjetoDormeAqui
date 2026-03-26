@@ -1,29 +1,48 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
-export function ImageWithFallback({
+export function UserImageFallback({
 	src,
-	fallbackSrc = "/src/assets/photoDefault.jpg",
+	type = "avatar",
+	fallbackSrc,
 	className,
 	alt,
 	...props
 }) {
-	const [imgSrc, setImgSrc] = useState(src);
-	const [hasError, setHasError] = useState(false);
-
-	const handleError = () => {
-		if (!hasError) {
-			setHasError(true);
-			setImgSrc(fallbackSrc);
-		}
+	const baseFallbacks = {
+		avatar: "/src/assets/user__default.png",
+		banner: "/src/assets/banner__default2.jpg",
 	};
+
+	const effectiveFallback = fallbackSrc || baseFallbacks[type];
+
+	const isValidSrc =
+		src &&
+		src.trim() !== "" &&
+		(src.startsWith("http") || src.startsWith("/src/assets"));
+
+	const initialSrc = isValidSrc ? src : effectiveFallback;
+
+	const [imgSrc, setImgSrc] = useState(initialSrc);
+	const [hasError, setHasError] = useState(!isValidSrc);
+
+	const handleError = useCallback(() => {
+		if (!hasError && imgSrc !== effectiveFallback) {
+			setHasError(true);
+			setImgSrc(effectiveFallback);
+		}
+	}, [hasError, imgSrc, effectiveFallback]);
+
+	const typeClasses =
+		type === "avatar" ? "rounded-full object-cover" : "object-cover rounded-lg";
 
 	return (
 		<img
 			src={imgSrc}
-			alt={alt}
-			className={cn("w-full h-auto object-cover rounded-lg", className)}
+			alt={alt || `User ${type}`}
+			className={cn(typeClasses, "w-full h-auto", className)}
 			onError={handleError}
+			loading="lazy"
 			{...props}
 		/>
 	);

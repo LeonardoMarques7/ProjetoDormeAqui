@@ -4,7 +4,6 @@ import { ArrowRight, Home, Waves, Dumbbell } from "lucide-react";
 import axios from "axios";
 import { useMessage } from "../components/contexts/MessageContext";
 import { twMerge } from "tailwind-merge";
-import { ImageWithFallback } from "../components/ui/figma/ImageWithFallback";
 import { CheckBadgeIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import PlaceLocation from "../components/places/PlaceLocation";
 import Perk from "../components/common/Perk";

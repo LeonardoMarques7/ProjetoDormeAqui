@@ -14,6 +14,7 @@ import {
 	Search,
 	CircleQuestionMarkIcon,
 } from "lucide-react";
+import { UserImageFallback } from "@/components/ui/figma/ImageWithFallback";
 
 import { useUserContext } from "@/components/contexts/UserContext";
 import { useAuthModalContext } from "@/components/contexts/AuthModalContext";
@@ -167,7 +168,8 @@ const SimpleNavbar = ({ isAbsolute }) => {
 								}}
 							>
 								{user.photo ? (
-									<img
+									<UserImageFallback
+										type="avatar"
 										src={user.photo}
 										alt={user.name}
 										className="w-full h-full object-cover"
@@ -207,7 +209,8 @@ const SimpleNavbar = ({ isAbsolute }) => {
 											}}
 										>
 											{user.photo ? (
-												<img
+												<UserImageFallback
+													type="avatar"
 													src={user.photo}
 													alt={user.name}
 													className="w-full h-full object-cover"
