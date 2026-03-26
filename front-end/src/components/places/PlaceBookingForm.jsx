@@ -128,7 +128,6 @@ export default function PlaceBookingForm({
 			status === "authorized" ||
 			status === "succeeded"
 		) {
-			showMessage("Pagamento aprovado! Sua reserva foi confirmada.", "success");
 			navigate(
 				`/payment/success?payment_id=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`,
 			);

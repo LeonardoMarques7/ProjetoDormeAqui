@@ -261,20 +261,22 @@ const PaymentSuccess = ({ className, ...props }) => {
 	const taxa = 150;
 	const now = new Date();
 
+	const createdAt = bookingDetails?.createdAt;
+
 	return (
 		<div data-slot="booking-success" className="">
-			<div className="flex items-end justify-between max-w-7xl px-8 mx-auto w-full mt-8">
+			<div className="flex items-end justify-between max-w-7xl px-8 max-sm:mb-5 max-sm:items-start max-sm:flex-col max-sm:p-0 mx-auto w-full mt-5">
 				<span className="text-gray-700 text-xs tracking-wider uppercase">
 					{bookingData?.place?.name || bookingDetails?.place?.title}
 				</span>
 				<span className="text-gray-500 text-xs tracking-wider uppercase">
-					Reserva confirmada em {formatDateTime(bookingDetails.createdAt)}
+					Reserva confirmada em {formatDateTime(createdAt)}
 				</span>
 			</div>
 			<div className=" w-full mx-auto items-center justify-center">
-				<div className="w-full mx-auto max-w-7xl grid grid-cols-3 gap-0  overflow-hidden">
+				<div className="w-full mx-auto max-w-7xl grid grid-cols-3 gap-0 max-md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] overflow-hidden">
 					{/* Left Column - Booking Details */}
-					<div className=" p-8 flex flex-col rounded-l-4xl">
+					<div className=" p-8 max-sm:p-0 flex flex-col rounded-l-4xl">
 						<div className="mb-8">
 							<h1 className="text-2xl font-semibold text-gray-900 mb-1">
 								Olá, {bookingDetails?.user?.name.split(" ")[0] || "Visitante"}!
@@ -384,7 +386,7 @@ const PaymentSuccess = ({ className, ...props }) => {
 
 						{/* Footer Text */}
 					</div>
-					<div className="p-8">
+					<div className="p-8  max-sm:p-0">
 						<div className="overflow-hidden">
 							<p className="text-primary-500 uppercase font-light">
 								Comodidades
@@ -425,7 +427,7 @@ const PaymentSuccess = ({ className, ...props }) => {
 							</div>
 						</div>
 					</div>
-					<div className=" px-8 flex flex-col rounded-r-4xl">
+					<div className=" px-8 max-sm:px-0 flex flex-col rounded-r-4xl">
 						<div className="w-full h-100">
 							<PlaceLocation
 								city={
