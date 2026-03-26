@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState, useRef } from "react";
+import { useCallback } from "react";
 import { Navigate, useParams, Link } from "react-router-dom";
 import { useMessage } from "../components/contexts/MessageContext";
 import { useMobileContext } from "@/components/contexts/MobileContext";
@@ -18,6 +19,7 @@ import PlaceRules from "../components/places/PlaceRules";
 import PlaceReviews from "../components/places/PlaceReviews";
 import PlaceExistingBooking from "../components/places/PlaceExistingBooking";
 import PlaceBookingForm from "../components/places/PlaceBookingForm";
+
 import PlaceHolder from "../components/places/placeholder/PlaceHolder";
 import { AlertTriangle } from "lucide-react";
 
@@ -51,6 +53,9 @@ const Place = () => {
 	const [experienceTime, setExperienceTime] = useState("");
 	const [refundPolicy, setRefundPolicy] = useState(null);
 	const [showFixedBar, setShowFixedBar] = useState(false);
+	const [bookingFormData, setBookingFormData] = useState(null);
+	const [showBookingPopup, setShowBookingPopup] = useState(false);
+	const [popupData, setPopupData] = useState(null);
 
 	const formRef = useRef(null);
 
@@ -140,24 +145,31 @@ const Place = () => {
 			.catch(() => {});
 	}, [id]);
 
+	// Lógica para mostrar popup minimalista do booking
 	useEffect(() => {
 		const handleScroll = () => {
 			const form = document.getElementById("bookingForm");
 			if (!form) return;
-
 			const rect = form.getBoundingClientRect();
-
-			// se o formulário estiver visível na tela
-			if (rect.top < window.innerHeight && rect.bottom > 0) {
-				setshowFixedBar(false);
+			// Se o formulário não está visível, mostra popup
+			if (rect.bottom < 0 || rect.top > window.innerHeight) {
+				// Dados mínimos para popup
+				setShowBookingPopup(true);
+				// Pega dados do formulário se possível
+				if (form && form.dataset) {
+					try {
+						const data = JSON.parse(form.dataset.bookingpopup || "{}");
+						setPopupData(data);
+					} catch {
+						setPopupData(null);
+					}
+				}
 			} else {
-				setshowFixedBar(true);
+				setShowBookingPopup(false);
 			}
 		};
-
 		window.addEventListener("scroll", handleScroll);
 		handleScroll();
-
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
 
@@ -175,6 +187,14 @@ const Place = () => {
 
 		return () => observer.disconnect();
 	}, [place]);
+
+	// Função para abrir o formulário completo ao clicar no popup
+	const handlePopupBook = useCallback(() => {
+		const form = document.getElementById("bookingForm");
+		if (form) {
+			form.scrollIntoView({ behavior: "smooth" });
+		}
+	}, []);
 
 	if (placeNotFound) return <NotFound />;
 
@@ -238,119 +258,87 @@ const Place = () => {
 		return <></>;
 	}
 
+	// Função para passar dados mínimos do booking para o popup
+	const getMinimalBookingData = () => {
+		if (!place || !bookingFormData) return null;
+		return {
+			price: place.price,
+			nights: bookingFormData.nights,
+			guests: bookingFormData.guests,
+			totalPrice: bookingFormData.totalPrice,
+		};
+	};
+
 	return (
-		<AnimatePresence className="relative">
-			{loading == true ? (
-				<motion.div
-					className=" relative mx-auto h-full max-sm:max-w-full md:max-w-7xl"
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-				>
-					<PlaceHolder />
-				</motion.div>
-			) : (
-				<motion.div
-					className=" relative mx-auto h-full max-sm:max-w-full md:max-w-7xl"
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-				>
-					{/* GALERIA */}
-
-					<div>
-						<PlaceGallery photos={place.photos || []} />
-					</div>
-
-					{/* BARRA MOBILE */}
-
-					{showFixedBar && (
-						<motion.div
-							initial={{ y: 100, opacity: 0 }}
-							animate={{
-								y: showFixedBar ? 0 : 100,
-								opacity: showFixedBar ? 1 : 0,
-							}}
-							transition={{ duration: 0.35, ease: "easeOut" }}
-							className="fixed bottom-4 shadow-2xl w-fit gap-5 transition-all duration-700 z-100 my-4 mx-4 rounded-full right-0 bg-white p-4 px-6 items-center flex justify-between"
-						>
-							<div>
-								<span className="text-xl font-bold">R$ {place.price}</span>
-								<span className="text-gray-500 text-sm"> /noite</span>
-							</div>
-
-							<button
-								className="bg-gray-900 text-white px-6 py-2 rounded-2xl"
-								onClick={() =>
-									document.getElementById("bookingForm")?.scrollIntoView({
-										behavior: "smooth",
-									})
-								}
-							>
-								Reservar
-							</button>
-						</motion.div>
-					)}
-
-					{/* GRID */}
-
+		<>
+			<AnimatePresence className="">
+				{loading == true ? (
 					<motion.div
-						className="grid relative grid-cols-5 max-sm:grid-cols-3  gap-2 mt-2"
-						variants={stagger}
-						initial="hidden"
-						whileInView="visible"
+						className="  mx-auto h-full max-sm:max-w-full md:max-w-7xl"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
 					>
-						{/* COLUNA ESQUERDA */}
-
+						<PlaceHolder />
+					</motion.div>
+				) : (
+					<motion.div
+						className="  mx-auto h-full max-sm:max-w-full md:max-w-7xl"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+					>
+						{/* GALERIA */}
+						<div>
+							<PlaceGallery photos={place.photos || []} />
+						</div>
+						{/* GRID */}
 						<motion.div
-							className="col-span-3  w-full max-w-2xl max-sm:flex max-sm:flex-col max-sm:gap-5"
-							variants={fadeUp}
+							className="grid relative  grid-cols-5 h-fit  gap-2 mt-2"
+							variants={stagger}
+							initial="hidden"
+							whileInView="visible"
 						>
-							<PlaceHeader place={place} />
-
-							{owner && <PlaceOwner owner={place.owner} />}
-
-							{place.description && (
-								<PlaceDescription description={place.description} />
-							)}
-
-							{place.perks?.length > 0 && <PlacePerks perks={place.perks} />}
-
-							{place.city && <PlaceLocation city={place.city} />}
-
-							<PlaceRules place={place} refundPolicy={refundPolicy} />
-
-							{reviews.length > 0 && <PlaceReviews reviews={reviews} />}
-						</motion.div>
-
-						{/* COLUNA DIREITA */}
-
-						<motion.div
-							id="bookingForm"
-							className="col-span-2  w-full"
-							variants={fadeUp}
-						>
-							{/* COLE AQUI TODO O BLOCO GRANDE QUE VOCÊ ENVIOU */}
-							{/* booking card + calendario + checkout + dialog */}
-
-							<PlaceBookingForm
-								place={place}
-								placeId={id}
-								bookingsPlace={bookingsPlace}
-								formRef={formRef}
-							/>
+							{/* COLUNA ESQUERDA */}
+							<motion.div
+								className="col-span-3  w-full max-w-2xl max-sm:flex max-sm:flex-col max-sm:gap-5"
+								variants={fadeUp}
+							>
+								<PlaceHeader place={place} />
+								{owner && <PlaceOwner owner={place.owner} />}
+								{place.description && (
+									<PlaceDescription description={place.description} />
+								)}
+								{place.perks?.length > 0 && <PlacePerks perks={place.perks} />}
+								{place.city && <PlaceLocation city={place.city} />}
+								<PlaceRules place={place} refundPolicy={refundPolicy} />
+								{reviews.length > 0 && <PlaceReviews reviews={reviews} />}
+							</motion.div>
+							{/* COLUNA DIREITA */}
+							<div
+								id="bookingForm"
+								className="col-span-2 w-fit "
+								data-bookingpopup={JSON.stringify(getMinimalBookingData())}
+							>
+								<PlaceBookingForm
+									place={place}
+									placeId={id}
+									bookingsPlace={bookingsPlace}
+									formRef={formRef}
+									onFormDataChange={setBookingFormData}
+								/>
+							</div>
 						</motion.div>
 					</motion.div>
-					{/* {mobile && (
-					<a
-						href="#bookingForm"
-						className="fixed bottom-0 w-full h-10 rounded-2xl m-2"
-						ref={formRef}
-					>
-						Reservar agora
-					</a>
-				)} */}
-				</motion.div>
+				)}
+			</AnimatePresence>
+			{/* Popup minimalista do booking */}
+			{showBookingPopup && popupData && (
+				<PlaceBookingForm
+					asPopup
+					minimalData={popupData}
+					onPopupBook={handlePopupBook}
+				/>
 			)}
-		</AnimatePresence>
+		</>
 	);
 };
 

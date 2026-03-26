@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 // Tentar ambas as variáveis (fallback)
-const googleMapsApiKey = 
+const googleMapsApiKey =
 	import.meta.env.VITE_GOOGLE_PLACES_API_KEY ||
 	import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -14,15 +14,22 @@ const stagger = {
 
 const fadeUp = {
 	hidden: { opacity: 0, y: 28 },
-	visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+	visible: {
+		opacity: 1,
+		y: 0,
+		transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+	},
 };
 
 const maskReveal = {
 	hidden: { y: "105%" },
-	visible: { y: "0%", transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] } },
+	visible: {
+		y: "0%",
+		transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] },
+	},
 };
 
-export default function PlaceLocation({ city }) {
+export default function PlaceLocation({ city, minimal = false }) {
 	const [iframeError, setIframeError] = useState(false);
 
 	// Validar se a API key está configurada
@@ -50,14 +57,17 @@ export default function PlaceLocation({ city }) {
 
 	return (
 		<motion.div
-			className="py-7 max-w-2xl border-b"
+			className={`py-7 max-w-2xl border-b ${minimal && " h-full"}`}
 			variants={stagger}
 			initial="hidden"
 			whileInView="visible"
 			viewport={{ once: true }}
 		>
 			<div className="overflow-hidden">
-				<motion.p variants={maskReveal} className="text-primary-500 uppercase font-light">
+				<motion.p
+					variants={maskReveal}
+					className="text-primary-500 uppercase font-light"
+				>
 					Localização
 				</motion.p>
 			</div>
@@ -69,16 +79,20 @@ export default function PlaceLocation({ city }) {
 
 			<motion.div variants={fadeUp} className="mt-5">
 				{shouldShowMap && !iframeError ? (
-					<div className="relative w-full h-64 rounded-2xl overflow-hidden bg-gray-50">
+					<div
+						className={`relative w-full h-64 ${minimal && "min-h-full"} rounded-2xl overflow-hidden bg-gray-50`}
+					>
 						<iframe
 							src={`https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${encodeURIComponent(city)}&zoom=12`}
-							className="w-full h-full border-0"
+							className="w-full h-full border-0 "
 							allowFullScreen={true}
 							loading="lazy"
 							referrerPolicy="no-referrer-when-downgrade"
 							title={`Mapa de ${city}`}
 							onError={() => {
-								console.error("[PlaceLocation] Erro ao carregar iframe do mapa");
+								console.error(
+									"[PlaceLocation] Erro ao carregar iframe do mapa",
+								);
 								setIframeError(true);
 							}}
 							style={{
@@ -109,9 +123,7 @@ export default function PlaceLocation({ city }) {
 						) : iframeError ? (
 							<>
 								<AlertCircle size={48} className="text-red-500" />
-								<p className="text-center text-sm">
-									Erro ao carregar o mapa
-								</p>
+								<p className="text-center text-sm">Erro ao carregar o mapa</p>
 								<p className="text-center text-xs text-gray-400">
 									Tente recarregar a página
 								</p>

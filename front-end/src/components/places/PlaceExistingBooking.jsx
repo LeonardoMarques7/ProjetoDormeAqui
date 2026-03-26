@@ -9,8 +9,22 @@ function formatDate(date, format = "dd/MM/yyyy") {
 	const day = String(dateObj.getDate()).padStart(2, "0");
 	const month = String(dateObj.getMonth() + 1).padStart(2, "0");
 	const year = dateObj.getFullYear();
-	const monthNames = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-	if (format === "dd de MMM") return `${day} de ${monthNames[dateObj.getMonth()]}`;
+	const monthNames = [
+		"Jan",
+		"Fev",
+		"Mar",
+		"Abr",
+		"Mai",
+		"Jun",
+		"Jul",
+		"Ago",
+		"Set",
+		"Out",
+		"Nov",
+		"Dez",
+	];
+	if (format === "dd de MMM")
+		return `${day} de ${monthNames[dateObj.getMonth()]}`;
 	return `${day}/${month}/${year}`;
 }
 
@@ -29,7 +43,9 @@ export default function PlaceExistingBooking({ booking, place }) {
 						<div className="flex items-center gap-3">
 							<div className="w-3 h-3 rounded-full bg-green-500" />
 							<div>
-								<div className="text-sm font-semibold text-gray-900">Reserva Confirmada</div>
+								<div className="text-sm font-semibold text-gray-900">
+									Reserva Confirmada
+								</div>
 								<div className="text-xs text-gray-500">
 									#{booking._id.slice(-6).toUpperCase()}
 								</div>
@@ -55,7 +71,9 @@ export default function PlaceExistingBooking({ booking, place }) {
 						<div className="grid grid-cols-2 gap-4 my-4">
 							<div className="bg-gray-50 rounded-lg p-3">
 								<div className="flex items-center gap-2 mb-2">
-									<span className="text-xs text-gray-500 uppercase">Check-in</span>
+									<span className="text-xs text-gray-500 uppercase">
+										Check-in
+									</span>
 								</div>
 								<div className="text-base font-semibold text-gray-900 mb-1">
 									{formatDate(booking.checkin)}
@@ -67,7 +85,9 @@ export default function PlaceExistingBooking({ booking, place }) {
 							<div className="bg-gray-50 rounded-lg p-3">
 								<div className="flex items-center gap-2 mb-2">
 									<Calendar className="w-4 h-4 text-gray-500" />
-									<span className="text-xs text-gray-500 uppercase">Check-out</span>
+									<span className="text-xs text-gray-500 uppercase">
+										Check-out
+									</span>
 								</div>
 								<div className="text-base font-semibold text-gray-900 mb-1">
 									{formatDate(booking.checkout)}

@@ -1,6 +1,6 @@
 import { Minus, Plus } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { addDays } from "date-fns";
 import DatePickerAirbnb from "./DatePickerAirbnb";
 import { useUserContext } from "../contexts/UserContext";
@@ -56,6 +56,10 @@ export default function PlaceBookingForm({
 	placeId,
 	bookingsPlace,
 	formRef,
+	asPopup = false,
+	onPopupBook,
+	minimalData,
+	onFormDataChange,
 }) {
 	const { user } = useUserContext();
 	const { showAuthModal } = useAuthModalContext();
@@ -71,6 +75,18 @@ export default function PlaceBookingForm({
 
 	const nights = checkin && checkout ? numberOfDays(checkin, checkout) : 0;
 	const totalPrice = place ? place.price * nights : 0;
+
+	// Sincroniza dados do formulário principal com o Place.jsx
+	useEffect(() => {
+		if (onFormDataChange && !asPopup) {
+			onFormDataChange({
+				nights,
+				guests,
+				totalPrice,
+			});
+		}
+		// eslint-disable-next-line
+	}, [nights, guests, totalPrice]);
 
 	const handleDateSelect = ({ checkin: c, checkout: co }) => {
 		setCheckin(c);
@@ -112,7 +128,6 @@ export default function PlaceBookingForm({
 			status === "authorized" ||
 			status === "succeeded"
 		) {
-			showMessage("Pagamento aprovado! Sua reserva foi confirmada.", "success");
 			navigate(
 				`/payment/success?payment_id=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`,
 			);
@@ -139,6 +154,39 @@ export default function PlaceBookingForm({
 		showMessage(message || "Erro ao processar pagamento.", "error");
 	};
 
+	if (asPopup && minimalData) {
+		// Modo popup minimalista
+		return (
+			<motion.div
+				initial={{ y: 100, opacity: 0 }}
+				animate={{ y: 0, opacity: 1 }}
+				exit={{ y: 100, opacity: 0 }}
+				transition={{ duration: 0.3 }}
+				className="fixed z-50 bottom-6 left-1/2 -translate-x-1/2 bg-white border border-gray-200 shadow-xl rounded-2xl px-6 py-4 flex items-center gap-6 min-w-[320px] max-w-[95vw]"
+				style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
+			>
+				<div className="flex flex-col gap-1 min-w-0">
+					<span className="text-lg font-bold text-gray-900 truncate">
+						R$ {minimalData.price}{" "}
+						<span className="text-xs font-normal text-gray-500">/noite</span>
+					</span>
+					<span className="text-xs text-gray-500 truncate">
+						{minimalData.nights} noite(s) • {minimalData.guests} hóspede(s)
+					</span>
+					<span className="text-xs text-gray-700 font-semibold truncate">
+						Total: R$ {minimalData.totalPrice}
+					</span>
+				</div>
+				<button
+					className="bg-gray-900 text-white px-5 py-2 rounded-xl font-medium hover:bg-gray-800 transition-colors whitespace-nowrap"
+					onClick={onPopupBook}
+				>
+					Reservar
+				</button>
+			</motion.div>
+		);
+	}
+	// Modo normal (formulário completo)
 	return (
 		<motion.div
 			className="order-2 col-span-full flex-1 w-full max-w-full ml-auto"
@@ -160,7 +208,6 @@ export default function PlaceBookingForm({
 						<span className="text-gray-600">por noite</span>
 					</div>
 				</div>
-
 				{/* Date picker */}
 				<div className="w-full mb-6">
 					<DatePickerAirbnb
@@ -172,7 +219,6 @@ export default function PlaceBookingForm({
 						bookings={bookingsPlace}
 					/>
 				</div>
-
 				{/* Guests */}
 				<div className="mb-6">
 					<div className="text-sm font-semibold text-gray-900 mb-3">
