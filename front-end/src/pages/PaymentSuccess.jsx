@@ -192,8 +192,20 @@ const PaymentSuccess = ({ className, ...props }) => {
 		const date = new Date(dateString);
 		return date.toLocaleDateString("pt-BR", {
 			day: "2-digit",
-			month: "long",
-			year: "numeric",
+			month: "2-digit",
+			year: "2-digit",
+		});
+	};
+
+	const formatDateTime = (dateString) => {
+		if (!dateString) return "";
+		const date = new Date(dateString);
+		return date.toLocaleDateString("pt-BR", {
+			day: "2-digit",
+			month: "2-digit",
+			year: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit",
 		});
 	};
 
@@ -250,130 +262,116 @@ const PaymentSuccess = ({ className, ...props }) => {
 	const now = new Date();
 
 	return (
-		<div
-			data-slot="booking-success"
-			className={twMerge("min-h-screen bg-cover bg-center relative", className)}
-			{...props}
-		>
-			{/* Content */}
-			<div className="relative z-10 min-h-screen p-8 flex flex-col">
-				{/* Header */}
-				<div className="flex items-start justify-between mb-8">
-					<div className="flex items-center gap-2">
-						<span className=" text-xs tracking-wider uppercase">
-							{bookingData?.place?.name ||
-								bookingDetails?.place?.title ||
-								"Resort Paradise Tropical"}
-						</span>
-					</div>
-					<span className=" text-xs tracking-wider uppercase">
-						Confirmação de Reserva
-					</span>
-				</div>
+		<div data-slot="booking-success" className="">
+			<div className="flex items-end justify-between max-w-7xl px-8 mx-auto w-full mt-8">
+				<span className="text-gray-700 text-xs tracking-wider uppercase">
+					{bookingData?.place?.name || bookingDetails?.place?.title}
+				</span>
+				<span className="text-gray-500 text-xs tracking-wider uppercase">
+					Reserva confirmada em {formatDateTime(bookingDetails.createdAt)}
+				</span>
+			</div>
+			<div className=" w-full mx-auto items-center justify-center">
+				<div className="w-full mx-auto max-w-7xl grid grid-cols-3 gap-0  overflow-hidden">
+					{/* Left Column - Booking Details */}
+					<div className=" p-8 flex flex-col rounded-l-4xl">
+						<div className="mb-8">
+							<h1 className="text-2xl font-semibold text-gray-900 mb-1">
+								Olá, {bookingDetails?.user?.name.split(" ")[0] || "Visitante"}!
+							</h1>
+							<p className="text-blue-600 text-sm">
+								Ficamos felizes em recebê-lo(a)!
+							</p>
+						</div>
 
-				{/* Main Content */}
-				<div className="flex-1 flex items-center justify-center">
-					<div className="w-full max-w-7xl grid grid-cols-3 gap-0  overflow-hidden">
-						{/* Left Column - Booking Details */}
-						<div className="bg-stone-50 p-8 flex flex-col rounded-l-4xl">
-							<div className="mb-8">
-								<h1 className="text-2xl font-semibold text-gray-900 mb-1">
-									Olá, {bookingDetails?.user?.name.split(" ")[0] || "Visitante"}
-									!
-								</h1>
-								<p className="text-blue-600 text-sm">
-									Ficamos felizes em recebê-lo(a)!
-								</p>
+						{/* Booking Info */}
+						<div className="space-y-6 mb-8">
+							<div className="grid grid-cols-2 gap-4">
+								<div>
+									<div className="text-xs text-gray-500 mb-1">CHECK-IN</div>
+									<div className="font-semibold text-gray-900">
+										{formatDate(
+											bookingData?.checkin ||
+												bookingDetails?.checkin ||
+												"2026-04-10",
+										)}{" "}
+										às {bookingDetails?.place?.checkin}
+									</div>
+								</div>
+								<div>
+									<div className="text-xs text-gray-500 mb-1">CHECK-OUT</div>
+									<div className="font-semibold text-gray-900">
+										{formatDate(
+											bookingData?.checkout ||
+												bookingDetails?.checkout ||
+												"2026-04-18",
+										)}{" "}
+										às {bookingDetails?.place?.checkout}
+									</div>
+								</div>
 							</div>
 
-							{/* Booking Info */}
-							<div className="space-y-6 mb-8">
-								<div className="grid grid-cols-2 gap-4">
-									<div>
-										<div className="text-xs text-gray-500 mb-1">CHECK-IN</div>
-										<div className="font-semibold text-gray-900">
-											{formatDate(
-												bookingData?.checkin ||
-													bookingDetails?.checkin ||
-													"2026-04-10",
-											)}
-										</div>
-									</div>
-									<div>
-										<div className="text-xs text-gray-500 mb-1">CHECK-OUT</div>
-										<div className="font-semibold text-gray-900">
-											{formatDate(
-												bookingData?.checkout ||
-													bookingDetails?.checkout ||
-													"2026-04-13",
-											)}
-										</div>
+							<div className="grid grid-cols-2 gap-4">
+								<div>
+									<div className="text-xs text-gray-500 mb-1">HÓSPEDES</div>
+									<div className="font-semibold text-gray-900">
+										{bookingData?.guests || bookingDetails?.guests || 2}{" "}
+										{bookingData?.guests === 1 ? "Pessoa" : "Pessoas"}
 									</div>
 								</div>
-
-								<div className="grid grid-cols-2 gap-4">
-									<div>
-										<div className="text-xs text-gray-500 mb-1">HÓSPEDES</div>
-										<div className="font-semibold text-gray-900">
-											{bookingData?.guests || bookingDetails?.guests || 2}{" "}
-											{bookingData?.guests === 1 ? "Pessoa" : "Pessoas"}
-										</div>
-									</div>
-									<div>
-										<div className="text-xs text-gray-500 mb-1">NOITES</div>
-										<div className="font-semibold text-gray-900">
-											{bookingData?.nights || bookingDetails?.nights || 3}{" "}
-											{bookingData?.nights === 1 ? "Noite" : "Noites"}
-										</div>
+								<div>
+									<div className="text-xs text-gray-500 mb-1">NOITES</div>
+									<div className="font-semibold text-gray-900">
+										{bookingData?.nights || bookingDetails?.nights || 3}{" "}
+										{bookingData?.nights === 1 ? "Noite" : "Noites"}
 									</div>
 								</div>
+							</div>
 
-								<div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-									<div className="flex justify-between items-center">
-										<span className="text-sm text-gray-600">
-											Valor por noite
-										</span>
-										<span className="font-semibold text-gray-900">
-											R${" "}
-											{(
-												bookingData?.pricePerNight ||
-												bookingDetails?.pricePerNight ||
-												450
-											).toFixed(2)}
-										</span>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-sm text-gray-600">Total</span>
-										<span className="font-semibold text-gray-900">
-											R${" "}
-											{(
-												bookingData?.priceTotal ||
-												bookingDetails?.totalPrice ||
-												bookingDetails?.pricePerNight ||
-												1350
-											).toFixed(2)}
-										</span>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-sm text-gray-600">Status</span>
-										<span className="font-semibold text-emerald-600">
-											Confirmado
-										</span>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-sm text-gray-600">Pagamento via</span>
-										<span className="font-semibold text-gray-900">Stripe</span>
-									</div>
-									{paymentId && (
-										<div className="pt-4  border-t border-gray-200">
-											<p className="text-xs break-all leading-tight">
-												<span className="text-xs text-gray-500">ID: </span>{" "}
-												{paymentId}
-											</p>
-										</div>
-									)}
+							<div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+								<div className="flex justify-between items-center">
+									<span className="text-sm text-gray-600">Valor por noite</span>
+									<span className="font-semibold text-gray-900">
+										R${" "}
+										{(
+											bookingData?.pricePerNight ||
+											bookingDetails?.pricePerNight ||
+											450
+										).toFixed(2)}
+									</span>
 								</div>
-
+								<div className="flex justify-between items-center">
+									<span className="text-sm text-gray-600">Total</span>
+									<span className="font-semibold text-gray-900">
+										R${" "}
+										{(
+											bookingData?.priceTotal ||
+											bookingDetails?.totalPrice ||
+											bookingDetails?.pricePerNight ||
+											1350
+										).toFixed(2)}
+									</span>
+								</div>
+								<div className="flex justify-between items-center">
+									<span className="text-sm text-gray-600">Status</span>
+									<span className="font-semibold text-emerald-600">
+										Confirmado
+									</span>
+								</div>
+								<div className="flex justify-between items-center">
+									<span className="text-sm text-gray-600">Pagamento via</span>
+									<span className="font-semibold text-gray-900">Stripe</span>
+								</div>
+								{paymentId && (
+									<div className="pt-4  border-t border-gray-200">
+										<p className="text-xs break-all leading-tight">
+											<span className="text-xs text-gray-500">ID: </span>{" "}
+											{paymentId}
+										</p>
+									</div>
+								)}
+							</div>
+							{/* 
 								<button
 									className="w-full bg-gray-900 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
 									aria-label="Baixar comprovante"
@@ -381,86 +379,72 @@ const PaymentSuccess = ({ className, ...props }) => {
 								>
 									Baixar Comprovante
 									<ArrowRight className="size-4" />
-								</button>
-							</div>
-
-							{/* Footer Text */}
-							<div className="mt-auto pt-6 border-t border-gray-200">
-								<p className="text-xs text-gray-500 leading-relaxed">
-									Sua reserva foi confirmada com sucesso! Prepare-se para uma
-									experiência inesquecível. Nossa equipe está à disposição para
-									tornar sua estadia perfeita. Em caso de dúvidas, entre em
-									contato através dos nossos canais de atendimento.
-								</p>
-							</div>
+								</button> */}
 						</div>
 
-						{/* Middle Column - What to do */}
-						<div className="bg-primary-900 text-white p-8">
-							<div className="overflow-hidden">
-								<p className="text-primary-200 uppercase font-light">
-									Comodidades
-								</p>
-							</div>
-							<div className="overflow-hidden pb-6">
-								<p className="text-3xl font-bold">O que esse lugar oferece</p>
-							</div>
-							<div className="space-y-6 mb-12 ">
-								{bookingDetails?.place?.perks?.slice(0, 3).map((perk) => (
-									<div key={perk} className="flex gap-4">
-										<div className="flex-shrink-0 w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center">
-											<Perk perk={perk} minimal />
-										</div>
-										<div>
-											<h3 className="font-semibold mb-1 capitalize">
-												{perk.replace(/_/g, " ").toUpperCase()}
-											</h3>
-											<p className="text-sm text-blue-100 leading-relaxed">
-												Inclui {perk.replace(/_/g, " ")}.
-											</p>
-										</div>
+						{/* Footer Text */}
+					</div>
+					<div className="p-8">
+						<div className="overflow-hidden">
+							<p className="text-primary-500 uppercase font-light">
+								Comodidades
+							</p>
+						</div>
+						<div className="overflow-hidden pb-6">
+							<p className="text-3xl font-bold">O que esse lugar oferece</p>
+						</div>
+						<div className="space-y-6 mb-12 ">
+							{bookingDetails?.place?.perks?.slice(0, 3).map((perk) => (
+								<div key={perk} className="flex gap-4">
+									<div className="flex-shrink-0 w-12 h-12 bg-primary-100/50  rounded-full flex items-center justify-center">
+										<Perk perk={perk} minimal />
 									</div>
-								))}
-							</div>
+									<div>
+										<h3 className="font-semibold mb-1 capitalize">
+											{perk.replace(/_/g, " ").toUpperCase()}
+										</h3>
+										<p className="text-sm text-primary-400 leading-relaxed">
+											Inclui {perk.replace(/_/g, " ")}.
+										</p>
+									</div>
+								</div>
+							))}
+						</div>
 
-							<div className="bg-gray-800/50 rounded-lg p-6">
-								<h3 className="font-semibold mb-4">Números Importantes</h3>
-								<div className="space-y-3">
-									<div className="flex justify-between items-center">
-										<span className="text-sm">Recepção 24h</span>
-										<span className="text-sm font-mono">(75) 3676-1234</span>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-sm">Serviço de Quarto</span>
-										<span className="text-sm font-mono">(75) 3676-1235</span>
-									</div>
+						<div className="bg-primary-100/50 rounded-lg p-6">
+							<h3 className="font-semibold mb-4">Números Importantes</h3>
+							<div className="space-y-3">
+								<div className="flex justify-between items-center">
+									<span className="text-sm">Recepção 24h</span>
+									<span className="text-sm font-mono">(75) 3676-1234</span>
+								</div>
+								<div className="flex justify-between items-center">
+									<span className="text-sm">Serviço de Quarto</span>
+									<span className="text-sm font-mono">(75) 3676-1235</span>
 								</div>
 							</div>
 						</div>
-
-						<div className="bg-stone-50 px-8 flex flex-col rounded-r-4xl">
-							<div className="w-full h-full  flex-1">
-								<PlaceLocation
-									city={
-										bookingDetails?.place?.city ||
-										bookingDetails?.place?.location ||
-										"Praia do Forte, BA"
-									}
-									minimal={true}
-								/>
-							</div>
+					</div>
+					<div className=" px-8 flex flex-col rounded-r-4xl">
+						<div className="w-full h-100">
+							<PlaceLocation
+								city={
+									bookingDetails?.place?.city ||
+									bookingDetails?.place?.location ||
+									"Praia do Forte, BA"
+								}
+								minimal={true}
+							/>
+						</div>
+						<div className="pt-6 border-t mt-0 border-gray-200">
+							<p className="text-xs text-gray-500 leading-relaxed">
+								Sua reserva foi confirmada com sucesso! Prepare-se para uma
+								experiência inesquecível. Nossa equipe está à disposição para
+								tornar sua estadia perfeita. Em caso de dúvidas, entre em
+								contato através dos nossos canais de atendimento.
+							</p>
 						</div>
 					</div>
-				</div>
-
-				{/* Footer */}
-				<div className="flex items-end justify-between mt-8">
-					<span className="text-white text-xs tracking-wider uppercase">
-						{bookingData?.place?.name || bookingDetails?.place?.title}
-					</span>
-					<span className="text-white text-xs tracking-wider uppercase">
-						Reserva confirmada em
-					</span>
 				</div>
 			</div>
 		</div>
