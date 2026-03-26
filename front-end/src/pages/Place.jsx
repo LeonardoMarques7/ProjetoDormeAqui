@@ -292,7 +292,7 @@ const Place = () => {
 						</div>
 						{/* GRID */}
 						<motion.div
-							className="grid relative max-sm:grid-cols-1 grid-cols-5 h-fit  gap-2 mt-2"
+							className="grid relative max-sm:grid-cols-1  grid-cols-5 h-fit  gap-2 mt-2"
 							variants={stagger}
 							initial="hidden"
 							whileInView="visible"
@@ -315,7 +315,7 @@ const Place = () => {
 							{/* COLUNA DIREITA */}
 							<div
 								id="bookingForm"
-								className="col-span-2 w-fit "
+								className="col-span-2 w-full "
 								data-bookingpopup={JSON.stringify(getMinimalBookingData())}
 							>
 								<PlaceBookingForm
