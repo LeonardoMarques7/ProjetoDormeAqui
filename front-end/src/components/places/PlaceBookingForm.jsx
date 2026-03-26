@@ -162,7 +162,7 @@ export default function PlaceBookingForm({
 				animate={{ y: 0, opacity: 1 }}
 				exit={{ y: 100, opacity: 0 }}
 				transition={{ duration: 0.3 }}
-				className="fixed z-50 bottom-6 left-1/2 -translate-x-1/2 bg-white border border-gray-200 shadow-xl rounded-2xl px-6 py-4 flex items-center gap-6 min-w-[320px] max-w-[95vw]"
+				className="fixed z-50 top-6 left-1/2 -translate-x-1/2 bg-white border border-gray-200 shadow-xl rounded-2xl px-6 py-4 flex items-center gap-6 min-w-[320px] max-w-[95vw]"
 				style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
 			>
 				<div className="flex flex-col gap-1 min-w-0">
