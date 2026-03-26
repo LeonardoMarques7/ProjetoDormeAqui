@@ -292,7 +292,7 @@ const Place = () => {
 						</div>
 						{/* GRID */}
 						<motion.div
-							className="grid relative  grid-cols-5 h-fit  gap-2 mt-2"
+							className="grid relative max-sm:grid-cols-1 grid-cols-5 h-fit  gap-2 mt-2"
 							variants={stagger}
 							initial="hidden"
 							whileInView="visible"
