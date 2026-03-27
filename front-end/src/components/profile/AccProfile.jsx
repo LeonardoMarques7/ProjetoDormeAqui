@@ -16,6 +16,7 @@ import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useUserContext } from "@/components/contexts/UserContext";
 import { useMessage } from "@/components/contexts/MessageContext";
 import Quotes from "@/assets/quotes.png";
+import { UserImageFallback } from "@/components/ui/figma/ImageWithFallback";
 import {
 	ArrowRight,
 	Heart,
@@ -677,9 +678,10 @@ const AccProfile = ({ userId }) => {
 		>
 			{!isEditingProfile ? (
 				<>
-					<img
+					<UserImageFallback
+						type="banner"
+						src={displayUser?.banner}
 						className=" mx-auto w-full object-cover  max-sm:max-w-full max-w-7xl bg-center max-sm:h-[25svh] max-sm:rounded-none rounded-4xl h-[40svh] relative overflow-hidden"
-						src={displayUser?.banner || bannerDefault}
 					/>
 
 					{/* Container do conteúdo */}
@@ -700,10 +702,11 @@ const AccProfile = ({ userId }) => {
 									}}
 									whileHover={{ scale: 1.05 }}
 								>
-									<img
-										src={displayUser?.photo || userDefault}
-										className="w-full h-full object-cover object-center rounded-full"
+									<UserImageFallback
+										type="avatar"
+										src={displayUser?.photo}
 										alt={displayUser?.name}
+										className="w-full h-full object-cover object-center rounded-full"
 									/>
 								</motion.div>
 								{isOwnProfile && (
@@ -1344,10 +1347,11 @@ const AccProfile = ({ userId }) => {
 																	className="flex items-center gap-4"
 																>
 																	<div className="relative">
-																		<img
-																			src={review.user.photo || userDefault}
+																		<UserImageFallback
+																			type="avatar"
+																			src={review.user.photo}
+																			alt={review.user.name}
 																			className="w-14 h-14 rounded-full object-cover  shadow-sm"
-																			alt=""
 																		/>
 																		<Verified className="size-5 text-blue-600 absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow" />
 																	</div>
@@ -1431,9 +1435,10 @@ const AccProfile = ({ userId }) => {
 					{isOwnProfile && displayUser ? (
 						<>
 							<div className="banner__home max-sm:h-[25svh] h-[50vh]  bg-primar-700  w-full relative">
-								<img
-									src={displayUser.banner || Banner}
-									alt=""
+								<UserImageFallback
+									type="banner"
+									src={displayUser.banner}
+									alt="User banner"
 									className="object-cover pointer-events-none h-full w-full  shadow-2xl"
 								/>
 								<div className="absolute inset-0 bg-gradient-to-b from-primary-500/50 via-primary-500/30 to-transparent"></div>

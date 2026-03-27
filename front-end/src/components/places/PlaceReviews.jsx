@@ -6,6 +6,7 @@ import { Select } from "@mantine/core";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useMobileContext } from "../contexts/MobileContext";
 import photoDefault from "../../assets/photoDefault.jpg";
+import { UserImageFallback } from "@/components/ui/figma/ImageWithFallback";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 
 const stagger = {
@@ -339,10 +340,11 @@ export default function PlaceReviews({ reviews }) {
 										className="flex items-center gap-4"
 									>
 										<div className="relative">
-											<img
-												src={review.user.photo || photoDefault}
+											<UserImageFallback
+												type="avatar"
+												src={review.user.photo}
+												alt={review.user.name}
 												className="w-14 h-14 rounded-full object-cover shadow-sm"
-												alt=""
 											/>
 											<Verified className="size-5 text-blue-600 absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow" />
 										</div>

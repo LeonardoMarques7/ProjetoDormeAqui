@@ -1,7 +1,7 @@
 import React from "react";
 import { ArrowRight, Home, Waves, Dumbbell } from "lucide-react";
 import { twMerge } from "tailwind-merge";
-import { ImageWithFallback } from "../components/ui/figma/ImageWithFallback";
+import { ImageWithFallback } from "@/components/ui/figma/ImageWithFallback";
 import CheckoutPreview from "../components/CheckoutPreview";
 
 const PaymentSuccess = ({ className, bookingData, ...props }) => {

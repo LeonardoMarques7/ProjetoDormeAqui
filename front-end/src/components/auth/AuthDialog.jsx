@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { registerSchema } from "../schemas/authSchema";
 import { Check, Eye, EyeOff, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
@@ -253,6 +254,8 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 	const [isLoading, setIsLoading] = useState(false);
 	const [loadingOAuth, setLoadingOAuth] = useState(false);
 	const [acceptedTerms, setAcceptedTerms] = useState(false);
+	const [errors, setErrors] = useState({});
+	const [isFormValid, setIsFormValid] = useState(false);
 
 	// ========== GOOGLE LOGIN ==========
 	const handleGoogleLogin = async () => {
@@ -329,6 +332,39 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 		window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
 	};
 
+	const validateField = (field, value) => {
+		try {
+			registerSchema.pick({ [field]: true }).parse({ [field]: value.trim() });
+			setErrors((prev) => ({ ...prev, [field]: "" }));
+		} catch (err) {
+			setErrors((prev) => ({
+				...prev,
+				[field]: err.errors?.message || "Erro de validação",
+			}));
+		}
+		checkFormValidity();
+	};
+
+	const checkFormValidity = useCallback(() => {
+		setIsFormValid(
+			Object.values(errors).every((e) => !e) &&
+				name.trim() &&
+				email.trim() &&
+				password.trim() &&
+				confirmPassword.trim() &&
+				acceptedTerms &&
+				!emailError,
+		);
+	}, [
+		errors,
+		name,
+		email,
+		password,
+		confirmPassword,
+		acceptedTerms,
+		emailError,
+	]);
+
 	const checkEmailExists = async (emailToCheck) => {
 		if (!emailToCheck || mode === "login") return;
 
@@ -399,56 +435,45 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 				setMessage("Digite seu email para recuperar a senha.");
 			}
 		} else {
-			if (email && password && name) {
+			try {
+				// CRITICAL SECURITY: Revalidate everything with Zod
+				const validatedData = registerSchema.parse({
+					name: name.trim(),
+					email: email.trim(),
+					password: password.trim(),
+					confirmPassword: confirmPassword.trim(),
+					acceptedTerms,
+				});
+
 				if (emailError) {
-					setMessage("Corrija os erros antes de continuar");
-					return;
-				}
-
-				if (!acceptedTerms) {
-					setMessage(
-						"Você deve aceitar os Termos de Serviço e Política de Privacidade",
-					);
-					return;
-				}
-
-				if (password !== confirmPassword) {
-					setMessage("As senhas não coincidem!");
-					return;
-				}
-
-				if (password.length < 6) {
-					setMessage("A senha deve ter pelo menos 6 caracteres");
-					return;
+					throw new Error("Email já cadastrado");
 				}
 
 				const photo = photoDefault;
+				setIsLoading(true);
+				const { data: userDoc } = await axios.post("/users", {
+					name: validatedData.name,
+					email: validatedData.email,
+					password: validatedData.password,
+					photo,
+				});
 
-				try {
-					const { data: userDoc } = await axios.post("/users", {
-						name,
-						email,
-						password,
-						photo,
-					});
-
-					setUser(userDoc);
-					setRedirect(true);
-				} catch (error) {
-					if (
-						error.response?.data?.includes("email") ||
-						error.response?.data?.includes("já existe")
-					) {
-						setEmailError("Este email já está cadastrado");
-						setMessage("Este email já está em uso");
-					} else {
-						setMessage(
-							`Erro ao cadastrar: ${error.response?.data || error.message}`,
-						);
-					}
+				setUser(userDoc);
+				setRedirect(true);
+			} catch (error) {
+				if (error.name === "ZodError") {
+					setMessage("Corrija os erros nos campos");
+				} else if (
+					error.response?.data?.includes("email") ||
+					error.response?.data?.includes("já existe")
+				) {
+					setEmailError("Este email já está cadastrado");
+					setMessage("Este email já está em uso");
+				} else {
+					setMessage(
+						`Erro ao cadastrar: ${error.response?.data || error.message}`,
+					);
 				}
-			} else {
-				setMessage("Você precisa preencher o e-mail, o nome e a senha!");
 			}
 		}
 	};
@@ -674,10 +699,18 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 							<input
 								type="text"
 								placeholder="Nome completo"
-								className={INPUT_CLS}
+								className={`${INPUT_CLS} ${errors.name ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
 								value={name}
-								onChange={(e) => setName(e.target.value)}
+								onChange={(e) => {
+									const val = e.target.value;
+									setName(val);
+									validateField("name", val);
+									if (message) setMessage("");
+								}}
 							/>
+							{errors.name && (
+								<p className="text-xs text-red-500 mt-1 ml-1">{errors.name}</p>
+							)}
 						</motion.div>
 
 						<motion.div
@@ -688,19 +721,19 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 							<input
 								type="email"
 								placeholder="Email"
-								className={
-									INPUT_CLS +
-									(emailError
-										? " border-red-400 focus:border-red-400 focus:ring-red-100"
-										: "")
-								}
+								className={`${INPUT_CLS} ${errors.email || emailError ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
 								value={email}
 								onChange={(e) => {
-									setEmail(e.target.value);
+									const val = e.target.value;
+									setEmail(val);
+									validateField("email", val);
 									setEmailError("");
 									if (message) setMessage("");
 								}}
-								onBlur={(e) => checkEmailExists(e.target.value)}
+								onBlur={(e) => {
+									checkEmailExists(e.target.value);
+									validateField("email", e.target.value);
+								}}
 							/>
 							{isCheckingEmail && (
 								<p className="text-xs text-gray-400 mt-1 ml-1">
@@ -721,13 +754,18 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 							<input
 								type={showPassword ? "text" : "password"}
 								placeholder="Senha"
-								className={INPUT_CLS + " pr-12"}
+								className={`${INPUT_CLS} pr-12 ${errors.password ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
 								value={password}
 								onChange={(e) => {
-									setPassword(e.target.value);
+									const val = e.target.value;
+									setPassword(val);
+									validateField("password", val);
 									setShowPasswordPopover(true);
 								}}
-								onBlur={() => setShowPasswordPopover(false)}
+								onBlur={() => {
+									validateField("password", password);
+									setShowPasswordPopover(false);
+								}}
 							/>
 							<button
 								type="button"
@@ -741,8 +779,24 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 						{showPasswordPopover && (
 							<div className="ml-1">
 								<PasswordRequirement
-									label="Pelo menos 6 caracteres"
-									meets={password.length > 5}
+									label="6+ caracteres"
+									meets={password.length >= 6}
+								/>
+								<PasswordRequirement
+									label="1 maiúscula"
+									meets={/[A-Z]/.test(password)}
+								/>
+								<PasswordRequirement
+									label="1 minúscula"
+									meets={/[a-z]/.test(password)}
+								/>
+								<PasswordRequirement
+									label="1 número"
+									meets={/\d/.test(password)}
+								/>
+								<PasswordRequirement
+									label="1 especial"
+									meets={/[@$!%*?&]/.test(password)}
 								/>
 							</div>
 						)}
@@ -756,13 +810,20 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 							<input
 								type={showConfirmPassword ? "text" : "password"}
 								placeholder="Confirmar senha"
-								className={INPUT_CLS + " pr-12"}
+								className={`${INPUT_CLS} pr-12 ${errors.confirmPassword ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
 								value={confirmPassword}
 								onChange={(e) => {
-									setConfirmPassword(e.target.value);
+									const val = e.target.value;
+									setConfirmPassword(val);
+									validateField("confirmPassword", val);
 									if (message) setMessage("");
 								}}
 							/>
+							{errors.confirmPassword && (
+								<p className="text-xs text-red-500 mt-1 ml-1">
+									{errors.confirmPassword}
+								</p>
+							)}
 							<button
 								type="button"
 								onClick={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -829,8 +890,8 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 
 						<motion.button
 							type="submit"
-							className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 cursor-pointer disabled:opacity-50"
-							disabled={!acceptedTerms}
+							disabled={!isFormValid || loadingOAuth || isLoading || emailError}
+							className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
 							whileHover={{ scale: 1.02 }}
 							whileTap={{ scale: 0.98 }}
 						>

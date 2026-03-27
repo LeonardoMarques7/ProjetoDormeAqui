@@ -4,7 +4,6 @@ import { ArrowRight, Home, Waves, Dumbbell } from "lucide-react";
 import axios from "axios";
 import { useMessage } from "../components/contexts/MessageContext";
 import { twMerge } from "tailwind-merge";
-import { ImageWithFallback } from "../components/ui/figma/ImageWithFallback";
 import { CheckBadgeIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import PlaceLocation from "../components/places/PlaceLocation";
 import Perk from "../components/common/Perk";
@@ -279,7 +278,7 @@ const PaymentSuccess = ({ className, ...props }) => {
 					<div className=" p-8 max-sm:p-0 flex flex-col rounded-l-4xl">
 						<div className="mb-8">
 							<h1 className="text-2xl font-semibold text-gray-900 mb-1">
-								Olá, {bookingDetails?.user?.name.split(" ")[0] || "Visitante"}!
+								Olá, {bookingDetails?.user?.name?.split(" ")[0] || "Visitante"}!
 							</h1>
 							<p className="text-blue-600 text-sm">
 								Ficamos felizes em recebê-lo(a)!
