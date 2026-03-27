@@ -278,7 +278,7 @@ const PaymentSuccess = ({ className, ...props }) => {
 					<div className=" p-8 max-sm:p-0 flex flex-col rounded-l-4xl">
 						<div className="mb-8">
 							<h1 className="text-2xl font-semibold text-gray-900 mb-1">
-								Olá, {bookingDetails?.user?.name.split(" ")[0] || "Visitante"}!
+								Olá, {bookingDetails?.user?.name?.split(" ")[0] || "Visitante"}!
 							</h1>
 							<p className="text-blue-600 text-sm">
 								Ficamos felizes em recebê-lo(a)!
