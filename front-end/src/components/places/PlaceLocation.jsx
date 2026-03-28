@@ -111,15 +111,7 @@ export default function PlaceLocation({ city, minimal = false }) {
 								</p>
 							</>
 						) : !hasApiKey ? (
-							<>
-								<AlertCircle size={48} className="text-red-500" />
-								<p className="text-center text-sm">
-									Chave de API do Google Maps não configurada
-								</p>
-								<p className="text-center text-xs text-gray-400">
-									Configure VITE_GOOGLE_MAPS_API_KEY
-								</p>
-							</>
+							<></>
 						) : iframeError ? (
 							<>
 								<AlertCircle size={48} className="text-red-500" />

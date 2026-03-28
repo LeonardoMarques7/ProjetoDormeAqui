@@ -388,13 +388,13 @@ export const GooglePlacesInput = ({
 					</div>
 				)}
 			</div>
-
+{/* 
 			{!googleAvailable && (
 				<p className="mt-2 text-xs text-amber-600">
 					Google Places ainda não está disponível. Verifique a chave{" "}
 					<code>VITE_GOOGLE_PLACES_API_KEY</code>.
 				</p>
-			)}
+			)} */}
 
 			{error && (
 				<p className="mt-2 flex items-center gap-1 text-sm text-red-500">
