@@ -93,7 +93,7 @@ function AppContent() {
 								<div className="relative flex flex-col min-h-screen w-full bg-white">
 									{/* Header */}
 									{!mobile && <Header isAbsolute={isHome} />}
-									<NotificationToast />
+									{/* <NotificationToast /> */}
 									<ScrollToTop />
 
 									{/* Main Content - grows to fill available space */}
