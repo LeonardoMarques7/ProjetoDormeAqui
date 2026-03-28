@@ -271,16 +271,12 @@ const Place = () => {
 
 	return (
 		<>
-			<AnimatePresence className="">
-				{loading == true ? (
-					<motion.div
-						className="  mx-auto h-full max-sm:max-w-full md:max-w-7xl"
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-					>
-						<PlaceHolder />
-					</motion.div>
-				) : (
+			{loading == true ? (
+				<div className="  mx-auto h-full max-sm:max-w-full md:max-w-7xl">
+					<PlaceHolder />
+				</div>
+			) : (
+				<AnimatePresence className="">
 					<motion.div
 						className="  mx-auto h-full max-sm:max-w-full md:max-w-7xl"
 						initial={{ opacity: 0 }}
@@ -328,8 +324,9 @@ const Place = () => {
 							</div>
 						</motion.div>
 					</motion.div>
-				)}
-			</AnimatePresence>
+				</AnimatePresence>
+			)}
+
 			{/* Popup minimalista do booking */}
 			{showBookingPopup && popupData && (
 				<PlaceBookingForm
