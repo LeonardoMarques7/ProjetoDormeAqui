@@ -24,7 +24,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import GooglePlacesInput from "@/components/places/GooglePlacesInput";
-import { filterAccommodations, fetchBookingsForAccommodations } from "@/lib/searchFilters";
+import {
+	filterAccommodations,
+	fetchBookingsForAccommodations,
+} from "@/lib/searchFilters";
 
 const SearchBar = ({ compact = false, onSearch }) => {
 	const navigate = useNavigate();
@@ -84,7 +87,11 @@ const SearchBar = ({ compact = false, onSearch }) => {
 				`/places?${queryParams.toString()}`,
 			);
 
-			console.log("🔎 [SearchBar] Resultados do backend:", searchResults.length, "acomodações");
+			console.log(
+				"🔎 [SearchBar] Resultados do backend:",
+				searchResults.length,
+				"acomodações",
+			);
 
 			// Enriquecer com dados de bookings apenas se tiver datas
 			let enrichedResults = searchResults;
@@ -92,11 +99,13 @@ const SearchBar = ({ compact = false, onSearch }) => {
 				console.log("📦 [SearchBar] Enriquecendo com bookings...");
 				enrichedResults = await fetchBookingsForAccommodations(
 					searchResults,
-					axios
+					axios,
 				);
 				console.log("✅ [SearchBar] Enriquecimento concluído");
 			} else {
-				console.log("ℹ️ [SearchBar] Sem datas, pulando enriquecimento de bookings");
+				console.log(
+					"ℹ️ [SearchBar] Sem datas, pulando enriquecimento de bookings",
+				);
 			}
 
 			// Aplicar filtros adicionais localmente (datas, validações)
@@ -109,7 +118,11 @@ const SearchBar = ({ compact = false, onSearch }) => {
 				checkOut: formData.checkout,
 			});
 
-			console.log("📊 [SearchBar] Resultado final:", filteredResults.length, "acomodações");
+			console.log(
+				"📊 [SearchBar] Resultado final:",
+				filteredResults.length,
+				"acomodações",
+			);
 
 			// Se estiver na Home e houver callback, usar callback local
 			if (location.pathname === "/" && onSearch) {

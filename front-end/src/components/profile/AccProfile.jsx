@@ -671,7 +671,7 @@ const AccProfile = ({ userId }) => {
 
 	return (
 		<motion.div
-			className="px-8"
+			className="lg:px-8  sm:px-0"
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			transition={{ duration: 0.4 }}
@@ -681,17 +681,17 @@ const AccProfile = ({ userId }) => {
 					<UserImageFallback
 						type="banner"
 						src={displayUser?.banner}
-						className=" mx-auto w-full object-cover  max-sm:max-w-full max-w-7xl bg-center max-sm:h-[25svh] max-sm:rounded-none rounded-4xl h-[40svh] relative overflow-hidden"
+						className=" mx-auto w-full object-cover  max-sm:max-w-full max-w-7xl bg-center max-sm:h-[25svh] md:h-[25svh] max-sm:rounded-4xl rounded-4xl lg:h-[40svh] relative overflow-hidden"
 					/>
 
 					{/* Container do conteúdo */}
-					<div className="container__profile mx-auto w-full  max-w-7xl px-8 max-sm:px-3.5  relative max-sm:-mt-30 -mt-35">
+					<div className="container__profile mx-auto w-full  max-w-7xl px-8 max-sm:px-3.5  relative max-sm:-mt-15 -mt-35">
 						<div className="flex flex-col gap-5 max-sm:gap-2 relative mb-10 max-sm:mb-0">
 							{/* Header do perfil (avatar + botão) */}
 							<div className="avatar__btn flex  max-sm:gap-2 gap-5 items-center justify-start relative">
 								{/* Avatar sobreposto */}
 								<motion.div
-									className=" relative w-60 h-60 max-sm:w-50 max-sm:h-50 rounded-full border-2 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white"
+									className=" relative w-60 h-60 max-sm:w-30 max-sm:h-30 rounded-full border-2 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white"
 									initial={{ scale: 0.8, opacity: 0 }}
 									animate={{ scale: 1, opacity: 1 }}
 									transition={{
@@ -710,7 +710,7 @@ const AccProfile = ({ userId }) => {
 									/>
 								</motion.div>
 								{isOwnProfile && (
-									<div className="flex absolute gap-2.5 max-sm:top-30 max-sm:right-5 right-0 top-35">
+									<div className="flex absolute gap-2.5 max-sm:top-20 right-0 top-40">
 										<DropdownMenu modal={false}>
 											{mobile ? (
 												<DropdownMenuTrigger
@@ -899,7 +899,7 @@ const AccProfile = ({ userId }) => {
 									</span>
 								</div>
 								<div className="flex flex-col gap-10">
-									<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-8 lg:max-w-7xl">
+									<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(400px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
 										{places.length > 0 ? (
 											places.map((item, index) => (
 												<div
@@ -1002,6 +1002,14 @@ const AccProfile = ({ userId }) => {
 											<div className="">
 												<p className="text-4xl font-bold">O Que Dizem</p>
 											</div>
+											{mobile && (
+												<button
+													onClick={() => setSheetOpen(true)}
+													className="ml-auto text-center  cursor-pointer justify-center text-xl p-4 w-fit shadow-sm flex  items-center gap-2 bg-primary-900 hover:bg-primary-black transition-colors rounded-full text-white font-medium"
+												>
+													<Filter size={18} />
+												</button>
+											)}
 											{/* Mobile Filter Button */}
 											{mobile && (
 												<Drawer
@@ -1319,22 +1327,11 @@ const AccProfile = ({ userId }) => {
 												</div>
 											</div>
 										)}
-										<div className="grid max-w-full transition-transform relative grid-cols-[repeat(auto-fit,minmax(300px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] max-sm:gap-3.5 gap-3">
+										<div className="grid max-w-full transition-transform relative grid-cols-[repeat(auto-fit,minmax(300px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] max-sm:gap-3.5 gap-3">
 											{filteredReviews.length > 0 ? (
 												filteredReviews.map((review, index) => {
 													const stars = review.rating;
 													return (
-														// <div
-														// 	key={review._id}
-														// 	name={review.user.name}
-														// 	background={
-														// 		<div className="absolute inset-0 bg-gradient-to-br from-primary-100 to-primary-200" />
-														// 	}
-														// 	photo={review.user.photo}
-														// 	quote={review.comment}
-														// 	stars={review.rating}
-														// />
-
 														<div
 															className="group relative bg-white rounded-3xl h-full p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-neutral-100"
 															key={review._id}
@@ -1408,14 +1405,6 @@ const AccProfile = ({ userId }) => {
 												</p>
 											)}
 										</div>
-										{mobile && (
-											<button
-												onClick={() => setSheetOpen(true)}
-												className="sticky bottom-2.5 ml-auto text-center -mt-7.5 cursor-pointer justify-center text-xl p-4 w-fit shadow-sm flex flex-1 items-center gap-2 bg-primary-900 hover:bg-primary-black transition-colors rounded-full text-white font-medium"
-											>
-												<Filter size={18} />
-											</button>
-										)}
 									</div>
 								</div>
 							</motion.div>
