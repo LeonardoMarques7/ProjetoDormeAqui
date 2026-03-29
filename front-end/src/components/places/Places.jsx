@@ -59,10 +59,7 @@ const PlaceCard = ({ place, index, onDelete }) => {
 
 	return (
 		<div
-			ref={cardRef}
-			className={`item__projeto rounded-xl max-sm:flex-col relative flex gap-5 max-sm:gap-2 ${
-				index % 2 === 0 ? "item__left " : "item__right"
-			}`}
+			className={`item__projeto rounded-xl max-sm:flex-col relative flex gap-5 max-sm:gap-2`}
 			key={place._id}
 		>
 			<div className="grid gap-2 max-sm:gap-x-2 grid-cols-8  grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2 ">

@@ -130,7 +130,7 @@ const AccPlaces = () => {
 					<></>
 				)}
 
-				<div className="flex gap-5 items-center justify-center max-sm:flex-col w-full max-sm:p-0">
+				<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(400px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
 					{/* {!action && !mobile && (
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -173,7 +173,9 @@ const AccPlaces = () => {
 							</>
 						</div>
 					) : (
-						action !== "new" && <Places places={places} onDelete={handleDeletePlace} />
+						action !== "new" && (
+							<Places places={places} onDelete={handleDeletePlace} />
+						)
 					)}
 
 					{action !== "new" ? (
