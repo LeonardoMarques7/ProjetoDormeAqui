@@ -25,6 +25,7 @@ import {
 	Trash,
 	ScrollIcon,
 	SearchX,
+	DoorOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,6 +37,13 @@ import {
 	DrawerTrigger,
 } from "@/components/ui/drawer";
 
+import {
+	Tooltip,
+	TooltipTrigger,
+	TooltipContent,
+	TooltipProvider,
+} from "@/components/ui/tooltip";
+
 import DatePickerAirbnb from "@/components/places/DatePickerAirbnb";
 import searchSchema from "@/components/schemas/searchSchema.jsx";
 import { useMobileContext } from "../components/contexts/MobileContext";
@@ -45,6 +53,11 @@ import Cards from "./Cards";
 import IOSVideoPlayer from "./IOSVideoPlayer";
 
 import imageTRansparent from "@/assets/iPhone-16.png";
+import {
+	CalendarDateRangeIcon,
+	MapIcon,
+	UsersIcon,
+} from "@heroicons/react/24/outline";
 
 const Home = () => {
 	const location = useLocation();
@@ -190,7 +203,9 @@ const Home = () => {
 				rooms: formData.rooms,
 				checkIn: formData.checkin,
 				checkOut: formData.checkout,
+				minRating: formData.minRating,
 			});
+
 			setLoading(false);
 		} catch (error) {
 			console.error("Erro na busca:", error);
@@ -216,6 +231,8 @@ const Home = () => {
 		e.preventDefault();
 		setCity("");
 		setPlacesSearch([]);
+		setCurrentFilters(null);
+		setAlternativeAccommodations([]);
 
 		reset({
 			city: "",
@@ -223,18 +240,189 @@ const Home = () => {
 			checkout: null,
 			guests: null,
 			rooms: null,
+			minRating: null,
 		});
 
 		clearErrors();
 		setDatePickerKey((prev) => prev + 1);
 
+		// Resetar inputs do SearchBar
+		if (searchBarRef.current?.resetForm) {
+			searchBarRef.current.resetForm();
+		}
+
 		// Recarregar todos os places
 		fetchPlaces();
 	};
 
-	const handleSearch = (results, searchCity) => {
-		setCity(searchCity);
+	const hasActiveSearch = () => {
+		return (
+			currentFilters &&
+			(currentFilters?.city ||
+				currentFilters?.guests ||
+				currentFilters?.rooms ||
+				currentFilters?.minRating ||
+				currentFilters?.checkIn ||
+				currentFilters?.checkOut)
+		);
+	};
+
+	const removerFiltro = async (filterKey) => {
+		// Criar novo objeto de filtros sem o filtro removido
+		const novosFiltros = { ...currentFilters };
+
+		if (filterKey === "dates") {
+			novosFiltros.checkIn = null;
+			novosFiltros.checkOut = null;
+		} else {
+			novosFiltros[filterKey] = null;
+		}
+
+		// Atualizar estado IMEDIATAMENTE (para UI dos badges)
+		setCurrentFilters(novosFiltros);
+
+		// Sincronizar SearchBar
+		if (filterKey === "dates") {
+			searchBarRef.current?.clearField("checkin");
+		} else {
+			searchBarRef.current?.clearField(filterKey);
+		}
+
+		// Verificar se ainda tem filtros ativos
+		const temFiltros = Object.values(novosFiltros).some((v) => v !== null);
+
+		// Se removeu o último filtro, limpar tudo
+		if (!temFiltros) {
+			limparPesquisa({ preventDefault: () => {} });
+			return;
+		}
+
+		// Reexecutar busca com filtros atualizados
+		// Converter para formato esperado por onSubmit
+		const formDataAtualizado = {
+			city: novosFiltros.city || "",
+			checkin: novosFiltros.checkIn, // O onSubmit espera "checkin" em minúsculas
+			checkout: novosFiltros.checkOut, // O onSubmit espera "checkout" em minúsculas
+			guests: novosFiltros.guests,
+			rooms: novosFiltros.rooms,
+			minRating: novosFiltros.minRating,
+		};
+
+		await onSubmit(formDataAtualizado);
+	};
+
+	const formatarData = (data) => {
+		if (!data) return "";
+		return new Date(data).toLocaleDateString("pt-BR", {
+			month: "2-digit",
+			day: "2-digit",
+		});
+	};
+
+	const getBadges = () => {
+		const badges = [];
+
+		if (currentFilters?.city) {
+			badges.push({
+				id: "city",
+				type: "city",
+				label: currentFilters.city,
+				icon: <MapPin className="w-5 h-5" />,
+				bgColor: "bg-blue-50",
+				borderColor: "border-blue-200",
+				textColor: "text-blue-700",
+				hoverBg: "hover:bg-blue-100",
+			});
+		}
+
+		if (currentFilters?.checkIn || currentFilters?.checkOut) {
+			badges.push({
+				id: "dates",
+				type: "dates",
+				label: `${formatarData(currentFilters.checkIn)} - ${formatarData(
+					currentFilters.checkOut,
+				)}`,
+				icon: <CalendarDateRangeIcon className="w-5 h-5" />,
+				bgColor: "bg-purple-50",
+				borderColor: "border-purple-200",
+				textColor: "text-purple-700",
+				hoverBg: "hover:bg-purple-100",
+				onRemove: () => {
+					removerFiltro("dates");
+				},
+			});
+		}
+
+		if (currentFilters?.guests) {
+			badges.push({
+				id: "guests",
+				type: "guests",
+				label: `${currentFilters.guests} ${
+					currentFilters.guests === 1 ? "Hóspede" : "Hóspedes"
+				}`,
+				icon: <UsersIcon className="w-5 h-5" />,
+				bgColor: "bg-orange-50",
+				borderColor: "border-orange-200",
+				textColor: "text-orange-700",
+				hoverBg: "hover:bg-orange-100",
+				isGuests: true,
+			});
+		}
+
+		if (currentFilters?.rooms) {
+			badges.push({
+				id: "rooms",
+				type: "rooms",
+				label: `${currentFilters.rooms} ${
+					currentFilters.rooms === 1 ? "quarto" : "quartos"
+				}`,
+				icon: "🏠",
+				bgColor: "bg-green-50",
+				borderColor: "border-green-200",
+				textColor: "text-green-700",
+				hoverBg: "hover:bg-green-100",
+			});
+		}
+
+		if (currentFilters?.minRating) {
+			badges.push({
+				id: "rating",
+				type: "rating",
+				label: `Mínimo ${currentFilters.minRating}`,
+				icon: "⭐",
+				bgColor: "bg-yellow-50",
+				borderColor: "border-yellow-200",
+				textColor: "text-yellow-700",
+				hoverBg: "hover:bg-yellow-100",
+			});
+		}
+
+		return badges;
+	};
+
+	const badges = getBadges();
+
+	const searchBarRef = useRef(null);
+
+	const handleSearch = ({
+		results,
+		city,
+		guests,
+		rooms,
+		checkIn,
+		checkOut,
+		minRating,
+	}) => {
+		setCity(city);
 		setPlacesSearch(results);
+		setCurrentFilters({
+			city,
+			guests,
+			rooms,
+			checkIn,
+			checkOut,
+			minRating,
+		});
 		setLoading(false);
 	};
 
@@ -281,7 +469,7 @@ const Home = () => {
 
 					{/* SearchBar com parallax subindo */}
 					<motion.div className="mt-12 w-full lg:max-w-4xl md:max-w-fit md:mx-auto px-4 max-sm:mt-0 max-sm:mb-2">
-						<SearchBar onSearch={handleSearch} />
+						<SearchBar ref={searchBarRef} onSearch={handleSearch} />
 					</motion.div>
 				</div>
 
@@ -296,26 +484,96 @@ const Home = () => {
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
 					transition={{ duration: 0.6 }}
-					className="text-center mb-10 mt-10 flex items-center justify-center max-sm:px-4 gap-5  mx-auto"
+					className="text-center max-w-7xl  mb-10 mt-10 flex flex-col items-center justify-center max-sm:px-4 gap-4  mx-auto"
 				>
-					<div className="flex flex-col items-center text-center justify-center">
-						<span className="text-5xl  max-sm:text-2xl font-extrabold text-primary-900 mb-1">
-							{city ? `Resultados para "${city}"` : "Todas as acomodações"}
+					<div className="flex items-center text-center w-full justify-center">
+						<span className="text-5xl  max-sm:text-2xl font-extrabold text-primary-900">
+							{hasActiveSearch()
+								? "Resultados da pesquisa"
+								: "Todas as acomodações"}
 						</span>
-						<p className="text-gray-500">
-							{city
-								? `${placesSearch.length} acomodação${placesSearch.length !== 1 ? "ões" : ""} encontrada${placesSearch.length !== 1 ? "s" : ""}`
-								: "Explore hospedagens únicas espalhadas pelo Brasil"}
-						</p>
-						{city && (
-							<button
-								onClick={limparPesquisa}
-								className="mt-4 underline cursor-pointer inline-flex items-center gap-2 text-sm text-red-500 hover:text-red-700 transition-colors"
-							>
-								Limpar filtros
-							</button>
-						)}
 					</div>
+
+					{/* Badges de filtros aplicados - APENAS DESKTOP */}
+					{hasActiveSearch() && (
+						<motion.div
+							initial={{ opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
+							className="flex flex-nowrap gap-2 w-fit justify-center items-center"
+						>
+							{badges.map((badge) => (
+								<div
+									key={badge.id}
+									className={`inline-flex items-center gap-2 pl-4 pr-3 py-2 justify-start
+									rounded-full ${badge.bgColor} border ${
+										badge.borderColor
+									} text-sm ${badge.textColor}`}
+								>
+									{badge.isGuests ? (
+										<div className="flex items-center gap-2">
+											{badge.icon}
+											{badge.label}
+										</div>
+									) : (
+										<>
+											{typeof badge.icon === "string" ? (
+												<span>{badge.icon}</span>
+											) : (
+												badge.icon
+											)}
+											{badge.label}
+										</>
+									)}
+									<button
+										className={`hover:bg-red-500 hover:text-red-100 rounded-full ml-2 p-1 cursor-pointer transition-all`}
+										onClick={(e) => {
+											e.stopPropagation();
+											e.preventDefault();
+											if (badge.onRemove) {
+												badge.onRemove();
+											} else {
+												removerFiltro(badge.type);
+											}
+										}}
+									>
+										<X className="w-4 h-4" />
+									</button>
+								</div>
+							))}
+
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<button
+										onClick={limparPesquisa}
+										title="Limpar todos os Filtros"
+										className="inline-flex items-center gap-2 p-2 justify-start border-red-400 border text-red-500  bg-red-100 hover:bg-red-200 transition-all cursor-pointer rounded-full"
+									>
+										<X className="w-4 h-4" />
+									</button>
+								</TooltipTrigger>
+								<TooltipContent className="bg-red-500" align="center">
+									<p>Limpar todos os Filtros</p>
+								</TooltipContent>
+							</Tooltip>
+						</motion.div>
+					)}
+
+					{/* Info de resultados */}
+					{hasActiveSearch() && !loading && (
+						<p className="text-gray-500 text-sm flex items-center border border-green-200 rounded-full w-fit px-3 py-1">
+							<div className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block mr-2"></div>
+							{placesSearch.length} acomodaç
+							{placesSearch.length !== 1 ? "ões" : "ão"} encontrada
+							{placesSearch.length !== 1 ? "s" : ""}
+						</p>
+					)}
+
+					{!hasActiveSearch() && !mobile && (
+						<p className="text-gray-500 text-sm flex items-center border border-green-200 rounded-full w-fit px-3 py-1 mt-2">
+							<div className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block mr-2"></div>
+							Explore hospedagens únicas espalhadas pelo Brasil
+						</p>
+					)}
 				</motion.div>
 
 				{loading && (
@@ -326,7 +584,7 @@ const Home = () => {
 					</div>
 				)}
 
-				{!loading && placesSearch.length === 0 && city && (
+				{!loading && placesSearch.length === 0 && hasActiveSearch() && (
 					<div className="max-w-7xl mx-auto">
 						{/* Mensagem de nenhum resultado */}
 						<motion.div
@@ -380,7 +638,7 @@ const Home = () => {
 						whileInView="visible"
 						viewport={{ once: true }}
 					>
-						{(city ? placesSearch : placesSearch).map((place) => (
+						{placesSearch.map((place) => (
 							<motion.div key={place._id} variants={staggerItem}>
 								<Item place={place} />
 							</motion.div>
