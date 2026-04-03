@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
@@ -29,13 +29,14 @@ import {
 	fetchBookingsForAccommodations,
 } from "@/lib/searchFilters";
 
-const SearchBar = ({ compact = false, onSearch }) => {
+const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { mobile } = useMobileContext();
 	const searchInputRef = useRef(null);
 	const [isSearching, setIsSearching] = useState(false);
 	const [datePickerKey, setDatePickerKey] = useState(0);
+	const [selectKey, setSelectKey] = useState(0); // Para forçar re-render dos Selects
 
 	// Estados para drawer mobile
 	const [drawerOpen, setDrawerOpen] = useState(false);
@@ -50,6 +51,8 @@ const SearchBar = ({ compact = false, onSearch }) => {
 		setValue,
 		formState: { errors },
 		reset,
+		clearErrors,
+		trigger,
 	} = useForm({
 		resolver: zodResolver(searchSchema),
 		defaultValues: {
@@ -126,7 +129,15 @@ const SearchBar = ({ compact = false, onSearch }) => {
 
 			// Se estiver na Home e houver callback, usar callback local
 			if (location.pathname === "/" && onSearch) {
-				onSearch(filteredResults, formData.city || "");
+				onSearch({
+					results: filteredResults,
+					city: formData.city || "",
+					guests: formData.guests,
+					rooms: formData.rooms,
+					checkIn: formData.checkin,
+					checkOut: formData.checkout,
+					minRating: formData.minRating,
+				});
 			} else {
 				// Caso contrário, navega para a home com os resultados
 				navigate("/", {
@@ -150,6 +161,73 @@ const SearchBar = ({ compact = false, onSearch }) => {
 	};
 
 	const watchedValues = watch();
+
+	// Expor funções para Home.jsx via ref
+	useImperativeHandle(ref, () => ({
+		resetForm: () => {
+			reset({
+				city: "",
+				checkin: null,
+				checkout: null,
+				guests: null,
+				rooms: null,
+				minRating: null,
+			});
+			setDatePickerKey((prev) => prev + 1);
+			setSelectKey((prev) => prev + 1); // Forçar re-render dos Selects
+		},
+		clearField: (fieldName) => {
+			// Limpar valor específico do campo
+			switch (fieldName) {
+				case "city":
+					// Input de texto - apenas setar valor vazio
+					setValue("city", "");
+					clearErrors("city");
+					break;
+				
+				case "checkin":
+				case "checkout":
+					// Datas - limpar ambas e forçar re-render do DatePicker
+					if (fieldName === "checkin" || fieldName === "checkout") {
+						setValue("checkin", null);
+						setValue("checkout", null);
+						clearErrors("checkin");
+						clearErrors("checkout");
+						setDatePickerKey((prev) => prev + 1);
+					}
+					break;
+				
+				case "guests":
+					// Select de hóspedes - setar como null
+					setValue("guests", null);
+					clearErrors("guests");
+					trigger("guests");
+					setSelectKey((prev) => prev + 1); // Forçar re-render do Select
+					break;
+				
+				case "rooms":
+					// Select de quartos - setar como null
+					setValue("rooms", null);
+					clearErrors("rooms");
+					trigger("rooms");
+					setSelectKey((prev) => prev + 1); // Forçar re-render do Select
+					break;
+				
+				case "minRating":
+					// Input de rating
+					setValue("minRating", null);
+					clearErrors("minRating");
+					break;
+				
+				default:
+					setValue(fieldName, null);
+					clearErrors(fieldName);
+			}
+		},
+		clearAllErrors: () => {
+			clearErrors();
+		},
+	}));
 
 	const handleApplyFilters = () => {
 		setValue("guests", tempGuests);
@@ -411,6 +489,7 @@ const SearchBar = ({ compact = false, onSearch }) => {
 							<div className="flex gap-2 items-center">
 								<UsersIcon className="w-6 h-6 text-primary-900 flex-shrink-0" />
 								<Select
+									key={`guests-${selectKey}`}
 									value={
 										watchedValues.guests ? watchedValues.guests.toString() : ""
 									}
@@ -450,6 +529,7 @@ const SearchBar = ({ compact = false, onSearch }) => {
 							<div className="flex gap-2 items-center">
 								<DoorOpen className="w-6 h-6 text-primary-900 flex-shrink-0" />
 								<Select
+									key={`rooms-${selectKey}`}
 									value={
 										watchedValues.rooms ? watchedValues.rooms.toString() : ""
 									}
@@ -515,6 +595,8 @@ const SearchBar = ({ compact = false, onSearch }) => {
 			)}
 		</form>
 	);
-};
+});
+
+SearchBar.displayName = "SearchBar";
 
 export default SearchBar;
