@@ -1,18 +1,44 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { Info } from "lucide-react";
+import {
+	Tooltip,
+	TooltipTrigger,
+	TooltipContent,
+} from "@/components/ui/tooltip";
+
 import { registerSchema } from "../schemas/authSchema";
+
+const photoDefault =
+	"https://projeto-dorme-aqui.s3.us-east-2.amazonaws.com/1769633448464-848631051.png";
+
+// Função para calcular força da senha
+function getPasswordStrength(pw) {
+	let score = 0;
+	if (pw.length >= 6) score++;
+	if (/[A-Z]/.test(pw)) score++;
+	if (/[a-z]/.test(pw)) score++;
+	if (/\d/.test(pw)) score++;
+	if (/[@$!%*?&]/.test(pw)) score++;
+	return score;
+}
+
+function getStrengthLabel(score) {
+	if (score <= 2) return { label: "Fraca", color: "bg-red-400 text-red-700" };
+	if (score === 3 || score === 4)
+		return { label: "Média", color: "bg-yellow-300 text-yellow-800" };
+	if (score === 5)
+		return { label: "Forte", color: "bg-green-400 text-green-800" };
+	return { label: "", color: "" };
+}
+import { motion, AnimatePresence } from "framer-motion";
 import { Check, Eye, EyeOff, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { useUserContext } from "@/components/contexts/UserContext";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
-
-const photoDefault =
-	"https://projeto-dorme-aqui.s3.us-east-2.amazonaws.com/1769633448464-848631051.png";
 
 const INPUT_CLS =
 	"w-full px-4 py-3.5 border border-gray-200 rounded-xl outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all text-gray-800 placeholder:text-gray-400";
@@ -49,6 +75,19 @@ function OrDivider() {
 	);
 }
 
+function PasswordRequirement({ meets, label }) {
+	return (
+		<div
+			className={`flex items-center gap-2 transition-colors duration-300 ${meets ? "text-primary-500" : "text-red-500"}`}
+		>
+			<span className="flex items-center gap-2">
+				{meets ? <Check size={15} /> : <X size={15} />}
+				<span className="ml-2">{label}</span>
+			</span>
+		</div>
+	);
+}
+
 function LeftPanel() {
 	const autoplay = useRef(Autoplay({ delay: 4000, stopOnInteraction: false }));
 	const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
@@ -81,12 +120,10 @@ function LeftPanel() {
 
 	return (
 		<div className="hidden md:block md:w-1/2 rounded-l-2xl border-white border-8 relative flex-shrink-0">
-			{/* diagonal cut on the right edge — "quebradinha cortado de lado" */}
 			<div
 				className="absolute inset-0 overflow-hidden rounded-l-2xl"
 				style={{ clipPath: "polygon(0 0, 100% 0, 84% 100%, 0 100%)" }}
 			>
-				{/* Embla carousel */}
 				<div className="overflow-hidden h-full rounded-l-2xl" ref={emblaRef}>
 					<div className="flex h-full touch-pan-y">
 						{slides.map((src, i) => (
@@ -94,19 +131,15 @@ function LeftPanel() {
 								<img
 									src={src}
 									alt=""
-									className="absolute inset-0 rounded-l-2xl rounded-bl-2xl! w-full h-full object-cover select-none"
+									className="absolute inset-0 rounded-l-2xl w-full h-full object-cover select-none"
 									draggable="false"
 								/>
 							</div>
 						))}
 					</div>
 				</div>
-
-				{/* Dark gradient overlay */}
-				<div className="absolute inset-0 bg-gradient-to-t rounded-l-2xl rounded-bl-2xl! from-black/80 via-black/20 to-transparent pointer-events-none" />
-
-				{/* Bottom content: branding + arrows */}
-				<div className="absolute bottom-7 left-7 right-22 z-10 rounded-l-2xl flex items-end justify-between">
+				<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+				<div className="absolute bottom-7 left-7 right-22 z-10 flex items-end justify-between">
 					<div>
 						<p className="text-white text-lg font-bold leading-tight">
 							DormeAqui
@@ -115,282 +148,111 @@ function LeftPanel() {
 							Encontre o lugar perfeito
 						</p>
 					</div>
-
-					{/* Minimalist arrow buttons — like the reference image */}
-					{/* <div className="flex gap-2 items-center">
-						<button
-							onClick={scrollPrev}
-							className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 border border-white/25 flex items-center justify-center backdrop-blur-sm transition-all duration-200 cursor-pointer"
-						>
-							<ChevronLeft size={14} className="text-white" />
-						</button>
-						<button
-							onClick={scrollNext}
-							className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 border border-white/25 flex items-center justify-center backdrop-blur-sm transition-all duration-200 cursor-pointer"
-						>
-							<ChevronRight size={14} className="text-white" />
-						</button>
-					</div> */}
 				</div>
 			</div>
 		</div>
 	);
 }
 
-export function AuthDialog({ mode, setMode, open, setOpen }) {
-	const [desktop, setDesktop] = useState(window.innerWidth >= 768);
-
-	useEffect(() => {
-		const handleResize = () => setDesktop(window.innerWidth >= 768);
-		window.addEventListener("resize", handleResize);
-		return () => window.removeEventListener("resize", handleResize);
-	}, []);
-
-	useEffect(() => {
-		if (open) {
-			document.body.style.overflow = "hidden";
-		} else {
-			document.body.style.overflow = "unset";
-		}
-		return () => {
-			document.body.style.overflow = "unset";
-		};
-	}, [open]);
-
-	function handleLoginSuccess() {
-		setOpen(false);
-	}
-
-	if (desktop && open) {
-		return (
-			<>
-				<div
-					className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
-					onClick={() => setOpen(false)}
-				/>
-				<Dialog
-					open={open}
-					onOpenChange={setOpen}
-					modal={false}
-					className="w-full! max-w-full!"
-				>
-					<DialogContent className="p-0 overflow-hidden rounded-3xl w-full max-w-5xl! border-0 shadow-2xl bg-white">
-						{/* Close button — dark since it sits over white panel */}
-						<button
-							onClick={() => setOpen(false)}
-							className="cursor-pointer absolute top-4 right-4 z-50 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors outline-none"
-						>
-							<X className="w-5 h-5 text-gray-700" />
-						</button>
-
-						<div className="flex flex-row min-h-[570px]">
-							<LeftPanel />
-							{/* Right panel — white form */}
-							<motion.div
-								className="flex-1  flex items-center justify-center px-10 py-10"
-								initial={{ opacity: 0, x: 30 }}
-								animate={{ opacity: 1, x: 0 }}
-								transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-							>
-								<ProfileForm
-									mode={mode}
-									setMode={setMode}
-									onSuccess={handleLoginSuccess}
-								/>
-							</motion.div>
-						</div>
-					</DialogContent>
-				</Dialog>
-			</>
-		);
-	}
-
-	// Mobile
-	return (
-		<Drawer open={open} onOpenChange={setOpen}>
-			<DrawerContent className="!rounded-none !rounded-tl-4xl p-0">
-				<div className="p-10">
-					<ProfileForm
-						onSuccess={handleLoginSuccess}
-						mode={mode}
-						setMode={setMode}
-					/>
-				</div>
-			</DrawerContent>
-		</Drawer>
-	);
-}
-
-function PasswordRequirement({ meets, label }) {
-	return (
-		<div
-			className={`flex items-center gap-2 transition-colors duration-300 ${
-				meets ? "text-primary-500" : "text-red-500"
-			}`}
-		>
-			<span className="flex items-center gap-2">
-				{meets ? <Check size={15} /> : <X size={15} />}
-				<span className="ml-2">{label}</span>
-			</span>
-		</div>
-	);
-}
+// ─── ProfileForm ────────────────────────────────────────────────────────────
 
 function ProfileForm({ onSuccess, mode, setMode }) {
+	// Tooltip real
+	function PasswordHelpTooltip() {
+		return (
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-gray-500 align-middle">
+						<Info size={14} />
+					</span>
+				</TooltipTrigger>
+				<TooltipContent
+					className="bg-white border border-gray-200 shadow-lg rounded px-3 py-2 text-xs text-gray-700 w-56"
+					align="center"
+				>
+					<p>Para uma senha segura, utilize:</p>
+					<ul className="list-disc pl-4 mt-1 space-y-0.5">
+						<li>Mais de 6 caracteres</li>
+						<li>Uma letra maiúscula</li>
+						<li>Uma letra minúscula</li>
+						<li>Um número</li>
+						<li>Um caractere especial (ex: @$!%*?&)</li>
+					</ul>
+				</TooltipContent>
+			</Tooltip>
+		);
+	}
 	const { user, setUser } = useUserContext();
-	const [desktop, setDesktop] = useState(window.innerWidth >= 768);
 	const [email, setEmail] = useState("");
 	const [name, setName] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
-	const [message, setMessage] = useState("");
 	const [redirect, setRedirect] = useState(false);
+	const [message, setMessage] = useState("");
 	const [showPasswordPopover, setShowPasswordPopover] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [emailError, setEmailError] = useState("");
 	const [isCheckingEmail, setIsCheckingEmail] = useState(false);
-	const [resetToken, setResetToken] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [loadingOAuth, setLoadingOAuth] = useState(false);
 	const [acceptedTerms, setAcceptedTerms] = useState(false);
 	const [errors, setErrors] = useState({});
-	const [isFormValid, setIsFormValid] = useState(false);
+	const [registerStep, setRegisterStep] = useState(0);
 
-	// ========== GOOGLE LOGIN ==========
-	const handleGoogleLogin = async () => {
-		if (mode === "register" && !acceptedTerms) {
-			setMessage(
-				"Você deve aceitar os Termos de Serviço e Política de Privacidade",
-			);
-			return;
+	const steps = ["Dados pessoais", "Senha", "Termos", "Revisão"];
+
+	// ── helpers ──────────────────────────────────────────────────────────────
+
+	function validateField(field, value) {
+		let error;
+		switch (field) {
+			case "name":
+				error = !value.trim()
+					? "Nome é obrigatório"
+					: value.trim().length < 3
+						? "Nome muito curto"
+						: undefined;
+				break;
+			case "email":
+				error = !value.trim()
+					? "Email é obrigatório"
+					: !/^\S+@\S+\.\S+$/.test(value)
+						? "Email inválido"
+						: undefined;
+				break;
+			case "password":
+				error = !value
+					? "Senha é obrigatória"
+					: value.length < 6
+						? "Senha muito curta"
+						: undefined;
+				break;
+			case "confirmPassword":
+				error = !value
+					? "Confirme a senha"
+					: value !== password
+						? "As senhas não coincidem"
+						: undefined;
+				break;
+			default:
+				error = undefined;
 		}
+		setErrors((prev) => ({ ...prev, [field]: error }));
+	}
 
-		setLoadingOAuth(true);
-		setMessage("");
-
-		try {
-			if (!window.google) {
-				throw new Error("Google Sign-In library not loaded");
-			}
-
-			// Salvar flag para validar no callback
-			if (mode === "register") {
-				localStorage.setItem("acceptedTermsForOAuth", "true");
-			}
-
-			const result = await window.google.accounts.oauth2.initCodeClient({
-				client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-				scope: "openid email profile",
-				ux_mode: "redirect",
-				redirect_uri: `${window.location.origin}/auth/google/callback`,
-				callback: (response) => {
-					console.log("✅ Google OAuth Code received:", response.code);
-				},
-				error_callback: (error) => {
-					console.error("❌ Google OAuth Error:", error);
-					localStorage.removeItem("acceptedTermsForOAuth");
-					setMessage("Erro ao conectar com Google");
-					setLoadingOAuth(false);
-				},
-			});
-
-			result.requestCode();
-		} catch (error) {
-			console.error("❌ Erro ao fazer login com Google:", error);
-			localStorage.removeItem("acceptedTermsForOAuth");
-			setMessage("Erro ao conectar com Google: " + error.message);
-			setLoadingOAuth(false);
-		}
-	};
-
-	// ========== GITHUB LOGIN ==========
-	const handleGithubLogin = () => {
-		if (mode === "register" && !acceptedTerms) {
-			setMessage(
-				"Você deve aceitar os Termos de Serviço e Política de Privacidade",
-			);
-			return;
-		}
-
-		setLoadingOAuth(true);
-		setMessage("");
-		const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-		const redirectUri = `${window.location.origin}/auth/github/callback`;
-
-		if (!clientId) {
-			setMessage("GitHub Client ID não configurado");
-			setLoadingOAuth(false);
-			return;
-		}
-
-		// Salvar flag para validar no callback
-		if (mode === "register") {
-			localStorage.setItem("acceptedTermsForOAuth", "true");
-		}
-
-		window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
-	};
-
-	const validateField = (field, value) => {
-		try {
-			registerSchema.pick({ [field]: true }).parse({ [field]: value.trim() });
-			setErrors((prev) => ({ ...prev, [field]: "" }));
-		} catch (err) {
-			setErrors((prev) => ({
-				...prev,
-				[field]: err.errors?.message || "Erro de validação",
-			}));
-		}
-		checkFormValidity();
-	};
-
-	const checkFormValidity = useCallback(() => {
-		setIsFormValid(
-			Object.values(errors).every((e) => !e) &&
-				name.trim() &&
-				email.trim() &&
-				password.trim() &&
-				confirmPassword.trim() &&
-				acceptedTerms &&
-				!emailError,
-		);
-	}, [
-		errors,
-		name,
-		email,
-		password,
-		confirmPassword,
-		acceptedTerms,
-		emailError,
-	]);
-
-	const checkEmailExists = async (emailToCheck) => {
-		if (!emailToCheck || mode === "login") return;
-
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(emailToCheck)) {
-			setEmailError("Email inválido");
-			return;
-		}
-
+	async function checkEmailExists(value) {
+		if (!value) return;
 		setIsCheckingEmail(true);
-		setEmailError("");
-
 		try {
-			const { data: users } = await axios.get("/users");
-			const emailsList = users.map((user) => user.email.toLowerCase());
-			const emailExists = emailsList.includes(emailToCheck.toLowerCase());
-
-			if (emailExists) {
-				setEmailError("Este email já está cadastrado");
-			}
-		} catch (error) {
-			console.log("Erro ao verificar email:", error);
+			const { data } = await axios.get(`/auth/check-email?email=${value}`);
+			if (data.exists) setEmailError("Este email já está em uso.");
+		} catch {
+			// silencioso
 		} finally {
 			setIsCheckingEmail(false);
 		}
-	};
+	}
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -478,11 +340,382 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 		}
 	};
 
-	if (redirect) return <Navigate to="/account/profile" />;
+	// ── Google OAuth ──────────────────────────────────────────────────────────
+
+	async function handleGoogleLogin() {
+		if (mode === "register" && !acceptedTerms) {
+			setMessage(
+				"Você deve aceitar os Termos de Serviço e Política de Privacidade",
+			);
+			return;
+		}
+
+		setLoadingOAuth(true);
+		setMessage("");
+
+		try {
+			if (!window.google) throw new Error("Google Sign-In library not loaded");
+
+			if (mode === "register") {
+				localStorage.setItem("acceptedTermsForOAuth", "true");
+			}
+
+			const result = await window.google.accounts.oauth2.initCodeClient({
+				client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+				scope: "openid email profile",
+				ux_mode: "redirect",
+				redirect_uri: `${window.location.origin}/auth/google/callback`,
+				callback: (response) => {
+					console.log("✅ Google OAuth Code received:", response.code);
+				},
+				error_callback: (error) => {
+					console.error("❌ Google OAuth Error:", error);
+					localStorage.removeItem("acceptedTermsForOAuth");
+					setMessage("Erro ao conectar com Google");
+					setLoadingOAuth(false);
+				},
+			});
+
+			result.requestCode();
+		} catch (error) {
+			console.error("❌ Erro ao fazer login com Google:", error);
+			localStorage.removeItem("acceptedTermsForOAuth");
+			setMessage("Erro ao conectar com Google: " + error.message);
+			setLoadingOAuth(false);
+		}
+	}
+
+	// ── Register step helpers ─────────────────────────────────────────────────
+
+	function isStepValid() {
+		if (registerStep === 0)
+			return (
+				name.trim() &&
+				email.trim() &&
+				!errors.name &&
+				!errors.email &&
+				!emailError
+			);
+		if (registerStep === 1)
+			return (
+				password.trim() &&
+				confirmPassword.trim() &&
+				!errors.password &&
+				!errors.confirmPassword
+			);
+		if (registerStep === 2) return acceptedTerms;
+		if (registerStep === 3) return true;
+		return false;
+	}
+
+	function handleNext(e) {
+		e.preventDefault();
+		if (registerStep < steps.length - 1 && isStepValid()) {
+			setRegisterStep((s) => s + 1);
+		}
+	}
+
+	function handleBack(e) {
+		e.preventDefault();
+		if (registerStep > 0) setRegisterStep((s) => s - 1);
+	}
+
+	async function handleRegisterSubmit(e) {
+		e.preventDefault();
+		if (!isStepValid()) return;
+		await handleSubmit(e);
+	}
+
+	// ── Sub-components (defined inside ProfileForm to access state) ───────────
+
+	function Stepper() {
+		return (
+			<div className="flex flex-col items-start gap-0 mb-8">
+				{steps.map((label, idx) => (
+					<div
+						key={label}
+						className="flex items-center gap-3 relative min-h-[44px]"
+					>
+						<div
+							className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all duration-200 
+							${
+								registerStep === idx
+									? "bg-primary-600 text-white border-primary-600"
+									: idx < registerStep
+										? "bg-primary-100 text-primary-600 border-primary-400"
+										: "bg-white text-gray-400 border-gray-200"
+							}`}
+						>
+							{idx + 1}
+						</div>
+						<span
+							className={`text-base font-medium transition-colors duration-200 ${registerStep === idx ? "text-primary-700" : "text-gray-400"}`}
+						>
+							{label}
+						</span>
+						{idx < steps.length - 1 && (
+							<span className="absolute left-1/2 top-8 -translate-x-1/2 w-1 h-6 bg-gray-200 z-0" />
+						)}
+					</div>
+				))}
+			</div>
+		);
+	}
+
+	function renderRegisterStep() {
+		switch (registerStep) {
+			case 0:
+				return (
+					<>
+						<h1 className="text-3xl font-bold text-gray-900 mb-1">
+							Dados pessoais
+						</h1>
+						<p className="text-gray-400 mb-8 text-sm">
+							Preencha seu nome e email
+						</p>
+						<div className="space-y-4">
+							<input
+								type="text"
+								placeholder="Nome completo"
+								className={`${INPUT_CLS} ${errors.name ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
+								value={name}
+								onChange={(e) => {
+									setName(e.target.value);
+									validateField("name", e.target.value);
+									if (message) setMessage("");
+								}}
+								onBlur={(e) => validateField("name", e.target.value)}
+							/>
+							{errors.name && (
+								<p className="text-xs text-red-500 mt-1 ml-1">{errors.name}</p>
+							)}
+							<input
+								type="email"
+								placeholder="Email"
+								className={`${INPUT_CLS} ${errors.email || emailError ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
+								value={email}
+								onChange={(e) => {
+									setEmail(e.target.value);
+									validateField("email", e.target.value);
+									setEmailError("");
+									if (message) setMessage("");
+								}}
+								onBlur={(e) => {
+									validateField("email", e.target.value);
+									checkEmailExists(e.target.value);
+								}}
+							/>
+							{isCheckingEmail && (
+								<p className="text-xs text-gray-400 mt-1 ml-1">
+									Verificando...
+								</p>
+							)}
+							{emailError && (
+								<p className="text-xs text-red-500 mt-1 ml-1">{emailError}</p>
+							)}
+						</div>
+					</>
+				);
+
+			case 1: {
+				const strengthScore = getPasswordStrength(password);
+				const { label: strengthLabel, color: strengthColor } =
+					getStrengthLabel(strengthScore);
+				return (
+					<>
+						<h1 className="text-3xl font-bold text-gray-900 mb-1">Senha</h1>
+						<p className="text-gray-400 mb-8 text-sm">Crie uma senha segura</p>
+						<div className="space-y-4">
+							<div className="relative">
+								<input
+									type={showPassword ? "text" : "password"}
+									placeholder="Senha"
+									className={`${INPUT_CLS} pr-12 ${errors.password ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
+									value={password}
+									onChange={(e) => {
+										setPassword(e.target.value);
+										validateField("password", e.target.value);
+										validateField("confirmPassword", confirmPassword); // Atualiza confirmação
+										setShowPasswordPopover(true);
+									}}
+									onBlur={() => {
+										validateField("password", password);
+										validateField("confirmPassword", confirmPassword);
+										setShowPasswordPopover(false);
+									}}
+								/>
+								<button
+									type="button"
+									onClick={() => setShowPassword(!showPassword)}
+									className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+								>
+									{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+								</button>
+							</div>
+
+							{/* Barra de progresso de força */}
+							<div className="flex items-center gap-3 mt-2">
+								<div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
+									<div
+										className={`h-2 rounded-full transition-all duration-300 ${
+											strengthScore <= 2
+												? "bg-red-400"
+												: strengthScore === 3 || strengthScore === 4
+													? "bg-yellow-300"
+													: "bg-green-400"
+										}`}
+										style={{ width: `${(strengthScore / 5) * 100}%` }}
+									/>
+								</div>
+								{password && (
+									<>
+										<span
+											className={`px-2 py-0.5 rounded text-xs font-semibold ${strengthColor}`}
+										>
+											{strengthLabel}
+										</span>
+										<PasswordHelpTooltip />
+									</>
+								)}
+							</div>
+
+							{/* {showPasswordPopover && (
+								<div className="space-y-3">
+									<div className="grid grid-cols-2 gap-1.5">
+										<PasswordRequirement
+											label="6+ caracteres"
+											meets={password.length >= 6}
+										/>
+										<PasswordRequirement
+											label="Letra maiúscula"
+											meets={/[A-Z]/.test(password)}
+										/>
+										<PasswordRequirement
+											label="Letra minúscula"
+											meets={/[a-z]/.test(password)}
+										/>
+										<PasswordRequirement
+											label="Número"
+											meets={/\d/.test(password)}
+										/>
+										<PasswordRequirement
+											className="col-span-2"
+											label="Caractere especial"
+											meets={/[@$!%*?&]/.test(password)}
+										/>
+									</div>
+								</div>
+							)} */}
+
+							<div className="relative">
+								<input
+									type={showConfirmPassword ? "text" : "password"}
+									placeholder="Confirmar senha"
+									className={`${INPUT_CLS} pr-12 ${errors.confirmPassword ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
+									value={confirmPassword}
+									onChange={(e) => {
+										setConfirmPassword(e.target.value);
+										validateField("confirmPassword", e.target.value);
+										if (message) setMessage("");
+									}}
+									onBlur={(e) =>
+										validateField("confirmPassword", e.target.value)
+									}
+								/>
+								{errors.confirmPassword && (
+									<p className="text-xs text-red-500 mt-1 ml-1">
+										{errors.confirmPassword}
+									</p>
+								)}
+								<button
+									type="button"
+									onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+									className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+								>
+									{showConfirmPassword ? (
+										<EyeOff size={20} />
+									) : (
+										<Eye size={20} />
+									)}
+								</button>
+							</div>
+						</div>
+					</>
+				);
+			}
+
+			case 2:
+				return (
+					<>
+						<h1 className="text-3xl font-bold text-gray-900 mb-1">Termos</h1>
+						<p className="text-gray-400 mb-8 text-sm">
+							Aceite os termos para continuar
+						</p>
+						<div className="flex items-start gap-3">
+							<input
+								type="checkbox"
+								id="acceptTerms"
+								checked={acceptedTerms}
+								onChange={(e) => setAcceptedTerms(e.target.checked)}
+								className="w-5 h-5 rounded border-gray-200 text-primary-600 focus:ring-2 focus:ring-primary-100 cursor-pointer mt-0.5 flex-shrink-0"
+							/>
+							<label
+								htmlFor="acceptTerms"
+								className="text-sm text-gray-600 cursor-pointer"
+							>
+								Eu aceito os{" "}
+								<Link
+									to="/terms"
+									target="_blank"
+									className="text-primary-600 hover:underline font-medium"
+								>
+									Termos de Serviço
+								</Link>{" "}
+								e a{" "}
+								<Link
+									to="/privacy"
+									target="_blank"
+									className="text-primary-600 hover:underline font-medium"
+								>
+									Política de Privacidade
+								</Link>
+							</label>
+						</div>
+					</>
+				);
+
+			case 3:
+				return (
+					<>
+						<h1 className="text-3xl font-bold text-gray-900 mb-1">Revisão</h1>
+						<p className="text-gray-400 mb-8 text-sm">
+							Confira seus dados antes de criar a conta
+						</p>
+						<div className="space-y-2 text-gray-700">
+							<div>
+								<b>Nome:</b> {name}
+							</div>
+							<div>
+								<b>Email:</b> {email}
+							</div>
+						</div>
+						<p className="text-xs text-gray-400 mt-2">
+							Ao clicar em Criar Conta, você confirma que seus dados estão
+							corretos.
+						</p>
+					</>
+				);
+
+			default:
+				return null;
+		}
+	}
+
+	// ── Render ────────────────────────────────────────────────────────────────
 
 	return (
 		<AnimatePresence mode="wait">
-			{/* ===== LOGIN ===== */}
+			{/* ── LOGIN ── */}
 			{mode === "login" && (
 				<motion.div
 					key="login"
@@ -583,7 +816,7 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 						</motion.button>
 					</form>
 
-					<p className="text-center text-gray-400 text-sm mt-6">
+					<p className="text-center text-gray-400 text-sm mt-2">
 						Não tem uma conta?{" "}
 						<button
 							onClick={() => setMode("register")}
@@ -658,7 +891,7 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 						</motion.button>
 					</form>
 
-					<p className="text-center text-gray-400 text-sm mt-6">
+					<p className="text-center text-gray-400 text-sm mt-2">
 						Lembrou da senha?{" "}
 						<button
 							onClick={() => setMode("login")}
@@ -670,7 +903,7 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 				</motion.div>
 			)}
 
-			{/* ===== REGISTER ===== */}
+			{/* ── REGISTER (step-by-step) ── */}
 			{mode === "register" && (
 				<motion.div
 					key="register"
@@ -680,158 +913,15 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 					exit={{ opacity: 0, x: -20 }}
 					transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
 				>
-					<motion.h1
-						className="text-4xl font-bold text-gray-900 mb-1"
-						initial={{ opacity: 0, y: -10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.4 }}
+					<form
+						className="space-y-4"
+						onSubmit={
+							registerStep === steps.length - 1
+								? handleRegisterSubmit
+								: handleNext
+						}
 					>
-						Crie sua conta
-					</motion.h1>
-					<p className="text-gray-400 mb-8 text-sm">Junte-se ao DormeAqui</p>
-
-					<form className="space-y-4" onSubmit={handleSubmit}>
-						<motion.div
-							initial={{ opacity: 0, y: 12 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0 * 0.07, duration: 0.4 }}
-						>
-							<input
-								type="text"
-								placeholder="Nome completo"
-								className={`${INPUT_CLS} ${errors.name ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
-								value={name}
-								onChange={(e) => {
-									const val = e.target.value;
-									setName(val);
-									validateField("name", val);
-									if (message) setMessage("");
-								}}
-							/>
-							{errors.name && (
-								<p className="text-xs text-red-500 mt-1 ml-1">{errors.name}</p>
-							)}
-						</motion.div>
-
-						<motion.div
-							initial={{ opacity: 0, y: 12 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 1 * 0.07, duration: 0.4 }}
-						>
-							<input
-								type="email"
-								placeholder="Email"
-								className={`${INPUT_CLS} ${errors.email || emailError ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
-								value={email}
-								onChange={(e) => {
-									const val = e.target.value;
-									setEmail(val);
-									validateField("email", val);
-									setEmailError("");
-									if (message) setMessage("");
-								}}
-								onBlur={(e) => {
-									checkEmailExists(e.target.value);
-									validateField("email", e.target.value);
-								}}
-							/>
-							{isCheckingEmail && (
-								<p className="text-xs text-gray-400 mt-1 ml-1">
-									Verificando...
-								</p>
-							)}
-							{emailError && (
-								<p className="text-xs text-red-500 mt-1 ml-1">{emailError}</p>
-							)}
-						</motion.div>
-
-						<motion.div
-							className="relative"
-							initial={{ opacity: 0, y: 12 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 2 * 0.07, duration: 0.4 }}
-						>
-							<input
-								type={showPassword ? "text" : "password"}
-								placeholder="Senha"
-								className={`${INPUT_CLS} pr-12 ${errors.password ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
-								value={password}
-								onChange={(e) => {
-									const val = e.target.value;
-									setPassword(val);
-									validateField("password", val);
-									setShowPasswordPopover(true);
-								}}
-								onBlur={() => {
-									validateField("password", password);
-									setShowPasswordPopover(false);
-								}}
-							/>
-							<button
-								type="button"
-								onClick={() => setShowPassword(!showPassword)}
-								className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-							>
-								{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-							</button>
-						</motion.div>
-
-						{showPasswordPopover && (
-							<div className="ml-1">
-								<PasswordRequirement
-									label="6+ caracteres"
-									meets={password.length >= 6}
-								/>
-								<PasswordRequirement
-									label="1 maiúscula"
-									meets={/[A-Z]/.test(password)}
-								/>
-								<PasswordRequirement
-									label="1 minúscula"
-									meets={/[a-z]/.test(password)}
-								/>
-								<PasswordRequirement
-									label="1 número"
-									meets={/\d/.test(password)}
-								/>
-								<PasswordRequirement
-									label="1 especial"
-									meets={/[@$!%*?&]/.test(password)}
-								/>
-							</div>
-						)}
-
-						<motion.div
-							className="relative"
-							initial={{ opacity: 0, y: 12 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 3 * 0.07, duration: 0.4 }}
-						>
-							<input
-								type={showConfirmPassword ? "text" : "password"}
-								placeholder="Confirmar senha"
-								className={`${INPUT_CLS} pr-12 ${errors.confirmPassword ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
-								value={confirmPassword}
-								onChange={(e) => {
-									const val = e.target.value;
-									setConfirmPassword(val);
-									validateField("confirmPassword", val);
-									if (message) setMessage("");
-								}}
-							/>
-							{errors.confirmPassword && (
-								<p className="text-xs text-red-500 mt-1 ml-1">
-									{errors.confirmPassword}
-								</p>
-							)}
-							<button
-								type="button"
-								onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-								className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-							>
-								{showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-							</button>
-						</motion.div>
+						{renderRegisterStep()}
 
 						{message && (
 							<div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg">
@@ -839,67 +929,52 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 							</div>
 						)}
 
-						{/* Terms and Privacy Checkbox */}
-						<motion.div
-							className="flex items-start gap-3"
-							initial={{ opacity: 0, y: 12 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 4 * 0.07, duration: 0.4 }}
-						>
-							<input
-								type="checkbox"
-								id="acceptTerms"
-								checked={acceptedTerms}
-								onChange={(e) => setAcceptedTerms(e.target.checked)}
-								className="w-5 h-5 rounded border-gray-200 text-primary-600 focus:ring-2 focus:ring-primary-100 cursor-pointer mt-0.5 flex-shrink-0"
-							/>
-							<label
-								htmlFor="acceptTerms"
-								className="text-sm text-gray-600 cursor-pointer"
+						<div className="flex gap-2 mt-4s">
+							{registerStep > 0 && (
+								<button
+									type="button"
+									onClick={handleBack}
+									className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-full transition-all duration-300 shadow cursor-pointer"
+								>
+									Voltar
+								</button>
+							)}
+							{registerStep < steps.length - 1 ? (
+								<button
+									type="submit"
+									disabled={!isStepValid()}
+									className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+								>
+									Próximo
+								</button>
+							) : (
+								<button
+									type="submit"
+									disabled={
+										!isStepValid() || loadingOAuth || isLoading || !!emailError
+									}
+									className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+								>
+									{isLoading ? "Criando..." : "Criar Conta"}
+								</button>
+							)}
+						</div>
+
+						{/* <div className="mt-2">
+							<OrDivider />
+							<button
+								type="button"
+								onClick={handleGoogleLogin}
+								disabled={loadingOAuth}
+								className="w-full flex items-center justify-center gap-3 py-3.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 cursor-pointer mt-2"
 							>
-								Eu aceito os{" "}
-								<Link
-									to="/terms"
-									target="_blank"
-									className="text-primary-600 hover:underline font-medium"
-								>
-									Termos de Serviço
-								</Link>{" "}
-								e a{" "}
-								<Link
-									to="/privacy"
-									target="_blank"
-									className="text-primary-600 hover:underline font-medium"
-								>
-									Política de Privacidade
-								</Link>
-							</label>
-						</motion.div>
-
-						<OrDivider />
-
-						<button
-							type="button"
-							onClick={handleGoogleLogin}
-							disabled={loadingOAuth}
-							className="w-full flex items-center justify-center gap-3 py-3.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700 disabled:opacity-50 cursor-pointer"
-						>
-							<GoogleIcon />
-							Continuar com Google
-						</button>
-
-						<motion.button
-							type="submit"
-							disabled={!isFormValid || loadingOAuth || isLoading || emailError}
-							className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all duration-300 shadow-lg shadow-primary-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-							whileHover={{ scale: 1.02 }}
-							whileTap={{ scale: 0.98 }}
-						>
-							Criar Conta
-						</motion.button>
+								<GoogleIcon />
+								{loadingOAuth ? "Redirecionando..." : "Continuar com Google"}
+							</button>
+						</div> */}
 					</form>
 
-					<p className="text-center text-gray-400 text-sm mt-6">
+					<p className="text-center text-gray-400 text-sm mt-8">
 						Já tem uma conta?{" "}
 						<button
 							onClick={() => setMode("login")}
@@ -911,5 +986,79 @@ function ProfileForm({ onSuccess, mode, setMode }) {
 				</motion.div>
 			)}
 		</AnimatePresence>
+	);
+}
+
+// ─── AuthDialog ──────────────────────────────────────────────────────────────
+
+export function AuthDialog({ mode, setMode, open, setOpen }) {
+	const [desktop, setDesktop] = useState(window.innerWidth >= 768);
+
+	useEffect(() => {
+		const handleResize = () => setDesktop(window.innerWidth >= 768);
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
+	useEffect(() => {
+		document.body.style.overflow = open ? "hidden" : "unset";
+		return () => {
+			document.body.style.overflow = "unset";
+		};
+	}, [open]);
+
+	function handleLoginSuccess() {
+		setOpen(false);
+	}
+
+	if (desktop && open) {
+		return (
+			<>
+				<div
+					className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+					onClick={() => setOpen(false)}
+				/>
+				<Dialog open={open} onOpenChange={setOpen} modal={false}>
+					<DialogContent className="p-0 overflow-hidden rounded-3xl w-full max-w-5xl! border-0 shadow-2xl bg-white">
+						<button
+							onClick={() => setOpen(false)}
+							className="cursor-pointer absolute top-4 right-4 z-50 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors outline-none"
+						>
+							<X className="w-5 h-5 text-gray-700" />
+						</button>
+
+						<div className="flex flex-row min-h-[570px]">
+							<LeftPanel />
+							<motion.div
+								className="flex-1 flex items-center justify-center px-10 py-10"
+								initial={{ opacity: 0, x: 30 }}
+								animate={{ opacity: 1, x: 0 }}
+								transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+							>
+								<ProfileForm
+									mode={mode}
+									setMode={setMode}
+									onSuccess={handleLoginSuccess}
+								/>
+							</motion.div>
+						</div>
+					</DialogContent>
+				</Dialog>
+			</>
+		);
+	}
+
+	return (
+		<Drawer open={open} onOpenChange={setOpen}>
+			<DrawerContent className="!rounded-none !rounded-tl-4xl p-0">
+				<div className="p-10">
+					<ProfileForm
+						onSuccess={handleLoginSuccess}
+						mode={mode}
+						setMode={setMode}
+					/>
+				</div>
+			</DrawerContent>
+		</Drawer>
 	);
 }

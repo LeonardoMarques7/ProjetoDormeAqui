@@ -100,6 +100,12 @@ router.post("/", async (req, res) => {
   const { name, email, password, photo } = req.body;
 
   try {
+    // Verifica se já existe usuário com o mesmo email
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ error: "Este email já está cadastrado" });
+    }
+
     const encryptedPassword = bcrypt.hashSync(password, bcryptSalt);
 
     const newUserDoc = await User.create({
@@ -120,6 +126,10 @@ router.post("/", async (req, res) => {
       .json(newUserObj);
 
   } catch (error) {
+    // Trata erro de duplicidade do MongoDB
+    if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+      return res.status(409).json({ error: "Este email já está cadastrado" });
+    }
     console.error("Erro ao criar usuário:", error);
     res.status(500).json({ error: "Erro ao criar usuário" });
   }

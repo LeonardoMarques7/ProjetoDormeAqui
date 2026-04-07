@@ -90,7 +90,6 @@ const Item = ({ place = null, placeHolder }) => {
 				</div>
 			) : (
 				<motion.div
-					whileHover={{ y: -6, boxShadow: "0 16px 48px rgba(0,0,0,0.18)" }}
 					transition={{ type: "spring", stiffness: 260, damping: 20 }}
 					className="h-full w-full sm:max-w-[350px] rounded-2xl"
 				>
@@ -100,8 +99,8 @@ const Item = ({ place = null, placeHolder }) => {
 						onMouseEnter={() => setIsHovered(true)}
 						onMouseLeave={() => setIsHovered(false)}
 						className={`${
-							isHovered && "border-2 border-primary-200 z-1 shadow-xl"
-						} flex bg-white  h-full rounded-2xl gap-4 flex-col w-full transition-all duration-300`}
+							isHovered && "shadow-lg border-primary-100 p-1 border-2"
+						} flex bg-white  h-full rounded-2xl gap-0 max-sm:gap-0 flex-col w-full transition-all duration-300`}
 					>
 						{/* Carrossel de imagens */}
 						<div className="relative">
@@ -110,25 +109,25 @@ const Item = ({ place = null, placeHolder }) => {
 									loop: true,
 								}}
 								plugins={[...(isHovered ? [Autoplay({ delay: 3000 })] : [])]}
-								className="w-full relative rounded-b-none"
+								className="w-full relative "
 								setApi={setApi}
 							>
 								<CarouselContent>
 									{place.photos.map((photo, index) => (
 										<CarouselItem
-											className="relative overflow-hidden rounded-b-none rounded-t-2xl"
+											className="relative overflow-hidden  rounded-2xl"
 											key={index}
 										>
 											<motion.div
 												initial={{ scale: 1.08, opacity: 0 }}
 												animate={{ scale: 1, opacity: 1 }}
 												transition={{ duration: 0.6, ease: ease.power3Out }}
-												className="w-full h-full"
+												className="w-full h-full "
 											>
 												<img
 													src={photo}
 													alt={`Imagem da acomodação ${index + 1}`}
-													className="aspect-square z-0 w-full *:rounded-2xl object-cover transition-transform rounded-t-2xl rounded-b-none"
+													className={`aspect-square z-0 w-full *:rounded-2xl object-cover transition-all rounded-2xl `}
 													loading={index === 0 ? "eager" : "lazy"}
 													width="350"
 													height="350"
@@ -172,7 +171,7 @@ const Item = ({ place = null, placeHolder }) => {
 
 						{/* Card info - estado normal */}
 						<motion.div
-							className="px-4 max-sm:px-2 py-3 flex flex-col gap-1"
+							className={`px-0 max-sm:px-2 py-3 flex flex-col gap-1 ${isHovered && "sm:px-2"}`}
 							variants={staggerContainer(0.07)}
 							initial="hidden"
 							animate="visible"
@@ -201,7 +200,7 @@ const Item = ({ place = null, placeHolder }) => {
 							</motion.span>
 
 							{/* Card info - estado hover (expanded) */}
-							<div
+							{/* <div
 								className={`flex flex-col gap-3 px-0 border-primary-100  transition-all duration-700 ${
 									isHovered
 										? "opacity-100 max-h-96 "
@@ -229,7 +228,7 @@ const Item = ({ place = null, placeHolder }) => {
 										</motion.div>
 									) : null}
 								</AnimatePresence>
-							</div>
+							</div> */}
 						</motion.div>
 					</Link>
 				</motion.div>
