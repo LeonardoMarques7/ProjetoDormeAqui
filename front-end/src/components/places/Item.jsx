@@ -99,8 +99,7 @@ const Item = ({ place = null, placeHolder }) => {
 						onMouseEnter={() => setIsHovered(true)}
 						onMouseLeave={() => setIsHovered(false)}
 						className={`${
-							isHovered &&
-							"sm:shadow-lg sm:border-primary-100 sm:p-1 sm:border-2"
+							isHovered && "shadow-lg border-primary-100 p-1 border-2"
 						} flex bg-white  h-full rounded-2xl gap-0 max-sm:gap-0 flex-col w-full transition-all duration-300`}
 					>
 						{/* Carrossel de imagens */}
@@ -128,7 +127,7 @@ const Item = ({ place = null, placeHolder }) => {
 												<img
 													src={photo}
 													alt={`Imagem da acomodação ${index + 1}`}
-													className={`aspect-square z-0 w-full *:rounded-2xl object-cover transition-all rounded-2xl ${isHovered && "max-sm:border-5 max-sm:border-primary-900"}`}
+													className={`aspect-square z-0 w-full *:rounded-2xl object-cover transition-all rounded-2xl `}
 													loading={index === 0 ? "eager" : "lazy"}
 													width="350"
 													height="350"
