@@ -431,7 +431,7 @@ const Home = () => {
 			{" "}
 			<motion.section
 				ref={heroRef}
-				className="relative h-screen max-sm:h-[70dvh] z-50 flex-col max-sm:rounded-b-4xl max-sm:px-2 flex  min-lg:rounded-bl-[50%] min-md:rounded-b-4xl justify-center items-center py-4 shadow-2xl"
+				className="relative h-screen max-sm:h-[70dvh] z-50 flex-col max-sm:rounded-b-none max-sm:px-2 flex  min-lg:rounded-bl-[50%] min-md:rounded-b-4xl justify-center items-center py-4 shadow-2xl"
 				style={{
 					perspective: 1000,
 					backgroundImage: `url("https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609")`,
@@ -473,7 +473,7 @@ const Home = () => {
 					</motion.div>
 				</div>
 
-				<span className="inset-0 bg-black/20 lg:rounded-bl-[50%] max-sm:rounded-b-4xl min-md:rounded-b-4xl max-sm:rounded-bl-4xl h-full w-full absolute"></span>
+				<span className="inset-0 bg-black/20 lg:rounded-bl-[50%] max-sm:rounded-b-none min-md:rounded-b-4xl max-sm:rounded-bl-4xl h-full w-full absolute"></span>
 				{/* Overlay de sombra */}
 			</motion.section>
 			{/* ─── GRID DE PLACES ─── */}
@@ -484,13 +484,17 @@ const Home = () => {
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
 					transition={{ duration: 0.6 }}
-					className="text-center max-w-7xl  mb-10 mt-10 flex flex-col items-center justify-center max-sm:px-4 gap-4  mx-auto"
+					className="text-center max-w-7xl  mb-10 mt-10 max-md:mt-5 flex flex-col items-center justify-center max-md:justify-start max-sm:px-0 gap-4  mx-auto"
 				>
-					<div className="flex items-center text-center w-full justify-center">
-						<span className="text-5xl  max-sm:text-2xl font-extrabold text-primary-900">
-							{hasActiveSearch()
-								? "Resultados da pesquisa"
-								: "Todas as acomodações"}
+					<div className="flex items-center text-center w-full max-md:justify-start justify-center">
+						<span className="text-5xl  max-sm:text-2xl max-md:font-medium  font-extrabold text-primary-900">
+							{hasActiveSearch() ? (
+								<>
+									Resultados da pesquisa <small>({placesSearch.length})</small>
+								</>
+							) : (
+								"Todas as acomodações"
+							)}
 						</span>
 					</div>
 
@@ -499,31 +503,30 @@ const Home = () => {
 						<motion.div
 							initial={{ opacity: 0, y: 10 }}
 							animate={{ opacity: 1, y: 0 }}
-							className="flex flex-nowrap gap-2 w-fit justify-center items-center"
+							className="flex flex-nowrap gap-2 w-fit max-md:w-full max-md:flex-wrap max-md:grid-cols-2  max-md:justify-start justify-center items-center"
 						>
 							{badges.map((badge) => (
 								<div
 									key={badge.id}
-									className={`inline-flex items-center gap-2 pl-4 pr-3 py-2 justify-start
-									rounded-full ${badge.bgColor} border ${
-										badge.borderColor
-									} text-sm ${badge.textColor}`}
+									className={`inline-flex items-center gap-2  pl-4 pr-3 py-2 justify-start	rounded-full text-sm ${mobile && "!text-primary-900 !bg-primary-100 !border-primary-300"}`}
 								>
 									{badge.isGuests ? (
 										<div className="flex items-center gap-2">
-											{badge.icon}
+											{!mobile && badge.icon}
 											{badge.label}
 										</div>
 									) : (
 										<>
-											{typeof badge.icon === "string" ? (
-												<span>{badge.icon}</span>
-											) : (
-												badge.icon
-											)}
+											{!mobile &&
+												(typeof badge.icon === "string" ? (
+													<span>{badge.icon}</span>
+												) : (
+													badge.icon
+												))}
 											{badge.label}
 										</>
 									)}
+
 									<button
 										className={`hover:bg-red-500 hover:text-red-100 rounded-full ml-2 p-1 cursor-pointer transition-all`}
 										onClick={(e) => {
@@ -541,32 +544,37 @@ const Home = () => {
 								</div>
 							))}
 
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<button
-										onClick={limparPesquisa}
-										title="Limpar todos os Filtros"
-										className="inline-flex items-center gap-2 p-2 justify-start border-red-400 border text-red-500  bg-red-100 hover:bg-red-200 transition-all cursor-pointer rounded-full"
-									>
-										<X className="w-4 h-4" />
-									</button>
-								</TooltipTrigger>
-								<TooltipContent className="bg-red-500" align="center">
-									<p>Limpar todos os Filtros</p>
-								</TooltipContent>
-							</Tooltip>
+							{!mobile && (
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<button
+											onClick={limparPesquisa}
+											title="Limpar todos os Filtros"
+											className="inline-flex items-center gap-2 p-2 justify-start border-red-400 border text-red-500  bg-red-100 hover:bg-red-200 transition-all cursor-pointer rounded-full"
+										>
+											<X className="w-4 h-4" />
+										</button>
+									</TooltipTrigger>
+									<TooltipContent className="bg-red-500" align="center">
+										<p>Limpar todos os Filtros</p>
+									</TooltipContent>
+								</Tooltip>
+							)}
 						</motion.div>
 					)}
 
 					{/* Info de resultados */}
-					{hasActiveSearch() && !loading && (
-						<p className="text-gray-500 text-sm flex items-center border border-green-200 rounded-full w-fit px-3 py-1">
-							<div className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block mr-2"></div>
-							{placesSearch.length} acomodaç
-							{placesSearch.length !== 1 ? "ões" : "ão"} encontrada
-							{placesSearch.length !== 1 ? "s" : ""}
-						</p>
-					)}
+					{hasActiveSearch() &&
+						!loading &&
+						placesSearch.length > 0 &&
+						!mobile && (
+							<p className="text-gray-500 text-sm flex items-center border border-green-200 rounded-full w-fit px-3 py-1">
+								<div className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block mr-2"></div>
+								{placesSearch.length} acomodaç
+								{placesSearch.length !== 1 ? "ões" : "ão"} encontrada
+								{placesSearch.length !== 1 ? "s" : ""}
+							</p>
+						)}
 
 					{!hasActiveSearch() && !mobile && (
 						<p className="text-gray-500 text-sm flex items-center border border-green-200 rounded-full w-fit px-3 py-1 mt-2">
