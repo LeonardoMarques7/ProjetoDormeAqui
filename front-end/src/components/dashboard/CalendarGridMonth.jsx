@@ -64,13 +64,20 @@ const CalendarGridMonth = ({ calendar }) => {
 
 	const events = calendar?.events || [];
 
-	// Atribuir cores às reservas
+	// Atribuir cores às reservas (por bookingId, não por eventId)
 	const bookingColors = useMemo(() => {
 		const colors = new Map();
+		const uniqueBookings = new Set();
+		const bookingOrder = [];
 		let colorIndex = 0;
+
 		events.forEach((event) => {
-			colors.set(event.id, COLORS[colorIndex % COLORS.length]);
-			colorIndex++;
+			if (!uniqueBookings.has(event.bookingId)) {
+				uniqueBookings.add(event.bookingId);
+				bookingOrder.push(event.bookingId);
+				colors.set(event.bookingId, COLORS[colorIndex % COLORS.length]);
+				colorIndex++;
+			}
 		});
 		return colors;
 	}, [events]);
@@ -78,9 +85,19 @@ const CalendarGridMonth = ({ calendar }) => {
 	// Mapa de reservas por data com informações de posição
 	const bookingsByDate = useMemo(() => {
 		const map = new Map();
+		const processedBookings = new Set(); // Rastreia bookings já processados
+
 		events.forEach((event) => {
+			const bookingId = event.bookingId;
 			const checkin = new Date(event.checkin);
 			const checkout = new Date(event.checkout);
+
+			// Evitar adicionar o mesmo booking múltiplas vezes
+			const bookingKey = `${bookingId}-${checkin.toISOString().split("T")[0]}`;
+			if (processedBookings.has(bookingKey)) {
+				return;
+			}
+			processedBookings.add(bookingKey);
 
 			// Adicionar o event em cada dia do período (incluindo o dia do checkout)
 			for (
@@ -210,8 +227,12 @@ const CalendarGridMonth = ({ calendar }) => {
 									style={
 										bookingsForDay.length > 0
 											? {
-													background: bookingColors.get(bookingsForDay[0].id),
-													borderColor: bookingColors.get(bookingsForDay[0].id),
+													background: bookingColors.get(
+														bookingsForDay[0].bookingId,
+													),
+													borderColor: bookingColors.get(
+														bookingsForDay[0].bookingId,
+													),
 												}
 											: {}
 									}
@@ -232,15 +253,15 @@ const CalendarGridMonth = ({ calendar }) => {
 															className="text-white mt-auto"
 														>
 															<div className="booking-header">
-																{selectedBooking.guestPhoto ? (
+																{booking.guestPhoto ? (
 																	<img
-																		src={selectedBooking.guestPhoto}
-																		alt={selectedBooking.guest}
-																		className="rounded-full object-cover  w-7 h-7"
+																		src={booking.guestPhoto}
+																		alt={booking.guest}
+																		className="rounded-full object-cover w-7 h-7"
 																	/>
 																) : (
 																	<span className="modal-avatar-fallback">
-																		{guestInitials(selectedBooking.guest)}
+																		{guestInitials(booking.guest)}
 																	</span>
 																)}
 																<button
