@@ -6,6 +6,16 @@ import { defineConfig } from "vite"
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  optimizeDeps: {
+    include: [
+      "@fullcalendar/react",
+      "@fullcalendar/daygrid",
+      "@fullcalendar/timegrid",
+      "@fullcalendar/list",
+      "@fullcalendar/interaction",
+      "@fullcalendar/core/locales/pt-br",
+    ],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),

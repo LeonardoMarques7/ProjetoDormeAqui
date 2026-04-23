@@ -24,6 +24,7 @@ import {
 	ChevronRightIcon,
 	ChevronsUpDown,
 	ChevronsUpDownIcon,
+	LayoutDashboard,
 	LogIn,
 	LogOut,
 	UserPlus,
@@ -103,6 +104,12 @@ const AppSidebar = () => {
 
 	const navItems = [
 		{ path: "/", icon: HomeIconSolid, iconRegular: HomeIcon, label: "Home" },
+		{
+			path: "/account/dashboard",
+			icon: LayoutDashboard,
+			iconRegular: LayoutDashboard,
+			label: "Dashboard",
+		},
 		{
 			path: "/account/bookings",
 			icon: CalendarDaysIconSolid,

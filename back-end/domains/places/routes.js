@@ -153,6 +153,38 @@ router.put("/:id", requireAuth, async (req, res) => {
         }
 });
 
+router.patch("/:id/status", requireAuth, async (req, res) => {
+    const { id: _id } = req.params;
+    const { isActive } = req.body;
+
+    if (typeof isActive !== "boolean") {
+        return res.status(400).json({ error: "O campo isActive deve ser booleano." });
+    }
+
+    try {
+        const placeDoc = await Place.findById(_id);
+
+        if (!placeDoc) {
+            return res.status(404).json({ error: "Acomodação não encontrada" });
+        }
+
+        if (placeDoc.owner.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: "Você não tem permissão para atualizar esta acomodação" });
+        }
+
+        const updatedPlace = await Place.findByIdAndUpdate(
+            _id,
+            { isActive },
+            { new: true }
+        );
+
+        return res.json(updatedPlace);
+    } catch (error) {
+        console.error("Erro ao atualizar status da acomodação:", error);
+        return res.status(500).json({ error: "Erro ao atualizar status da acomodação." });
+    }
+});
+
 router.delete("/:id", requireAuth, async (req, res) => {
     const { id: _id } = req.params;
 
