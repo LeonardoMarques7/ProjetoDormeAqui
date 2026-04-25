@@ -154,7 +154,7 @@ function HostDashboard() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [currentAlertPage, setCurrentAlertPage] = useState(1);
-	const alertsPerPage = 2;
+	const alertsPerPage = 3;
 
 	// Calcular alertas paginados
 	let allAlerts = [];
@@ -316,7 +316,7 @@ function HostDashboard() {
 				{/* Charts & Alerts */}
 				<section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
 					{/* Revenue Chart */}
-					<div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+					<div className="lg:col-span-2 h-fit bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
 						<div className="mb-6">
 							<h3 className="text-lg font-semibold text-slate-900">
 								Receita ao Longo do Tempo
@@ -435,13 +435,13 @@ function HostDashboard() {
 				</section>
 
 				{/* Charts Grid */}
-				<section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+				<section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
 					{/* Occupancy Chart */}
-					<div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+					<div className="bg-white lg:col-span-2 rounded-2xl border border-slate-200 p-6 shadow-sm">
 						<h3 className="text-lg font-semibold text-slate-900 mb-6">
 							Ocupação Semanal
 						</h3>
-						<ResponsiveContainer width="100%" height={250}>
+						<ResponsiveContainer width="100%" height={300}>
 							<BarChart data={data.occupancyData}>
 								<CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
 								<XAxis dataKey="day" stroke="#94a3b8" />

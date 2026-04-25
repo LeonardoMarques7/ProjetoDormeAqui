@@ -15,7 +15,13 @@ import {
 	StarIcon,
 	ChatBubbleLeftIcon,
 	ArrowTrendingUpIcon,
+	ChevronDownIcon,
 } from "@heroicons/react/24/solid";
+import {
+	Collapsible,
+	CollapsibleTrigger,
+	CollapsibleContent,
+} from "@/components/ui/collapsible";
 
 /**
  * Componente de Alerta/Insight com design premium
@@ -75,67 +81,84 @@ const AlertCard = ({
 	const config = typeConfig[type] || typeConfig.info;
 
 	return (
-		<div
-			className={`bg-white rounded-2xl p-5 mb-4 flex items-start gap-4 ${config.borderColor} shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5`}
-		>
-			{/* Ícone Quadrado Colorido */}
+		<Collapsible>
 			<div
-				className={`${config.bgIcon} rounded-xl p-3 flex-shrink-0 flex items-center justify-center`}
+				className={`bg-white rounded-2xl p-5 mb-4 ${config.borderColor} shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5`}
 			>
-				{CustomIcon ? (
-					<CustomIcon className="w-6 h-6 text-white" />
-				) : (
-					config.icon
-				)}
-			</div>
+				<CollapsibleTrigger asChild>
+					<div className="flex items-center gap-4 cursor-pointer group">
+						{/* Ícone Quadrado Colorido */}
+						<div
+							className={`${config.bgIcon} rounded-xl p-3 flex-shrink-0 flex items-center justify-center`}
+						>
+							{CustomIcon ? (
+								<CustomIcon className="w-6 h-6 text-white" />
+							) : (
+								config.icon
+							)}
+						</div>
 
-			{/* Conteúdo Principal */}
-			<div className="flex-1 min-w-0">
-				{/* Título + Tempo */}
-				<div className="flex items-start justify-between gap-3 mb-1">
-					<h4 className="font-bold text-base text-slate-900 leading-tight">
-						{title}
-					</h4>
-					{time && (
-						<span className="text-xs font-medium text-slate-500 whitespace-nowrap">
-							{time}
-						</span>
-					)}
-				</div>
-
-				{/* Descrição */}
-				<p className="text-sm text-slate-600 mb-2 leading-relaxed">
-					{description}
-				</p>
-
-				{/* Footer com Ícones e Informações */}
-				{footer && (
-					<div className="text-xs text-slate-600 space-y-1">
-						{Array.isArray(footer) ? (
-							footer.map((item, idx) => (
-								<div key={idx} className="flex items-center gap-2">
-									{item.iconName && iconMap[item.iconName] && (
-										<span className="flex-shrink-0">
-											{iconMap[item.iconName]}
+						{/* Título + Tempo + Chevron */}
+						<div className="flex-1 min-w-0">
+							<div className="flex items-start justify-between gap-3 mb-1">
+								<h4 className="font-bold text-base text-slate-900 leading-tight">
+									{title}
+								</h4>
+								<div className="flex items-center gap-2">
+									{time && (
+										<span className="text-xs font-medium text-slate-500 whitespace-nowrap">
+											{time}
 										</span>
 									)}
-									<span>{item.text}</span>
+									<ChevronDownIcon className="w-4 h-4 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
 								</div>
-							))
-						) : (
-							<div className="flex items-center gap-2">
-								{footer.iconName && iconMap[footer.iconName] && (
-									<span className="flex-shrink-0">
-										{iconMap[footer.iconName]}
-									</span>
-								)}
-								<span>{footer.text}</span>
 							</div>
-						)}
+						</div>
 					</div>
-				)}
+				</CollapsibleTrigger>
+
+				<CollapsibleContent>
+					<div className="flex items-start gap-4 mt-1">
+						{/* Espaçador para alinhar com a coluna do ícone */}
+						<div className="w-12 h-12 flex-shrink-0" />
+
+						<div className="flex-1 min-w-0">
+							{/* Descrição */}
+							<p className="text-sm text-slate-600 mb-2 leading-relaxed">
+								{description}
+							</p>
+
+							{/* Footer com Ícones e Informações */}
+							{footer && (
+								<div className="text-xs text-slate-600 space-y-1">
+									{Array.isArray(footer) ? (
+										footer.map((item, idx) => (
+											<div key={idx} className="flex items-center gap-2">
+												{item.iconName && iconMap[item.iconName] && (
+													<span className="flex-shrink-0">
+														{iconMap[item.iconName]}
+													</span>
+												)}
+												<span>{item.text}</span>
+											</div>
+										))
+									) : (
+										<div className="flex items-center gap-2">
+											{footer.iconName && iconMap[footer.iconName] && (
+												<span className="flex-shrink-0">
+													{iconMap[footer.iconName]}
+												</span>
+											)}
+											<span>{footer.text}</span>
+										</div>
+									)}
+								</div>
+							)}
+						</div>
+					</div>
+				</CollapsibleContent>
 			</div>
-		</div>
+		</Collapsible>
 	);
 };
 
