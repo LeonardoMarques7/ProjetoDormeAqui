@@ -24,10 +24,10 @@ router.get("/owner", async (req, res) => {
             path: "place",
             populate: {
                 path: "owner",
-                select: "name email avatar"
+                select: "name email  photo avatar"
             }
         })
-        .populate("user", "name email avatar");
+        .populate("user", "name email  photo avatar");
 
       // Buscar avaliações do usuário
       const Review = (await import("../reviews/model.js")).default;
@@ -252,12 +252,12 @@ router.post("/from-payment", async (req, res) => {
                     path: "place",
                     populate: {
                         path: "owner",
-                        select: "name email avatar"
+                        select: "name email photo avatar"
                     }
                 },
                 {
                     path: "user",
-                    select: "name email avatar"
+                    select: "name email photo avatar"
                 }
             ]);
 

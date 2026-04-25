@@ -1,0 +1,94 @@
+.host-dashboard-shell {
+  border: 1px solid #e5e7eb;
+  background: #f4f5f7;
+  border-radius: 26px;
+  padding: 14px;
+  box-shadow: 0 10px 24px rgba(15, 23, 43, 0.06);
+}
+
+.host-dashboard-topbar {
+  background: #ffffff;
+  border: 1px solid #ebedf0;
+  border-radius: 18px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.host-dashboard-search {
+  border: 1px solid #e6e7eb;
+  background: #f9fafb;
+  border-radius: 999px;
+  height: 40px;
+  padding: 0 14px;
+  width: min(440px, 100%);
+  color: #111827;
+  font-size: 14px;
+}
+
+.host-dashboard-header {
+  border-radius: 18px;
+  border: 1px solid #ebedf0;
+  background: #ffffff;
+  padding: 18px;
+}
+
+.host-dashboard-section {
+  border-radius: 18px;
+  border: 1px solid #ebedf0;
+  background: #ffffff;
+  padding: 16px;
+  box-shadow: 0 1px 0 rgba(15, 23, 43, 0.03);
+}
+
+.host-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.host-stat-card {
+  border-radius: 14px;
+  border: 1px solid #edf0f2;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.host-stat-card--highlight {
+  background: linear-gradient(135deg, #0f7a45 0%, #16a34a 100%);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.host-dashboard-chip {
+  border-radius: 999px;
+  border: 1px solid #dbe0e6;
+  background: #ffffff;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.host-dashboard-chip--primary {
+  background: #0f7a45;
+  color: #fff;
+  border-color: #0f7a45;
+}
+
+@media (max-width: 1280px) {
+  .host-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .host-dashboard-shell {
+    border-radius: 18px;
+    padding: 10px;
+  }
+  .host-stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
