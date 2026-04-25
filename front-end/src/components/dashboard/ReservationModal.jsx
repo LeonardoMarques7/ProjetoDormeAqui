@@ -27,6 +27,9 @@ import {
 	AvatarGroupCount,
 } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
+import { useRef, useCallback } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 const getStatusColor = (status) => {
 	const normalizedStatus = String(status).toLowerCase().trim();
@@ -98,6 +101,51 @@ const calculateNights = (checkin, checkout) => {
 	}
 };
 
+function BookingLeftPanel({ photos, title, city }) {
+	const autoplay = useRef(Autoplay({ delay: 4000, stopOnInteraction: false }));
+	const [emblaRef] = useEmblaCarousel({ loop: true }, [autoplay.current]);
+
+	const slides =
+		photos && photos.length > 0
+			? photos
+			: [
+					"https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80",
+				];
+
+	return (
+		<div className="hidden md:block w-1/2 rounded-l-2xl border-white border-8 relative flex-shrink-0">
+			<div
+				className="absolute inset-0 overflow-hidden rounded-l-2xl"
+				style={{ clipPath: "polygon(0 0, 100% 0, 84% 100%, 0 100%)" }}
+			>
+				<div className="overflow-hidden h-full rounded-l-2xl" ref={emblaRef}>
+					<div className="flex h-full touch-pan-y">
+						{slides.map((src, i) => (
+							<div key={i} className="flex-none w-full h-full relative">
+								<img
+									src={src}
+									alt=""
+									className="absolute inset-0 rounded-l-2xl w-full h-full object-cover select-none"
+									draggable="false"
+								/>
+							</div>
+						))}
+					</div>
+				</div>
+				<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+				<div className="absolute bottom-7 left-7 right-22 z-10 flex items-end justify-between">
+					<div>
+						<p className="text-white text-lg font-bold leading-tight">
+							{title}
+						</p>
+						<p className="text-white/60 text-xs mt-0.5">{city}</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
 export function ReservationModal({
 	open,
 	booking,
@@ -149,26 +197,12 @@ export function ReservationModal({
 			onOpenChange={(v) => !v && onClose?.()}
 		>
 			<DialogContent className=" w-full p-0 sm:max-w-5xl overflow-hidden gap-0">
-				<div className="grid grid-cols-6 sm:max-w-7xl w-full">
-					{/* Coluna Esquerda — Imagem + Info da propriedade + Período */}
-					<div className="relative col-span-3 h-64 md:h-auto">
-						<img
-							src={place.photos[0]}
-							alt={placeTitle}
-							className="absolute inset-0 w-full h-full object-cover"
-						/>
-						<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-						<div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-							<div className="text-xs font-light uppercase tracking-wider opacity-80 mb-1">
-								Acomodação
-							</div>
-							<h3 className="text-xl font-bold mb-1">{placeTitle}</h3>
-							<div className="flex items-center gap-1.5 text-sm opacity-90">
-								<MapPin className="w-4 h-4" />
-								{placeCity}
-							</div>
-						</div>
-					</div>
+				<div className="flex sm:max-w-7xl w-full">
+					<BookingLeftPanel
+						photos={place.photos}
+						title={placeTitle}
+						city={placeCity}
+					/>
 
 					{/* Coluna Direita — Status + Hóspede + Datas detalhadas + Pagamento + Ações */}
 					<div className="p-6 md:p-8 flex-1 w-full col-span-3 flex flex-col gap-6">
