@@ -21,17 +21,7 @@ import {
 	TrendingUp,
 	TrendingDown,
 } from "lucide-react";
-import {
-	Pagination,
-	PaginationContent,
-	PaginationItem,
-	PaginationLink,
-	PaginationNext,
-	PaginationPrevious,
-} from "@/components/ui/pagination";
 import { getHostDashboard } from "@/services/dashboardService";
-import CalendarGridMonth from "./CalendarGridMonth";
-import AlertCard from "./AlertCard";
 import {
 	calculateMonthlyRevenue,
 	calculateWeeklyOccupancy,
@@ -147,31 +137,58 @@ const KPICard = ({
 };
 
 /**
- * Dashboard Redesenhada - Versão Nova
+ * Componente de Alerta
  */
-function HostDashboard() {
+const Alert = ({ id, title, description, action, severity = "info" }) => {
+	const severityConfig = {
+		critical: {
+			bgColor: "bg-red-50",
+			borderColor: "border-red-200",
+			textColor: "text-red-900",
+			labelColor: "text-red-700",
+		},
+		warning: {
+			bgColor: "bg-amber-50",
+			borderColor: "border-amber-200",
+			textColor: "text-amber-900",
+			labelColor: "text-amber-700",
+		},
+		info: {
+			bgColor: "bg-blue-50",
+			borderColor: "border-blue-200",
+			textColor: "text-blue-900",
+			labelColor: "text-blue-700",
+		},
+	};
+
+	const config = severityConfig[severity] || severityConfig.info;
+
+	return (
+		<div
+			className={`mb-3 rounded-lg border ${config.borderColor} ${config.bgColor} p-4`}
+		>
+			<h4 className={`text-sm font-semibold ${config.labelColor}`}>{title}</h4>
+			{description && (
+				<p className={`text-sm ${config.textColor} mt-1`}>{description}</p>
+			)}
+			{action && action !== "—" && (
+				<button
+					className={`mt-2 text-xs font-semibold ${config.labelColor} hover:underline`}
+				>
+					{action} →
+				</button>
+			)}
+		</div>
+	);
+};
+
+/**
+ * Dashboard Redesenha - Versão Nova
+ */
+export function HostDashboardRedesigned() {
 	const [data, setData] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [currentAlertPage, setCurrentAlertPage] = useState(1);
-	const alertsPerPage = 2;
-
-	// Calcular alertas paginados
-	let allAlerts = [];
-	let totalAlertPages = 1;
-	let currentAlerts = [];
-
-	if (data) {
-		allAlerts = [
-			...data.alerts.critical,
-			...data.alerts.warning,
-			...data.alerts.info,
-		];
-		totalAlertPages = Math.ceil(allAlerts.length / alertsPerPage);
-		const indexOfLastAlert = currentAlertPage * alertsPerPage;
-		const indexOfFirstAlert = indexOfLastAlert - alertsPerPage;
-		currentAlerts = allAlerts.slice(indexOfFirstAlert, indexOfLastAlert);
-	}
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -181,34 +198,31 @@ function HostDashboard() {
 
 				const processed = {
 					bookings: raw.bookings || [],
-					places: raw.places || [],
-					calendar: raw.calendar || { events: [], emptyDays: [] },
-					today: raw.today || { checkins: 0, checkouts: 0, pendingBookings: 0 },
-					finance: calculateFinancialMetrics(raw.finance || {}),
-					metrics: calculatePerformanceMetrics(
-						raw.bookings || [],
-						raw.places || [],
-						raw.metrics || {},
-					),
+					properties: raw.properties || [],
+					reviews: raw.reviews || [],
 					revenueData: calculateMonthlyRevenue(raw.bookings || []),
 					occupancyData: calculateWeeklyOccupancy(
 						raw.bookings || [],
-						raw.places || [],
+						raw.properties || [],
+					),
+					metrics: calculatePerformanceMetrics(
+						raw.bookings || [],
+						raw.properties || [],
+						raw.reviews || [],
 					),
 					propertyRevenue: calculateRevenueByProperty(
 						raw.bookings || [],
-						raw.places || [],
+						raw.properties || [],
 					),
-					alerts: generateAlerts(
-						raw.alerts || [],
-						raw.today || {},
-						calculatePerformanceMetrics(
-							raw.bookings || [],
-							raw.places || [],
-							raw.metrics || {},
-						),
-					),
+					finance: calculateFinancialMetrics(raw.bookings || []),
+					today: raw.today || { checkins: 0, checkouts: 0 },
 				};
+
+				processed.alerts = generateAlerts(
+					processed.bookings,
+					processed.metrics,
+					processed.properties,
+				);
 
 				setData(processed);
 			} catch (err) {
@@ -349,88 +363,11 @@ function HostDashboard() {
 						</ResponsiveContainer>
 					</div>
 
-					{/* Painel de Insights e Ações */}
-					<div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-						<div className="mb-8">
-							<h3 className="text-2xl font-bold text-slate-900 mb-2">
-								✨ Insights & Ações
-							</h3>
-							<p className="text-slate-600 text-sm">
-								Informações importantes para o seu negócio
-							</p>
-						</div>
-
-						{allAlerts.length > 0 ? (
-							<div className="flex flex-col gap-4">
-								<div className=" space-y-3">
-									{currentAlerts.map((alert) => (
-										<AlertCard
-											key={alert.id}
-											title={alert.title}
-											description={alert.description}
-											type={alert.severity}
-											time={alert.time}
-											footer={alert.footer}
-										/>
-									))}
-								</div>
-
-								{/* Paginação */}
-								<Pagination className="mt-6 list-none justify-center">
-									<PaginationContent className="!list-none">
-										<PaginationItem>
-											<PaginationPrevious
-												onClick={() =>
-													setCurrentAlertPage(Math.max(1, currentAlertPage - 1))
-												}
-												className={
-													currentAlertPage === 1
-														? "pointer-events-none opacity-50"
-														: "cursor-pointer"
-												}
-											/>
-										</PaginationItem>
-
-										{[...Array(totalAlertPages)].map((_, index) => {
-											const pageNumber = index + 1;
-											return (
-												<PaginationItem key={pageNumber}>
-													<PaginationLink
-														onClick={() => setCurrentAlertPage(pageNumber)}
-														isActive={currentAlertPage === pageNumber}
-														className="cursor-pointer"
-													>
-														{pageNumber}
-													</PaginationLink>
-												</PaginationItem>
-											);
-										})}
-
-										<PaginationItem>
-											<PaginationNext
-												onClick={() =>
-													setCurrentAlertPage(
-														Math.min(totalAlertPages, currentAlertPage + 1),
-													)
-												}
-												className={
-													currentAlertPage === totalAlertPages
-														? "pointer-events-none opacity-50"
-														: "cursor-pointer"
-												}
-											/>
-										</PaginationItem>
-									</PaginationContent>
-								</Pagination>
-							</div>
-						) : (
-							<div className="text-center py-12">
-								<div className="text-4xl mb-3">😌</div>
-								<p className="text-slate-600 text-sm">
-									Tudo corre bem! Nenhum alerta no momento.
-								</p>
-							</div>
-						)}
+					{/* Alerts Panel */}
+					<div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+						<h3 className="text-lg font-semibold text-slate-900 mb-6">
+							Insights & Ações
+						</h3>
 					</div>
 				</section>
 
@@ -501,16 +438,9 @@ function HostDashboard() {
 						</div>
 					</div>
 				</section>
-
-				{/* Calendar Section */}
-				{data.calendar && (
-					<section className="mb-8">
-						<CalendarGridMonth calendar={data.calendar} />
-					</section>
-				)}
 			</div>
 		</div>
 	);
 }
 
-export default HostDashboard;
+export default HostDashboardRedesigned;
