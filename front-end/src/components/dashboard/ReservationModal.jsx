@@ -19,25 +19,32 @@ import {
 	DialogDescription,
 	DialogFooter,
 } from "@/components/ui/dialog";
+import {
+	Avatar,
+	AvatarImage,
+	AvatarFallback,
+	AvatarGroup,
+	AvatarGroupCount,
+} from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 
 const getStatusColor = (status) => {
 	const normalizedStatus = String(status).toLowerCase().trim();
 
 	if (normalizedStatus === "confirmed" || normalizedStatus === "approved") {
-		return "bg-emerald-50 text-emerald-700 border-emerald-200";
+		return " text-emerald-700 border-emerald-200";
 	}
 	if (normalizedStatus === "pending") {
-		return "bg-amber-50 text-amber-700 border-amber-200";
+		return " text-amber-700 border-amber-200";
 	}
 	if (
 		normalizedStatus === "cancelled" ||
 		normalizedStatus === "rejected" ||
 		normalizedStatus === "failed"
 	) {
-		return "bg-red-50 text-red-700 border-red-200";
+		return " text-red-700 border-red-200";
 	}
-	return "bg-gray-50 text-gray-700 border-gray-200";
+	return " text-gray-700 border-gray-200";
 };
 
 const getStatusLabel = (status) => {
@@ -142,7 +149,7 @@ export function ReservationModal({
 			onOpenChange={(v) => !v && onClose?.()}
 		>
 			<DialogContent className=" w-full p-0 sm:max-w-5xl overflow-hidden gap-0">
-				<div className="grid grid-cols-7 sm:max-w-7xl w-full">
+				<div className="grid grid-cols-6 sm:max-w-7xl w-full">
 					{/* Coluna Esquerda — Imagem + Info da propriedade + Período */}
 					<div className="relative col-span-3 h-64 md:h-auto">
 						<img
@@ -152,7 +159,7 @@ export function ReservationModal({
 						/>
 						<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 						<div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-							<div className="text-xs font-medium uppercase tracking-wider opacity-80 mb-1">
+							<div className="text-xs font-light uppercase tracking-wider opacity-80 mb-1">
 								Acomodação
 							</div>
 							<h3 className="text-xl font-bold mb-1">{placeTitle}</h3>
@@ -164,18 +171,24 @@ export function ReservationModal({
 					</div>
 
 					{/* Coluna Direita — Status + Hóspede + Datas detalhadas + Pagamento + Ações */}
-					<div className="p-6 md:p-8 flex-1 w-full col-span-4 flex flex-col gap-6">
+					<div className="p-6 md:p-8 flex-1 w-full col-span-3 flex flex-col gap-6">
 						<DialogHeader className="text-left gap-1">
 							<DialogDescription className="text-xs text-gray-400 uppercase tracking-wider">
 								Reserva #{bookingId}
 							</DialogDescription>
-							<DialogTitle className="text-2xl font-bold text-gray-900">
-								Confirmação
+							<DialogTitle className="text-2xl mb-5  line-clamp-2  text-gray-700">
+								{placeTitle}
 							</DialogTitle>
+							<span className="text-[11px] text-gray-500 uppercase tracking-wide">
+								Status:
+							</span>
+							<span className={`font-bold ${getStatusColor(status)}`}>
+								{getStatusLabel(status)}
+							</span>
 						</DialogHeader>
 
 						{/* Status Badge */}
-						<div
+						{/* <div
 							className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${getStatusColor(
 								status,
 							)}`}
@@ -184,7 +197,7 @@ export function ReservationModal({
 							<span className="font-semibold text-sm">
 								{getStatusLabel(status)}
 							</span>
-						</div>
+						</div> */}
 
 						{/* Hóspede */}
 						<div className="space-y-3">
@@ -197,24 +210,34 @@ export function ReservationModal({
 								</span>
 							</div>
 							<div className="flex items-center gap-3">
-								<div className="flex items-center">
-									<UserImageFallback
-										src={guestPhoto}
-										className="w-10 h-10 z-11 object-cover rounded-full ring-2 ring-white"
-										alt={`${guestName} - Foto de perfil`}
-									/>
-									<div className="flex items-center -ml-2 ">
-										{guestCount > 1 &&
-											Array.from({ length: guestCount - 1 }).map((_, index) => (
-												<UserImageFallback
-													key={index}
+								<AvatarGroup className="-space-x-4">
+									<Avatar size="lg">
+										<AvatarImage
+											src={guestPhoto}
+											className="object-cover z-11"
+											alt={guestName}
+										/>
+										<AvatarFallback>
+											{guestName.charAt(0).toUpperCase()}
+										</AvatarFallback>
+									</Avatar>
+									{guestCount > 1 &&
+										Array.from({
+											length: Math.min(guestCount - 1, 4),
+										}).map((_, index) => (
+											<Avatar key={index} size="lg" className="z-10">
+												<AvatarImage
 													src={user__default}
-													className="w-10 h-10 object-cover z-10 rounded-full ring-2 ring-white -ml-2"
+													className="object-cover"
 													alt={`Hóspede ${index + 2}`}
 												/>
-											))}
-									</div>
-								</div>
+												<AvatarFallback>?</AvatarFallback>
+											</Avatar>
+										))}
+									{guestCount > 5 && (
+										<AvatarGroupCount>+{guestCount - 5}</AvatarGroupCount>
+									)}
+								</AvatarGroup>
 
 								<div className="flex-1 min-w-0">
 									<Link
@@ -292,7 +315,7 @@ export function ReservationModal({
 									})}
 								</span>
 							</div>
-							<div className="flex items-center justify-between text-sm">
+							{/* <div className="flex items-center justify-between text-sm">
 								<span className="text-gray-500">Valor por noite</span>
 								<span className="text-gray-900">
 									R${" "}
@@ -301,7 +324,7 @@ export function ReservationModal({
 										maximumFractionDigits: 2,
 									})}
 								</span>
-							</div>
+							</div> */}
 						</div>
 
 						{/* Ações */}
