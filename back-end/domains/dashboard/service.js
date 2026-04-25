@@ -216,8 +216,8 @@ export const buildHostDashboardData = async (hostId) => {
       }
     }
 
-    calendarEvents.push({
-      id: `${booking._id}-checkin`,
+      calendarEvents.push({
+      id: `${booking._id}`,
       bookingId: String(booking._id),
       type: "checkin",
       title: `Check-in • ${place?.title || "Acomodação"}`,
@@ -227,11 +227,14 @@ export const buildHostDashboardData = async (hostId) => {
       status: statusMeta.label,
       rawStatus: status,
       guest: booking.user?.name || "Hóspede",
+      guestCount: booking?.guests || 1,
+      guestId: booking.user?._id || "Não identificado",
       guestPhoto: booking.user?.photo || null,
       placeTitle: place?.title || "Acomodação",
       placeCity: place?.city || "",
       placeCheckin: place?.checkin || "",
       placeCheckout: place?.checkout || "",
+      placePhoto: place?.photos?.[0] || null,
       checkin: booking.checkin,
       checkout: booking.checkout,
       nights: bookingNights,
@@ -240,7 +243,7 @@ export const buildHostDashboardData = async (hostId) => {
     });
 
     calendarEvents.push({
-      id: `${booking._id}-checkout`,
+      id: `${booking._id}`,
       bookingId: String(booking._id),
       type: "checkout",
       title: `Check-out • ${place?.title || "Acomodação"}`,
@@ -250,11 +253,14 @@ export const buildHostDashboardData = async (hostId) => {
       status: statusMeta.label,
       rawStatus: status,
       guest: booking.user?.name || "Hóspede",
+      guestCount: booking?.guests || 1,
+      guestId: booking.user?._id || "Não identificado",
       guestPhoto: booking.user?.photo || null,
       placeTitle: place?.title || "Acomodação",
       placeCity: place?.city || "",
       placeCheckin: place?.checkin || "",
       placeCheckout: place?.checkout || "",
+      placePhoto: place?.photos?.[0] || null,
       checkin: booking.checkin,
       checkout: booking.checkout,
       nights: bookingNights,
@@ -275,11 +281,14 @@ export const buildHostDashboardData = async (hostId) => {
         status: statusMeta.label,
         rawStatus: status,
         guest: booking.user?.name || "Hóspede",
+        guestCount: booking?.guests || 1,
+        guestId: booking.user?._id || "Não identificado",
         guestPhoto: booking.user?.photo || null,
         placeTitle: place?.title || "Acomodação",
         placeCity: place?.city || "",
         placeCheckin: place?.checkin || "",
         placeCheckout: place?.checkout || "",
+        placePhoto: place?.photos?.[0] || null,
         checkin: booking.checkin,
         checkout: booking.checkout,
         nights: bookingNights,

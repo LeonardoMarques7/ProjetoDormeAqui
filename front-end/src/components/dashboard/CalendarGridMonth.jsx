@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Info } from "lucide-react";
-import "./calendarGridMonth.css";
+import { UserImageFallback } from "@/components/ui/figma/ImageWithFallback";
+import { ReservationModal } from "@/components/dashboard/ReservationModal.jsx";
 
 const COLORS = [
 	"#3b82f6",
@@ -171,28 +172,32 @@ const CalendarGridMonth = ({ calendar }) => {
 	});
 
 	return (
-		<section className="calendar-grid-section">
-			<div className="calendar-grid-header">
-				<h2 className="calendar-grid-title">Agenda de Reservas</h2>
-				<p className="calendar-grid-subtitle">
+		<section className="w-full ">
+			<div className="mb-6">
+				<h2 className="text-2xl font-bold text-slate-900 mb-2">
+					Agenda de Reservas
+				</h2>
+				<p className="text-sm text-gray-500">
 					Visualize todas as suas reservas do mês
 				</p>
 			</div>
 
-			<div className="calendar-grid-container">
+			<div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
 				{/* Cabeçalho com controles de navegação */}
-				<div className="calendar-grid-nav">
+				<div className="flex items-center justify-between mb-6 gap-4">
+					<h3 className="text-xl font-semibold text-slate-900 capitalize flex-1">
+						{monthName}
+					</h3>
 					<button
 						onClick={goToPreviousMonth}
-						className="calendar-nav-btn"
+						className=" rounded-lg w-9 h-9 flex items-center justify-center cursor-pointer transition-all hover:bg-gray-200 hover:text-gray-700 text-gray-500"
 						title="Mês anterior"
 					>
 						<ChevronLeft size={20} />
 					</button>
-					<h3 className="calendar-month-title">{monthName}</h3>
 					<button
 						onClick={goToNextMonth}
-						className="calendar-nav-btn"
+						className=" rounded-lg w-9 h-9 flex items-center justify-center cursor-pointer transition-all hover:bg-gray-200 hover:text-gray-700 text-gray-500"
 						title="Próximo mês"
 					>
 						<ChevronRight size={20} />
@@ -200,18 +205,21 @@ const CalendarGridMonth = ({ calendar }) => {
 				</div>
 
 				{/* Grid do calendário */}
-				<div className="calendar-grid-wrapper">
+				<div className="flex flex-col gap-3">
 					{/* Cabeçalho com dias da semana */}
-					<div className="calendar-grid-weekdays">
+					<div className="grid grid-cols-7 gap-2 mb-3">
 						{["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"].map((day) => (
-							<div key={day} className="calendar-weekday">
+							<div
+								key={day}
+								className="text-xs font-semibold text-gray-500 text-center p-2 uppercase tracking-wide"
+							>
 								{day}
 							</div>
 						))}
 					</div>
 
 					{/* Dias do mês */}
-					<div className="calendar-grid-days">
+					<div className="grid grid-cols-7 gap-2">
 						{daysInMonth.map((day, index) => {
 							const dateKey = day ? day.toISOString().split("T")[0] : null;
 							const bookingsForDay = dateKey
@@ -221,8 +229,10 @@ const CalendarGridMonth = ({ calendar }) => {
 							return (
 								<div
 									key={index}
-									className={`calendar-day ${
-										!day ? "calendar-day-empty" : "calendar-day-active"
+									className={`aspect-square border-2 rounded-[10px] p-2 transition-all relative min-h-[100px] flex flex-col ${
+										!day
+											? "bg-gray-50 border-gray-100"
+											: "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
 									}`}
 									style={
 										bookingsForDay.length > 0
@@ -240,32 +250,30 @@ const CalendarGridMonth = ({ calendar }) => {
 									{day && (
 										<>
 											<div
-												className={`calendar-day-number ${bookingsForDay.length > 0 ? "has-booking" : ""}`}
+												className={`text-sm font-semibold mb-1.5 ${bookingsForDay.length > 0 ? "text-white font-bold" : "text-slate-900"}`}
 											>
 												{day.getDate()}
 											</div>
 
 											{bookingsForDay.length > 0 && (
-												<div className="calendar-day-bookings">
-													{bookingsForDay.slice(0, 1).map((booking) => (
-														<div
-															key={booking.id}
-															className="text-white mt-auto"
-														>
-															<div className="booking-header">
+												<div className="flex flex-col gap-1 justify-end flex-1 mt-auto">
+													{bookingsForDay.map((booking) => (
+														<div key={booking.id} className="text-white">
+															<div className="flex items-center justify-between w-full gap-1">
 																{booking.guestPhoto ? (
-																	<img
+																	<UserImageFallback
+																		type="avatar"
 																		src={booking.guestPhoto}
 																		alt={booking.guest}
-																		className="rounded-full object-cover w-7 h-7"
+																		className="rounded-full object-cover w-6 h-6 flex-shrink-0"
 																	/>
 																) : (
-																	<span className="modal-avatar-fallback">
+																	<span className="w-[18px] h-[18px] rounded-full border-[1.5px] border-white flex items-center justify-center bg-white/25 text-[8px] font-bold flex-shrink-0">
 																		{guestInitials(booking.guest)}
 																	</span>
 																)}
 																<button
-																	className="cursor-pointer group"
+																	className="cursor-pointer group flex items-center justify-center transition-all outline-none text-white flex-shrink-0"
 																	onClick={(e) => handleInfoClick(booking, e)}
 																	title="Ver detalhes"
 																>
@@ -304,6 +312,12 @@ const CalendarGridMonth = ({ calendar }) => {
 															</div>
 														</div>
 													))}
+
+													{/* {bookingsForDay.length > 1 && (
+														<div className="text-[10px] text-gray-500 font-semibold p-0.5 bg-gray-100 rounded text-center">
+															+{bookingsForDay.length - 1}
+														</div>
+													)} */}
 												</div>
 											)}
 										</>
@@ -316,123 +330,22 @@ const CalendarGridMonth = ({ calendar }) => {
 			</div>
 
 			{/* Modal de detalhes da reserva */}
-			{showModal && selectedBooking && (
-				<div
-					className="calendar-modal-overlay"
-					onClick={() => setShowModal(false)}
-				>
-					<div className="calendar-modal" onClick={(e) => e.stopPropagation()}>
-						<button
-							className="calendar-modal-close"
-							onClick={() => setShowModal(false)}
-						>
-							✕
-						</button>
-
-						<div className="modal-header">
-							{selectedBooking.guestPhoto ? (
-								<img
-									src={selectedBooking.guestPhoto}
-									alt={selectedBooking.guest}
-									className="modal-avatar"
-								/>
-							) : (
-								<span className="modal-avatar-fallback">
-									{guestInitials(selectedBooking.guest)}
-								</span>
-							)}
-							<div className="modal-title-section">
-								<h2 className="modal-guest-name">{selectedBooking.guest}</h2>
-								<p className="modal-place-name">{selectedBooking.placeTitle}</p>
-							</div>
-						</div>
-
-						<div className="modal-content">
-							<div className="modal-section">
-								<h3 className="modal-section-title">Status</h3>
-								<span
-									className={`modal-status-badge ${selectedBooking.rawStatus || "pending"}`}
-								>
-									{getStatusLabel(selectedBooking.rawStatus)}
-								</span>
-							</div>
-
-							<div className="modal-section">
-								<h3 className="modal-section-title">Datas</h3>
-								<div className="modal-date-range">
-									<div>
-										<p className="modal-label">Check-in</p>
-										<p className="modal-value">
-											{new Date(selectedBooking.checkin).toLocaleDateString(
-												"pt-BR",
-											)}
-										</p>
-									</div>
-									<span className="modal-arrow">→</span>
-									<div>
-										<p className="modal-label">Check-out</p>
-										<p className="modal-value">
-											{new Date(selectedBooking.checkout).toLocaleDateString(
-												"pt-BR",
-											)}
-										</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="modal-section">
-								<h3 className="modal-section-title">Horários</h3>
-								<div className="modal-time-range">
-									<div>
-										<p className="modal-label">Entrada</p>
-										<p className="modal-value">
-											{selectedBooking.placeCheckin || "14:00"}
-										</p>
-									</div>
-									<span className="modal-arrow">→</span>
-									<div>
-										<p className="modal-label">Saída</p>
-										<p className="modal-value">
-											{selectedBooking.placeCheckout || "11:00"}
-										</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="modal-section">
-								<h3 className="modal-section-title">
-									Informações da Acomodação
-								</h3>
-								<p className="modal-value">{selectedBooking.placeCity}</p>
-							</div>
-
-							{selectedBooking.paymentStatus && (
-								<div className="modal-section">
-									<h3 className="modal-section-title">Pagamento</h3>
-									<span
-										className={`modal-payment-badge ${selectedBooking.paymentStatus}`}
-									>
-										{selectedBooking.paymentStatus === "approved"
-											? "Aprovado"
-											: selectedBooking.paymentStatus === "pending"
-												? "Pendente"
-												: "Rejeitado"}
-									</span>
-								</div>
-							)}
-						</div>
-
-						<div className="modal-actions">
-							<button className="modal-btn modal-btn-secondary">
-								Ver Detalhes Completos
-							</button>
-							<button className="modal-btn modal-btn-primary">
-								Enviar Mensagem
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
+			<ReservationModal
+				open={showModal}
+				booking={selectedBooking}
+				place={{
+					title: selectedBooking?.placeTitle,
+					city: selectedBooking?.placeCity,
+					photos: selectedBooking?.placePhoto
+						? [selectedBooking.placePhoto]
+						: [],
+					checkinTime: selectedBooking?.placeCheckin,
+					checkoutTime: selectedBooking?.placeCheckout,
+				}}
+				onClose={() => setShowModal(false)}
+				onViewDetails={() => setShowModal(false)}
+				onSendMessage={() => setShowModal(false)}
+			/>
 		</section>
 	);
 };

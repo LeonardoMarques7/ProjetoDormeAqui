@@ -33,7 +33,21 @@
   .animate-spin-smooth {
     animation: spin-smooth 1s linear infinite;
   }
-}
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slideUp {
+    animation: slideUp 0.3s ease;
+  }
 
 @theme {
   --color-primary-100: #F3F4F6;
@@ -222,3 +236,4 @@ body {
   @apply text-purple-600 font-semibold;
 }
 
+}
