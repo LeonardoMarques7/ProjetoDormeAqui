@@ -32,6 +32,7 @@ import {
 import { getHostDashboard } from "@/services/dashboardService";
 import CalendarGridMonth from "./CalendarGridMonth";
 import AlertCard from "./AlertCard";
+import Masonry from "@mui/lab/Masonry";
 import {
 	calculateMonthlyRevenue,
 	calculateWeeklyOccupancy,
@@ -263,7 +264,7 @@ function HostDashboard() {
 			<div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
 				{/* Hero KPI */}
 				<section className="mb-8">
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+					<div className="grid grid-cols-1 md:grid-cols- lg:grid-cols-4 gap-6">
 						<KPICard
 							label="Receita do Mês"
 							value={formatCurrency(data.finance.monthlyEarnings)}
@@ -313,10 +314,10 @@ function HostDashboard() {
 					</div>
 				</section>
 
-				{/* Charts & Alerts */}
-				<section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+				{/* Dashboard Completo com Masonry */}
+				<Masonry columns={2} spacing={2}>
 					{/* Revenue Chart */}
-					<div className="lg:col-span-2 h-fit bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+					<div className="h-fit bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
 						<div className="mb-6">
 							<h3 className="text-lg font-semibold text-slate-900">
 								Receita ao Longo do Tempo
@@ -362,7 +363,7 @@ function HostDashboard() {
 
 						{allAlerts.length > 0 ? (
 							<div className="flex flex-col gap-4">
-								<div className=" space-y-3">
+								<div className="space-y-3">
 									{currentAlerts.map((alert) => (
 										<AlertCard
 											key={alert.id}
@@ -432,12 +433,9 @@ function HostDashboard() {
 							</div>
 						)}
 					</div>
-				</section>
 
-				{/* Charts Grid */}
-				<section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
 					{/* Occupancy Chart */}
-					<div className="bg-white lg:col-span-2 rounded-2xl border border-slate-200 p-6 shadow-sm">
+					<div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
 						<h3 className="text-lg font-semibold text-slate-900 mb-6">
 							Ocupação Semanal
 						</h3>
@@ -500,13 +498,12 @@ function HostDashboard() {
 							))}
 						</div>
 					</div>
-				</section>
-
+				</Masonry>
 				{/* Calendar Section */}
 				{data.calendar && (
-					<section className="mb-8">
+					<div className="bg-white rounded-2xl  border border-slate-200 p-6 shadow-sm">
 						<CalendarGridMonth calendar={data.calendar} />
-					</section>
+					</div>
 				)}
 			</div>
 		</div>
