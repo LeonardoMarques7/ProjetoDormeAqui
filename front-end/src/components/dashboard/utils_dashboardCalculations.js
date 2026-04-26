@@ -5,66 +5,304 @@
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
+const toLocalDate = (date) => {
+  if (typeof date === "string") {
+    const dateOnly = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnly) {
+      return new Date(
+        Number(dateOnly[1]),
+        Number(dateOnly[2]) - 1,
+        Number(dateOnly[3]),
+      );
+    }
+  }
+
+  return new Date(date);
+};
+
 const toStartOfDay = (date) => {
-  const d = new Date(date);
+  const d = toLocalDate(date);
   d.setHours(0, 0, 0, 0);
   return d;
 };
 
-// Calcula receita por mês (últimos 6 meses)
+const getBookingCheckin = (booking) => booking.checkin || booking.checkIn;
+const getBookingCheckout = (booking) => booking.checkout || booking.checkOut;
+const getBookingTotal = (booking) =>
+  Number(booking.priceTotal || booking.totalValue || booking.totalPrice || 0);
+
+const hasValidBookingDates = (booking) =>
+  Boolean(booking && getBookingCheckin(booking) && getBookingCheckout(booking));
+
+const isCanceledBooking = (booking) => {
+  if (!booking) return true;
+  const paymentStatus = String(booking.paymentStatus || "").toLowerCase();
+  const status = String(booking.status || "").toLowerCase();
+  const invalidStatuses = ["canceled", "cancelled", "rejected"];
+
+  return invalidStatuses.includes(paymentStatus) || invalidStatuses.includes(status);
+};
+
+const isValidBookingForKPI = (booking) => {
+  if (!hasValidBookingDates(booking) || isCanceledBooking(booking)) return false;
+
+  return true;
+};
+
+const isValidRevenueBooking = (booking) => {
+  if (!booking) return false;
+  const paymentStatus = String(booking.paymentStatus || "").toLowerCase();
+
+  if (!hasValidBookingDates(booking) || isCanceledBooking(booking)) return false;
+
+  if (paymentStatus && !["approved", "paid", "completed"].includes(paymentStatus)) {
+    return false;
+  }
+
+  return getBookingTotal(booking) > 0;
+};
+
+export const getCurrentMonthPeriod = (baseDate = new Date()) => {
+  const startDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+  const endDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1);
+  return { startDate, endDate };
+};
+
+export const calculateNightsBetween = (startDate, endDate) => {
+  const start = toStartOfDay(startDate);
+  const end = toStartOfDay(endDate);
+  return Math.max(0, Math.round((end - start) / ONE_DAY_MS));
+};
+
+export const calculateBookedNights = (bookings = [], period = getCurrentMonthPeriod()) => {
+  const periodStart = toStartOfDay(period.startDate);
+  const periodEnd = toStartOfDay(period.endDate);
+
+  return bookings.reduce((total, booking) => {
+    if (!isValidBookingForKPI(booking)) return total;
+
+    const checkin = toStartOfDay(getBookingCheckin(booking));
+    const checkout = toStartOfDay(getBookingCheckout(booking));
+    const overlapStart = new Date(Math.max(checkin, periodStart));
+    const overlapEnd = new Date(Math.min(checkout, periodEnd));
+
+    return total + calculateNightsBetween(overlapStart, overlapEnd);
+  }, 0);
+};
+
+export const calculateRevenueForPeriod = (bookings = [], period = getCurrentMonthPeriod()) => {
+  const periodStart = toStartOfDay(period.startDate);
+  const periodEnd = toStartOfDay(period.endDate);
+
+  return bookings.reduce((total, booking) => {
+    if (!isValidRevenueBooking(booking)) return total;
+
+    const checkin = toStartOfDay(getBookingCheckin(booking));
+    const checkout = toStartOfDay(getBookingCheckout(booking));
+    const bookedNights = calculateNightsBetween(checkin, checkout);
+    const overlapStart = new Date(Math.max(checkin, periodStart));
+    const overlapEnd = new Date(Math.min(checkout, periodEnd));
+    const overlapNights = calculateNightsBetween(overlapStart, overlapEnd);
+
+    if (bookedNights === 0 || overlapNights === 0) return total;
+
+    return total + (getBookingTotal(booking) / bookedNights) * overlapNights;
+  }, 0);
+};
+
+export const calculateADR = (bookings = [], period = getCurrentMonthPeriod()) => {
+  const revenue = calculateRevenueForPeriod(bookings, period);
+  const bookedNights = calculateBookedNights(bookings, period);
+
+  return bookedNights > 0 ? revenue / bookedNights : 0;
+};
+
+export const calculateOccupancyRate = (
+  bookings = [],
+  period = getCurrentMonthPeriod(),
+  availableUnits = 1,
+) => {
+  const bookedNights = calculateBookedNights(bookings, period);
+  const periodNights = calculateNightsBetween(period.startDate, period.endDate);
+  const availableNights = periodNights * Math.max(Number(availableUnits) || 0, 0);
+
+  return availableNights > 0 ? (bookedNights / availableNights) * 100 : 0;
+};
+
+export const calculateRevPAR = (
+  bookings = [],
+  period = getCurrentMonthPeriod(),
+  availableUnits = 1,
+) => {
+  const revenue = calculateRevenueForPeriod(bookings, period);
+  const periodNights = calculateNightsBetween(period.startDate, period.endDate);
+  const availableNights = periodNights * Math.max(Number(availableUnits) || 0, 0);
+
+  return availableNights > 0 ? revenue / availableNights : 0;
+};
+
+export const calculateRentalKPIs = (
+  bookings = [],
+  properties = [],
+  period = getCurrentMonthPeriod(),
+) => {
+  const availableUnits = Math.max(properties.length, 1);
+  const revenue = calculateRevenueForPeriod(bookings, period);
+  const bookedNights = calculateBookedNights(bookings, period);
+  const periodNights = calculateNightsBetween(period.startDate, period.endDate);
+  const availableNights = periodNights * availableUnits;
+
+  return {
+    adr: bookedNights > 0 ? revenue / bookedNights : 0,
+    occupancyRate: availableNights > 0 ? (bookedNights / availableNights) * 100 : 0,
+    revPAR: availableNights > 0 ? revenue / availableNights : 0,
+    revenue,
+    bookedNights,
+    availableNights,
+    period,
+  };
+};
+
+/**
+ * Exemplos de uso:
+ *
+ * const currentMonth = getCurrentMonthPeriod();
+ * const adr = calculateADR(bookings, currentMonth);
+ * const occupancyRate = calculateOccupancyRate(bookings, currentMonth, places.length);
+ * const revPAR = calculateRevPAR(bookings, currentMonth, places.length);
+ *
+ * const kpis = calculateRentalKPIs(bookings, places, currentMonth);
+ * console.log(kpis.adr, kpis.occupancyRate, kpis.revPAR);
+ */
+
+// Calcula receita por mês (últimos 6 meses) e adiciona projeção para o próximo mês
 export const calculateMonthlyRevenue = (bookings = []) => {
   const revenueByMonth = {};
   const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+  const today = new Date();
+  const revenueBookings = bookings
+    .filter(isValidRevenueBooking)
+    .sort((a, b) => toStartOfDay(getBookingCheckout(a)) - toStartOfDay(getBookingCheckout(b)));
+  const lastRevenueDate = revenueBookings.length > 0
+    ? toStartOfDay(getBookingCheckout(revenueBookings[revenueBookings.length - 1]))
+    : today;
 
   for (let i = 0; i < 6; i++) {
-    const date = new Date();
+    const date = new Date(lastRevenueDate);
     date.setMonth(date.getMonth() - i);
-    const key = months[date.getMonth()];
-    revenueByMonth[key] = { month: key, value: 0 };
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    revenueByMonth[key] = {
+      key,
+      mes: months[date.getMonth()],
+      receita: 0,
+      projecao: null,
+      variacaoPercentual: 0,
+      tipo: "real",
+    };
   }
 
-  bookings.forEach((booking) => {
-    if (booking.paymentStatus === "approved" && booking.checkout) {
-      const checkoutDate = new Date(booking.checkout);
-      const month = months[checkoutDate.getMonth()];
-      if (revenueByMonth[month]) {
-        revenueByMonth[month].value += Number(booking.priceTotal || 0);
-      }
+  revenueBookings.forEach((booking) => {
+    const checkoutDate = toStartOfDay(getBookingCheckout(booking));
+    const key = `${checkoutDate.getFullYear()}-${checkoutDate.getMonth()}`;
+    if (revenueByMonth[key]) {
+      revenueByMonth[key].receita += getBookingTotal(booking);
     }
   });
 
-  return Object.values(revenueByMonth).reverse();
+  const revenueData = Object.values(revenueByMonth).reverse();
+
+  revenueData.forEach((item, index) => {
+    const previousRevenue = revenueData[index - 1]?.receita || 0;
+    item.receitaAnterior = previousRevenue;
+    item.variacaoPercentual = previousRevenue > 0
+      ? ((item.receita - previousRevenue) / previousRevenue) * 100
+      : 0;
+  });
+
+  const lastMonth = revenueData[revenueData.length - 1];
+  const previousMonth = revenueData[revenueData.length - 2];
+  const projectedDate = new Date(lastRevenueDate.getFullYear(), lastRevenueDate.getMonth() + 1, 1);
+  const averageGrowth = previousMonth?.receita > 0
+    ? (lastMonth.receita - previousMonth.receita) / previousMonth.receita
+    : 0;
+  const projectedRevenue = Math.max(0, lastMonth.receita * (1 + averageGrowth));
+
+  lastMonth.projecao = lastMonth.receita;
+  revenueData.push({
+    key: `${projectedDate.getFullYear()}-${projectedDate.getMonth()}`,
+    mes: `${months[projectedDate.getMonth()]} (proj.)`,
+    receita: null,
+    receitaAnterior: lastMonth.receita,
+    projecao: projectedRevenue,
+    variacaoPercentual: averageGrowth * 100,
+    tipo: "projecao",
+  });
+
+  return revenueData;
 };
 
-// Calcula ocupação semanal
+// Calcula taxa de ocupação por dia da semana no período coberto pelas reservas
 export const calculateWeeklyOccupancy = (bookings = [], properties = []) => {
   const weekDays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
-  const today = new Date();
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay() + 1);
+  const validBookings = bookings.filter(isValidBookingForKPI);
+  const availableUnits = Math.max(properties.length, 1);
+  const occupancyByWeekday = weekDays.map((day) => ({
+    dia: day,
+    taxaOcupacao: 0,
+    acomodacoesOcupadas: 0,
+    acomodacoesDisponiveis: availableUnits,
+    diasAnalisados: 0,
+    baixaOcupacao: true,
+  }));
 
-  return weekDays.map((day, idx) => {
-    const currentDate = new Date(startOfWeek);
-    currentDate.setDate(startOfWeek.getDate() + idx);
-    currentDate.setHours(0, 0, 0, 0);
+  if (validBookings.length === 0) {
+    return occupancyByWeekday;
+  }
 
-    const bookedCount = bookings.filter((booking) => {
-      if (!booking.checkin || !booking.checkout) return false;
-      const checkin = toStartOfDay(new Date(booking.checkin));
-      const checkout = toStartOfDay(new Date(booking.checkout));
+  const periodStart = validBookings.reduce((earliest, booking) => {
+    const checkin = toStartOfDay(getBookingCheckin(booking));
+    return checkin < earliest ? checkin : earliest;
+  }, toStartOfDay(getBookingCheckin(validBookings[0])));
+  const periodEnd = validBookings.reduce((latest, booking) => {
+    const checkout = toStartOfDay(getBookingCheckout(booking));
+    return checkout > latest ? checkout : latest;
+  }, toStartOfDay(getBookingCheckout(validBookings[0])));
+
+  for (
+    let currentDate = new Date(periodStart);
+    currentDate < periodEnd;
+    currentDate.setDate(currentDate.getDate() + 1)
+  ) {
+    const weekdayIndex = currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1;
+    const dayData = occupancyByWeekday[weekdayIndex];
+    const bookedCount = validBookings.filter((booking) => {
+      const checkin = toStartOfDay(getBookingCheckin(booking));
+      const checkout = toStartOfDay(getBookingCheckout(booking));
       return currentDate >= checkin && currentDate < checkout;
     }).length;
 
-    const occupancy = properties.length > 0 
-      ? Math.round((bookedCount / Math.max(properties.length, 1)) * 100)
+    dayData.acomodacoesOcupadas += bookedCount;
+    dayData.diasAnalisados += 1;
+  }
+
+  return occupancyByWeekday.map((dayData) => {
+    const availableNights = dayData.diasAnalisados * availableUnits;
+    const occupancy = availableNights > 0
+      ? Math.round((dayData.acomodacoesOcupadas / availableNights) * 100)
       : 0;
 
-    return { day, occupancy };
+    return {
+      ...dayData,
+      taxaOcupacao: occupancy,
+      baixaOcupacao: occupancy < 50,
+    };
   });
 };
 
 // Retorna métricas já calculadas pelo backend
 export const calculatePerformanceMetrics = (bookings = [], properties = [], metrics = {}) => {
+  void properties;
+
   if (metrics && Object.keys(metrics).length > 0) {
     return {
       occupancyRate: metrics.occupancyRate || 0,
