@@ -58,6 +58,8 @@ const KPICard = ({
 	trend = null,
 	trendValue = 0,
 	subtext = "",
+	details = [],
+	progressLabel = "",
 	description = "",
 	color = "emerald",
 	progress = null,
@@ -106,7 +108,7 @@ const KPICard = ({
 			<div className="relative z-10">
 				<div className="flex items-start justify-between mb-3">
 					<span
-						className={`text-xs font-semibold flex itesm-start gap-2 ${colors.label} uppercase tracking-widest`}
+						className={`text-xs font-semibold flex items-start gap-2 ${colors.label} uppercase tracking-widest`}
 					>
 						{label}
 						<Tooltip>
@@ -159,12 +161,36 @@ const KPICard = ({
 
 				{subtext && <p className="text-sm text-slate-600 mb-3">{subtext}</p>}
 
+				{details.length > 0 && (
+					<div className="mb-4 space-y-1.5 text-sm">
+						{details.map((detail) => (
+							<div
+								key={detail.label}
+								className="flex items-center justify-between gap-3"
+							>
+								<span className="text-slate-500">{detail.label}</span>
+								<span className="font-semibold text-slate-800 text-right">
+									{detail.value}
+								</span>
+							</div>
+						))}
+					</div>
+				)}
+
 				{progress !== null && (
-					<div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-						<div
-							className={`h-full ${colors.accent} rounded-full transition-all duration-500`}
-							style={{ width: `${Math.min(progress, 100)}%` }}
-						/>
+					<div>
+						{progressLabel && (
+							<div className="mb-1.5 flex items-center justify-between text-xs text-slate-500">
+								<span>{progressLabel}</span>
+								<span className="font-semibold">{Math.round(progress)}%</span>
+							</div>
+						)}
+						<div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+							<div
+								className={`h-full ${colors.accent} rounded-full transition-all duration-500`}
+								style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
+							/>
+						</div>
 					</div>
 				)}
 			</div>
@@ -188,6 +214,9 @@ function HostDashboard() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [currentAlertPage, setCurrentAlertPage] = useState(1);
+	const [monthlyRevenueGoal, setMonthlyRevenueGoal] = useState(10000);
+	const [monthlyRevenueGoalInput, setMonthlyRevenueGoalInput] =
+		useState("10.000,00");
 	const [propertyRevenueGoal, setPropertyRevenueGoal] = useState(10000);
 	const [propertyRevenueGoalInput, setPropertyRevenueGoalInput] =
 		useState("10.000,00");
@@ -306,6 +335,27 @@ function HostDashboard() {
 		return Number.isFinite(parsed) ? parsed : 0;
 	};
 
+	const updateMonthlyRevenueGoal = (nextValue) => {
+		const normalizedValue = Math.max(0, Math.round(nextValue));
+		setMonthlyRevenueGoal(normalizedValue);
+		setMonthlyRevenueGoalInput(formatMoneyInput(normalizedValue));
+	};
+
+	const handleMonthlyRevenueGoalChange = (event) => {
+		const inputValue = event.target.value;
+		const parsedValue = parseMoneyInput(inputValue);
+
+		setMonthlyRevenueGoalInput(inputValue);
+
+		if (Number.isFinite(parsedValue)) {
+			setMonthlyRevenueGoal(Math.max(0, Math.round(parsedValue)));
+		}
+	};
+
+	const handleMonthlyRevenueGoalBlur = () => {
+		updateMonthlyRevenueGoal(monthlyRevenueGoal);
+	};
+
 	const updatePropertyRevenueGoal = (nextValue) => {
 		const normalizedValue = Math.max(0, Math.round(nextValue));
 		setPropertyRevenueGoal(normalizedValue);
@@ -364,6 +414,55 @@ function HostDashboard() {
 	const hasPropertyGoalData = propertyGoalData.some(
 		(item) => Number(item.revenue || 0) > 0 && propertyRevenueGoal > 0,
 	);
+	const monthlyRevenueProgress =
+		monthlyRevenueGoal > 0
+			? (data.finance.monthlyEarnings / monthlyRevenueGoal) * 100
+			: 0;
+	const remainingMonthlyRevenue = Math.max(
+		monthlyRevenueGoal - data.finance.monthlyEarnings,
+		0,
+	);
+	const averageListedNightPrice =
+		data.places.length > 0
+			? data.places.reduce((total, place) => total + Number(place.price || 0), 0) /
+				data.places.length
+			: 0;
+	const adrProgress =
+		averageListedNightPrice > 0
+			? (data.rentalKPIs.adr / averageListedNightPrice) * 100
+			: 0;
+	const revPARProgress =
+		data.rentalKPIs.adr > 0
+			? (data.rentalKPIs.revPAR / data.rentalKPIs.adr) * 100
+			: 0;
+	const now = new Date();
+	const currentWeekStart = new Date(now);
+	currentWeekStart.setDate(now.getDate() - 6);
+	currentWeekStart.setHours(0, 0, 0, 0);
+	const previousWeekStart = new Date(currentWeekStart);
+	previousWeekStart.setDate(currentWeekStart.getDate() - 7);
+	const previousWeekEnd = new Date(currentWeekStart);
+	previousWeekEnd.setMilliseconds(-1);
+	const getBookingDate = (booking) => new Date(booking.checkin || booking.checkIn);
+	const currentWeekBookings = data.bookings.filter((booking) => {
+		const bookingDate = getBookingDate(booking);
+		return bookingDate >= currentWeekStart && bookingDate <= now;
+	}).length;
+	const previousWeekBookings = data.bookings.filter((booking) => {
+		const bookingDate = getBookingDate(booking);
+		return bookingDate >= previousWeekStart && bookingDate <= previousWeekEnd;
+	}).length;
+	const bookingWeekDiff = currentWeekBookings - previousWeekBookings;
+	const bookingComparisonText =
+		bookingWeekDiff === 0
+			? "Mesmo volume da semana passada"
+			: `${bookingWeekDiff > 0 ? "+" : ""}${bookingWeekDiff} vs semana passada`;
+	const bookingProgress =
+		previousWeekBookings > 0
+			? (currentWeekBookings / previousWeekBookings) * 100
+			: currentWeekBookings > 0
+				? 100
+				: 0;
 
 	return (
 		<div className="min-h-screen">
@@ -375,55 +474,123 @@ function HostDashboard() {
 							label="Receita do Mês"
 							value={formatCurrency(data.finance.monthlyEarnings)}
 							icon={DollarSign}
-							trend="up"
-							trendValue={18.2}
-							subtext="vs. mês anterior"
+							subtext={`${formatCurrency(data.finance.monthlyEarnings)} de ${formatCurrency(monthlyRevenueGoal)}`}
+							details={[
+								{
+									label: "Meta mensal",
+									value: (
+										<input
+											value={monthlyRevenueGoalInput}
+											onChange={handleMonthlyRevenueGoalChange}
+											onBlur={handleMonthlyRevenueGoalBlur}
+											className="h-7 w-28 rounded-md border border-emerald-100 bg-white px-2 text-right text-xs font-semibold text-slate-900 outline-none focus:border-emerald-300"
+											inputMode="decimal"
+											aria-label="Meta mensal de receita"
+										/>
+									),
+								},
+								{
+									label: "Meta atingida",
+									value: `${monthlyRevenueProgress.toFixed(0)}%`,
+								},
+								{
+									label: "Faltam",
+									value:
+										remainingMonthlyRevenue > 0
+											? formatCurrency(remainingMonthlyRevenue)
+											: "Meta batida",
+								},
+							]}
 							description="A receita do mês representa o total de ganhos gerados pelas suas acomodações durante o mês atual. Ela é calculada somando todas as receitas provenientes de reservas, incluindo diárias, taxas e outros encargos relacionados às acomodações ocupadas."
 							color="emerald"
-							progress={Math.min(
-								(data.finance.monthlyEarnings / 30000) * 100,
-								100,
-							)}
+							progress={monthlyRevenueProgress}
+							progressLabel="Progresso da meta mensal"
 						/>
 
 						<KPICard
-							label="ADR (Ganho Médio por noite)"
+							label="Ganho Médio por Noite"
 							value={formatCurrency(data.rentalKPIs.adr)}
 							icon={DollarSign}
-							subtext="Diária média por noite ocupada"
-							description="ADR é calculado dividindo a receita total gerada pelas acomodações ocupadas pelo número total de noites ocupadas. Ele reflete o valor médio que você ganha por cada noite em que uma acomodação está ocupada."
+							subtext="Média recebida por noite ocupada"
+							details={[
+								{
+									label: "Noites ocupadas",
+									value: data.rentalKPIs.bookedNights,
+								},
+								{
+									label: "Referência",
+									value: averageListedNightPrice
+										? formatCurrency(averageListedNightPrice)
+										: "Sem preço",
+								},
+							]}
+							description="Ganho Médio por Noite, também conhecido como ADR, mostra quanto você recebe em média por cada noite ocupada."
 							color="amber"
-							progress={Math.min((data.rentalKPIs.adr / 1000) * 100, 100)}
+							progress={adrProgress}
+							progressLabel="Comparado ao preço médio anunciado"
 						/>
 
 						<KPICard
 							label="Taxa de Ocupação"
 							value={`${data.rentalKPIs.occupancyRate.toFixed(1)}%`}
 							icon={BarChart3}
-							subtext="Período atual"
-							description="A taxa de ocupação é a porcentagem de acomodações disponíveis que estão ocupadas durante um período específico. É calculada dividindo o número de acomodações ocupadas pelo número total de acomodações disponíveis e multiplicando por 100."
+							subtext="Noites ocupadas no mês atual"
+							details={[
+								{
+									label: "Ocupadas",
+									value: data.rentalKPIs.bookedNights,
+								},
+								{
+									label: "Disponíveis",
+									value: data.rentalKPIs.availableNights,
+								},
+							]}
+							description="Percentual real de noites ocupadas sobre todas as noites disponíveis das suas acomodações no período."
 							color="blue"
 							progress={data.rentalKPIs.occupancyRate}
+							progressLabel="Ocupação da capacidade"
 						/>
 
 						<KPICard
-							label="RevPAR (Receita por acomodação disponível)"
+							label="Receita por Noite Disponível"
 							value={formatCurrency(data.rentalKPIs.revPAR)}
 							icon={TrendingUp}
-							subtext="Receita por noite disponível"
-							description="RevPAR é calculado multiplicando o ADR pela taxa de ocupação, ou seja, é a receita média gerada por cada acomodação disponível, independentemente de estar ocupada ou não."
+							subtext="Receita média considerando noites livres e ocupadas"
+							details={[
+								{
+									label: "Receita analisada",
+									value: formatCurrency(data.rentalKPIs.revenue),
+								},
+								{
+									label: "Noites disponíveis",
+									value: data.rentalKPIs.availableNights,
+								},
+							]}
+							description="Mostra quanto cada noite disponível gera em média. Ajuda a entender o impacto conjunto de preço e ocupação."
 							color="emerald"
-							progress={Math.min((data.rentalKPIs.revPAR / 1000) * 100, 100)}
+							progress={revPARProgress}
+							progressLabel="Equivale à ocupação aplicada ao ganho médio"
 						/>
 
 						<KPICard
 							label="Total de Reservas"
 							value={data.metrics.totalBookings.toString().padStart(2, "0")}
 							icon={Calendar}
-							subtext="Confirmadas este mês"
+							subtext={bookingComparisonText}
+							details={[
+								{
+									label: "Últimos 7 dias",
+									value: currentWeekBookings,
+								},
+								{
+									label: "Semana anterior",
+									value: previousWeekBookings,
+								},
+							]}
 							description="O total de reservas é a contagem de todas as reservas confirmadas para suas acomodações durante o mês atual. Ele inclui todas as reservas que foram efetivamente confirmadas pelos hóspedes, independentemente de terem sido concluídas ou canceladas posteriormente."
 							color="purple"
-							progress={(data.metrics.totalBookings / 30) * 100}
+							progress={bookingProgress}
+							progressLabel="Comparação semanal"
 						/>
 
 						<KPICard
@@ -440,6 +607,7 @@ function HostDashboard() {
 							description="A avaliação média é calculada somando todas as avaliações recebidas dos hóspedes e dividindo pelo número total de avaliações. Ela reflete a satisfação geral dos hóspedes com suas acomodações."
 							color="amber"
 							progress={(data.metrics.averageRating / 5) * 100}
+							progressLabel="Progresso até 5 estrelas"
 						/>
 					</div>
 				</section>
