@@ -27,7 +27,7 @@ export const JWTVerify = (req, cookieName = 'token') => {
     return new Promise((resolve, reject) => {
       try {
         const secret = getSecret();
-        jwt.verify(token, secret, {}, (error, userInfo) => {
+        jwt.verify(token, secret, { algorithms: ["HS256"] }, (error, userInfo) => {
           if (error) {
             console.error("Erro ao verificar JWT:", error);
             return reject(error);

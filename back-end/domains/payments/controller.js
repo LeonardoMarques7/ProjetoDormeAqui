@@ -157,6 +157,9 @@ export const createPaymentPreference = async (req, res, next) => {
  */
 export const testMercadoPagoConfig = async (req, res, next) => {
     try {
+        if (process.env.NODE_ENV === "production") {
+            return res.status(404).json({ success: false, message: "Rota nao encontrada" });
+        }
         console.log("🧪 Testando configuração do Mercado Pago...");
         
         const result = await verifyMercadoPagoConfig();

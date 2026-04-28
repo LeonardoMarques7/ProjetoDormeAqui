@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import path, { dirname } from "path";
 import * as fs from "fs";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+import { basicSecurityHeaders, createRateLimiter, csrfProtection } from "./security.js";
 
 
 export const app = express();
@@ -25,7 +26,17 @@ if (!fs.existsSync(tmpDir)) {
 app.use(compression());
 
 app.use(cookieParser());
-app.use(express.json());
+app.use(basicSecurityHeaders);
+app.use(createRateLimiter({ windowMs: 60_000, max: 240 }));
+app.use(express.json({
+  limit: "250kb",
+  verify: (req, res, buf) => {
+    if (req.originalUrl?.includes("/webhook/stripe") || req.originalUrl?.includes("/webhooks/stripe")) {
+      req.rawBody = buf;
+    }
+  },
+}));
+app.use(csrfProtection);
 
 // CSP header to allow MercadoPago/mercadolibre connections required by SDK
 app.use((req, res, next) => {
@@ -51,7 +62,6 @@ app.use((req, res, next) => {
     script-src
       'self'
       'unsafe-inline'
-      'unsafe-eval'
       https://accounts.google.com
       https://sdk.mercadopago.com
       https://framerusercontent.com;
@@ -62,8 +72,7 @@ app.use((req, res, next) => {
       https://framerusercontent.com
       https://accounts.google.com
       https://sdk.mercadopago.com
-      'unsafe-inline'
-      'unsafe-eval';
+      'unsafe-inline';
 
     frame-src
       'self'

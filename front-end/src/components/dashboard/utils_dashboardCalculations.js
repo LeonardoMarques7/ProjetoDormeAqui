@@ -419,10 +419,43 @@ export const generateAlerts = (backendAlerts = [], today = {}, metrics = {}) => 
     });
   }
 
+  if (today.pendingBookings > 0) {
+    const count = today.pendingBookings;
+    alerts.warning.push({
+      id: "pending-bookings",
+      title: "Reservas Pendentes",
+      description:
+        count === 1
+          ? "Existe 1 reserva aguardando atenção. Responder rápido ajuda a evitar perda de conversão."
+          : `Existem ${count} reservas aguardando atenção. Responder rápido ajuda a evitar perda de conversão.`,
+      time: "Agora",
+      footer: [
+        { iconName: "clock", text: "Responder o quanto antes" },
+        { iconName: "check-circle", text: "Reduzir risco de perda da reserva" },
+      ],
+      severity: "warning",
+    });
+  }
+
+  if ((today.checkins || 0) > 0 && (today.checkouts || 0) > 0) {
+    alerts.critical.push({
+      id: "same-day-turnover",
+      title: "Troca de Hóspedes Hoje",
+      description:
+        "Você tem chegada e saída no mesmo dia. Confirme horários, limpeza e vistoria para evitar atraso no próximo check-in.",
+      time: "Hoje",
+      footer: [
+        { iconName: "sparkles", text: "Priorize limpeza e reposição" },
+        { iconName: "calendar", text: "Confirme janela entre saída e entrada" },
+      ],
+      severity: "critical",
+    });
+  }
+
   // ========== DICAS E INSIGHTS ==========
 
   // Baixa ocupação
-  if (metrics.occupancyRate && metrics.occupancyRate < 50) {
+  if (metrics.occupancyRate !== undefined && metrics.occupancyRate < 35) {
     alerts.critical.push({
       id: "low-occupancy",
       title: "Ocupação Baixa",
@@ -437,7 +470,63 @@ export const generateAlerts = (backendAlerts = [], today = {}, metrics = {}) => 
   }
 
   // Avaliação média baixa
-  if (metrics.averageRating && metrics.averageRating < 4.5 && metrics.averageRating > 0) {
+  if (metrics.occupancyRate >= 35 && metrics.occupancyRate < 50) {
+    alerts.warning.push({
+      id: "attention-occupancy",
+      title: "Ocupação em Atenção",
+      description: `Sua ocupação está em ${metrics.occupancyRate.toFixed(1)}%. Ainda não é crítica, mas vale ajustar preço, calendário ou descrição.`,
+      time: null,
+      footer: [
+        { iconName: "currency-dollar", text: "Teste pequenos ajustes de preço" },
+        { iconName: "calendar", text: "Verifique datas bloqueadas" },
+      ],
+      severity: "warning",
+    });
+  }
+
+  if (metrics.totalBookings === 0) {
+    alerts.critical.push({
+      id: "no-bookings",
+      title: "Sem Reservas Registradas",
+      description:
+        "Nenhuma reserva foi registrada ainda. Revise preço inicial, fotos, descrição e disponibilidade para gerar as primeiras conversões.",
+      time: null,
+      footer: [
+        { iconName: "camera", text: "Melhorar apresentação do anúncio" },
+        { iconName: "currency-dollar", text: "Avaliar preço de entrada" },
+      ],
+      severity: "critical",
+    });
+  }
+
+  if (metrics.averageNightPrice === 0 && metrics.totalBookings > 0) {
+    alerts.warning.push({
+      id: "missing-night-price",
+      title: "Preço Médio Indisponível",
+      description:
+        "Há reservas, mas o preço médio por noite não foi calculado. Verifique se as reservas possuem valor total e número de noites.",
+      time: null,
+      footer: [
+        { iconName: "currency-dollar", text: "Validar valores das reservas" },
+        { iconName: "check-circle", text: "Corrigir dados incompletos" },
+      ],
+      severity: "warning",
+    });
+  }
+
+  if (metrics.averageRating && metrics.averageRating < 4 && metrics.averageRating > 0) {
+    alerts.critical.push({
+      id: "critical-rating",
+      title: "Avaliação Crítica",
+      description: `Sua avaliação média é ${metrics.averageRating.toFixed(1)}. Isso pode reduzir conversões. Priorize limpeza, comunicação e solução dos comentários recentes.`,
+      time: null,
+      footer: [
+        { iconName: "star", text: "Ler avaliações recentes" },
+        { iconName: "check-circle", text: "Resolver pontos recorrentes" },
+      ],
+      severity: "critical",
+    });
+  } else if (metrics.averageRating && metrics.averageRating < 4.5 && metrics.averageRating > 0) {
     alerts.warning.push({
       id: "low-rating",
       title: "Avaliação Abaixo da Expectativa",
@@ -453,7 +542,7 @@ export const generateAlerts = (backendAlerts = [], today = {}, metrics = {}) => 
 
   // Sem avaliações
   if (metrics.averageRating === 0 && metrics.totalBookings > 0) {
-    alerts.info.push({
+    alerts.warning.push({
       id: "no-reviews",
       title: "Você Ainda Não Tem Avaliações",
       description: "Peça aos seus hóspedes para deixarem avaliações. Isso ajuda a atrair mais reservas.",
@@ -462,7 +551,7 @@ export const generateAlerts = (backendAlerts = [], today = {}, metrics = {}) => 
         { iconName: "chat-bubble-left", text: "Contate seus hóspedes recentes" },
         { iconName: "arrow-trending-up", text: "Aumente sua visibilidade" }
       ],
-      severity: "info",
+      severity: "warning",
     });
   }
 

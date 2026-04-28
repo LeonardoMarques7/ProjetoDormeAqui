@@ -1,7 +1,10 @@
-import { paymentClient, stripeClient } from "../../config/stripe.js"; // switched to Stripe wrapper (compatible interface)
+import * as stripeConfig from "../../config/stripe.js"; // switched to Stripe wrapper (compatible interface)
 
 import Place from "../places/model.js";
 import Booking from "../bookings/model.js";
+
+const paymentClient = stripeConfig.paymentClient;
+const stripeClient = stripeConfig.stripeClient;
 
 export const processTransparentPayment = async (data, user) => {
   console.log("🔹 Iniciando processamento do pagamento transparente...");

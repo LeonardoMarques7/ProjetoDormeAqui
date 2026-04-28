@@ -25,9 +25,6 @@ const Login = () => {
 					password,
 				});
 
-				if (userDoc.token) {
-					localStorage.setItem("token", userDoc.token);
-				}
 				localStorage.setItem("user", JSON.stringify(userDoc));
 				setUser(userDoc);
 				setRedirect(true);

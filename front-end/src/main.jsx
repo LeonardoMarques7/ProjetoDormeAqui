@@ -14,10 +14,18 @@ axios.defaults.baseURL =
 		? "http://localhost:3000/api"
 		: "https://zk8kgskg4cwg80osgckokowo.46.62.153.177.sslip.io/api";
 
+const readCookie = (name) => {
+	const match = document.cookie
+		.split("; ")
+		.find((row) => row.startsWith(`${name}=`));
+	return match ? decodeURIComponent(match.split("=").slice(1).join("=")) : "";
+};
+
 axios.interceptors.request.use((config) => {
-	const token = localStorage.getItem("token");
-	if (token) {
-		config.headers.Authorization = `Bearer ${token}`;
+	const csrfToken =
+		readCookie("prod_csrf_token") || readCookie("dev_csrf_token");
+	if (csrfToken) {
+		config.headers["X-CSRF-Token"] = csrfToken;
 	}
 	return config;
 });

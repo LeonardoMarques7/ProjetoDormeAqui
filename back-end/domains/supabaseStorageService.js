@@ -41,6 +41,8 @@ export const uploadToSupabase = async (filename, filePath, mimeType) => {
     } catch (error) {
         console.error("Error uploading file to Supabase:", error);
         throw error;
+    } finally {
+        fs.promises.unlink(filePath).catch(() => {});
     }
 };
 

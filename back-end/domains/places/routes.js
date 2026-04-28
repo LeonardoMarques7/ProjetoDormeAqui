@@ -6,6 +6,7 @@ import { downloadImage } from "../../ultis/imageDownloader.js";
 import { __dirname } from "../../ultis/dirname.js";
 import { sendToSupabase, uploadImage } from "../controller.js";
 import { requireAuth } from "../middleware.js";
+import { escapeRegex, isSafeRemoteImageUrl } from "../../security.js";
 
 const router = Router();
 
@@ -22,7 +23,7 @@ router.get("/", async (req, res) => {
         
         // Filtro por cidade
         if (city && city.trim() !== "") {
-            query.city = { $regex: city, $options: "i" };
+            query.city = { $regex: escapeRegex(String(city).slice(0, 80)), $options: "i" };
         }
 
         // Filtro por mínimo de hóspedes
@@ -209,11 +210,11 @@ router.delete("/:id", requireAuth, async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
     const { type, title, city, photos, description, extras, perks, price, checkin, checkout, guests, rooms, bathrooms, beds } = req.body;
 
         try {
-            const { _id } = await JWTVerify(req, COOKIE_NAME);
+            const { _id } = req.user;
             const newPlaceDoc = await Place.create({
                 owner: _id,
                 type,
@@ -240,11 +241,14 @@ router.post("/", async (req, res) => {
         }
 });
 
-router.post("/upload/link", async (req, res) => {
+router.post("/upload/link", requireAuth, async (req, res) => {
     const { link } = req.body;
     const path =  `${__dirname}/tmp/`
 
     try {
+        if (!isSafeRemoteImageUrl(link)) {
+            return res.status(400).json({ error: "URL de imagem invalida." });
+        }
         const {filename, fullPath, mimeType} = await downloadImage(link,  path);
 
         const fileUrl = await sendToSupabase(filename, fullPath, mimeType)
@@ -256,7 +260,7 @@ router.post("/upload/link", async (req, res) => {
     }
 });
 
-router.post("/upload", uploadImage().array("files", 10), async (req, res) => {
+router.post("/upload", requireAuth, uploadImage().array("files", 10), async (req, res) => {
     const {files} = req;
 
     const filesPromisse = new Promise((resolve, reject) => {

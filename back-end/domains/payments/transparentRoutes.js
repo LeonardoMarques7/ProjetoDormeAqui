@@ -21,28 +21,19 @@ const authenticateUser = async (req, res, next) => {
   }
 };
 
-// Middleware que tenta autenticar, mas permite requisições sem autenticação (guest checkout)
-const optionalAuthenticate = async (req, res, next) => {
-  try {
-    const userInfo = await JWTVerify(req, COOKIE_NAME);
-    req.user = userInfo;
-  } catch (error) {
-    // Não autentica, mas permite seguir como usuário anônimo
-    console.warn('transparentRoutes: request without valid auth, proceeding as guest');
-    req.user = null;
-  }
-  next();
-};
-
-// Use authentication optional para permitir pagamentos sem sessão (ex.: checkout rápido)
-router.post("/transparent", optionalAuthenticate, createTransparentPayment);
+router.post("/transparent", authenticateUser, createTransparentPayment);
 
 // Stripe Checkout (hosted): requer autenticação pois o userId é necessário para criar a reserva via webhook
 router.post("/checkout-session", authenticateUser, createStripeCheckoutSession);
 
 import { captureAuthorizedPayment } from "./controller.js";
 
-router.post("/capture/:paymentId", captureAuthorizedPayment);
+router.post("/capture/:paymentId", authenticateUser, (req, res, next) => {
+  if (!["admin", "moderator"].includes(req.user.role)) {
+    return res.status(403).json({ success: false, message: "Permissao insuficiente" });
+  }
+  return captureAuthorizedPayment(req, res, next);
+});
 
 
 export default router;

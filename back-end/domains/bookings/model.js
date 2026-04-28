@@ -3,18 +3,18 @@ import mongoose, { model, Schema } from "mongoose"
 const bookingSchema = new Schema({
     place: { type: Schema.Types.ObjectId, ref: "Place", required: true },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    pricePerNight: { type: Number, required: true },
-    priceTotal: { type: Number, required: true },
+    pricePerNight: { type: Number, required: true, min: 0 },
+    priceTotal: { type: Number, required: true, min: 0 },
     checkin: { type: Date, required: true },
     checkout: { type: Date, required: true },
-    guests: { type: Number, required: true },
-    nights: { type: Number, required: true },
+    guests: { type: Number, required: true, min: 1 },
+    nights: { type: Number, required: true, min: 1 },
     paymentStatus: { 
         type: String, 
         enum: ["pending", "approved", "rejected", "canceled"], 
         default: "pending" 
     },
-    mercadopagoPaymentId: { type: String, index: true },
+    mercadopagoPaymentId: { type: String },
     status: {
         type: String,
         enum: ["pending", "confirmed", "in_progress", "evaluation", "review", "completed", "canceled"],
@@ -32,6 +32,12 @@ const bookingSchema = new Schema({
     reviewRequestedBy: { type: Schema.Types.ObjectId, ref: "User" },
     reviewReason: String,
 }, { timestamps: true });
+
+bookingSchema.index(
+    { mercadopagoPaymentId: 1 },
+    { unique: true, partialFilterExpression: { mercadopagoPaymentId: { $type: "string" } } }
+);
+bookingSchema.index({ place: 1, checkin: 1, checkout: 1, status: 1 });
 
 bookingSchema.statics.createFromPayment = async function ({
     place,
