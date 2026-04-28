@@ -68,7 +68,12 @@
   "scripts": {
     "build": "npm install --prefix back-end && npm install --prefix front-end && npm run build --prefix front-end",
     "start": "cd back-end && npm start",
-    "create-notifications": "node final_create_notifications.js"
+    "create-notifications": "node final_create_notifications.js",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "node --experimental-vm-modules ./back-end/node_modules/jest/bin/jest.js --config ./tests/backend/jest.config.cjs --runInBand",
+    "test:backend:existing": "npm test --prefix back-end -- --runInBand",
+    "test:frontend": "npm run test --prefix front-end -- --config ../tests/frontend/vitest.config.mjs --run",
+    "test:frontend:watch": "npm run test --prefix front-end -- --config ../tests/frontend/vitest.config.mjs"
   },
   "repository": {
     "type": "git",
