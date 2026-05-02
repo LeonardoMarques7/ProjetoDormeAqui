@@ -366,7 +366,7 @@ export function HostDashboardRedesigned() {
 					{/* Alerts Panel */}
 					<div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
 						<h3 className="text-lg font-semibold text-slate-900 mb-6">
-							Insights & Ações
+							Sugestões e ações
 						</h3>
 					</div>
 				</section>

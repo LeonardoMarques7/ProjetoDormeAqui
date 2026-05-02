@@ -30,7 +30,12 @@ import {
 	TicketIcon,
 } from "@heroicons/react/24/outline";
 
-const SimpleNavbar = ({ isAbsolute }) => {
+const SimpleNavbar = ({
+	isAbsolute,
+	dashboardNavItems,
+	activeDashboardSection,
+	onDashboardSectionChange,
+}) => {
 	const { user, setUser } = useUserContext();
 	const { showAuthModal } = useAuthModalContext();
 	const { addNotification } = useNotification();
@@ -80,6 +85,9 @@ const SimpleNavbar = ({ isAbsolute }) => {
 		if (href === "/") return location.pathname === "/";
 		return location.pathname === href;
 	};
+	const isDashboardNav = Boolean(
+		dashboardNavItems?.length && onDashboardSectionChange,
+	);
 
 	const initials = user?.name
 		?.split(" ")
@@ -96,7 +104,7 @@ const SimpleNavbar = ({ isAbsolute }) => {
 					: "relative"
 			} w-full hidden md:block`}
 		>
-			<div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+			<div className="max-w-7xl mx-auto h-20 flex items-center justify-between">
 				{/* Logo */}
 				{!isAbsolute && (
 					<Link to="/" className="flex-shrink-0">
@@ -110,7 +118,23 @@ const SimpleNavbar = ({ isAbsolute }) => {
 
 				{/* Center Navigation */}
 				<div className="flex items-center gap-8 flex-1 justify-center">
-					{user && (
+					{user &&
+						isDashboardNav &&
+						dashboardNavItems.map((item) => (
+							<button
+								key={item.id}
+								type="button"
+								onClick={() => onDashboardSectionChange(item.id)}
+								className={`cursor-pointer text-sm transition-colors ${
+									activeDashboardSection === item.id
+										? "font-bold text-gray-900"
+										: "text-gray-700 hover:text-gray-900"
+								} ${isAbsolute && "text-white"}`}
+							>
+								{item.label}
+							</button>
+						))}
+					{user && !isDashboardNav && (
 						<Link
 							to="/"
 							className={
@@ -120,7 +144,7 @@ const SimpleNavbar = ({ isAbsolute }) => {
 							Home
 						</Link>
 					)}
-					{user && (
+					{user && !isDashboardNav && (
 						<Link
 							to="/account/bookings"
 							className={`${
@@ -132,7 +156,7 @@ const SimpleNavbar = ({ isAbsolute }) => {
 							Reservas
 						</Link>
 					)}
-					{user && (
+					{user && !isDashboardNav && (
 						<Link
 							to="/account/places"
 							className={`${
@@ -148,6 +172,15 @@ const SimpleNavbar = ({ isAbsolute }) => {
 
 				{/* Right Section */}
 				<div className="flex items-center gap-4">
+					{user && isDashboardNav && (
+						<Link
+							to="/account/places/new"
+							className="flex items-center gap-2 rounded-full bg-primary-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900/80"
+						>
+							<span>Anuncie Aqui</span>
+						</Link>
+					)}
+
 					{user && <NotificationBell isAbsolute={isAbsolute} />}
 
 					{user ? (

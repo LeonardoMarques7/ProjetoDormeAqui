@@ -8,7 +8,7 @@ import { useUserContext } from "../components/contexts/UserContext";
 import { useAuthModalContext } from "../components/contexts/AuthModalContext";
 import NotFound from "./NotFound";
 
-const Account = () => {
+const Account = ({ dashboardSection }) => {
 	const { subpage, id, action } = useParams();
 	const { user, ready } = useUserContext();
 	const { showAuthModal } = useAuthModalContext();
@@ -36,7 +36,9 @@ const Account = () => {
 			{subpage === "profile" && <AccProfile userId={id} />}
 			{subpage === "places" && <AccPlaces />}
 			{subpage === "bookings" && <AccBookings bookingId={bookingId} />}
-			{subpage === "dashboard" && <HostDashboard />}
+			{subpage === "dashboard" && (
+				<HostDashboard activeSection={dashboardSection} />
+			)}
 		</div>
 	);
 };

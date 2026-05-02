@@ -58,7 +58,7 @@ const STATUS_STYLES = {
 const getStatusLabel = (status) =>
 	STATUS_STYLES[status]?.label || STATUS_STYLES.pending.label;
 
-const CalendarGridMonth = ({ calendar }) => {
+const CalendarGridMonth = ({ calendar, compact = false }) => {
 	const [currentDate, setCurrentDate] = useState(new Date());
 	const [selectedBooking, setSelectedBooking] = useState(null);
 	const [showModal, setShowModal] = useState(false);
@@ -173,45 +173,55 @@ const CalendarGridMonth = ({ calendar }) => {
 
 	return (
 		<section className="w-full ">
-			<div className="mb-6">
-				<h2 className="text-2xl font-bold text-slate-900 mb-2">
-					Agenda de Reservas
-				</h2>
-				<p className="text-sm text-gray-500">
-					Visualize todas as suas reservas do mês
-				</p>
-			</div>
+			{!compact && (
+				<div className="mb-6">
+					<h2 className="text-2xl font-bold text-slate-900 mb-2">
+						Agenda de Reservas
+					</h2>
+					<p className="text-sm text-gray-500">
+						Visualize todas as suas reservas do mês
+					</p>
+				</div>
+			)}
 
-			<div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+			<div
+				className={`bg-white rounded-2xl border border-gray-200 shadow-sm ${compact ? "p-3" : "p-6"}`}
+			>
 				{/* Cabeçalho com controles de navegação */}
-				<div className="flex items-center justify-between mb-6 gap-4">
-					<h3 className="text-xl font-semibold text-slate-900 capitalize flex-1">
+				<div
+					className={`flex items-center justify-between gap-4 ${compact ? "mb-3" : "mb-6"}`}
+				>
+					<h3
+						className={`font-semibold text-slate-900 capitalize flex-1 ${compact ? "text-sm" : "text-xl"}`}
+					>
 						{monthName}
 					</h3>
 					<button
 						onClick={goToPreviousMonth}
-						className=" rounded-lg w-9 h-9 flex items-center justify-center cursor-pointer transition-all hover:bg-gray-200 hover:text-gray-700 text-gray-500"
+						className={`rounded-lg flex items-center justify-center cursor-pointer transition-all hover:bg-gray-200 hover:text-gray-700 text-gray-500 ${compact ? "h-7 w-7" : "w-9 h-9"}`}
 						title="Mês anterior"
 					>
-						<ChevronLeft size={20} />
+						<ChevronLeft size={compact ? 16 : 20} />
 					</button>
 					<button
 						onClick={goToNextMonth}
-						className=" rounded-lg w-9 h-9 flex items-center justify-center cursor-pointer transition-all hover:bg-gray-200 hover:text-gray-700 text-gray-500"
+						className={`rounded-lg flex items-center justify-center cursor-pointer transition-all hover:bg-gray-200 hover:text-gray-700 text-gray-500 ${compact ? "h-7 w-7" : "w-9 h-9"}`}
 						title="Próximo mês"
 					>
-						<ChevronRight size={20} />
+						<ChevronRight size={compact ? 16 : 20} />
 					</button>
 				</div>
 
 				{/* Grid do calendário */}
-				<div className="flex flex-col gap-3">
+				<div className={`flex flex-col ${compact ? "gap-1.5" : "gap-3"}`}>
 					{/* Cabeçalho com dias da semana */}
-					<div className="grid grid-cols-7 gap-2 mb-3">
+					<div
+						className={`grid grid-cols-7 ${compact ? "mb-1 gap-1" : "gap-2 mb-3"}`}
+					>
 						{["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"].map((day) => (
 							<div
 								key={day}
-								className="text-xs font-semibold text-gray-500 text-center p-2 uppercase tracking-wide"
+								className={`font-semibold text-gray-500 text-center uppercase tracking-wide ${compact ? "p-1 text-[10px]" : "text-xs p-2"}`}
 							>
 								{day}
 							</div>
@@ -219,7 +229,7 @@ const CalendarGridMonth = ({ calendar }) => {
 					</div>
 
 					{/* Dias do mês */}
-					<div className="grid grid-cols-7 gap-2">
+					<div className={`grid grid-cols-7 ${compact ? "gap-1" : "gap-2"}`}>
 						{daysInMonth.map((day, index) => {
 							const dateKey = day ? day.toISOString().split("T")[0] : null;
 							const bookingsForDay = dateKey
@@ -229,7 +239,7 @@ const CalendarGridMonth = ({ calendar }) => {
 							return (
 								<div
 									key={index}
-									className={`aspect-square border-2 rounded-[10px] p-2 transition-all relative min-h-[100px] flex flex-col ${
+									className={`aspect-square border rounded-[10px] transition-all relative flex flex-col ${compact ? "min-h-[96px] p-2" : "min-h-[100px] p-2"} ${
 										!day
 											? "bg-gray-50 border-gray-100"
 											: "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -250,12 +260,54 @@ const CalendarGridMonth = ({ calendar }) => {
 									{day && (
 										<>
 											<div
-												className={`text-sm font-semibold mb-1.5 ${bookingsForDay.length > 0 ? "text-white font-bold" : "text-slate-900"}`}
+												className={`font-semibold ${compact ? "mb-1 text-xs" : "mb-1.5 text-sm"} ${bookingsForDay.length > 0 ? "text-white font-bold" : "text-slate-900"}`}
 											>
 												{day.getDate()}
 											</div>
 
-											{bookingsForDay.length > 0 && (
+											{bookingsForDay.length > 0 && compact && (
+												<div className="mt-auto flex flex-col gap-1">
+													{bookingsForDay.slice(0, 2).map((booking) => (
+														<div
+															key={booking.id}
+															className="flex items-center justify-between gap-1 text-white"
+														>
+															<div className="flex min-w-0 items-center gap-1">
+																{booking.guestPhoto ? (
+																	<UserImageFallback
+																		type="avatar"
+																		src={booking.guestPhoto}
+																		alt={booking.guest}
+																		className="h-4 w-4 shrink-0 rounded-full object-cover"
+																	/>
+																) : (
+																	<span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white bg-white/25 text-[7px] font-bold">
+																		{guestInitials(booking.guest)}
+																	</span>
+																)}
+																<span className="truncate text-[9px] font-semibold leading-none">
+																	{shortGuestName(booking.guest)}
+																</span>
+															</div>
+															<button
+																className="flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30"
+																onClick={(e) => handleInfoClick(booking, e)}
+																title="Ver detalhes"
+																aria-label={`Ver detalhes de ${booking.guest}`}
+															>
+																<Info size={10} />
+															</button>
+														</div>
+													))}
+													{bookingsForDay.length > 2 && (
+														<span className="w-fit rounded-full bg-white/25 px-1.5 py-0.5 text-[8px] font-bold text-white">
+															+{bookingsForDay.length - 2}
+														</span>
+													)}
+												</div>
+											)}
+
+											{bookingsForDay.length > 0 && !compact && (
 												<div className="flex flex-col gap-1 justify-end flex-1 mt-auto">
 													{bookingsForDay.map((booking) => (
 														<div key={booking.id} className="text-white">

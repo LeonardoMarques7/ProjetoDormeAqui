@@ -4,14 +4,14 @@ const TodayPanel = ({ today }) => {
   const cards = [
     {
       key: "checkins",
-      label: "Check-ins hoje",
+      label: "Entradas hoje",
       value: today?.checkins ?? 0,
       icon: CalendarCheck2,
       tone: "bg-emerald-50 text-emerald-700",
     },
     {
       key: "checkouts",
-      label: "Check-outs hoje",
+      label: "Saídas hoje",
       value: today?.checkouts ?? 0,
       icon: CalendarClock,
       tone: "bg-sky-50 text-sky-700",

@@ -20,6 +20,14 @@ import {
 	PaginationNext,
 	PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import DatePickerAirbnb from "@/components/places/DatePickerAirbnb";
 import { getAccommodationLogbook } from "@/services/logbookService";
 
 const emptyPayload = {
@@ -47,22 +55,70 @@ const formatDateTime = (value) =>
 		minute: "2-digit",
 	}).format(new Date(value));
 
+const parseLocalDate = (value) => {
+	if (!value) return null;
+	const [year, month, day] = String(value).split("-").map(Number);
+	if (!year || !month || !day) return null;
+	return new Date(year, month - 1, day);
+};
+
+const formatDateForFilter = (date) => {
+	if (!date) return "";
+	const resolvedDate = date instanceof Date ? date : new Date(date);
+	if (Number.isNaN(resolvedDate.getTime())) return "";
+	const year = resolvedDate.getFullYear();
+	const month = String(resolvedDate.getMonth() + 1).padStart(2, "0");
+	const day = String(resolvedDate.getDate()).padStart(2, "0");
+	return `${year}-${month}-${day}`;
+};
+
 const SelectFilter = ({ label, value, onChange, options }) => (
 	<label className="flex min-w-0 flex-col gap-1 text-[11px] font-medium text-slate-500">
 		{label}
-		<select
+		<Select
 			value={value}
-			onChange={(event) => onChange(event.target.value)}
-			className="h-9 min-w-0 rounded-md border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 outline-none transition focus:border-slate-400"
+			onValueChange={onChange}
 		>
-			<option value="all">Todos</option>
-			{options.map((option) => (
-				<option key={option.value} value={option.value}>
-					{option.label}
-				</option>
-			))}
-		</select>
+			<SelectTrigger
+				size="sm"
+				className="h-9 w-full min-w-0 border-slate-200 bg-white text-xs font-medium text-slate-700 shadow-none focus:ring-slate-200"
+			>
+				<SelectValue placeholder="Todos" />
+			</SelectTrigger>
+			<SelectContent className="z-[9999]">
+				<SelectItem value="all">Todos</SelectItem>
+				{options.map((option) => (
+					<SelectItem key={option.value} value={option.value}>
+						{option.label}
+					</SelectItem>
+				))}
+			</SelectContent>
+		</Select>
 	</label>
+);
+
+const DateRangeFilter = ({ startDate, endDate, onChange, resetKey }) => (
+	<div className="min-w-0">
+		<p className="mb-1 text-[11px] font-medium text-slate-500">Período</p>
+		<div className="rounded-md border border-slate-200 bg-white text-xs font-medium text-slate-700">
+			<DatePickerAirbnb
+				key={resetKey}
+				initialCheckin={parseLocalDate(startDate)}
+				initialCheckout={parseLocalDate(endDate)}
+				disablePastDates={false}
+				startLabel="De"
+				endLabel="Até"
+				price={0}
+				showPriceSummary={false}
+				onDateSelect={({ checkin, checkout }) => {
+					onChange({
+						startDate: formatDateForFilter(checkin),
+						endDate: formatDateForFilter(checkout),
+					});
+				}}
+			/>
+		</div>
+	</div>
 );
 
 const getInitials = (name) =>
@@ -89,8 +145,10 @@ const getEventTone = (log) => {
 	const key = `${log.contextKey || ""} ${log.actionKey || ""}`.toLowerCase();
 
 	if (key.includes("cancel") || key.includes("reject")) return "text-red-600";
-	if (key.includes("payment") || key.includes("approved")) return "text-emerald-600";
-	if (key.includes("status") || key.includes("warning")) return "text-amber-600";
+	if (key.includes("payment") || key.includes("approved"))
+		return "text-emerald-600";
+	if (key.includes("status") || key.includes("warning"))
+		return "text-amber-600";
 	if (key.includes("calendar") || key.includes("check")) return "text-sky-600";
 	return "text-slate-500";
 };
@@ -100,7 +158,7 @@ const csvEscape = (value) => `"${String(value || "").replace(/"/g, '""')}"`;
 function AccommodationLogbook({
 	limit = 80,
 	refreshIntervalMs = 45000,
-	itemsPerPage = 5,
+	itemsPerPage = 10,
 }) {
 	const [filters, setFilters] = useState({
 		search: "",
@@ -117,6 +175,7 @@ function AccommodationLogbook({
 	const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [showFilters, setShowFilters] = useState(false);
+	const [dateFilterResetKey, setDateFilterResetKey] = useState(0);
 	const loadingRef = useRef(false);
 
 	const requestFilters = useMemo(
@@ -155,8 +214,8 @@ function AccommodationLogbook({
 				});
 				setLastUpdatedAt(new Date());
 			} catch (err) {
-				console.error("Erro ao carregar logbook:", err);
-				setError("Não foi possível carregar o logbook agora.");
+				console.error("Erro ao carregar histórico:", err);
+				setError("Não foi possível carregar o histórico agora.");
 			} finally {
 				loadingRef.current = false;
 				setLoading(false);
@@ -196,6 +255,7 @@ function AccommodationLogbook({
 			action: "all",
 			context: "all",
 		});
+		setDateFilterResetKey((key) => key + 1);
 	};
 
 	const exportCsv = () => {
@@ -249,9 +309,8 @@ function AccommodationLogbook({
 				<div className="flex flex-col gap-3 border-b border-slate-100 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
 					<div className="min-w-0">
 						<div className="flex items-center gap-2">
-							<BookOpen className="h-4 w-4 text-slate-500" />
 							<h2 className="text-sm font-semibold text-slate-950">
-								Logbook das acomodações
+								Histórico de atividades
 							</h2>
 							<span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
 								{payload.summary.total} registros
@@ -273,7 +332,7 @@ function AccommodationLogbook({
 							<input
 								value={filters.search}
 								onChange={(event) => updateFilter("search", event.target.value)}
-								placeholder="Search"
+								placeholder="Buscar"
 								className="h-9 w-full rounded-md border border-slate-200 bg-white pl-8 pr-3 text-xs font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-slate-400"
 							/>
 						</div>
@@ -288,7 +347,7 @@ function AccommodationLogbook({
 							}`}
 						>
 							<Filter className="h-3.5 w-3.5" />
-							Filter
+							Filtros
 						</button>
 
 						<button
@@ -296,7 +355,7 @@ function AccommodationLogbook({
 							onClick={() => loadLogbook()}
 							disabled={refreshing || loading}
 							className="inline-flex h-9 items-center justify-center rounded-md border border-slate-200 bg-white px-2.5 text-slate-600 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
-							aria-label="Atualizar logbook"
+							aria-label="Atualizar histórico"
 							title="Atualizar"
 						>
 							<RefreshCw
@@ -311,14 +370,26 @@ function AccommodationLogbook({
 							className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-slate-950 px-3 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:pointer-events-none disabled:opacity-50"
 						>
 							<Download className="h-3.5 w-3.5" />
-							Export
+							Exportar
 						</button>
 					</div>
 				</div>
 
 				{showFilters && (
-					<div className="grid grid-cols-1 gap-3 border-b border-slate-100 bg-slate-50/70 px-4 py-3 md:grid-cols-2 xl:grid-cols-[0.8fr_0.8fr_1fr_1fr_1fr_auto]">
-						<label className="flex min-w-0 flex-col gap-1 text-[11px] font-medium text-slate-500">
+					<div className="grid grid-cols-1 gap-3 border-b border-slate-100 bg-slate-50/70 px-4 py-3 md:grid-cols-2 xl:grid-cols-[1.35fr_1fr_1fr_1fr_auto]">
+						<DateRangeFilter
+							startDate={filters.startDate}
+							endDate={filters.endDate}
+							resetKey={dateFilterResetKey}
+							onChange={({ startDate, endDate }) => {
+								setFilters((current) => ({
+									...current,
+									startDate,
+									endDate,
+								}));
+							}}
+						/>
+						<label className="hidden min-w-0 flex-col gap-1 text-[11px] font-medium text-slate-500">
 							De
 							<input
 								type="date"
@@ -330,12 +401,14 @@ function AccommodationLogbook({
 							/>
 						</label>
 
-						<label className="flex min-w-0 flex-col gap-1 text-[11px] font-medium text-slate-500">
+						<label className="hidden min-w-0 flex-col gap-1 text-[11px] font-medium text-slate-500">
 							Até
 							<input
 								type="date"
 								value={filters.endDate}
-								onChange={(event) => updateFilter("endDate", event.target.value)}
+								onChange={(event) =>
+									updateFilter("endDate", event.target.value)
+								}
 								className="h-9 min-w-0 rounded-md border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 outline-none transition focus:border-slate-400"
 							/>
 						</label>
@@ -388,11 +461,11 @@ function AccommodationLogbook({
 										aria-label="Selecionar todos"
 									/>
 								</th>
-								<th className="px-2 py-3">Date & Time</th>
-								<th className="px-2 py-3">User</th>
-								<th className="px-2 py-3">Event</th>
-								<th className="px-2 py-3">Source</th>
-								<th className="px-2 py-3">Record</th>
+								<th className="px-2 py-3">Data e hora</th>
+								<th className="px-2 py-3">Usuário</th>
+								<th className="px-2 py-3">Atividade</th>
+								<th className="px-2 py-3">Origem</th>
+								<th className="px-2 py-3">Registro</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-slate-100">
@@ -402,7 +475,7 @@ function AccommodationLogbook({
 										colSpan={6}
 										className="h-[340px] px-4 text-center text-xs font-medium text-slate-500"
 									>
-										Carregando logbook...
+										Carregando histórico...
 									</td>
 								</tr>
 							) : paginatedLogs.length > 0 ? (
@@ -465,7 +538,9 @@ function AccommodationLogbook({
 												</p>
 											</td>
 											<td className="whitespace-nowrap px-2 py-3 font-medium tabular-nums text-slate-600">
-												{log.bookingCode ? `#${log.bookingCode}` : log.contextKey}
+												{log.bookingCode
+													? `#${log.bookingCode}`
+													: log.contextKey}
 											</td>
 										</tr>
 									);
