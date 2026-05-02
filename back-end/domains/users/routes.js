@@ -11,9 +11,11 @@ import nodemailer from "nodemailer";
 import { JWTSign, JWTVerify } from "../../ultis/jwt.js";
 import { sendToSupabase, uploadImage } from "../controller.js";
 import { authenticateWithGoogle, authenticateWithGoogleCode, authenticateWithGoogleAccessToken, authenticateWithGithub } from "./authService.js";
+import { AUTH_COOKIE_NAME, AUTH_COOKIE_OPTIONS, clearAuthCookies, createRateLimiter, sanitizePublicUser, setAuthCookies } from "../../security.js";
 
 const router = Router();
 const bcryptSalt = bcrypt.genSaltSync();
+const authRateLimit = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 40 });
 
 // URLs padrão para foto e banner
 const DEFAULT_PHOTO_URL = `${process.env.SUPABASE_URL}/storage/v1/object/public/${process.env.SUPABASE_BUCKET}/user__default.png`;
@@ -23,27 +25,12 @@ const DEFAULT_BANNER_URL = `${process.env.SUPABASE_URL}/storage/v1/object/public
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Nomes de cookies COMPLETAMENTE diferentes
-const COOKIE_NAME = isProduction ? 'prod_auth_token' : 'dev_auth_token';
+const COOKIE_NAME = AUTH_COOKIE_NAME;
 
 console.log('🔧 Ambiente detectado:', isProduction ? 'PRODUÇÃO' : 'DESENVOLVIMENTO');
 console.log('📌 NODE_ENV:', process.env.NODE_ENV);
 
-// Configurações específicas por ambiente
-const COOKIE_OPTIONS = isProduction ? {
-  httpOnly: true,
-  secure: true,        // HTTPS obrigatório
-  sameSite: 'none',    // Cross-site para produção
-  path: '/',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  // domain omitido: o browser vincula ao domínio do back-end automaticamente
-} : {
-  httpOnly: true,
-  secure: false,       // Permite HTTP local
-  sameSite: 'lax',     // Mais permissivo para dev
-  path: '/',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  // SEM domain - fica restrito ao localhost
-};
+const COOKIE_OPTIONS = AUTH_COOKIE_OPTIONS;
 
 console.log('🍪 Nome do cookie:', COOKIE_NAME);
 console.log('⚙️ Opções do cookie:', COOKIE_OPTIONS);
@@ -74,9 +61,12 @@ const requireAuth = async (req, res, next) => {
 // ROTAS
 // ============================================
 
-router.get("/", async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   try {
-    const userDoc = await User.find();
+    if (!["admin", "moderator"].includes(req.user.role)) {
+      return res.status(403).json({ error: "Permissao insuficiente" });
+    }
+    const userDoc = await User.find().select("name email photo banner city role deactivated createdAt");
     res.json(userDoc);
   } catch (error) {
     res.status(500).json({ error: "Erro ao buscar usuários" });
@@ -118,12 +108,11 @@ router.post("/", async (req, res) => {
     });
 
     const { _id } = newUserDoc;
-    const newUserObj = { name, email, photo: photo || DEFAULT_PHOTO_URL, banner: DEFAULT_BANNER_URL, _id };
+    const newUserObj = { name, email, photo: photo || DEFAULT_PHOTO_URL, banner: DEFAULT_BANNER_URL, _id, role: "user" };
     const token = await JWTSign(newUserObj);
 
-    res
-      .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
-      .json(newUserObj);
+    setAuthCookies(res, token);
+    res.json(newUserObj);
 
   } catch (error) {
     // Trata erro de duplicidade do MongoDB
@@ -269,11 +258,11 @@ router.put("/:id", requireAuth, async (req, res) => {
 });
 
 // LOGIN
-router.post("/login", async (req, res) => {
+router.post("/login", authRateLimit, async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const userDoc = await User.findOne({ email });
+    const userDoc = await User.findOne({ email }).select("+password");
 
     if (!userDoc) {
       return res.status(400).json({ error: "Usuário não encontrado!" });
@@ -285,13 +274,12 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Senha inválida!" });
     }
 
-    const { name, photo, _id } = userDoc;
-    const newUserObj = { name, email, photo, _id };
+    const { name, photo, _id, role } = userDoc;
+    const newUserObj = { name, email, photo, _id, role };
     const token = await JWTSign(newUserObj);
 
-    res
-      .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
-      .json({ ...newUserObj, token });
+    setAuthCookies(res, token);
+    res.json(newUserObj);
 
   } catch (error) {
     console.error("Erro no login:", error);
@@ -336,9 +324,8 @@ router.post("/oauth/google", async (req, res) => {
     console.log('✅ [Google OAuth Route] Usuário autenticado:', user.email);
     console.log('   Token gerado:', token ? 'SIM' : 'NÃO');
 
-    res
-      .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
-      .json({ ...user, token }); // Retornar token junto com usuário
+    setAuthCookies(res, token);
+    res.json(user);
 
     console.log('✅ [Google OAuth Route] Resposta enviada com sucesso');
 
@@ -372,9 +359,8 @@ router.post("/oauth/github", async (req, res) => {
     console.log('   Token gerado:', token ? 'SIM' : 'NÃO');
     console.log('   Cookie options:', COOKIE_OPTIONS);
 
-    res
-      .cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
-      .json({ ...user, token }); // Retornar token junto com usuário
+    setAuthCookies(res, token);
+    res.json(user);
 
     console.log('✅ [GitHub OAuth Route] Resposta enviada com sucesso');
 
@@ -387,14 +373,14 @@ router.post("/oauth/github", async (req, res) => {
 // ============================================
 
 // FORGOT PASSWORD
-router.post("/forgot-password", async (req, res) => {
+router.post("/forgot-password", authRateLimit, async (req, res) => {
   const { email } = req.body;
 
   try {
     const userDoc = await User.findOne({ email });
 
     if (!userDoc) {
-      return res.status(400).json({ error: "Email não encontrado!" });
+      return res.json({ message: "Se o email existir, enviaremos instrucoes de recuperacao." });
     }
 
     // Gera token de reset
@@ -455,14 +441,14 @@ router.post("/forgot-password", async (req, res) => {
 });
 
 // RESET PASSWORD
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", authRateLimit, async (req, res) => {
   const { token, newPassword } = req.body;
 
   try {
     const userDoc = await User.findOne({
       resetToken: token,
       resetTokenExpiry: { $gt: Date.now() }
-    });
+    }).select("+resetToken +resetTokenExpiry");
 
     if (!userDoc) {
       return res.status(400).json({ error: "Token inválido ou expirado!" });
@@ -503,23 +489,7 @@ router.post("/logout", (req, res) => {
 
     console.log('🔄 Tentando limpar cookie:', COOKIE_NAME);
     
-    // Limpa o cookie do ambiente atual
-    res.clearCookie(COOKIE_NAME, COOKIE_OPTIONS);
-      
-      // Segurança extra: limpa ambos os cookies
-    res.clearCookie('prod_auth_token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      path: '/',
-    });
-    
-    res.clearCookie('dev_auth_token', {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      path: '/',
-    });
+    clearAuthCookies(res);
 
     console.log('✅ Cookies limpos com sucesso');
     res.json({ message: "Deslogado com sucesso!" });
@@ -552,12 +522,9 @@ router.delete("/:id", requireAuth, async (req, res) => {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    // Limpa todos os cookies
-    res.clearCookie(COOKIE_NAME, COOKIE_OPTIONS);
-    res.clearCookie('prod_auth_token', { httpOnly: true, secure: true, sameSite: 'none', path: '/' });
-    res.clearCookie('dev_auth_token', { httpOnly: true, secure: false, sameSite: 'lax', path: '/' });
+    clearAuthCookies(res);
 
-    res.json({ message: "Conta desativada com sucesso! Suas reservas e avaliações foram preservadas.", deactivatedUser });
+    res.json({ message: "Conta desativada com sucesso! Suas reservas e avaliações foram preservadas.", deactivatedUser: sanitizePublicUser(deactivatedUser) });
 
   } catch (error) {
     console.error("Erro ao desativar usuário:", error);

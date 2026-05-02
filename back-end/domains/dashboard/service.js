@@ -1,5 +1,6 @@
 import Booking from "../bookings/model.js";
 import Place from "../places/model.js";
+import "../users/model.js";
 import Notification from "../../NotificationModel.js";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;

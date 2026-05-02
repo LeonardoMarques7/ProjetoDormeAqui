@@ -11,6 +11,9 @@ export const getExtension = (path) => {
 
 export const downloadImage = async (link, destination) => {
 	const { extension, mimeType } = getExtension(link);
+	if (!mimeType || !String(mimeType).startsWith("image/")) {
+		throw new Error("URL nao aponta para uma imagem suportada");
+	}
 	const filename = `${Date.now()}.${extension}`;
 	const fullPath = `${destination}${filename}`;
 

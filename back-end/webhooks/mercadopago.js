@@ -15,7 +15,10 @@ import path from "path";
  */
 export const handleMercadoPagoWebhook = async (req, res) => {
     try {
-        console.log("Webhook recebido:", JSON.stringify(req.body, null, 2));
+        console.log("Webhook Mercado Pago recebido", {
+            type: req.body?.type || req.body?.topic,
+            hasDataId: Boolean(req.body?.data?.id || req.body?.id || req.body?.resource),
+        });
         // Salva notificação em log para auditoria / conciliação financeira
         try {
             const logPath = path.resolve("tmp", "mp_notifications.log");

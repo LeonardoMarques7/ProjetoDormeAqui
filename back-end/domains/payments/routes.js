@@ -57,6 +57,9 @@ router.get("/test-config", testMercadoPagoConfig);
 
 // Admin: lista pagamentos rejeitados (failedPayments)
 router.get("/failed", authenticateUser, async (req, res) => {
+    if (!["admin", "moderator"].includes(req.user.role)) {
+        return res.status(403).json({ success: false, message: "Permissao insuficiente" });
+    }
     try {
         const FailedPayment = (await import("./failedPaymentModel.js")).default;
         const page = Math.max(0, parseInt(req.query.page) || 0);
@@ -71,6 +74,9 @@ router.get("/failed", authenticateUser, async (req, res) => {
 
 // Retry endpoint para um failedPayment (admin)
 router.post('/failed/:paymentId/retry', authenticateUser, async (req, res) => {
+    if (!["admin", "moderator"].includes(req.user.role)) {
+        return res.status(403).json({ success: false, message: "Permissao insuficiente" });
+    }
     try {
         const { retryFailedPayment } = await import('./controller.js');
         return await retryFailedPayment(req, res);

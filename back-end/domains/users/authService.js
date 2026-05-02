@@ -75,7 +75,8 @@ export const authenticateWithGoogle = async (tokenId) => {
       name: user.name,
       email: user.email,
       photo: user.photo,
-      authMethod: user.authMethod
+      authMethod: user.authMethod,
+      role: user.role || "user"
     };
 
     const token = await JWTSign(userObj);
@@ -191,7 +192,8 @@ export const authenticateWithGoogleCode = async (code) => {
       name: user.name,
       email: user.email,
       photo: user.photo,
-      authMethod: user.authMethod
+      authMethod: user.authMethod,
+      role: user.role || "user"
     };
 
     const token = await JWTSign(userObj);
@@ -261,7 +263,8 @@ export const authenticateWithGoogleAccessToken = async (accessToken) => {
       name: user.name,
       email: user.email,
       photo: user.photo,
-      authMethod: user.authMethod
+      authMethod: user.authMethod,
+      role: user.role || "user"
     };
 
     const token = await JWTSign(userObj);
@@ -375,7 +378,8 @@ export const authenticateWithGithub = async (code) => {
       name: user.name,
       email: user.email,
       photo: user.photo,
-      authMethod: user.authMethod
+      authMethod: user.authMethod,
+      role: user.role || "user"
     };
 
     const token = await JWTSign(userObj);

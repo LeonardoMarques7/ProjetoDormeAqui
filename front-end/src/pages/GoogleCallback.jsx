@@ -54,11 +54,6 @@ export const GoogleCallback = () => {
 				if (response.data) {
 					console.log("✅ Login Google bem-sucedido:", response.data);
 
-					// Salvar token em localStorage (se fornecido)
-					if (response.data.token) {
-						localStorage.setItem("token", response.data.token);
-					}
-
 					// Salvar usuário no contexto e localStorage
 					setUser(response.data);
 					localStorage.setItem("user", JSON.stringify(response.data));

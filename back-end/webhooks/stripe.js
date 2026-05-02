@@ -48,11 +48,14 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
   let event;
   try {
     if (stripeClient && webhookSecret) {
-      // req.body is a Buffer because of express.raw
-      event = stripeClient.webhooks.constructEvent(req.body, sig, webhookSecret);
+      const rawBody = req.rawBody || req.body;
+      event = stripeClient.webhooks.constructEvent(rawBody, sig, webhookSecret);
     } else {
-      // Fallback for environments where stripe is not configured (e.g., tests)
-      event = JSON.parse(req.body.toString());
+      if (process.env.NODE_ENV === 'production') {
+        return res.status(500).json({ error: 'Stripe webhook secret not configured' });
+      }
+      const body = Buffer.isBuffer(req.body) ? req.body.toString() : JSON.stringify(req.body);
+      event = JSON.parse(body);
     }
   } catch (err) {
     console.error('❌ Stripe webhook signature verification failed:', err && err.message ? err.message : err);

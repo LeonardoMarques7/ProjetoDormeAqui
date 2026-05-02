@@ -61,6 +61,11 @@ const PaymentSuccess = ({ className, ...props }) => {
 
 				const resp = await axios.post("/bookings/from-payment", { paymentId });
 				if (resp?.data) {
+					if (resp.status === 202) {
+						showMessage("Reserva aguardando confirmacao do webhook de pagamento.", "info");
+						hasCreatedBooking.current = true;
+						return;
+					}
 					setBookingDetails(resp.data);
 					showMessage("Reserva criada com sucesso.", "success");
 					hasCreatedBooking.current = true;
@@ -150,6 +155,11 @@ const PaymentSuccess = ({ className, ...props }) => {
 				// (O backend pode usar esse endpoint para buscar metadata/payment info e criar a booking de forma segura)
 				const resp = await axios.post("/bookings/from-payment", { paymentId });
 				if (resp?.data) {
+					if (resp.status === 202) {
+						showMessage("Reserva aguardando confirmacao do webhook de pagamento.", "info");
+						hasCreatedBooking.current = true;
+						return;
+					}
 					setBookingDetails(resp.data);
 					showMessage("Reserva criada com sucesso.", "success");
 					hasCreatedBooking.current = true;

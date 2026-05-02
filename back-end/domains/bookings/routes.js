@@ -4,12 +4,12 @@ import Booking from "./model.js";
 import { JWTVerify } from "../../ultis/jwt.js";
 import mongoose from "mongoose";
 import * as transitionService from "./transitionService.js";
+import { AUTH_COOKIE_NAME as COOKIE_NAME } from "../../security.js";
 
 const router = Router();
 
 // Configuração do cookie baseada no ambiente (igual ao users/routes.js)
 const isProduction = process.env.NODE_ENV === 'production';
-const COOKIE_NAME = isProduction ? 'prod_auth_token' : 'dev_auth_token';
 
 router.get("/owner", async (req, res) => {
 
@@ -55,9 +55,7 @@ router.get("/place/:id", async (req, res) => {
 
   try {
     const bookingDocs = await Booking.find({ place: id })
-      .populate({
-        path: "place",
-      });
+      .select("checkin checkout status");
 
     res.json(bookingDocs);
   } catch (error) {
@@ -98,7 +96,13 @@ router.get("/place/:id/booked-dates", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-    const { place, user, pricePerNight, priceTotal, checkin, checkout, guests, nights } = req.body;
+    const { place, checkin, checkout, guests } = req.body;
+    let authenticatedUser;
+    try {
+        authenticatedUser = await JWTVerify(req, COOKIE_NAME);
+    } catch {
+        return res.status(401).json({ message: "Autenticacao necessaria." });
+    }
 
 
     // Iniciar sessão de transação para garantir atomicidade e prevenir conflitos de concorrência
@@ -109,7 +113,7 @@ router.post("/", async (req, res) => {
     try {
         // Verificar se o usuário está desativado
         const User = (await import("../users/model.js")).default;
-        const userDoc = await User.findById(user).session(session);
+        const userDoc = await User.findById(authenticatedUser._id).session(session);
 
         if (!userDoc) {
             await session.abortTransaction();
@@ -141,6 +145,23 @@ router.post("/", async (req, res) => {
 
         const checkinDate = new Date(checkin);
         const checkoutDate = new Date(checkout);
+        const guestsNumber = parseInt(guests, 10);
+        const calculatedNights = Math.ceil((checkoutDate - checkinDate) / (1000 * 60 * 60 * 24));
+
+        if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime()) || checkoutDate <= checkinDate) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(400).json({ message: "Periodo de reserva invalido." });
+        }
+
+        if (!Number.isInteger(guestsNumber) || guestsNumber < 1 || guestsNumber > Number(placeDoc.guests || 1)) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(400).json({ message: "Numero de hospedes invalido." });
+        }
+
+        const pricePerNight = Number(placeDoc.price) || 0;
+        const priceTotal = pricePerNight * calculatedNights;
 
         // Verificar se há reservas conflitantes dentro da transação
         // Esta verificação é feita atomicamente com a criação da reserva
@@ -180,7 +201,14 @@ router.post("/", async (req, res) => {
 
         // Criar a reserva dentro da transação
         const newBookingDoc = await Booking.create([{
-            place, user, pricePerNight, priceTotal, checkin: checkinDate, checkout: checkoutDate, guests, nights
+            place,
+            user: authenticatedUser._id,
+            pricePerNight,
+            priceTotal,
+            checkin: checkinDate,
+            checkout: checkoutDate,
+            guests: guestsNumber,
+            nights: calculatedNights
         }], { session });
 
 
@@ -203,6 +231,12 @@ router.post("/", async (req, res) => {
 // Endpoint para criar/confirmar booking a partir de um paymentId (idempotente)
 router.post("/from-payment", async (req, res) => {
     const { paymentId } = req.body;
+    let requester;
+    try {
+        requester = await JWTVerify(req, COOKIE_NAME);
+    } catch {
+        return res.status(401).json({ message: "Autenticacao necessaria." });
+    }
 
     if (!paymentId) {
         return res.status(400).json({ message: "paymentId é obrigatório." });
@@ -247,6 +281,9 @@ router.post("/from-payment", async (req, res) => {
         // IDEMPOTÊNCIA: verifica se existe reserva com esse paymentId
         const existingBooking = await Booking.findOne({ mercadopagoPaymentId: String(paymentId) });
         if (existingBooking) {
+            if (existingBooking.user.toString() !== requester._id.toString() && !["admin", "moderator"].includes(requester.role)) {
+                return res.status(403).json({ message: "Voce nao tem permissao para consultar esta reserva." });
+            }
             const populatedBooking = await existingBooking.populate([
                 {
                     path: "place",
@@ -289,22 +326,11 @@ router.post("/from-payment", async (req, res) => {
             });
         }
 
-        // Criar a reserva
-        const createdBooking = await Booking.createFromPayment({
-            place: accommodationId,
-            user: userId,
-            pricePerNight,
-            priceTotal,
-            checkin: checkIn,
-            checkout: checkOut,
-            guests,
-            nights,
-            mercadopagoPaymentId: paymentId.toString(),
-            paymentStatus: "approved",
+        return res.status(202).json({
+            message: "Pagamento aprovado, mas a reserva deve ser criada pelo webhook confirmado do provedor.",
+            paymentStatus: mappedStatus,
+            paymentId: String(paymentId),
         });
-
-        console.log(`✅ /from-payment: Reserva criada com sucesso`, { bookingId: createdBooking._id, paymentId });
-        return res.status(200).json(createdBooking);
     } catch (error) {
         // Propaga statusCode se definido na lógica do modelo
         if (error && error.statusCode) {
@@ -517,6 +543,10 @@ router.post("/:id/cancel", async (req, res) => {
 router.post("/:id/transition", async (req, res) => {
     try {
         const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
+        req.user = await JWTVerify(req, COOKIE_NAME);
+        if (!["admin", "moderator"].includes(req.user.role)) {
+            return res.status(403).json({ message: "Permissao insuficiente." });
+        }
         const { toStatus, reason } = req.body;
 
         if (!toStatus) {
@@ -556,6 +586,10 @@ router.post("/:id/transition", async (req, res) => {
 router.post("/:id/request-review", async (req, res) => {
     try {
         const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
+        req.user = await JWTVerify(req, COOKIE_NAME);
+        if (!["admin", "moderator"].includes(req.user.role)) {
+            return res.status(403).json({ message: "Permissao insuficiente." });
+        }
         const { reason } = req.body;
 
         const booking = await Booking.findById(req.params.id);
@@ -591,6 +625,10 @@ router.post("/:id/request-review", async (req, res) => {
 router.post("/:id/complete", async (req, res) => {
     try {
         const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
+        req.user = await JWTVerify(req, COOKIE_NAME);
+        if (!["admin", "moderator"].includes(req.user.role)) {
+            return res.status(403).json({ message: "Permissao insuficiente." });
+        }
 
         const booking = await Booking.findById(req.params.id);
 

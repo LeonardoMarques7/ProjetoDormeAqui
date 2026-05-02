@@ -41,11 +41,7 @@ export const GithubCallback = () => {
 					{ withCredentials: true },
 				);
 
-				if (isMounted && response.data && response.data.token) {
-					localStorage.setItem("token", response.data.token);
-					axios.defaults.headers.common["Authorization"] =
-						`Bearer ${response.data.token}`;
-
+				if (isMounted && response.data) {
 					if (response.data._id) {
 						setUser(response.data);
 						localStorage.setItem("user", JSON.stringify(response.data));
