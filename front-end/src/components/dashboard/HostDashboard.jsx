@@ -1,6 +1,6 @@
 import HostCenter from "./HostCenter";
 
-function HostDashboard({ initialView = "today", activeSection }) {
+function HostDashboard({ initialView = "overview", activeSection }) {
 	return <HostCenter initialView={initialView} activeSection={activeSection} />;
 }
 

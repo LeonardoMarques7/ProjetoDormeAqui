@@ -46,7 +46,7 @@ import "@mantine/core/styles.css";
 import GithubCallback from "./pages/GithubCallback";
 import GoogleCallback from "./pages/GoogleCallback";
 
-import { useEffect, useContext, useState } from "react";
+import { useEffect, useContext } from "react";
 import {
 	MobileContextProvider,
 	MobileContext, // ← exportar isso do seu MobileContext.jsx
@@ -64,13 +64,6 @@ axios.defaults.baseURL =
 		: "https://zk8kgskg4cwg80osgckokowo.46.62.153.177.sslip.io/api";
 axios.defaults.withCredentials = true;
 
-const dashboardNavItems = [
-	{ id: "today", label: "Hoje" },
-	{ id: "places", label: "Acomodações" },
-	{ id: "performance", label: "Desempenho" },
-	{ id: "logbook", label: "Histórico" },
-];
-
 function ScrollToTop() {
 	const { pathname } = useLocation();
 
@@ -85,12 +78,10 @@ function ScrollToTop() {
 function AppContent() {
 	const { mobile } = useContext(MobileContext); // ← aqui consome o contexto
 	const location = useLocation();
-	const [dashboardSection, setDashboardSection] = useState("today");
 
 	const isComponentActive =
 		location.pathname === "/login" || location.pathname === "/register";
 	const isHome = location.pathname === "/";
-	const isHostDashboard = location.pathname === "/account/dashboard";
 
 	return (
 		<MantineProvider>
@@ -102,16 +93,7 @@ function AppContent() {
 								<div className="relative flex flex-col min-h-screen w-full bg-white">
 									{/* Header */}
 									{!mobile && (
-										<Header
-											isAbsolute={isHome}
-											dashboardNavItems={
-												isHostDashboard ? dashboardNavItems : undefined
-											}
-											activeDashboardSection={dashboardSection}
-											onDashboardSectionChange={
-												isHostDashboard ? setDashboardSection : undefined
-											}
-										/>
+										<Header isAbsolute={isHome} />
 									)}
 									{/* <NotificationToast /> */}
 									<ScrollToTop />
@@ -144,7 +126,7 @@ function AppContent() {
 														path="/account/:subpage/:action?/:id?"
 														element={
 															<PrivateRoute>
-																<Account dashboardSection={dashboardSection} />
+																<Account />
 															</PrivateRoute>
 														}
 													/>
