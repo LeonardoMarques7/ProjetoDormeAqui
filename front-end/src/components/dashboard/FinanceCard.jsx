@@ -7,10 +7,10 @@ const formatMoney = (value = 0) =>
 
 const FinanceCard = ({ finance }) => {
   const items = [
-    { key: "monthlyEarnings", label: "Ganhos do mês", value: finance?.monthlyEarnings ?? 0 },
-    { key: "futureEarnings", label: "Ganhos futuros", value: finance?.futureEarnings ?? 0 },
-    { key: "totalFees", label: "Total de taxas", value: finance?.totalFees ?? 0 },
-    { key: "averagePerNight", label: "Média por diária", value: finance?.averagePerNight ?? 0 },
+    { key: "monthlyEarnings", label: "Receita bruta do mês", value: finance?.monthlyEarnings ?? 0 },
+    { key: "futureEarnings", label: "Receita futura", value: finance?.futureEarnings ?? 0 },
+    { key: "totalFees", label: "Despesas operacionais", value: finance?.totalFees ?? 0 },
+    { key: "averagePerNight", label: "Diária média", value: finance?.averagePerNight ?? 0 },
   ];
 
   return (

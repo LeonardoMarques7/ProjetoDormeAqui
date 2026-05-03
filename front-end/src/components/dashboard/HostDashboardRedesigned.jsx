@@ -14,13 +14,13 @@ import {
 	Tooltip,
 } from "recharts";
 import {
-	DollarSign,
-	BarChart3,
+	DollarMinimalistic as DollarSign,
+	Chart as BarChart3,
 	Calendar,
 	Star,
-	TrendingUp,
-	TrendingDown,
-} from "lucide-react";
+	GraphUp as TrendingUp,
+	GraphDown as TrendingDown,
+} from "@solar-icons/react";
 import { getHostDashboard } from "@/services/dashboardService";
 import {
 	calculateMonthlyRevenue,
@@ -100,9 +100,9 @@ const KPICard = ({
 							}`}
 						>
 							{trend === "up" ? (
-								<TrendingUp className="w-4 h-4" />
+								<TrendingUp className="w-4 h-4" weight="BoldDuotone" />
 							) : (
-								<TrendingDown className="w-4 h-4" />
+								<TrendingDown className="w-4 h-4" weight="BoldDuotone" />
 							)}
 							<span>{Math.abs(trendValue)}%</span>
 						</div>
@@ -129,7 +129,7 @@ const KPICard = ({
 				<div
 					className={`absolute bottom-4 right-4 p-3 ${colors.label} opacity-10 group-hover:opacity-20 transition-opacity duration-300`}
 				>
-					<Icon className="w-5 h-5" />
+					<Icon className="w-5 h-5" weight="BoldDuotone" />
 				</div>
 			)}
 		</div>

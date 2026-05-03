@@ -2,6 +2,7 @@ import Booking from "../bookings/model.js";
 import Place from "../places/model.js";
 import "../users/model.js";
 import Notification from "../../NotificationModel.js";
+import { buildCleaningInspectionData } from "../cleaningInspection/service.js";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const HOST_FEE_RATE = 0.1;
@@ -26,6 +27,15 @@ const ACTIVE_BOOKING_STATUSES = new Set([
 ]);
 
 const CANCELED_BOOKING_STATUSES = new Set(["canceled", "rejected"]);
+
+const PAYMENT_STATUS_LABELS = {
+  approved: "Aprovado",
+  pending: "Pendente",
+  rejected: "Cancelado",
+  canceled: "Cancelado",
+  refunded: "Reembolsado",
+  in_review: "Em análise",
+};
 
 const toStartOfDay = (date) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -158,12 +168,305 @@ const makeAlert = ({ id, severity, title, message, type = "operation" }) => ({
   message,
 });
 
+const makeOverviewKpi = ({
+  key,
+  label,
+  value = null,
+  format = "number",
+  helper = "",
+  tone = "slate",
+  status = "neutral",
+  available = true,
+}) => ({
+  key,
+  label,
+  value,
+  format,
+  helper,
+  tone,
+  status,
+  available,
+});
+
+const makeFinancialMetric = ({
+  key,
+  label,
+  value = null,
+  format = "currency",
+  helper = "",
+  tone = "slate",
+  available = true,
+}) => ({
+  key,
+  label,
+  value,
+  format,
+  helper,
+  tone,
+  available,
+});
+
+const makeUnavailableFinancialMetric = (key, label, helper) =>
+  makeFinancialMetric({
+    key,
+    label,
+    value: null,
+    helper,
+    tone: "slate",
+    available: false,
+  });
+
+const buildOverviewPayload = ({
+  checkinsToday,
+  checkoutsToday,
+  pendingBookings,
+  monthlyGrossRevenue,
+  futureRevenue,
+  operatingExpenses,
+  estimatedProfit,
+  availableNightEarnings,
+  metrics,
+  places,
+  operationalProperties,
+  alertGroups,
+}) => {
+  const propertiesWithAlerts = operationalProperties.filter((property) =>
+    ["critical", "warning"].includes(property.status)
+  ).length;
+  const criticalAlerts = alertGroups.critical.length;
+  const activeProperties = places.filter((place) => place.isActive).length;
+  const pendingPreCheckins = null;
+  const pendingCleanings = null;
+  const pendingInspections = null;
+  const openIncidents = null;
+
+  return {
+    actionsToday: {
+      checkins: checkinsToday,
+      checkouts: checkoutsToday,
+      pendingBookings,
+      pendingPreCheckins,
+      pendingCleanings,
+      items: [
+        makeOverviewKpi({
+          key: "checkinsToday",
+          label: "Entradas hoje",
+          value: checkinsToday,
+          helper: "Check-ins previstos para hoje",
+          tone: "green",
+          status: checkinsToday > 0 ? "action" : "neutral",
+        }),
+        makeOverviewKpi({
+          key: "checkoutsToday",
+          label: "Saídas hoje",
+          value: checkoutsToday,
+          helper: "Check-outs previstos para hoje",
+          tone: "amber",
+          status: checkoutsToday > 0 ? "action" : "neutral",
+        }),
+        makeOverviewKpi({
+          key: "pendingBookings",
+          label: "Reservas pendentes",
+          value: pendingBookings,
+          helper: "Aguardando confirmação",
+          tone: "blue",
+          status: pendingBookings > 0 ? "attention" : "neutral",
+        }),
+        makeOverviewKpi({
+          key: "pendingPreCheckins",
+          label: "Pré-check-ins pendentes",
+          value: pendingPreCheckins,
+          helper: "Dados indisponíveis no back-end atual",
+          tone: "slate",
+          status: "unavailable",
+          available: false,
+        }),
+        makeOverviewKpi({
+          key: "pendingCleanings",
+          label: "Limpezas pendentes",
+          value: pendingCleanings,
+          helper: "Dados indisponíveis no back-end atual",
+          tone: "slate",
+          status: "unavailable",
+          available: false,
+        }),
+      ],
+    },
+    operationalRisks: {
+      propertiesWithAlerts,
+      pendingInspections,
+      openIncidents,
+      criticalAlerts,
+      items: [
+        makeOverviewKpi({
+          key: "propertiesWithAlerts",
+          label: "Imóveis com alerta",
+          value: propertiesWithAlerts,
+          helper: "Imóveis com status crítico ou de atenção",
+          tone: propertiesWithAlerts > 0 ? "amber" : "green",
+          status: propertiesWithAlerts > 0 ? "attention" : "healthy",
+        }),
+        makeOverviewKpi({
+          key: "pendingInspections",
+          label: "Vistorias pendentes",
+          value: pendingInspections,
+          helper: "Dados indisponíveis no back-end atual",
+          tone: "slate",
+          status: "unavailable",
+          available: false,
+        }),
+        makeOverviewKpi({
+          key: "openIncidents",
+          label: "Ocorrências abertas",
+          value: openIncidents,
+          helper: "Dados indisponíveis no back-end atual",
+          tone: "slate",
+          status: "unavailable",
+          available: false,
+        }),
+        makeOverviewKpi({
+          key: "criticalAlerts",
+          label: "Alertas críticos",
+          value: criticalAlerts,
+          helper: "Itens que exigem ação imediata",
+          tone: criticalAlerts > 0 ? "red" : "green",
+          status: criticalAlerts > 0 ? "critical" : "healthy",
+        }),
+      ],
+    },
+    financialSummary: {
+      revenueType: "gross",
+      monthlyGrossRevenue,
+      operatingExpenses,
+      estimatedProfit,
+      futureRevenue,
+      availableNightEarnings,
+      items: [
+        makeOverviewKpi({
+          key: "monthlyGrossRevenue",
+          label: "Receita bruta do mês",
+          value: monthlyGrossRevenue,
+          format: "currency",
+          helper: "Reservas aprovadas com check-out no mês",
+          tone: "green",
+          status: "neutral",
+        }),
+        makeOverviewKpi({
+          key: "operatingExpenses",
+          label: "Despesas operacionais",
+          value: operatingExpenses,
+          format: "currency",
+          helper: "Custos estimados da operação",
+          tone: operatingExpenses > 0 ? "amber" : "slate",
+          status: operatingExpenses > 0 ? "attention" : "neutral",
+        }),
+        makeOverviewKpi({
+          key: "estimatedProfit",
+          label: "Lucro estimado",
+          value: estimatedProfit,
+          format: "currency",
+          helper: "Receita bruta menos despesas operacionais conhecidas",
+          tone: estimatedProfit >= 0 ? "green" : "red",
+          status: estimatedProfit >= 0 ? "healthy" : "critical",
+        }),
+        makeOverviewKpi({
+          key: "futureRevenue",
+          label: "Receita futura",
+          value: futureRevenue,
+          format: "currency",
+          helper: "Reservas futuras confirmadas e aprovadas",
+          tone: "blue",
+          status: "neutral",
+        }),
+        makeOverviewKpi({
+          key: "availableNightEarnings",
+          label: "Ganho por noite disponível",
+          value: availableNightEarnings,
+          format: "currency",
+          helper: "Receita bruta mensal dividida pelas noites disponíveis",
+          tone: "violet",
+          status: "neutral",
+        }),
+      ],
+    },
+    performanceSummary: {
+      activeProperties,
+      occupancyRate: metrics.occupancyRate,
+      averageRating: metrics.averageRating,
+      averageDailyRate: metrics.averageNightPrice,
+      items: [
+        makeOverviewKpi({
+          key: "activeProperties",
+          label: "Imóveis ativos",
+          value: activeProperties,
+          helper: `${places.length} imóveis cadastrados`,
+          tone: "blue",
+          status: "neutral",
+        }),
+        makeOverviewKpi({
+          key: "occupancyRate",
+          label: "Ocupação média",
+          value: metrics.occupancyRate,
+          format: "percent",
+          helper: "Média do mês atual",
+          tone: "green",
+          status: metrics.occupancyRate < 35 ? "attention" : "healthy",
+        }),
+        makeOverviewKpi({
+          key: "averageRating",
+          label: "Avaliação média",
+          value: metrics.averageRating,
+          format: "rating",
+          helper: metrics.averageRating ? "Média dos imóveis avaliados" : "Sem avaliações suficientes",
+          tone: "violet",
+          status: metrics.averageRating && metrics.averageRating < 4.5 ? "attention" : "neutral",
+          available: metrics.averageRating !== null,
+        }),
+        makeOverviewKpi({
+          key: "averageDailyRate",
+          label: "Diária média",
+          value: metrics.averageNightPrice,
+          format: "currency",
+          helper: "Média por noite reservada",
+          tone: "slate",
+          status: "neutral",
+        }),
+      ],
+    },
+    unavailableData: [
+      {
+        key: "pendingPreCheckins",
+        label: "Pré-check-ins pendentes",
+        requiredBackend: "Criar domínio ou campo de pré-check-in vinculado à reserva.",
+      },
+      {
+        key: "pendingCleanings",
+        label: "Limpezas pendentes",
+        requiredBackend: "Criar domínio de tarefas de limpeza entre check-out e próximo check-in.",
+      },
+      {
+        key: "pendingInspections",
+        label: "Vistorias pendentes",
+        requiredBackend: "Criar domínio de vistorias com status e prazo.",
+      },
+      {
+        key: "openIncidents",
+        label: "Ocorrências abertas",
+        requiredBackend: "Criar domínio de ocorrências/manutenção/danos com severidade.",
+      },
+    ],
+  };
+};
+
 export const buildHostDashboardData = async (hostId) => {
   const now = new Date();
   const todayEnd = toEndOfDay(now);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = toEndOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+  const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const previousMonthEnd = toEndOfDay(new Date(now.getFullYear(), now.getMonth(), 0));
   const monthDays = eachDayBetween(monthStart, monthEnd);
+  const cleaningInspection = await buildCleaningInspectionData(hostId);
 
   const places = await Place.find({ owner: hostId })
     .select("title city price averageRating isActive checkin checkout photos guests rooms beds bathrooms perks")
@@ -198,11 +501,48 @@ export const buildHostDashboardData = async (hostId) => {
       },
       finance: {
         monthlyEarnings: 0,
+        monthlyGrossRevenue: 0,
+        monthlyNetRevenue: 0,
         futureEarnings: 0,
+        futureRevenue: 0,
         totalFees: 0,
+        operatingExpenses: 0,
+        estimatedProfit: 0,
+        profitMargin: null,
         averagePerNight: 0,
         availableNightEarnings: 0,
         revPAR: 0,
+      },
+      financial: {
+        period: {
+          key: "current_month",
+          label: "Mês atual",
+          start: monthStart,
+          end: monthEnd,
+        },
+        filters: [
+          { key: "current_month", label: "Mês atual", available: true },
+          { key: "previous_month", label: "Mês anterior", available: true },
+          { key: "upcoming_receivables", label: "Próximos recebimentos", available: true },
+          { key: "by_property", label: "Por acomodação", available: true },
+          { key: "by_payment_status", label: "Por status do pagamento", available: true },
+        ],
+        summaryCards: [],
+        revenue: { items: [] },
+        expenses: { items: [] },
+        profitability: { items: [] },
+        properties: [],
+        paymentsRefunds: [],
+        comparison: {
+          currentMonth: null,
+          previousMonth: null,
+          unavailableReason: "Sem acomodações cadastradas.",
+        },
+        unavailableData: [
+          "Receita líquida real depende de taxas, impostos e repasses persistidos.",
+          "Despesas detalhadas por categoria dependem de um domínio financeiro de despesas.",
+          "Reembolsos dependem de registros persistidos de estorno.",
+        ],
       },
       metrics: {
         occupancyRate: 0,
@@ -211,22 +551,35 @@ export const buildHostDashboardData = async (hostId) => {
         averageRating: null,
       },
       tasks: [],
-      overview: {
-        actionsToday: {
-          checkins: 0,
-          checkouts: 0,
-          pendingBookings: 0,
-          propertiesWithAlerts: 0,
+      overview: buildOverviewPayload({
+        checkinsToday: 0,
+        checkoutsToday: 0,
+        pendingBookings: 0,
+        monthlyGrossRevenue: 0,
+        futureRevenue: 0,
+        operatingExpenses: 0,
+        estimatedProfit: 0,
+        availableNightEarnings: 0,
+        metrics: {
+          occupancyRate: 0,
+          averageNightPrice: 0,
+          averageRating: null,
         },
-        financialSummary: {
-          monthlyEarnings: 0,
-          futureEarnings: 0,
-          totalFees: 0,
-          availableNightEarnings: 0,
+        places: [],
+        operationalProperties: [],
+        alertGroups: {
+          critical: [],
+          warning: [],
+          info: [],
         },
-      },
+      }),
       operationalProperties: [],
+      cleaningInspection,
       upcomingMovements: [],
+      upcomingMovementGroups: {
+        checkins: [],
+        checkouts: [],
+      },
       charts: {
         revenueProjection: [],
         propertyPerformance: [],
@@ -279,8 +632,11 @@ export const buildHostDashboardData = async (hostId) => {
         place,
         activeBookings: 0,
         monthlyRevenue: 0,
+        monthlyFees: 0,
+        monthlyNetRevenue: 0,
         totalRevenue: 0,
         bookedNights: 0,
+        monthlyBookedNights: 0,
         futureEvents: [],
       },
     ])
@@ -294,9 +650,15 @@ export const buildHostDashboardData = async (hostId) => {
   let monthlyEarnings = 0;
   let futureEarnings = 0;
   let totalFees = 0;
+  let previousMonthEarnings = 0;
+  let previousMonthFees = 0;
+  let approvedPaymentsTotal = 0;
+  let pendingPaymentsTotal = 0;
+  let approvedFutureBookingsTotal = 0;
   let totalNights = 0;
   let totalNightsPrice = 0;
   let occupancyBookedNights = 0;
+  const paymentsRefunds = [];
 
   for (const booking of bookings) {
     const checkinDate = new Date(booking.checkin);
@@ -320,15 +682,26 @@ export const buildHostDashboardData = async (hostId) => {
     }
 
     if (paymentStatus === "approved") {
+      approvedPaymentsTotal += bookingTotal;
       if (checkoutDate <= todayEnd && checkoutDate >= monthStart && !bookingIsCanceled) {
         monthlyEarnings += bookingTotal;
-        if (propertyBucket) propertyBucket.monthlyRevenue += bookingTotal;
+        if (propertyBucket) {
+          propertyBucket.monthlyRevenue += bookingTotal;
+          propertyBucket.monthlyFees += bookingTotal * HOST_FEE_RATE;
+        }
+      }
+      if (checkoutDate >= previousMonthStart && checkoutDate <= previousMonthEnd && !bookingIsCanceled) {
+        previousMonthEarnings += bookingTotal;
+        previousMonthFees += bookingTotal * HOST_FEE_RATE;
       }
       if (checkinDate > todayEnd && status === "confirmed") {
         futureEarnings += bookingTotal;
+        approvedFutureBookingsTotal += bookingTotal;
       }
       totalFees += bookingTotal * HOST_FEE_RATE;
       if (!bookingIsCanceled && propertyBucket) propertyBucket.totalRevenue += bookingTotal;
+    } else if (paymentStatus === "pending") {
+      pendingPaymentsTotal += bookingTotal;
     }
 
     if (bookingNights > 0 && !bookingIsCanceled) {
@@ -340,7 +713,23 @@ export const buildHostDashboardData = async (hostId) => {
     if (!bookingIsCanceled) {
       const overlapNights = overlapDays(checkinDate, checkoutDate, monthStart, monthEnd);
       occupancyBookedNights += overlapNights;
+      if (propertyBucket) propertyBucket.monthlyBookedNights += overlapNights;
     }
+
+    paymentsRefunds.push({
+      id: String(booking._id),
+      bookingId: String(booking._id),
+      type: paymentStatus === "approved" ? "payment" : "payment_pending",
+      label: paymentStatus === "approved" ? "Pagamento aprovado" : "Pagamento pendente",
+      value: bookingTotal,
+      date: booking.updatedAt || booking.createdAt || booking.checkin,
+      reservation: String(booking._id).slice(-6).toUpperCase(),
+      placeTitle: place?.title || "Acomodação",
+      guestName: booking.user?.name || "Hóspede",
+      status: paymentStatus,
+      statusLabel: PAYMENT_STATUS_LABELS[paymentStatus] || paymentStatus || "Indisponível",
+      available: true,
+    });
 
     if (bookingIsActive) {
         if (propertyBucket) {
@@ -590,8 +979,11 @@ export const buildHostDashboardData = async (hostId) => {
         averageRating: rating,
         isActive: place.isActive,
         monthlyRevenue: bucket.monthlyRevenue,
+        monthlyFees: bucket.monthlyFees,
+        monthlyNetRevenue: bucket.monthlyRevenue - bucket.monthlyFees,
         totalRevenue: bucket.totalRevenue,
         bookedNights: bucket.bookedNights,
+        monthlyBookedNights: bucket.monthlyBookedNights,
         occupancyRate,
         averageDailyRate,
         nextEvent,
@@ -601,7 +993,7 @@ export const buildHostDashboardData = async (hostId) => {
           status === "critical"
             ? "Crítico"
             : status === "warning"
-              ? "Em atenção"
+              ? "Imóveis com alerta"
               : "Operação saudável",
         priorityScore,
       };
@@ -623,6 +1015,10 @@ export const buildHostDashboardData = async (hostId) => {
     .filter((event) => (event.type === "checkin" || event.type === "checkout") && new Date(event.startDate) >= now)
     .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
     .slice(0, 12);
+  const upcomingMovementGroups = {
+    checkins: upcomingMovements.filter((event) => event.type === "checkin"),
+    checkouts: upcomingMovements.filter((event) => event.type === "checkout"),
+  };
   const propertyPerformance = operationalProperties.slice(0, 6).map((property) => ({
     id: property.id,
     name: property.title?.slice(0, 16) || "Acomodação",
@@ -632,6 +1028,165 @@ export const buildHostDashboardData = async (hostId) => {
   }));
   const availableNightEarnings =
     totalCapacityNights > 0 ? monthlyEarnings / totalCapacityNights : 0;
+  const operatingExpenses = totalFees;
+  const estimatedProfit = monthlyEarnings - operatingExpenses;
+  const monthlyNetRevenue = monthlyEarnings - totalFees;
+  const profitMargin = monthlyEarnings > 0 ? (estimatedProfit / monthlyEarnings) * 100 : null;
+  const previousMonthOperatingExpenses = previousMonthFees;
+  const previousMonthEstimatedProfit = previousMonthEarnings - previousMonthOperatingExpenses;
+  const previousMonthNetRevenue = previousMonthEarnings - previousMonthFees;
+  const financialProperties = operationalProperties.map((property) => ({
+    id: property.id,
+    title: property.title,
+    city: property.city,
+    photo: property.photos?.[0] || null,
+    grossRevenue: property.monthlyRevenue,
+    expenses: property.monthlyFees,
+    estimatedProfit: property.monthlyRevenue - property.monthlyFees,
+    occupancyRate: property.occupancyRate,
+    availableNightEarnings:
+      monthDays.length > 0 ? property.monthlyRevenue / monthDays.length : 0,
+    status: property.status,
+    statusLabel: property.statusLabel,
+    available: true,
+  }));
+  const financial = {
+    period: {
+      key: "current_month",
+      label: "Mês atual",
+      start: monthStart,
+      end: monthEnd,
+    },
+    filters: [
+      { key: "current_month", label: "Mês atual", available: true },
+      { key: "previous_month", label: "Mês anterior", available: true },
+      { key: "upcoming_receivables", label: "Próximos recebimentos", available: true },
+      { key: "by_property", label: "Por acomodação", available: true },
+      { key: "by_payment_status", label: "Por status do pagamento", available: true },
+    ],
+    summaryCards: [
+      makeFinancialMetric({
+        key: "monthlyGrossRevenue",
+        label: "Receita bruta do mês",
+        value: monthlyEarnings,
+        helper: "Reservas aprovadas com check-out no mês",
+        tone: "green",
+      }),
+      makeFinancialMetric({
+        key: "monthlyNetRevenue",
+        label: "Receita líquida do mês",
+        value: monthlyNetRevenue,
+        helper: "Receita bruta menos taxas conhecidas",
+        tone: "green",
+      }),
+      makeFinancialMetric({
+        key: "operatingExpenses",
+        label: "Despesas operacionais",
+        value: operatingExpenses,
+        helper: "Taxas conhecidas pelo back-end atual",
+        tone: operatingExpenses > 0 ? "amber" : "slate",
+      }),
+      makeFinancialMetric({
+        key: "estimatedProfit",
+        label: "Lucro estimado",
+        value: estimatedProfit,
+        helper: "Receita bruta menos despesas conhecidas",
+        tone: estimatedProfit >= 0 ? "green" : "red",
+      }),
+      makeFinancialMetric({
+        key: "futureRevenue",
+        label: "Receita futura",
+        value: futureEarnings,
+        helper: "Reservas futuras confirmadas e aprovadas",
+        tone: "blue",
+      }),
+      makeFinancialMetric({
+        key: "availableNightEarnings",
+        label: "Ganho por noite disponível",
+        value: availableNightEarnings,
+        helper: "Receita bruta mensal por noite disponível",
+        tone: "violet",
+      }),
+    ],
+    revenue: {
+      items: [
+        makeFinancialMetric({ key: "grossRevenue", label: "Receita bruta", value: monthlyEarnings, tone: "green" }),
+        makeFinancialMetric({ key: "netRevenue", label: "Receita líquida", value: monthlyNetRevenue, tone: "green" }),
+        makeFinancialMetric({ key: "futureRevenue", label: "Receita futura", value: futureEarnings, tone: "blue" }),
+        makeFinancialMetric({ key: "approvedPayments", label: "Pagamentos aprovados", value: approvedPaymentsTotal, tone: "green" }),
+        makeFinancialMetric({ key: "pendingPayments", label: "Pagamentos pendentes", value: pendingPaymentsTotal, tone: "amber" }),
+        makeFinancialMetric({ key: "approvedFutureBookings", label: "Reservas futuras aprovadas", value: approvedFutureBookingsTotal, tone: "blue" }),
+      ],
+    },
+    expenses: {
+      items: [
+        makeFinancialMetric({
+          key: "platformFees",
+          label: "Taxas da plataforma",
+          value: totalFees,
+          helper: "Calculado a partir da taxa de anfitrião configurada",
+          tone: totalFees > 0 ? "amber" : "slate",
+        }),
+        makeUnavailableFinancialMetric("paymentFees", "Taxas de pagamento", "Depende de repasses detalhados do provedor de pagamento."),
+        makeUnavailableFinancialMetric("cleaning", "Limpeza", "Depende de despesas operacionais de limpeza persistidas."),
+        makeUnavailableFinancialMetric("maintenance", "Manutenção", "Depende do domínio de manutenção e danos."),
+        makeUnavailableFinancialMetric("itemReplacement", "Reposição de itens", "Depende de lançamentos de reposição por acomodação."),
+        makeUnavailableFinancialMetric("condominium", "Condomínio", "Depende de despesas fixas por acomodação."),
+        makeUnavailableFinancialMetric("propertyTax", "IPTU", "Depende de despesas fixas por acomodação."),
+        makeUnavailableFinancialMetric("water", "Água", "Depende de despesas fixas ou variáveis por acomodação."),
+        makeUnavailableFinancialMetric("electricity", "Luz", "Depende de despesas fixas ou variáveis por acomodação."),
+        makeUnavailableFinancialMetric("internet", "Internet", "Depende de despesas fixas por acomodação."),
+        makeUnavailableFinancialMetric("otherExpenses", "Outras despesas", "Depende de lançamentos financeiros categorizados."),
+      ],
+    },
+    profitability: {
+      items: [
+        makeFinancialMetric({ key: "estimatedProfit", label: "Lucro estimado", value: estimatedProfit, tone: estimatedProfit >= 0 ? "green" : "red" }),
+        makeFinancialMetric({ key: "profitMargin", label: "Margem de lucro", value: profitMargin, format: "percent", tone: profitMargin === null ? "slate" : profitMargin >= 0 ? "green" : "red", available: profitMargin !== null }),
+        makeFinancialMetric({ key: "availableNightEarnings", label: "Ganho por noite disponível", value: availableNightEarnings, tone: "violet" }),
+        makeFinancialMetric({ key: "averageDailyRate", label: "Diária média", value: metrics.averageNightPrice, tone: "blue" }),
+        makeFinancialMetric({ key: "monthComparison", label: "Comparativo com mês anterior", value: estimatedProfit - previousMonthEstimatedProfit, helper: "Diferença entre lucros estimados", tone: estimatedProfit >= previousMonthEstimatedProfit ? "green" : "amber" }),
+      ],
+    },
+    properties: financialProperties,
+    paymentsRefunds: paymentsRefunds
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 30),
+    comparison: {
+      currentMonth: {
+        grossRevenue: monthlyEarnings,
+        netRevenue: monthlyNetRevenue,
+        operatingExpenses,
+        estimatedProfit,
+      },
+      previousMonth: {
+        grossRevenue: previousMonthEarnings,
+        netRevenue: previousMonthNetRevenue,
+        operatingExpenses: previousMonthOperatingExpenses,
+        estimatedProfit: previousMonthEstimatedProfit,
+      },
+    },
+    unavailableData: [
+      "Taxas de pagamento reais por transação.",
+      "Despesas de limpeza, manutenção, reposição, condomínio, IPTU, água, luz, internet e outras despesas.",
+      "Reembolsos persistidos com valor, data, reserva e status.",
+      "Regras de receita líquida fiscal/contábil além das taxas conhecidas.",
+    ],
+  };
+  const overview = buildOverviewPayload({
+    checkinsToday,
+    checkoutsToday,
+    pendingBookings,
+    monthlyGrossRevenue: monthlyEarnings,
+    futureRevenue: futureEarnings,
+    operatingExpenses,
+    estimatedProfit,
+    availableNightEarnings,
+    metrics,
+    places,
+    operationalProperties,
+    alertGroups,
+  });
 
   return {
     bookings,
@@ -652,32 +1207,26 @@ export const buildHostDashboardData = async (hostId) => {
     },
     finance: {
       monthlyEarnings,
+      monthlyGrossRevenue: monthlyEarnings,
+      monthlyNetRevenue,
       futureEarnings,
+      futureRevenue: futureEarnings,
       totalFees,
+      operatingExpenses,
+      estimatedProfit,
+      profitMargin,
       averagePerNight: metrics.averageNightPrice,
       availableNightEarnings,
       revPAR: availableNightEarnings,
     },
+    financial,
     metrics,
     tasks: [],
-    overview: {
-      actionsToday: {
-        checkins: checkinsToday,
-        checkouts: checkoutsToday,
-        pendingBookings,
-        propertiesWithAlerts: operationalProperties.filter((property) =>
-          ["critical", "warning"].includes(property.status)
-        ).length,
-      },
-      financialSummary: {
-        monthlyEarnings,
-        futureEarnings,
-        totalFees,
-        availableNightEarnings,
-      },
-    },
+    overview,
     operationalProperties,
+    cleaningInspection,
     upcomingMovements,
+    upcomingMovementGroups,
     charts: {
       revenueProjection: buildRevenueSeries(bookings),
       propertyPerformance,

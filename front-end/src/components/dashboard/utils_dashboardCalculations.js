@@ -473,7 +473,7 @@ export const generateAlerts = (backendAlerts = [], today = {}, metrics = {}) => 
   if (metrics.occupancyRate >= 35 && metrics.occupancyRate < 50) {
     alerts.warning.push({
       id: "attention-occupancy",
-      title: "Ocupação em Atenção",
+      title: "Ocupação com alertas de atenção",
       description: `Sua ocupação está em ${metrics.occupancyRate.toFixed(1)}%. Ainda não é crítica, mas vale ajustar preço, calendário ou descrição.`,
       time: null,
       footer: [
