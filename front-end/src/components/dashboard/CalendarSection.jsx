@@ -85,6 +85,19 @@ const getStatusClass = (status) =>
 const getStatusLabel = (status) =>
 	STATUS_STYLES[status]?.label || STATUS_STYLES.pending.label;
 
+const getDatesBetweenExclusive = (startDate, endDate) => {
+	const start = new Date(startDate);
+	const end = new Date(endDate);
+	const days = [];
+	const cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 1);
+
+	for (let d = new Date(cursor); d < end; d.setDate(d.getDate() + 1)) {
+		days.push(new Date(d));
+	}
+
+	return days;
+};
+
 const CalendarSection = ({ calendar }) => {
 	const [selectedEvent, setSelectedEvent] = useState(null);
 	const events = calendar?.events || [];
@@ -95,43 +108,61 @@ const CalendarSection = ({ calendar }) => {
 		[emptyDays],
 	);
 
-	const fullCalendarEvents = useMemo(
-		() =>
-			events.map((event) => {
-				const isCheckin = event.type === "checkin";
-				const isCheckout = event.type === "checkout";
-				const isStay = event.type === "stay";
+	const fullCalendarEvents = useMemo(() => {
+		const expandedEvents = [];
 
-				const startDate = isCheckin
-					? buildDateWithTime(event.startDate, event.placeCheckin, 14, 0)
-					: isCheckout
-						? buildDateWithTime(event.startDate, event.placeCheckout, 11, 0)
-						: buildDateWithTime(event.startDate, "12:00", 12, 0);
-
-				const endDate = new Date(startDate);
-				endDate.setMinutes(endDate.getMinutes() + (isStay ? 45 : 75));
-
-				return {
-					id: event.id,
-					title: event.title,
-					start: startDate,
-					end: endDate,
-					allDay: false,
-					classNames: [
-						"host-calendar-event",
-						getStatusClass(event.rawStatus),
-						`host-event-type-${event.type}`,
-					],
-					extendedProps: {
+		events.forEach((event) => {
+			if (event.type === "range") {
+				const stayDays = getDatesBetweenExclusive(event.checkin, event.checkout);
+				stayDays.forEach((day) => {
+					expandedEvents.push({
 						...event,
-						statusLabel: getStatusLabel(event.rawStatus),
-						shortGuestName: shortGuestName(event.guest),
-						guestInitials: guestInitials(event.guest),
-					},
-				};
-			}),
-		[events],
-	);
+						id: `${event.bookingId}-stay-${day.toISOString().split("T")[0]}`,
+						type: "stay",
+						startDate: day,
+						endDate: day,
+					});
+				});
+				return;
+			}
+
+			expandedEvents.push(event);
+		});
+
+		return expandedEvents.map((event) => {
+			const isCheckin = event.type === "checkin";
+			const isCheckout = event.type === "checkout";
+			const isStay = event.type === "stay";
+
+			const startDate = isCheckin
+				? buildDateWithTime(event.startDate, event.placeCheckin, 14, 0)
+				: isCheckout
+					? buildDateWithTime(event.startDate, event.placeCheckout, 11, 0)
+					: buildDateWithTime(event.startDate, "12:00", 12, 0);
+
+			const endDate = new Date(startDate);
+			endDate.setMinutes(endDate.getMinutes() + (isStay ? 45 : 75));
+
+			return {
+				id: event.id,
+				title: event.title,
+				start: startDate,
+				end: endDate,
+				allDay: false,
+				classNames: [
+					"host-calendar-event",
+					getStatusClass(event.rawStatus),
+					`host-event-type-${event.type}`,
+				],
+				extendedProps: {
+					...event,
+					statusLabel: getStatusLabel(event.rawStatus),
+					shortGuestName: shortGuestName(event.guest),
+					guestInitials: guestInitials(event.guest),
+				},
+			};
+		});
+	}, [events]);
 
 	const selectedEventData = useMemo(() => {
 		if (selectedEvent) return selectedEvent;

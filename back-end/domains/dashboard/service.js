@@ -85,22 +85,6 @@ const overlapDays = (startA, endA, startB, endB) => {
   return Math.ceil((end - start) / ONE_DAY_MS);
 };
 
-const getDatesBetweenExclusive = (startDate, endDate) => {
-  const start = toStartOfDay(new Date(startDate));
-  const end = toStartOfDay(new Date(endDate));
-  const days = [];
-
-  for (
-    let d = new Date(start.getTime() + ONE_DAY_MS);
-    d < end;
-    d = new Date(d.getTime() + ONE_DAY_MS)
-  ) {
-    days.push(new Date(d));
-  }
-
-  return days;
-};
-
 const getStatusMeta = (status) => {
   if (status === "confirmed") return { label: "Confirmada", color: "#16a34a" };
   if (status === "pending") return { label: "Pendente", color: "#f59e0b" };
@@ -1092,6 +1076,8 @@ const buildOverviewPayload = ({
 export const buildHostDashboardData = async (hostId) => {
   const now = new Date();
   const todayEnd = toEndOfDay(now);
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+  const threeMonthsAhead = new Date(now.getFullYear(), now.getMonth() + 3, 1);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = toEndOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0));
   const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -1290,8 +1276,12 @@ export const buildHostDashboardData = async (hostId) => {
     };
   }
 
-  const bookings = await Booking.find({ place: { $in: placeIds } })
-    .sort({ createdAt: -1 })
+  const bookings = await Booking.find({
+    place: { $in: placeIds },
+    checkout: { $gte: sixMonthsAgo },
+    checkin: { $lte: threeMonthsAhead },
+  })
+    .sort({ checkin: 1 })
     .populate("user", "name email photo")
     .populate("place", "title city price averageRating isActive checkin checkout photos owner")
     .lean();
@@ -1497,35 +1487,32 @@ export const buildHostDashboardData = async (hostId) => {
       total: bookingTotal,
     });
 
-    const stayDays = getDatesBetweenExclusive(checkinDate, checkoutDate);
-    for (const day of stayDays) {
-      calendarEvents.push({
-        id: `${booking._id}-stay-${toIsoDay(day)}`,
-        bookingId: String(booking._id),
-        type: "stay",
-        title: `Hospedagem • ${place?.title || "Acomodação"}`,
-        startDate: day,
-        endDate: day,
-        color: statusMeta.color,
-        status: statusMeta.label,
-        rawStatus: status,
-        guest: booking.user?.name || "Hóspede",
-        guestEmail: booking.user?.email || "",
-        guestCount: booking?.guests || 1,
-        guestId: booking.user?._id || "Não identificado",
-        guestPhoto: booking.user?.photo || null,
-        placeTitle: place?.title || "Acomodação",
-        placeCity: place?.city || "",
-        placeCheckin: place?.checkin || "",
-        placeCheckout: place?.checkout || "",
-        placePhoto: place?.photos?.[0] || null,
-        checkin: booking.checkin,
-        checkout: booking.checkout,
-        nights: bookingNights,
-        paymentStatus,
-        total: bookingTotal,
-      });
-    }
+    calendarEvents.push({
+      id: `${booking._id}-range`,
+      bookingId: String(booking._id),
+      type: "range",
+      title: `Hospedagem • ${place?.title || "Acomodação"}`,
+      startDate: checkinDate,
+      endDate: checkoutDate,
+      color: statusMeta.color,
+      status: statusMeta.label,
+      rawStatus: status,
+      guest: booking.user?.name || "Hóspede",
+      guestEmail: booking.user?.email || "",
+      guestCount: booking?.guests || 1,
+      guestId: booking.user?._id || "Não identificado",
+      guestPhoto: booking.user?.photo || null,
+      placeTitle: place?.title || "Acomodação",
+      placeCity: place?.city || "",
+      placeCheckin: place?.checkin || "",
+      placeCheckout: place?.checkout || "",
+      placePhoto: place?.photos?.[0] || null,
+      checkin: booking.checkin,
+      checkout: booking.checkout,
+      nights: bookingNights,
+      paymentStatus,
+      total: bookingTotal,
+    });
 
   }
 
