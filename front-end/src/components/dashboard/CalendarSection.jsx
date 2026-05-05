@@ -85,14 +85,19 @@ const getStatusClass = (status) =>
 const getStatusLabel = (status) =>
 	STATUS_STYLES[status]?.label || STATUS_STYLES.pending.label;
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+const toIsoDay = (date) => new Date(date).toISOString().split("T")[0];
+
 const getDatesBetweenExclusive = (startDate, endDate) => {
 	const start = new Date(startDate);
 	const end = new Date(endDate);
 	const days = [];
-	const cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 1);
+	const startTime = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
+	const endTime = new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime();
 
-	for (let d = new Date(cursor); d < end; d.setDate(d.getDate() + 1)) {
-		days.push(new Date(d));
+	for (let time = startTime + ONE_DAY_MS; time < endTime; time += ONE_DAY_MS) {
+		days.push(new Date(time));
 	}
 
 	return days;
@@ -117,7 +122,7 @@ const CalendarSection = ({ calendar }) => {
 				stayDays.forEach((day) => {
 					expandedEvents.push({
 						...event,
-						id: `${event.bookingId}-stay-${day.toISOString().split("T")[0]}`,
+						id: `${event.bookingId}-stay-${toIsoDay(day)}`,
 						type: "stay",
 						startDate: day,
 						endDate: day,

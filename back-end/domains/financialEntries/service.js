@@ -533,12 +533,14 @@ export const buildMonthlyFinancialSummary = async ({
   }
 
   const grossRevenue = approvedBookings.reduce((total, booking) => total + Number(booking.priceTotal || 0), 0);
-  const manualRevenue = totals.manualRevenue;
-  const recurringExpenses = totals.recurringExpenses;
-  const operationalExpenses = totals.operationalExpenses;
-  const paymentFees = totals.paymentFees;
-  const refunds = totals.refunds;
-  const nonDeductibleExpenses = totals.nonDeductibleExpenses;
+  const {
+    manualRevenue,
+    recurringExpenses,
+    operationalExpenses,
+    paymentFees,
+    refunds,
+    nonDeductibleExpenses,
+  } = totals;
 
   const operatingDeductions = recurringExpenses + operationalExpenses + paymentFees + refunds;
   const accountingNetRevenue = grossRevenue + manualRevenue - operatingDeductions;
