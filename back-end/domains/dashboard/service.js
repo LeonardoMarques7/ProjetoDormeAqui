@@ -8,6 +8,8 @@ import { buildMonthlyFinancialSummary } from "../financialEntries/service.js";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const HOST_FEE_RATE = 0.1;
+const BOOKING_LOOKBACK_MONTHS = 6;
+const BOOKING_LOOKAHEAD_MONTHS = 3;
 
 const DAY_LABELS = {
   sunday: "Dom",
@@ -1076,8 +1078,10 @@ const buildOverviewPayload = ({
 export const buildHostDashboardData = async (hostId) => {
   const now = new Date();
   const todayEnd = toEndOfDay(now);
-  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-  const threeMonthsAhead = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth(), 1);
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - BOOKING_LOOKBACK_MONTHS);
+  const threeMonthsAhead = new Date(now.getFullYear(), now.getMonth(), 1);
+  threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + BOOKING_LOOKAHEAD_MONTHS);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = toEndOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0));
   const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);

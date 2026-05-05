@@ -89,12 +89,17 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 const toIsoDay = (date) => new Date(date).toISOString().split("T")[0];
 
+const toStartOfDay = (date) => {
+	const current = new Date(date);
+	return new Date(current.getFullYear(), current.getMonth(), current.getDate());
+};
+
 const getDatesBetweenExclusive = (startDate, endDate) => {
-	const start = new Date(startDate);
-	const end = new Date(endDate);
+	const start = toStartOfDay(startDate);
+	const end = toStartOfDay(endDate);
 	const days = [];
-	const startTime = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
-	const endTime = new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime();
+	const startTime = start.getTime();
+	const endTime = end.getTime();
 
 	for (let time = startTime + ONE_DAY_MS; time < endTime; time += ONE_DAY_MS) {
 		days.push(new Date(time));
@@ -118,7 +123,10 @@ const CalendarSection = ({ calendar }) => {
 
 		events.forEach((event) => {
 			if (event.type === "range") {
-				const stayDays = getDatesBetweenExclusive(event.checkin, event.checkout);
+				const stayDays = getDatesBetweenExclusive(
+					event.startDate || event.checkin,
+					event.endDate || event.checkout,
+				);
 				stayDays.forEach((day) => {
 					expandedEvents.push({
 						...event,
