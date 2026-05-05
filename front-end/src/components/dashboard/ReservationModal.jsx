@@ -192,12 +192,12 @@ export function ReservationModal({
 
 	return (
 		<Dialog
-			className="!min-w-7xl sm:min-w-7xl!  !w-full"
+			className="!min-w-5xl sm:min-w-5xl!  !w-full"
 			open={open}
 			onOpenChange={(v) => !v && onClose?.()}
 		>
 			<DialogContent className=" w-full p-0 sm:max-w-5xl overflow-hidden gap-0">
-				<div className="flex sm:max-w-7xl w-full">
+				<div className="flex w-full">
 					<BookingLeftPanel
 						photos={place.photos}
 						title={placeTitle}
@@ -300,7 +300,7 @@ export function ReservationModal({
 							<div className="grid grid-cols-2 gap-4">
 								<div className="space-y-1">
 									<div className="text-[11px] text-gray-500 uppercase tracking-wide">
-										Check-in
+										Entrada
 									</div>
 									<div className="font-semibold text-gray-900 leading-tight">
 										{formattedCheckin}
@@ -312,7 +312,7 @@ export function ReservationModal({
 								</div>
 								<div className="space-y-1">
 									<div className="text-[11px] text-gray-500 uppercase tracking-wide">
-										Check-out
+										Saída
 									</div>
 									<div className="font-semibold text-gray-900  leading-tight">
 										{formattedCheckout}

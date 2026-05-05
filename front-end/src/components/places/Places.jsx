@@ -1,4 +1,11 @@
-import { ArrowRight, Edit, ExternalLink, Trash2 } from "lucide-react";
+import {
+	CalendarDays,
+	Edit,
+	ExternalLink,
+	Star,
+	TrendingUp,
+	Trash2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import ScrollReveal from "scrollreveal";
 import PaginationControls from "@/components/ui/PaginationControls";
@@ -57,6 +64,9 @@ const PlaceCard = ({ place, index, onDelete }) => {
 		onDelete(place);
 	};
 
+	const rating = place.averageRating ? Number(place.averageRating).toFixed(1) : "—";
+	const statusLabel = place.isActive ? "Anúncio ativo" : "Anúncio inativo";
+
 	return (
 		<div
 			className={`item__projeto rounded-xl max-sm:flex-col relative flex gap-5 max-sm:gap-2`}
@@ -97,6 +107,51 @@ const PlaceCard = ({ place, index, onDelete }) => {
 						R$ {place.price}
 						<span className="absolute font-normal text-sm pl-1 top-2">
 							/noite
+						</span>
+					</div>
+					<div className="mt-4 grid grid-cols-2 gap-2 max-w-xl md:grid-cols-4">
+						<div className="rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+							<p className="text-[11px] font-medium text-gray-400">Receita mês</p>
+							<p className="mt-1 text-sm font-bold text-[#0F172B]">
+								{place.monthlyRevenue != null
+									? `R$ ${Number(place.monthlyRevenue).toLocaleString("pt-BR")}`
+									: "—"}
+							</p>
+						</div>
+						<div className="rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+							<p className="text-[11px] font-medium text-gray-400">Ocupação</p>
+							<p className="mt-1 flex items-center gap-1 text-sm font-bold text-[#0F172B]">
+								<TrendingUp size={14} className="text-emerald-600" />
+								{place.occupancyRate != null ? `${place.occupancyRate}%` : "—"}
+							</p>
+						</div>
+						<div className="rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+							<p className="text-[11px] font-medium text-gray-400">Próxima</p>
+							<p className="mt-1 flex items-center gap-1 text-sm font-bold text-[#0F172B]">
+								<CalendarDays size={14} className="text-blue-600" />
+								{place.nextEventLabel || "—"}
+							</p>
+						</div>
+						<div className="rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+							<p className="text-[11px] font-medium text-gray-400">Avaliação</p>
+							<p className="mt-1 flex items-center gap-1 text-sm font-bold text-[#0F172B]">
+								<Star size={14} className="fill-amber-400 text-amber-400" />
+								{rating}
+							</p>
+						</div>
+					</div>
+					<div className="mt-3 flex flex-wrap items-center gap-2">
+						<span
+							className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+								place.isActive
+									? "border-emerald-200 bg-emerald-50 text-emerald-700"
+									: "border-amber-200 bg-amber-50 text-amber-700"
+							}`}
+						>
+							{statusLabel}
+						</span>
+						<span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-600">
+							ADR {place.averageDailyRate != null ? `R$ ${place.averageDailyRate}` : "—"}
 						</span>
 					</div>
 				</div>

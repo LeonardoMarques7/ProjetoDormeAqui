@@ -121,6 +121,23 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
     // Idempotência: não cria reserva duplicada para o mesmo pagamento
     const existing = await Booking.findOne({ mercadopagoPaymentId: String(paymentId) });
     if (existing) {
+      let changed = false;
+      if (existing.paymentStatus !== 'approved') {
+        existing.paymentStatus = 'approved';
+        changed = true;
+      }
+      if (existing.status === 'pending') {
+        existing.status = 'confirmed';
+        existing.lastStatusChange = new Date();
+        existing.statusHistory = existing.statusHistory || [];
+        existing.statusHistory.push({
+          status: 'confirmed',
+          changedBy: existing.user,
+          reason: 'Pagamento aprovado',
+        });
+        changed = true;
+      }
+      if (changed) await existing.save();
       console.log(`✅ Reserva já existe para o pagamento ${paymentId}: ${existing._id}`);
       return res.status(200).json({ received: true, message: 'booking-already-exists', bookingId: existing._id });
     }

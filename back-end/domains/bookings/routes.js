@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { __dirname } from "../../ultis/dirname.js";
 import Booking from "./model.js";
 import { JWTVerify } from "../../ultis/jwt.js";
@@ -11,33 +11,97 @@ const router = Router();
 // Configuração do cookie baseada no ambiente (igual ao users/routes.js)
 const isProduction = process.env.NODE_ENV === 'production';
 
+const bookingPopulate = [
+  {
+    path: "place",
+    populate: {
+      path: "owner",
+      select: "name email photo avatar"
+    }
+  },
+  {
+    path: "user",
+    select: "name email photo avatar"
+  }
+];
+
+const mapProviderStatus = (status) => {
+  const normalized = String(status || "").toLowerCase();
+  return {
+    approved: "approved",
+    paid: "approved",
+    pending: "pending",
+    in_process: "pending",
+    in_mediation: "pending",
+    rejected: "rejected",
+    cancelled: "rejected",
+    canceled: "rejected",
+    refunded: "rejected",
+    charged_back: "rejected"
+  }[normalized] || "pending";
+};
+
+const getPaymentAliases = async (paymentId) => {
+  const aliases = new Set([String(paymentId)]);
+
+  try {
+    const { getPaymentInfo } = await import("../payments/service.js");
+    const paymentInfo = await getPaymentInfo(paymentId);
+    if (paymentInfo?.id) aliases.add(String(paymentInfo.id));
+    if (paymentInfo?.raw?.id) aliases.add(String(paymentInfo.raw.id));
+    if (paymentInfo?.raw?.payment_intent) aliases.add(String(paymentInfo.raw.payment_intent));
+  } catch {
+    // Fallback only: keep the original paymentId when the provider lookup is unavailable.
+  }
+
+  return Array.from(aliases);
+};
+
+const requesterCanSeeBooking = (booking, requester) => {
+  const requesterId = String(requester?._id || "");
+  const guestId = String(booking?.user?._id || booking?.user || "");
+  const ownerId = String(booking?.place?.owner?._id || booking?.place?.owner || "");
+
+  return (
+    requesterId &&
+    (requesterId === guestId ||
+      requesterId === ownerId ||
+      ["admin", "moderator"].includes(requester?.role))
+  );
+};
+
+const syncApprovedBookingStatus = async (booking, changedBy = null) => {
+  let changed = false;
+
+  if (booking.paymentStatus !== "approved") {
+    booking.paymentStatus = "approved";
+    changed = true;
+  }
+
+  if (booking.status === "pending") {
+    booking.status = "confirmed";
+    booking.lastStatusChange = new Date();
+    booking.statusHistory = booking.statusHistory || [];
+    booking.statusHistory.push({
+      status: "confirmed",
+      changedBy,
+      reason: "Pagamento aprovado"
+    });
+    changed = true;
+  }
+
+  if (changed) await booking.save();
+};
+
 router.get("/owner", async (req, res) => {
 
   try {
     const { _id: id } = await JWTVerify(req, COOKIE_NAME);
 
     try {
-      // Primeiro, buscar todas as reservas do usuário
-      const allBookings = await Booking.find({ user: id })
-        .sort({ createdAt: -1 }) // Ordena por check-in mais recente primeiro
-        .populate({
-            path: "place",
-            populate: {
-                path: "owner",
-                select: "name email  photo avatar"
-            }
-        })
-        .populate("user", "name email  photo avatar");
-
-      // Buscar avaliações do usuário
-      const Review = (await import("../reviews/model.js")).default;
-      const userReviews = await Review.find({ user: id }).select("booking");
-
-      // Criar um set de IDs de reservas que já foram avaliadas
-      const reviewedBookingIds = new Set(userReviews.map(review => review.booking.toString()));
-
-      // Filtrar reservas que não foram avaliadas
-      const bookingDocs = allBookings.filter(booking => !reviewedBookingIds.has(booking._id.toString()));
+      const bookingDocs = await Booking.find({ user: id })
+        .sort({ createdAt: -1 })
+        .populate(bookingPopulate);
 
       res.json(bookingDocs);
     } catch (error) {
@@ -47,6 +111,54 @@ router.get("/owner", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Deu erro ao validar token do usuário.." });
+  }
+});
+
+router.get("/host", async (req, res) => {
+  try {
+    const { _id: hostId } = await JWTVerify(req, COOKIE_NAME);
+    const Place = (await import("../places/model.js")).default;
+    const hostPlaces = await Place.find({ owner: hostId }).select("_id").lean();
+    const placeIds = hostPlaces.map((place) => place._id);
+
+    const bookingDocs = await Booking.find({ place: { $in: placeIds } })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "place",
+        populate: {
+          path: "owner",
+          select: "name email photo avatar"
+        }
+      })
+      .populate("user", "name email photo avatar");
+
+    res.json(bookingDocs);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Deu erro ao encontrar as reservas do anfitriao." });
+  }
+});
+
+router.get("/by-payment/:paymentId", async (req, res) => {
+  try {
+    const requester = await JWTVerify(req, COOKIE_NAME);
+    const paymentAliases = await getPaymentAliases(req.params.paymentId);
+    const booking = await Booking.findOne({
+      mercadopagoPaymentId: { $in: paymentAliases }
+    }).populate(bookingPopulate);
+
+    if (!booking) {
+      return res.status(404).json({ message: "Reserva ainda não encontrada para este pagamento." });
+    }
+
+    if (!requesterCanSeeBooking(booking, requester)) {
+      return res.status(403).json({ message: "Voce nao tem permissao para consultar esta reserva." });
+    }
+
+    return res.json(booking);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Deu erro ao buscar a reserva pelo pagamento." });
   }
 });
 
@@ -278,45 +390,29 @@ router.post("/from-payment", async (req, res) => {
             return res.status(400).json({ message: "Metadata incompleta no pagamento." });
         }
 
-        // IDEMPOTÊNCIA: verifica se existe reserva com esse paymentId
-        const existingBooking = await Booking.findOne({ mercadopagoPaymentId: String(paymentId) });
+        // Verifica status do pagamento
+        const mappedStatus = mapProviderStatus(paymentInfo.status);
+        const paymentAliases = await getPaymentAliases(paymentId);
+        const resolvedPaymentId = String(
+            paymentInfo.id ||
+            paymentInfo.raw?.payment_intent ||
+            paymentId
+        );
+
+        // IDEMPOTÊNCIA: verifica se existe reserva com esse paymentId ou com o PaymentIntent da sessão
+        const existingBooking = await Booking.findOne({ mercadopagoPaymentId: { $in: paymentAliases } });
         if (existingBooking) {
-            if (existingBooking.user.toString() !== requester._id.toString() && !["admin", "moderator"].includes(requester.role)) {
+            if (!requesterCanSeeBooking(existingBooking, requester)) {
                 return res.status(403).json({ message: "Voce nao tem permissao para consultar esta reserva." });
             }
-            const populatedBooking = await existingBooking.populate([
-                {
-                    path: "place",
-                    populate: {
-                        path: "owner",
-                        select: "name email photo avatar"
-                    }
-                },
-                {
-                    path: "user",
-                    select: "name email photo avatar"
-                }
-            ]);
 
-            return res.status(200).json(populatedBooking);
+            if (mappedStatus === "approved") {
+                await syncApprovedBookingStatus(existingBooking, requester._id);
+            }
+
+            const refreshedBooking = await Booking.findById(existingBooking._id).populate(bookingPopulate);
+            return res.status(200).json(refreshedBooking);
         }
-
-        // Verifica status do pagamento
-        const mpRawStatus = (paymentInfo.status || "").toLowerCase();
-        const mappedStatus = {
-            "approved": "approved",
-            "paid": "approved",
-            "pending": "pending",
-            "in_process": "pending",
-            "in_mediation": "pending",
-            "rejected": "rejected",
-            "cancelled": "rejected",
-            "canceled": "rejected",
-            "refunded": "rejected",
-            "charged_back": "rejected"
-        }[mpRawStatus] || "pending";
-
-
 
         if (mappedStatus !== "approved") {
             // console.warn('/from-payment: Pagamento não aprovado', { paymentId, status: mpRawStatus, mapped: mappedStatus });
@@ -326,11 +422,22 @@ router.post("/from-payment", async (req, res) => {
             });
         }
 
-        return res.status(202).json({
-            message: "Pagamento aprovado, mas a reserva deve ser criada pelo webhook confirmado do provedor.",
-            paymentStatus: mappedStatus,
-            paymentId: String(paymentId),
+        const createdBooking = await Booking.createFromPayment({
+            place: accommodationId,
+            user: userId,
+            pricePerNight: pricePerNight || 0,
+            priceTotal,
+            checkin: checkIn,
+            checkout: checkOut,
+            guests,
+            nights,
+            mercadopagoPaymentId: resolvedPaymentId,
+            paymentStatus: "approved"
         });
+
+        const populatedCreatedBooking = await Booking.findById(createdBooking._id).populate(bookingPopulate);
+
+        return res.status(200).json(populatedCreatedBooking);
     } catch (error) {
         // Propaga statusCode se definido na lógica do modelo
         if (error && error.statusCode) {

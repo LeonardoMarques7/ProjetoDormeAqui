@@ -92,7 +92,9 @@ function AppContent() {
 							<MessageProvider>
 								<div className="relative flex flex-col min-h-screen w-full bg-white">
 									{/* Header */}
-									{!mobile && <Header isAbsolute={isHome} />}
+									{!mobile && (
+										<Header isAbsolute={isHome} />
+									)}
 									{/* <NotificationToast /> */}
 									<ScrollToTop />
 

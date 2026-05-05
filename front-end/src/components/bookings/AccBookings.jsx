@@ -279,19 +279,12 @@ const AccBookings = ({ bookingId }) => {
 	}, [user?._id]);
 
 	return (
-		<div className="w-full bg-white">
-			{/* Header */}
-			<div className="max-w-7xl mx-auto px-6 py-8 max-md:px-4">
-				<div className="flex justify-between items-center">
-					<div className="flex flex-col gap-2">
-						<h1 className="text-4xl max-md:text-2xl font-bold text-gray-900">
-							Minhas reservas
-						</h1>
-						<p className="text-gray-600">
-							({bookings.length}{" "}
-							{bookings.length === 1 ? "reserva" : "reservas"})
-						</p>
-					</div>
+		<section className="min-h-[70vh] w-full bg-[#f7f7f4]">
+			<div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+				<div>
+					<h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+						Minhas reservas
+					</h1>
 				</div>
 			</div>
 
@@ -335,7 +328,7 @@ const AccBookings = ({ bookingId }) => {
 					</div>
 				)}
 			</div>
-		</div>
+		</section>
 	);
 };
 

@@ -140,9 +140,9 @@ const CalendarSection = ({ calendar }) => {
 
 	const selectedTypeLabel = selectedEventData
 		? selectedEventData.type === "checkin"
-			? "Check-in"
+			? "Entrada"
 			: selectedEventData.type === "checkout"
-				? "Check-out"
+				? "Saída"
 				: "Hospedagem"
 		: "Reserva";
 
@@ -154,7 +154,7 @@ const CalendarSection = ({ calendar }) => {
 						Agenda de Reservas
 					</h2>
 					<p className="text-sm text-gray-500">
-						Check-ins, check-outs, status e detalhes completos das reservas.
+						Entradas, saídas, status e detalhes completos das reservas.
 					</p>
 				</div>
 				<div className="flex flex-wrap items-center gap-2 text-xs">

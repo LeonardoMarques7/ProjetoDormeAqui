@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+﻿import React, { useEffect, useState, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight, Home, Waves, Dumbbell } from "lucide-react";
 import axios from "axios";
@@ -24,178 +24,108 @@ const PaymentSuccess = ({ className, ...props }) => {
 	const externalReference = searchParams.get("external_reference");
 
 	useEffect(() => {
-		const fetchBookingDetails = async () => {
+		let cancelled = false;
+		const normalizedStatus = (status || "").toLowerCase();
+		const paymentIsApproved = ["approved", "authorized", "succeeded"].includes(
+			normalizedStatus,
+		);
+		const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+		const findBookingByPayment = async () => {
+			if (!paymentId) return null;
+
 			try {
-				setLoading(false);
+				const { data } = await axios.get(
+					`/bookings/by-payment/${encodeURIComponent(paymentId)}`,
+				);
+				return data || null;
 			} catch (error) {
-				console.error("Erro ao buscar detalhes:", error);
-				setLoading(false);
+				if (error?.response?.status !== 404) {
+					console.error("Erro ao buscar reserva pelo pagamento:", error);
+				}
 			}
-		};
-
-		fetchBookingDetails();
-
-		if (!hasShownMessage.current) {
-			showMessage("Pagamento aprovado! Sua reserva foi confirmada.", "success");
-			hasShownMessage.current = true;
-		}
-
-		const createBookingFromPayment = async () => {
-			if (!paymentId) return;
-			if (hasCreatedBooking.current) return;
 
 			try {
-				try {
-					const { data: ownerBookings } = await axios.get("/bookings/owner");
-					const existing = Array.isArray(ownerBookings)
-						? ownerBookings.find(
-								(b) => String(b.mercadopagoPaymentId) === String(paymentId),
-							)
-						: null;
-					if (existing) {
-						setBookingDetails(existing);
-						hasCreatedBooking.current = true;
-						return;
-					}
-				} catch (err) {}
+				const { data: ownerBookings } = await axios.get("/bookings/owner");
+				return Array.isArray(ownerBookings)
+					? ownerBookings.find(
+							(booking) =>
+								String(booking.mercadopagoPaymentId) === String(paymentId),
+						) || null
+					: null;
+			} catch {
+				return null;
+			}
+		};
 
-				const resp = await axios.post("/bookings/from-payment", { paymentId });
-				if (resp?.data) {
-					if (resp.status === 202) {
-						showMessage("Reserva aguardando confirmacao do webhook de pagamento.", "info");
-						hasCreatedBooking.current = true;
-						return;
+		const resolveBooking = async () => {
+			if (!paymentId) {
+				setLoading(false);
+				return;
+			}
+
+			if (paymentIsApproved && !hasShownMessage.current) {
+				showMessage("Pagamento aprovado! Sua reserva foi confirmada.", "success");
+				hasShownMessage.current = true;
+			}
+
+			for (let attempt = 0; attempt < 10; attempt += 1) {
+				const existing = await findBookingByPayment();
+				if (cancelled) return;
+
+				if (existing) {
+					setBookingDetails(existing);
+					hasCreatedBooking.current = true;
+					setLoading(false);
+					return;
+				}
+
+				if (attempt === 0 && paymentIsApproved && !hasCreatedBooking.current) {
+					hasCreatedBooking.current = true;
+					try {
+						const resp = await axios.post("/bookings/from-payment", { paymentId });
+						if (cancelled) return;
+
+						if (resp?.status === 200 && resp?.data) {
+							setBookingDetails(resp.data);
+							setLoading(false);
+							return;
+						}
+					} catch (err) {
+						const httpStatus = err?.response?.status;
+						const msg =
+							err?.response?.data?.message ||
+							err.message ||
+							"Erro ao confirmar reserva.";
+
+						if (httpStatus === 409) {
+							showMessage(msg || "Conflito: datas indisponíveis.", "error");
+							setLoading(false);
+							return;
+						}
+
+						console.error("Erro confirmando booking a partir do pagamento:", err);
 					}
-					setBookingDetails(resp.data);
-					showMessage("Reserva criada com sucesso.", "success");
-					hasCreatedBooking.current = true;
 				}
-			} catch (err) {
-				const httpStatus = err?.response?.status;
-				const msg =
-					err?.response?.data?.message ||
-					err.message ||
-					"Erro ao criar reserva.";
-				if (httpStatus === 409) {
-					showMessage(msg || "Conflito: datas indisponíveis.", "error");
-					hasCreatedBooking.current = true;
-				} else {
-					console.error("Erro criando booking a partir do pagamento:", err);
-					showMessage(
-						"Reserva está sendo processada; se não aparecer em alguns instantes verifique sua página de reservas.",
-						"info",
-					);
-				}
-			} finally {
+
+				await wait(1500);
+			}
+
+			if (!cancelled) {
+				showMessage(
+					"Reserva está sendo processada; se não aparecer em alguns instantes verifique sua página de reservas.",
+					"info",
+				);
 				setLoading(false);
 			}
 		};
 
-		if (
-			(status || "").toLowerCase() === "approved" ||
-			(status || "").toLowerCase() === "authorized" ||
-			(status || "").toLowerCase() === "succeeded"
-		) {
-			createBookingFromPayment();
-		}
-	}, []);
+		resolveBooking();
 
-	useEffect(() => {
-		const fetchBookingDetails = async () => {
-			try {
-				// Caso queira buscar detalhes reais depois:
-				// const { data } = await axios.get(`/bookings/by-payment/${paymentId}`);
-				// setBookingDetails(data);
-
-				setLoading(false);
-			} catch (error) {
-				console.error("Erro ao buscar detalhes:", error);
-				setLoading(false);
-			}
+		return () => {
+			cancelled = true;
 		};
-
-		fetchBookingDetails();
-
-		// 🔥 Garante que a mensagem só aparece UMA vez
-		if (!hasShownMessage.current) {
-			showMessage("Pagamento aprovado! Sua reserva foi confirmada.", "success");
-			hasShownMessage.current = true;
-		}
-
-		// Tenta criar/confirmar a reserva automaticamente quando o pagamento estiver aprovado.
-		// Estratégia:
-		// 1) Verifica se o webhook já criou a booking consultando /bookings/owner (idempotente).
-		// 2) Caso não exista, delega ao backend a criação a partir do paymentId via POST /bookings/from-payment.
-		//    (o endpoint /bookings/from-payment deve implementar criação idempotente/segura; se não existir,
-		//     a chamada cairá em erro e será exibida mensagem informativa).
-		const createBookingFromPayment = async () => {
-			if (!paymentId) return;
-			if (hasCreatedBooking.current) return;
-
-			try {
-				// 1) Tenta obter reserva já criada pelo webhook (se o webhook já rodou)
-				try {
-					const { data: ownerBookings } = await axios.get("/bookings/owner");
-					const existing = Array.isArray(ownerBookings)
-						? ownerBookings.find(
-								(b) => String(b.mercadopagoPaymentId) === String(paymentId),
-							)
-						: null;
-					if (existing) {
-						setBookingDetails(existing);
-						hasCreatedBooking.current = true;
-						return;
-					}
-				} catch (err) {
-					// ignora erro ao listar reservas do dono (ex: usuário não autenticado)
-				}
-
-				// 2) Pede ao backend para criar a booking a partir do paymentId (delegar lógica de criação e idempotência)
-				// Endpoint esperado: POST /bookings/from-payment { paymentId }
-				// (O backend pode usar esse endpoint para buscar metadata/payment info e criar a booking de forma segura)
-				const resp = await axios.post("/bookings/from-payment", { paymentId });
-				if (resp?.data) {
-					if (resp.status === 202) {
-						showMessage("Reserva aguardando confirmacao do webhook de pagamento.", "info");
-						hasCreatedBooking.current = true;
-						return;
-					}
-					setBookingDetails(resp.data);
-					showMessage("Reserva criada com sucesso.", "success");
-					hasCreatedBooking.current = true;
-				}
-			} catch (err) {
-				const httpStatus = err?.response?.status;
-				const msg =
-					err?.response?.data?.message ||
-					err.message ||
-					"Erro ao criar reserva.";
-				if (httpStatus === 409) {
-					// Conflito de datas
-					showMessage(msg || "Conflito: datas indisponíveis.", "error");
-					hasCreatedBooking.current = true; // marca como tentado para evitar retrys infinitos
-				} else {
-					// Se endpoint não existir ou outro erro, apenas informa ao usuário e loga
-					console.error("Erro criando booking a partir do pagamento:", err);
-					showMessage(
-						"Reserva está sendo processada; se não aparecer em alguns instantes verifique sua página de reservas.",
-						"info",
-					);
-				}
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		if (
-			(status || "").toLowerCase() === "approved" ||
-			(status || "").toLowerCase() === "authorized" ||
-			(status || "").toLowerCase() === "succeeded"
-		) {
-			createBookingFromPayment();
-		}
-	}, []);
-
+	}, [paymentId, showMessage, status]);
 	const formatDate = (dateString) => {
 		if (!dateString) return "";
 		const date = new Date(dateString);
@@ -242,7 +172,10 @@ const PaymentSuccess = ({ className, ...props }) => {
 				},
 				pricePerNight: bookingDetails.pricePerNight || 450,
 				priceTotal:
-					bookingDetails.totalPrice || bookingDetails.pricePerNight || 1350,
+					bookingDetails.priceTotal ||
+					bookingDetails.totalPrice ||
+					bookingDetails.pricePerNight ||
+					1350,
 				checkin: bookingDetails.checkin || "2026-04-10",
 				checkout: bookingDetails.checkout || "2026-04-13",
 				guests: bookingDetails.guests || 2,
@@ -261,7 +194,10 @@ const PaymentSuccess = ({ className, ...props }) => {
 	}
 
 	const totalAmount =
-		bookingDetails?.totalPrice || bookingDetails?.pricePerNight || 1450;
+		bookingDetails?.priceTotal ||
+		bookingDetails?.totalPrice ||
+		bookingDetails?.pricePerNight ||
+		1450;
 	const formattedAmount = totalAmount.toLocaleString("pt-BR", {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
@@ -357,6 +293,7 @@ const PaymentSuccess = ({ className, ...props }) => {
 										R${" "}
 										{(
 											bookingData?.priceTotal ||
+											bookingDetails?.priceTotal ||
 											bookingDetails?.totalPrice ||
 											bookingDetails?.pricePerNight ||
 											1350

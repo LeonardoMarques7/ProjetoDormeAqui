@@ -20,6 +20,14 @@ import {
 	PaginationNext,
 	PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import DatePickerAirbnb from "@/components/places/DatePickerAirbnb";
 import { getAccommodationLogbook } from "@/services/logbookService";
 
 const emptyPayload = {
@@ -47,22 +55,70 @@ const formatDateTime = (value) =>
 		minute: "2-digit",
 	}).format(new Date(value));
 
+const parseLocalDate = (value) => {
+	if (!value) return null;
+	const [year, month, day] = String(value).split("-").map(Number);
+	if (!year || !month || !day) return null;
+	return new Date(year, month - 1, day);
+};
+
+const formatDateForFilter = (date) => {
+	if (!date) return "";
+	const resolvedDate = date instanceof Date ? date : new Date(date);
+	if (Number.isNaN(resolvedDate.getTime())) return "";
+	const year = resolvedDate.getFullYear();
+	const month = String(resolvedDate.getMonth() + 1).padStart(2, "0");
+	const day = String(resolvedDate.getDate()).padStart(2, "0");
+	return `${year}-${month}-${day}`;
+};
+
 const SelectFilter = ({ label, value, onChange, options }) => (
 	<label className="flex min-w-0 flex-col gap-1 text-[11px] font-medium text-slate-500">
 		{label}
-		<select
+		<Select
 			value={value}
-			onChange={(event) => onChange(event.target.value)}
-			className="h-9 min-w-0 rounded-md border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 outline-none transition focus:border-slate-400"
+			onValueChange={onChange}
 		>
-			<option value="all">Todos</option>
-			{options.map((option) => (
-				<option key={option.value} value={option.value}>
-					{option.label}
-				</option>
-			))}
-		</select>
+			<SelectTrigger
+				size="sm"
+				className="h-9 w-full min-w-0 border-slate-200 bg-white text-xs font-medium text-slate-700 shadow-none focus:border-primary-300 focus:ring-primary-200"
+			>
+				<SelectValue placeholder="Todos" />
+			</SelectTrigger>
+			<SelectContent className="z-[9999]">
+				<SelectItem value="all">Todos</SelectItem>
+				{options.map((option) => (
+					<SelectItem key={option.value} value={option.value}>
+						{option.label}
+					</SelectItem>
+				))}
+			</SelectContent>
+		</Select>
 	</label>
+);
+
+const DateRangeFilter = ({ startDate, endDate, onChange, resetKey }) => (
+	<div className="min-w-0">
+		<p className="mb-1 text-[11px] font-medium text-slate-500">Período</p>
+		<div className="rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 shadow-sm">
+			<DatePickerAirbnb
+				key={resetKey}
+				initialCheckin={parseLocalDate(startDate)}
+				initialCheckout={parseLocalDate(endDate)}
+				disablePastDates={false}
+				startLabel="De"
+				endLabel="Até"
+				price={0}
+				showPriceSummary={false}
+				onDateSelect={({ checkin, checkout }) => {
+					onChange({
+						startDate: formatDateForFilter(checkin),
+						endDate: formatDateForFilter(checkout),
+					});
+				}}
+			/>
+		</div>
+	</div>
 );
 
 const getInitials = (name) =>
@@ -89,8 +145,10 @@ const getEventTone = (log) => {
 	const key = `${log.contextKey || ""} ${log.actionKey || ""}`.toLowerCase();
 
 	if (key.includes("cancel") || key.includes("reject")) return "text-red-600";
-	if (key.includes("payment") || key.includes("approved")) return "text-emerald-600";
-	if (key.includes("status") || key.includes("warning")) return "text-amber-600";
+	if (key.includes("payment") || key.includes("approved"))
+		return "text-emerald-600";
+	if (key.includes("status") || key.includes("warning"))
+		return "text-amber-600";
 	if (key.includes("calendar") || key.includes("check")) return "text-sky-600";
 	return "text-slate-500";
 };
@@ -100,7 +158,7 @@ const csvEscape = (value) => `"${String(value || "").replace(/"/g, '""')}"`;
 function AccommodationLogbook({
 	limit = 80,
 	refreshIntervalMs = 45000,
-	itemsPerPage = 5,
+	itemsPerPage = 10,
 }) {
 	const [filters, setFilters] = useState({
 		search: "",
@@ -117,6 +175,7 @@ function AccommodationLogbook({
 	const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [showFilters, setShowFilters] = useState(false);
+	const [dateFilterResetKey, setDateFilterResetKey] = useState(0);
 	const loadingRef = useRef(false);
 
 	const requestFilters = useMemo(
@@ -155,8 +214,8 @@ function AccommodationLogbook({
 				});
 				setLastUpdatedAt(new Date());
 			} catch (err) {
-				console.error("Erro ao carregar logbook:", err);
-				setError("Não foi possível carregar o logbook agora.");
+				console.error("Erro ao carregar histórico:", err);
+				setError("Não foi possível carregar o histórico agora.");
 			} finally {
 				loadingRef.current = false;
 				setLoading(false);
@@ -196,11 +255,12 @@ function AccommodationLogbook({
 			action: "all",
 			context: "all",
 		});
+		setDateFilterResetKey((key) => key + 1);
 	};
 
 	const exportCsv = () => {
 		const rows = [
-			["Data", "Usuario", "Evento", "Origem", "Registro"],
+			["Quando", "Pessoa", "O que aconteceu", "Imóvel", "Referência"],
 			...payload.logs.map((log) => [
 				formatDateTime(log.date),
 				log.actorName,
@@ -245,16 +305,15 @@ function AccommodationLogbook({
 
 	return (
 		<section className="mb-8">
-			<div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+			<div className="overflow-hidden rounded-[20px] border border-slate-200/70 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
 				<div className="flex flex-col gap-3 border-b border-slate-100 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
 					<div className="min-w-0">
 						<div className="flex items-center gap-2">
-							<BookOpen className="h-4 w-4 text-slate-500" />
 							<h2 className="text-sm font-semibold text-slate-950">
-								Logbook das acomodações
+								Movimentos recentes
 							</h2>
-							<span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
-								{payload.summary.total} registros
+							<span className="rounded-full bg-primary-50 px-2 py-0.5 text-[11px] font-medium text-primary-700">
+								{payload.summary.total} itens
 							</span>
 						</div>
 						<p className="mt-1 text-xs text-slate-500">
@@ -273,8 +332,8 @@ function AccommodationLogbook({
 							<input
 								value={filters.search}
 								onChange={(event) => updateFilter("search", event.target.value)}
-								placeholder="Search"
-								className="h-9 w-full rounded-md border border-slate-200 bg-white pl-8 pr-3 text-xs font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-slate-400"
+								placeholder="Buscar por pessoa, ação ou imóvel"
+								className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-8 pr-3 text-xs font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-primary-300 focus:ring-2 focus:ring-primary-100"
 							/>
 						</div>
 
@@ -283,20 +342,20 @@ function AccommodationLogbook({
 							onClick={() => setShowFilters((visible) => !visible)}
 							className={`inline-flex h-9 items-center justify-center gap-2 rounded-md border px-3 text-xs font-semibold transition ${
 								showFilters || hasActiveFilters
-									? "border-slate-900 bg-slate-900 text-white"
-									: "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+									? "border-primary-900 bg-primary-900 text-white"
+									: "border-slate-200 bg-white text-slate-700 hover:bg-primary-50"
 							}`}
 						>
 							<Filter className="h-3.5 w-3.5" />
-							Filter
+							Filtros
 						</button>
 
 						<button
 							type="button"
 							onClick={() => loadLogbook()}
 							disabled={refreshing || loading}
-							className="inline-flex h-9 items-center justify-center rounded-md border border-slate-200 bg-white px-2.5 text-slate-600 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
-							aria-label="Atualizar logbook"
+							className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 bg-white px-2.5 text-slate-600 transition hover:bg-primary-50 disabled:pointer-events-none disabled:opacity-50"
+							aria-label="Atualizar histórico"
 							title="Atualizar"
 						>
 							<RefreshCw
@@ -308,17 +367,29 @@ function AccommodationLogbook({
 							type="button"
 							onClick={exportCsv}
 							disabled={payload.logs.length === 0}
-							className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-slate-950 px-3 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:pointer-events-none disabled:opacity-50"
+							className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-primary-900 px-3 text-xs font-semibold text-white transition hover:bg-primary-800 disabled:pointer-events-none disabled:opacity-50"
 						>
 							<Download className="h-3.5 w-3.5" />
-							Export
+							Exportar
 						</button>
 					</div>
 				</div>
 
 				{showFilters && (
-					<div className="grid grid-cols-1 gap-3 border-b border-slate-100 bg-slate-50/70 px-4 py-3 md:grid-cols-2 xl:grid-cols-[0.8fr_0.8fr_1fr_1fr_1fr_auto]">
-						<label className="flex min-w-0 flex-col gap-1 text-[11px] font-medium text-slate-500">
+					<div className="grid grid-cols-1 gap-3 border-b border-slate-100 bg-primary-50/40 px-4 py-3 md:grid-cols-2 xl:grid-cols-[1.35fr_1fr_1fr_1fr_auto]">
+						<DateRangeFilter
+							startDate={filters.startDate}
+							endDate={filters.endDate}
+							resetKey={dateFilterResetKey}
+							onChange={({ startDate, endDate }) => {
+								setFilters((current) => ({
+									...current,
+									startDate,
+									endDate,
+								}));
+							}}
+						/>
+						<label className="hidden min-w-0 flex-col gap-1 text-[11px] font-medium text-slate-500">
 							De
 							<input
 								type="date"
@@ -326,34 +397,36 @@ function AccommodationLogbook({
 								onChange={(event) =>
 									updateFilter("startDate", event.target.value)
 								}
-								className="h-9 min-w-0 rounded-md border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 outline-none transition focus:border-slate-400"
+								className="h-9 min-w-0 rounded-xl border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 outline-none transition focus:border-primary-300 focus:ring-2 focus:ring-primary-100"
 							/>
 						</label>
 
-						<label className="flex min-w-0 flex-col gap-1 text-[11px] font-medium text-slate-500">
+						<label className="hidden min-w-0 flex-col gap-1 text-[11px] font-medium text-slate-500">
 							Até
 							<input
 								type="date"
 								value={filters.endDate}
-								onChange={(event) => updateFilter("endDate", event.target.value)}
-								className="h-9 min-w-0 rounded-md border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 outline-none transition focus:border-slate-400"
+								onChange={(event) =>
+									updateFilter("endDate", event.target.value)
+								}
+								className="h-9 min-w-0 rounded-xl border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 outline-none transition focus:border-primary-300 focus:ring-2 focus:ring-primary-100"
 							/>
 						</label>
 
 						<SelectFilter
-							label="Nome"
+							label="Pessoa"
 							value={filters.name}
 							onChange={(value) => updateFilter("name", value)}
 							options={payload.options.names}
 						/>
 						<SelectFilter
-							label="Ação"
+							label="Acontecimento"
 							value={filters.action}
 							onChange={(value) => updateFilter("action", value)}
 							options={payload.options.actions}
 						/>
 						<SelectFilter
-							label="Contexto"
+							label="Lugar"
 							value={filters.context}
 							onChange={(value) => updateFilter("context", value)}
 							options={payload.options.contexts}
@@ -363,7 +436,7 @@ function AccommodationLogbook({
 							type="button"
 							onClick={clearFilters}
 							disabled={!hasActiveFilters}
-							className="h-9 self-end rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
+							className="h-9 self-end rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-primary-50 disabled:pointer-events-none disabled:opacity-50"
 						>
 							Limpar
 						</button>
@@ -379,20 +452,20 @@ function AccommodationLogbook({
 				<div className="overflow-x-auto">
 					<table className="w-full min-w-[900px] border-collapse text-left">
 						<thead>
-							<tr className="border-b border-slate-100 bg-white text-[11px] font-medium text-slate-400">
+								<tr className="border-b border-slate-100 bg-white text-[11px] font-medium text-slate-400">
 								<th className="w-10 px-4 py-3">
 									<input
 										type="checkbox"
 										disabled
-										className="h-3.5 w-3.5 rounded border-slate-200"
+										className="h-3.5 w-3.5 rounded border-slate-200 accent-primary-600 focus:ring-primary-200"
 										aria-label="Selecionar todos"
 									/>
 								</th>
-								<th className="px-2 py-3">Date & Time</th>
-								<th className="px-2 py-3">User</th>
-								<th className="px-2 py-3">Event</th>
-								<th className="px-2 py-3">Source</th>
-								<th className="px-2 py-3">Record</th>
+								<th className="px-2 py-3">Quando</th>
+								<th className="px-2 py-3">Pessoa</th>
+								<th className="px-2 py-3">O que aconteceu</th>
+								<th className="px-2 py-3">Imóvel</th>
+								<th className="px-2 py-3">Referência</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-slate-100">
@@ -402,7 +475,7 @@ function AccommodationLogbook({
 										colSpan={6}
 										className="h-[340px] px-4 text-center text-xs font-medium text-slate-500"
 									>
-										Carregando logbook...
+										Carregando histórico...
 									</td>
 								</tr>
 							) : paginatedLogs.length > 0 ? (
@@ -412,12 +485,12 @@ function AccommodationLogbook({
 									return (
 										<tr
 											key={log.id}
-											className="h-[68px] bg-white text-xs text-slate-700 transition hover:bg-slate-50"
+											className="h-[68px] bg-white text-xs text-slate-700 transition hover:bg-primary-50/70"
 										>
 											<td className="px-4 py-3">
 												<input
 													type="checkbox"
-													className="h-3.5 w-3.5 rounded border-slate-200"
+													className="h-3.5 w-3.5 rounded border-slate-200 accent-primary-600 focus:ring-primary-200"
 													aria-label={`Selecionar ${log.title}`}
 												/>
 											</td>
@@ -425,8 +498,8 @@ function AccommodationLogbook({
 												{formatDateTime(log.date)}
 											</td>
 											<td className="px-2 py-3">
-												<div className="flex items-center gap-2">
-													<span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-500">
+													<div className="flex items-center gap-2">
+													<span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-50 text-[10px] font-semibold text-primary-700">
 														{getInitials(log.actorName) || (
 															<UserRound className="h-3 w-3" />
 														)}
@@ -465,7 +538,9 @@ function AccommodationLogbook({
 												</p>
 											</td>
 											<td className="whitespace-nowrap px-2 py-3 font-medium tabular-nums text-slate-600">
-												{log.bookingCode ? `#${log.bookingCode}` : log.contextKey}
+												{log.bookingCode
+													? `#${log.bookingCode}`
+													: log.contextKey}
 											</td>
 										</tr>
 									);
@@ -475,7 +550,7 @@ function AccommodationLogbook({
 									<td colSpan={6} className="h-[340px] px-4 text-center">
 										<BookOpen className="mx-auto h-6 w-6 text-slate-300" />
 										<p className="mt-2 text-sm font-semibold text-slate-800">
-											Nenhum registro encontrado.
+											Nenhum movimento encontrado.
 										</p>
 										<p className="mt-1 text-xs text-slate-500">
 											Ajuste os filtros ou aguarde novas atualizações.
@@ -486,11 +561,11 @@ function AccommodationLogbook({
 							{!loading &&
 								paginatedLogs.length > 0 &&
 								emptyLogRows.map((_, index) => (
-									<tr
-										key={`empty-log-row-${index}`}
+										<tr
+											key={`empty-log-row-${index}`}
 										className="h-[68px] bg-white"
-										aria-hidden="true"
-									>
+											aria-hidden="true"
+										>
 										<td colSpan={6} className="px-4 py-3" />
 									</tr>
 								))}
@@ -514,7 +589,7 @@ function AccommodationLogbook({
 											className={
 												currentPage === 1
 													? "pointer-events-none opacity-50"
-													: "cursor-pointer"
+													: "cursor-pointer hover:bg-primary-50 hover:text-primary-700"
 											}
 										/>
 									</PaginationItem>
@@ -523,10 +598,14 @@ function AccommodationLogbook({
 										const pageNumber = index + 1;
 										return (
 											<PaginationItem key={pageNumber}>
-												<PaginationLink
+										<PaginationLink
 													onClick={() => setCurrentPage(pageNumber)}
 													isActive={currentPage === pageNumber}
-													className="cursor-pointer"
+													className={`cursor-pointer ${
+														currentPage === pageNumber
+															? "bg-primary-900 text-white hover:bg-primary-900 hover:text-white"
+															: "hover:bg-primary-50 hover:text-primary-700"
+													}`}
 												>
 													{pageNumber}
 												</PaginationLink>
@@ -542,7 +621,7 @@ function AccommodationLogbook({
 											className={
 												currentPage === totalPages
 													? "pointer-events-none opacity-50"
-													: "cursor-pointer"
+													: "cursor-pointer hover:bg-primary-50 hover:text-primary-700"
 											}
 										/>
 									</PaginationItem>

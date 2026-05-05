@@ -377,10 +377,10 @@ export const generateAlerts = (backendAlerts = [], today = {}, metrics = {}) => 
 
   // ========== ALERTAS PERSONALIZADOS ==========
 
-  // Check-ins do dia
+  // Entradas do dia
   if (today.checkins > 0) {
     const count = today.checkins;
-    const title = count === 1 ? "Check-in Hoje" : "Check-ins do Dia";
+    const title = count === 1 ? "Entrada hoje" : "Entradas do dia";
     const description = count === 1 
       ? "Você tem 1 hóspede chegando hoje. Prepare a propriedade para receber."
       : `Você tem ${count} hóspedes chegando hoje. Certifique-se de preparar todas as propriedades.`;
@@ -398,10 +398,10 @@ export const generateAlerts = (backendAlerts = [], today = {}, metrics = {}) => 
     });
   }
 
-  // Check-outs do dia
+  // Saídas do dia
   if (today.checkouts > 0) {
     const count = today.checkouts;
-    const title = count === 1 ? "Check-out Hoje" : "Check-outs do Dia";
+    const title = count === 1 ? "Saída hoje" : "Saídas do dia";
     const description = count === 1
       ? "1 hóspede está partindo hoje. Agende a limpeza da propriedade."
       : `${count} hóspedes estão partindo hoje. Você precisará agendar limpezas múltiplas.`;
@@ -473,7 +473,7 @@ export const generateAlerts = (backendAlerts = [], today = {}, metrics = {}) => 
   if (metrics.occupancyRate >= 35 && metrics.occupancyRate < 50) {
     alerts.warning.push({
       id: "attention-occupancy",
-      title: "Ocupação em Atenção",
+      title: "Ocupação com alertas de atenção",
       description: `Sua ocupação está em ${metrics.occupancyRate.toFixed(1)}%. Ainda não é crítica, mas vale ajustar preço, calendário ou descrição.`,
       time: null,
       footer: [

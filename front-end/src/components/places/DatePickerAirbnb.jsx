@@ -102,6 +102,10 @@ const DatePickerAirbnb = ({
 	placeId,
 	bookings,
 	resetDates,
+	disablePastDates = true,
+	startLabel = "Entrada",
+	endLabel = "Saída",
+	showPriceSummary = true,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -112,6 +116,13 @@ const DatePickerAirbnb = ({
 	const [loadingDates, setLoadingDates] = useState(false);
 	const { mobile } = useMobileContext();
 	const containerRef = useRef(null);
+
+	useEffect(() => {
+		if (!resetDates) return;
+		setCheckinDate(null);
+		setCheckoutDate(null);
+		setSelectingCheckout(false);
+	}, [resetDates]);
 
 	// Fechar o calendário inline ao clicar fora (apenas modo normal)
 	useEffect(() => {
@@ -188,7 +199,7 @@ const DatePickerAirbnb = ({
 		checkDate.setHours(0, 0, 0, 0);
 
 		// Verificar se é uma data passada
-		if (isBefore(checkDate, today)) return true;
+		if (disablePastDates && isBefore(checkDate, today)) return true;
 
 		// Verificar se a data está ocupada
 		return bookedDates.some((bookedDate) => {
@@ -298,7 +309,7 @@ const DatePickerAirbnb = ({
 							className="p-4 flex flex-col cursor-pointer items-start justify-start hover:bg-gray-50 transition-colors w-full text-left"
 						>
 							<div className="text-xs font-semibold text-gray-700 uppercase mb-1">
-								Check-in
+								{startLabel}
 							</div>
 							<div
 								className={`text-sm font-medium ${!checkinDate ? "text-gray-400" : "text-gray-900"}`}
@@ -316,7 +327,7 @@ const DatePickerAirbnb = ({
 							className="p-4 flex flex-col cursor-pointer items-start justify-start hover:bg-gray-50 transition-colors w-full text-left"
 						>
 							<div className="text-xs font-semibold text-gray-700 uppercase mb-1">
-								Check-out
+								{endLabel}
 							</div>
 							<div
 								className={`text-sm font-medium ${!checkoutDate ? "text-gray-400" : "text-gray-900"}`}
@@ -389,7 +400,7 @@ const DatePickerAirbnb = ({
 								<div className="flex flex-col md:flex-row items-center justify-between gap-4">
 									{/* Info datas */}
 									<div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
-										{nights > 0 && (
+										{showPriceSummary && nights > 0 && (
 											<>
 												<div>
 													<p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">
@@ -450,7 +461,7 @@ const DatePickerAirbnb = ({
 										{checkoutDate && formatDate(checkoutDate, "dd de MMM")}
 									</p>
 								</div>
-								{nights > 0 && (
+								{showPriceSummary && nights > 0 && (
 									<div className="text-right">
 										<p className="text-lg font-bold text-primary-600">
 											{nights} {nights === 1 ? "noite" : "noites"}
@@ -639,7 +650,7 @@ const DatePickerAirbnb = ({
 													<div className="flex items-center gap-4">
 														<div>
 															<p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">
-																Check-in
+																{startLabel}
 															</p>
 															<p className="text-sm font-medium text-gray-900">
 																{checkinDate
@@ -653,7 +664,7 @@ const DatePickerAirbnb = ({
 														/>
 														<div>
 															<p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">
-																Check-out
+																{endLabel}
 															</p>
 															<p className="text-sm font-medium text-gray-900">
 																{checkoutDate

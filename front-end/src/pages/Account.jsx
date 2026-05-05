@@ -34,8 +34,14 @@ const Account = () => {
 	return (
 		<div className="flex flex-col gap-4">
 			{subpage === "profile" && <AccProfile userId={id} />}
-			{subpage === "places" && <AccPlaces />}
-			{subpage === "bookings" && <AccBookings bookingId={bookingId} />}
+			{subpage === "places" &&
+				(action || id ? <AccPlaces /> : <HostDashboard initialView="places" />)}
+			{subpage === "bookings" &&
+				(bookingId ? (
+					<AccBookings bookingId={bookingId} />
+				) : (
+					<HostDashboard initialView="reservations" />
+				))}
 			{subpage === "dashboard" && <HostDashboard />}
 		</div>
 	);

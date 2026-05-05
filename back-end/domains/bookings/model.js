@@ -135,7 +135,13 @@ bookingSchema.statics.createFromPayment = async function ({
             guests,
             nights,
             paymentStatus,
-            mercadopagoPaymentId
+            mercadopagoPaymentId,
+            status: paymentStatus === "approved" ? "confirmed" : "pending",
+            statusHistory: [{
+                status: paymentStatus === "approved" ? "confirmed" : "pending",
+                changedBy: user,
+                reason: paymentStatus === "approved" ? "Pagamento aprovado" : "Reserva criada"
+            }]
         }], { session });
 
         await session.commitTransaction();

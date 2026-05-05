@@ -89,11 +89,22 @@ export const handleMercadoPagoWebhook = async (req, res) => {
             console.log(`Reserva já existe para o pagamento ${paymentId}. ID: ${existingBooking._id}`);
             
             // Atualiza o status se mudou
-            if (existingBooking.paymentStatus !== mapPaymentStatus(status)) {
-                existingBooking.paymentStatus = mapPaymentStatus(status);
-                await existingBooking.save();
-                console.log(`Status da reserva atualizado para: ${mapPaymentStatus(status)}`);
+            const mappedExistingStatus = mapPaymentStatus(status);
+            if (existingBooking.paymentStatus !== mappedExistingStatus) {
+                existingBooking.paymentStatus = mappedExistingStatus;
             }
+            if (mappedExistingStatus === "approved" && existingBooking.status === "pending") {
+                existingBooking.status = "confirmed";
+                existingBooking.lastStatusChange = new Date();
+                existingBooking.statusHistory = existingBooking.statusHistory || [];
+                existingBooking.statusHistory.push({
+                    status: "confirmed",
+                    changedBy: existingBooking.user,
+                    reason: "Pagamento aprovado",
+                });
+            }
+            await existingBooking.save();
+            console.log(`Status da reserva atualizado para: ${mappedExistingStatus}`);
             
             return res.status(200).json({ 
                 received: true, 
