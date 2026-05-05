@@ -123,14 +123,12 @@ const CalendarSection = ({ calendar }) => {
 
 		events.forEach((event) => {
 			if (event.type === "range") {
-				const stayDays = getDatesBetweenExclusive(
-					event.startDate || event.checkin,
-					event.endDate || event.checkout,
-				);
+				const stayDays = getDatesBetweenExclusive(event.startDate, event.endDate);
+				const stayIdBase = event.bookingId || event.id;
 				stayDays.forEach((day) => {
 					expandedEvents.push({
 						...event,
-						id: `${event.bookingId}-stay-${toIsoDay(day)}`,
+						id: `${stayIdBase}-stay-${toIsoDay(day)}`,
 						type: "stay",
 						startDate: day,
 						endDate: day,
