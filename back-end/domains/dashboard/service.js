@@ -1295,15 +1295,13 @@ export const buildHostDashboardData = async (hostId) => {
     .populate("user", "name email photo")
     .populate("place", "title city price averageRating isActive checkin checkout photos owner")
     .lean();
-  const reviews = await Review.find({ place: { $in: placeIds } })
-    .select("place")
-    .lean();
-  const reviewCountByPlace = new Map();
-
-  for (const review of reviews) {
-    const key = String(review.place);
-    reviewCountByPlace.set(key, (reviewCountByPlace.get(key) || 0) + 1);
-  }
+  const reviewCounts = await Review.aggregate([
+    { $match: { place: { $in: placeIds } } },
+    { $group: { _id: "$place", count: { $sum: 1 } } },
+  ]);
+  const reviewCountByPlace = new Map(
+    reviewCounts.map(({ _id, count }) => [String(_id), count])
+  );
 
   const placeById = new Map(places.map((place) => [String(place._id), place]));
   const propertyBuckets = new Map(
