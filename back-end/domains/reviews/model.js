@@ -8,7 +8,6 @@ const reviewSchema = new Schema({
     comment: { type: String },
 }, { timestamps: true });
 
-reviewSchema.index({ place: 1 });
 reviewSchema.index({ place: 1, user: 1 });
 reviewSchema.index({ booking: 1 }, { unique: true });
 reviewSchema.index({ user: 1 });
