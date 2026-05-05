@@ -494,30 +494,53 @@ export const buildMonthlyFinancialSummary = async ({
     return paymentStatus === "approved" && !["canceled", "rejected"].includes(status);
   });
 
+  const totals = {
+    manualRevenue: 0,
+    recurringExpenses: 0,
+    operationalExpenses: 0,
+    paymentFees: 0,
+    refunds: 0,
+    nonDeductibleExpenses: 0,
+  };
+
+  for (const entry of entries) {
+    if (!isActionableEntry(entry)) continue;
+    const amount = Number(entry.amount || 0);
+
+    switch (entry.entryType) {
+      case "manual_revenue":
+        totals.manualRevenue += amount;
+        break;
+      case "recurring_expense":
+        totals.recurringExpenses += amount;
+        break;
+      case "operational_expense":
+        totals.operationalExpenses += amount;
+        break;
+      case "payment_fee":
+        totals.paymentFees += amount;
+        break;
+      case "refund":
+        totals.refunds += amount;
+        break;
+      default:
+        break;
+    }
+
+    if (entry.entryType !== "manual_revenue" && entry.taxDeductible === false) {
+      totals.nonDeductibleExpenses += amount;
+    }
+  }
+
   const grossRevenue = approvedBookings.reduce((total, booking) => total + Number(booking.priceTotal || 0), 0);
-  const manualRevenue = entries
-    .filter((entry) => entry.entryType === "manual_revenue" && isActionableEntry(entry))
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
-  const recurringExpenses = entries
-    .filter((entry) => entry.entryType === "recurring_expense" && isActionableEntry(entry))
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
-  const operationalExpenses = entries
-    .filter((entry) => entry.entryType === "operational_expense" && isActionableEntry(entry))
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
-  const paymentFees = entries
-    .filter((entry) => entry.entryType === "payment_fee" && isActionableEntry(entry))
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
-  const refunds = entries
-    .filter((entry) => entry.entryType === "refund" && isActionableEntry(entry))
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
-  const nonDeductibleExpenses = entries
-    .filter(
-      (entry) =>
-        entry.entryType !== "manual_revenue" &&
-        entry.taxDeductible === false &&
-        isActionableEntry(entry)
-    )
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
+  const {
+    manualRevenue,
+    recurringExpenses,
+    operationalExpenses,
+    paymentFees,
+    refunds,
+    nonDeductibleExpenses,
+  } = totals;
 
   const operatingDeductions = recurringExpenses + operationalExpenses + paymentFees + refunds;
   const accountingNetRevenue = grossRevenue + manualRevenue - operatingDeductions;

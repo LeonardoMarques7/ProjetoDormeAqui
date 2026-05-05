@@ -8,6 +8,8 @@ import { buildMonthlyFinancialSummary } from "../financialEntries/service.js";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const HOST_FEE_RATE = 0.1;
+const BOOKING_LOOKBACK_MONTHS = 6;
+const BOOKING_LOOKAHEAD_MONTHS = 3;
 
 const DAY_LABELS = {
   sunday: "Dom",
@@ -85,22 +87,6 @@ const overlapDays = (startA, endA, startB, endB) => {
   return Math.ceil((end - start) / ONE_DAY_MS);
 };
 
-const getDatesBetweenExclusive = (startDate, endDate) => {
-  const start = toStartOfDay(new Date(startDate));
-  const end = toStartOfDay(new Date(endDate));
-  const days = [];
-
-  for (
-    let d = new Date(start.getTime() + ONE_DAY_MS);
-    d < end;
-    d = new Date(d.getTime() + ONE_DAY_MS)
-  ) {
-    days.push(new Date(d));
-  }
-
-  return days;
-};
-
 const getStatusMeta = (status) => {
   if (status === "confirmed") return { label: "Confirmada", color: "#16a34a" };
   if (status === "pending") return { label: "Pendente", color: "#f59e0b" };
@@ -119,43 +105,65 @@ const monthLabel = (date) =>
     date.getMonth()
   ];
 
-const buildRevenueSeries = (bookings) => {
-  const revenueBookings = bookings
-    .filter((booking) => {
-      const paymentStatus = String(booking.paymentStatus || "").toLowerCase();
-      const status = String(booking.status || "").toLowerCase();
-      return (
-        paymentStatus === "approved" &&
-        !CANCELED_BOOKING_STATUSES.has(status) &&
-        booking.checkout &&
-        Number(booking.priceTotal || 0) > 0
-      );
-    })
-    .sort((a, b) => new Date(a.checkout) - new Date(b.checkout));
+const buildRevenueSeries = async (placeIds = []) => {
+  const anchorFallback = new Date();
+  const monthTotals = new Map();
 
-  const anchorDate = revenueBookings.length
-    ? new Date(revenueBookings[revenueBookings.length - 1].checkout)
-    : new Date();
+  if (placeIds.length > 0) {
+    const match = {
+      place: { $in: placeIds },
+      paymentStatus: "approved",
+      status: { $nin: Array.from(CANCELED_BOOKING_STATUSES) },
+      checkout: { $type: "date" },
+      priceTotal: { $gt: 0 },
+    };
+    const [anchorResult] = await Booking.aggregate([
+      { $match: match },
+      { $group: { _id: null, lastCheckout: { $max: "$checkout" } } },
+    ]);
+    const anchorDate = anchorResult?.lastCheckout
+      ? new Date(anchorResult.lastCheckout)
+      : anchorFallback;
+    const rangeStart = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - 5, 1);
+    const rangeEnd = new Date(anchorDate.getFullYear(), anchorDate.getMonth() + 1, 0);
+    const totals = await Booking.aggregate([
+      {
+        $match: {
+          ...match,
+          checkout: { $gte: rangeStart, $lte: rangeEnd },
+        },
+      },
+      {
+        $group: {
+          _id: { year: { $year: "$checkout" }, month: { $month: "$checkout" } },
+          receita: { $sum: { $ifNull: ["$priceTotal", 0] } },
+        },
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } },
+    ]);
+    totals.forEach(({ _id, receita }) => {
+      monthTotals.set(`${_id.year}-${_id.month}`, receita);
+    });
+
+    return buildRevenueProjectionSeries(anchorDate, monthTotals);
+  }
+
+  return buildRevenueProjectionSeries(anchorFallback, monthTotals);
+};
+
+const buildRevenueProjectionSeries = (anchorDate, monthTotals) => {
   const byMonth = new Map();
 
   for (let i = 5; i >= 0; i -= 1) {
     const date = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - i, 1);
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const key = `${date.getFullYear()}-${date.getMonth() + 1}`;
     byMonth.set(key, {
       key,
       mes: monthLabel(date),
-      receita: 0,
+      receita: monthTotals.get(key) || 0,
       projecao: null,
       tipo: "real",
     });
-  }
-
-  for (const booking of revenueBookings) {
-    const checkoutDate = new Date(booking.checkout);
-    const key = `${checkoutDate.getFullYear()}-${checkoutDate.getMonth()}`;
-    if (byMonth.has(key)) {
-      byMonth.get(key).receita += Number(booking.priceTotal || 0);
-    }
   }
 
   const series = Array.from(byMonth.values());
@@ -168,7 +176,7 @@ const buildRevenueSeries = (bookings) => {
   const projectionDate = new Date(anchorDate.getFullYear(), anchorDate.getMonth() + 1, 1);
   lastMonth.projecao = lastMonth.receita;
   series.push({
-    key: `${projectionDate.getFullYear()}-${projectionDate.getMonth()}`,
+    key: `${projectionDate.getFullYear()}-${projectionDate.getMonth() + 1}`,
     mes: `${monthLabel(projectionDate)} (proj.)`,
     receita: null,
     projecao: Math.max(0, lastMonth.receita * (1 + growth)),
@@ -309,34 +317,86 @@ const getReportPerformanceStatus = ({ revenue = 0, occupancyRate = 0, alerts = [
   return { key: "stable", label: "Estavel", tone: "slate" };
 };
 
-const buildMonthlyReportSeries = ({ bookings, places, anchorDate }) => {
+const buildMonthlyReportSeries = async ({ placeIds, placeCount, anchorDate }) => {
   const series = [];
+  const hasPlaces = placeIds.length > 0;
 
   for (let i = 5; i >= 0; i -= 1) {
     const monthStart = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - i, 1);
     const monthEnd = toEndOfDay(new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0));
     const monthDays = eachDayBetween(monthStart, monthEnd);
-    const capacityNights = places.length * monthDays.length;
+    const capacityNights = placeCount * monthDays.length;
     let revenue = 0;
     let bookedNights = 0;
     let reservations = 0;
 
-    for (const booking of bookings) {
-      const checkinDate = new Date(booking.checkin);
-      const checkoutDate = new Date(booking.checkout);
-      const status = String(booking.status || "").toLowerCase();
-      const paymentStatus = String(booking.paymentStatus || "").toLowerCase();
-      const bookingIsCanceled = CANCELED_BOOKING_STATUSES.has(status);
-      const overlapsMonth = checkoutDate >= monthStart && checkinDate <= monthEnd;
+    if (hasPlaces) {
+      const [monthlyStats] = await Booking.aggregate([
+        {
+          $match: {
+            place: { $in: placeIds },
+            checkin: { $lte: monthEnd },
+            checkout: { $gte: monthStart },
+            status: { $nin: Array.from(CANCELED_BOOKING_STATUSES) },
+          },
+        },
+        {
+          $project: {
+            priceTotal: { $ifNull: ["$priceTotal", 0] },
+            paymentStatus: 1,
+            checkout: 1,
+            overlapStart: {
+              $cond: [{ $gt: ["$checkin", monthStart] }, "$checkin", monthStart],
+            },
+            overlapEnd: {
+              $cond: [{ $lt: ["$checkout", monthEnd] }, "$checkout", monthEnd],
+            },
+          },
+        },
+        {
+          $project: {
+            revenue: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ["$paymentStatus", "approved"] },
+                    { $gte: ["$checkout", monthStart] },
+                    { $lte: ["$checkout", monthEnd] },
+                  ],
+                },
+                "$priceTotal",
+                0,
+              ],
+            },
+            overlapNights: {
+              $cond: [
+                { $gt: ["$overlapEnd", "$overlapStart"] },
+                {
+                  $ceil: {
+                    $divide: [
+                      { $subtract: ["$overlapEnd", "$overlapStart"] },
+                      ONE_DAY_MS,
+                    ],
+                  },
+                },
+                0,
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            revenue: { $sum: "$revenue" },
+            bookedNights: { $sum: "$overlapNights" },
+            reservations: { $sum: 1 },
+          },
+        },
+      ]);
 
-      if (!overlapsMonth || bookingIsCanceled) continue;
-
-      reservations += 1;
-      bookedNights += overlapDays(checkinDate, checkoutDate, monthStart, monthEnd);
-
-      if (paymentStatus === "approved" && checkoutDate >= monthStart && checkoutDate <= monthEnd) {
-        revenue += Number(booking.priceTotal || 0);
-      }
+      revenue = monthlyStats?.revenue || 0;
+      bookedNights = monthlyStats?.bookedNights || 0;
+      reservations = monthlyStats?.reservations || 0;
     }
 
     series.push({
@@ -418,9 +478,10 @@ const buildBookingStatusReport = (bookings, periodStart, periodEnd) => {
   };
 };
 
-const buildReportsPayload = ({
+const buildReportsPayload = async ({
   bookings,
   places,
+  placeIds,
   operationalProperties,
   financial,
   financialLedger,
@@ -447,10 +508,14 @@ const buildReportsPayload = ({
   const previousBookingReport = buildBookingStatusReport(bookings, previousMonthStart, previousMonthEnd);
   const revenueTrend = getReportTrend(monthlyEarnings, previousMonthEarnings);
   const profitTrend = getReportTrend(estimatedProfit, previousMonthEstimatedProfit);
-  const monthlySeries = buildMonthlyReportSeries({ bookings, places, anchorDate: monthEnd });
-  const previousMonthSeries = buildMonthlyReportSeries({
-    bookings,
-    places,
+  const monthlySeries = await buildMonthlyReportSeries({
+    placeIds,
+    placeCount: places.length,
+    anchorDate: monthEnd,
+  });
+  const previousMonthSeries = await buildMonthlyReportSeries({
+    placeIds,
+    placeCount: places.length,
     anchorDate: previousMonthEnd,
   });
   const previousMonthOccupancy =
@@ -1092,6 +1157,16 @@ const buildOverviewPayload = ({
 export const buildHostDashboardData = async (hostId) => {
   const now = new Date();
   const todayEnd = toEndOfDay(now);
+  const sixMonthsAgo = new Date(
+    now.getFullYear(),
+    now.getMonth() - BOOKING_LOOKBACK_MONTHS,
+    1
+  );
+  const threeMonthsAhead = new Date(
+    now.getFullYear(),
+    now.getMonth() + BOOKING_LOOKAHEAD_MONTHS,
+    1
+  );
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = toEndOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0));
   const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -1215,9 +1290,10 @@ export const buildHostDashboardData = async (hostId) => {
         revenueProjection: [],
         propertyPerformance: [],
       },
-      reports: buildReportsPayload({
+      reports: await buildReportsPayload({
         bookings: [],
         places: [],
+        placeIds: [],
         operationalProperties: [],
         financial: {
           revenue: { items: [] },
@@ -1290,20 +1366,22 @@ export const buildHostDashboardData = async (hostId) => {
     };
   }
 
-  const bookings = await Booking.find({ place: { $in: placeIds } })
-    .sort({ createdAt: -1 })
+  const bookings = await Booking.find({
+    place: { $in: placeIds },
+    checkout: { $gte: sixMonthsAgo },
+    checkin: { $lte: threeMonthsAhead },
+  })
+    .sort({ checkin: 1 })
     .populate("user", "name email photo")
     .populate("place", "title city price averageRating isActive checkin checkout photos owner")
     .lean();
-  const reviews = await Review.find({ place: { $in: placeIds } })
-    .select("place")
-    .lean();
-  const reviewCountByPlace = new Map();
-
-  for (const review of reviews) {
-    const key = String(review.place);
-    reviewCountByPlace.set(key, (reviewCountByPlace.get(key) || 0) + 1);
-  }
+  const reviewCounts = await Review.aggregate([
+    { $match: { place: { $in: placeIds } } },
+    { $group: { _id: "$place", count: { $sum: 1 } } },
+  ]);
+  const reviewCountByPlace = new Map(
+    reviewCounts.map(({ _id, count }) => [String(_id), count])
+  );
 
   const placeById = new Map(places.map((place) => [String(place._id), place]));
   const propertyBuckets = new Map(
@@ -1499,35 +1577,32 @@ export const buildHostDashboardData = async (hostId) => {
       total: bookingTotal,
     });
 
-    const stayDays = getDatesBetweenExclusive(checkinDate, checkoutDate);
-    for (const day of stayDays) {
-      calendarEvents.push({
-        id: `${booking._id}-stay-${toIsoDay(day)}`,
-        bookingId: String(booking._id),
-        type: "stay",
-        title: `Hospedagem • ${place?.title || "Acomodação"}`,
-        startDate: day,
-        endDate: day,
-        color: statusMeta.color,
-        status: statusMeta.label,
-        rawStatus: status,
-        guest: booking.user?.name || "Hóspede",
-        guestEmail: booking.user?.email || "",
-        guestCount: booking?.guests || 1,
-        guestId: booking.user?._id || "Não identificado",
-        guestPhoto: booking.user?.photo || null,
-        placeTitle: place?.title || "Acomodação",
-        placeCity: place?.city || "",
-        placeCheckin: place?.checkin || "",
-        placeCheckout: place?.checkout || "",
-        placePhoto: place?.photos?.[0] || null,
-        checkin: booking.checkin,
-        checkout: booking.checkout,
-        nights: bookingNights,
-        paymentStatus,
-        total: bookingTotal,
-      });
-    }
+    calendarEvents.push({
+      id: `${booking._id}-range`,
+      bookingId: String(booking._id),
+      type: "range",
+      title: `Hospedagem • ${place?.title || "Acomodação"}`,
+      startDate: checkinDate,
+      endDate: checkoutDate,
+      color: statusMeta.color,
+      status: statusMeta.label,
+      rawStatus: status,
+      guest: booking.user?.name || "Hóspede",
+      guestEmail: booking.user?.email || "",
+      guestCount: booking?.guests || 1,
+      guestId: booking.user?._id || "Não identificado",
+      guestPhoto: booking.user?.photo || null,
+      placeTitle: place?.title || "Acomodação",
+      placeCity: place?.city || "",
+      placeCheckin: place?.checkin || "",
+      placeCheckout: place?.checkout || "",
+      placePhoto: place?.photos?.[0] || null,
+      checkin: booking.checkin,
+      checkout: booking.checkout,
+      nights: bookingNights,
+      paymentStatus,
+      total: bookingTotal,
+    });
 
   }
 
@@ -1876,12 +1951,13 @@ export const buildHostDashboardData = async (hostId) => {
     alertGroups,
   });
   const charts = {
-    revenueProjection: buildRevenueSeries(bookings),
+    revenueProjection: await buildRevenueSeries(placeIds),
     propertyPerformance,
   };
-  const reports = buildReportsPayload({
+  const reports = await buildReportsPayload({
     bookings,
     places,
+    placeIds,
     operationalProperties,
     financial,
     financialLedger,

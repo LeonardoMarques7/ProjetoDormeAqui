@@ -36,18 +36,55 @@ export const transitionBookingStatus = async (bookingId, toStatus, options = {})
   const { reason = "", changedBy = null } = options;
 
   try {
-    const booking = await Booking.findById(bookingId);
+    const allowedFromStatuses = Object.keys(ALLOWED_TRANSITIONS).filter((status) =>
+      isTransitionAllowed(status, toStatus)
+    );
 
-    if (!booking) {
-      const err = new Error("Reserva não encontrada.");
-      err.statusCode = 404;
+    if (allowedFromStatuses.length === 0) {
+      const err = new Error(
+        `Transição inválida: não é possível ir para '${toStatus}'.`
+      );
+      err.statusCode = 400;
       throw err;
     }
 
-    const currentStatus = booking.status || "pending";
+    const now = new Date();
+    const statusHistoryEntry = {
+      status: toStatus,
+      changedAt: now,
+      changedBy: changedBy ? new mongoose.Types.ObjectId(changedBy) : null,
+      reason: reason,
+    };
 
-    // Validar transição
-    if (!isTransitionAllowed(currentStatus, toStatus)) {
+    const update = {
+      $set: {
+        status: toStatus,
+        lastStatusChange: now,
+      },
+      $push: {
+        statusHistory: statusHistoryEntry,
+      },
+    };
+
+    if (toStatus === "review") {
+      update.$set.reviewRequestedAt = now;
+      update.$set.reviewRequestedBy = changedBy ? new mongoose.Types.ObjectId(changedBy) : null;
+    }
+
+    const booking = await Booking.findOneAndUpdate(
+      { _id: bookingId, status: { $in: allowedFromStatuses } },
+      update,
+      { new: true }
+    );
+
+    if (!booking) {
+      const existing = await Booking.findById(bookingId).select("status").lean();
+      if (!existing) {
+        const err = new Error("Reserva não encontrada.");
+        err.statusCode = 404;
+        throw err;
+      }
+      const currentStatus = existing.status || "pending";
       const err = new Error(
         `Transição inválida: não é possível ir de '${currentStatus}' para '${toStatus}'.`
       );
@@ -55,29 +92,6 @@ export const transitionBookingStatus = async (bookingId, toStatus, options = {})
       throw err;
     }
 
-    // Adicionar entrada no histórico
-    if (!booking.statusHistory) {
-      booking.statusHistory = [];
-    }
-
-    booking.statusHistory.push({
-      status: toStatus,
-      changedAt: new Date(),
-      changedBy: changedBy ? new mongoose.Types.ObjectId(changedBy) : null,
-      reason: reason,
-    });
-
-    // Atualizar status
-    booking.status = toStatus;
-    booking.lastStatusChange = new Date();
-
-    // Lógica específica para estado de revisão
-    if (toStatus === "review") {
-      booking.reviewRequestedAt = new Date();
-      booking.reviewRequestedBy = changedBy ? new mongoose.Types.ObjectId(changedBy) : null;
-    }
-
-    await booking.save();
     return booking;
   } catch (error) {
     throw error;

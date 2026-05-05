@@ -191,6 +191,20 @@ ProjetoDormeAqui/
 
 ---
 
+## 🗃️ Mapeamento statusHistory → booking_status_history (PostgreSQL)
+
+Cada item do array `booking.statusHistory` vira uma linha na tabela `booking_status_history`.
+
+| Fonte no Mongo (booking.statusHistory) | Coluna SQL | Tipo sugerido | Observações |
+|---|---|---|---|
+| booking._id | booking_id | UUID/FK | Referência à reserva |
+| statusHistory.status | status | VARCHAR | Mesmo enum de status da reserva |
+| statusHistory.changedAt | changed_at | TIMESTAMP | Data da transição |
+| statusHistory.changedBy | changed_by | UUID/FK | Usuário responsável (nullable) |
+| statusHistory.reason | reason | TEXT | Motivo da mudança (nullable) |
+
+---
+
 ## 🌐 Deploy
 
 | Serviço | Plataforma |

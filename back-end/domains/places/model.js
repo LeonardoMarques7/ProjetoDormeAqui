@@ -20,4 +20,7 @@ const placeSchema = new Schema({
     isActive: { type: Boolean, default: true },
 });
 
+placeSchema.index({ owner: 1, isActive: 1 });
+placeSchema.index({ city: 1, price: 1 });
+
 export default model("Place", placeSchema);
