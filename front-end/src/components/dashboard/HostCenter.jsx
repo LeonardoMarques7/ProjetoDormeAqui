@@ -16,6 +16,7 @@ import {
 	Graph as FileBarChart,
 	Gallery,
 	Home,
+	PenNewRound,
 	Broom,
 	Logout3,
 	Ticket,
@@ -32,12 +33,16 @@ import {
 	CloseCircle as X,
 } from "@solar-icons/react";
 import {
+	Area,
+	AreaChart,
 	Bar,
 	BarChart,
 	CartesianGrid,
 	Cell,
 	Line,
 	LineChart,
+	Pie,
+	PieChart,
 	ResponsiveContainer,
 	Tooltip as RechartsTooltip,
 	XAxis,
@@ -46,6 +51,8 @@ import {
 import { getHostDashboard } from "@/services/dashboardService";
 import CalendarGridMonth from "./CalendarGridMonth";
 import AccommodationLogbook from "./AccommodationLogbook";
+import FinancialEntriesPanel from "./FinancialEntriesPanel";
+import Perk from "@/components/common/Perk";
 import photoDefault from "@/assets/photoDefault.jpg";
 
 const navigation = [
@@ -87,6 +94,34 @@ const formatCurrency = (value) =>
 		currency: "BRL",
 		maximumFractionDigits: 0,
 	}).format(Number(value || 0));
+
+const reportFormatters = {
+	currency: (value) =>
+		new Intl.NumberFormat("pt-BR", {
+			style: "currency",
+			currency: "BRL",
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+		}).format(Number(value || 0)),
+	percent: (value) => `${Math.round(Number(value || 0))}%`,
+	date: (value) =>
+		value
+			? new Intl.DateTimeFormat("pt-BR", {
+					day: "2-digit",
+					month: "short",
+					year: "numeric",
+				}).format(new Date(value))
+			: "Sem data",
+	reservations: (value) => {
+		const total = Number(value || 0);
+		return `${total} ${total === 1 ? "reserva" : "reservas"}`;
+	},
+	rating: (value) =>
+		Number(value || 0).toLocaleString("pt-BR", {
+			minimumFractionDigits: 1,
+			maximumFractionDigits: 1,
+		}),
+};
 
 const formatDate = (value) =>
 	value
@@ -395,6 +430,21 @@ const kpiIconMap = {
 	occupancyRate: BarChart3,
 	averageRating: CheckCircle2,
 	averageDailyRate: Banknote,
+	periodRevenue: Banknote,
+	averageOccupancy: BarChart3,
+	periodBookings: Ticket,
+	bestProperty: Building2,
+	grossRevenue: Banknote,
+	netRevenue: WalletIcon,
+	totalBookings: Ticket,
+	checkinsDone: DoorOpen,
+	checkoutsDone: Logout3,
+	nightsReserved: CalendarDays,
+	availableDays: CalendarDays,
+	reservedDays: Ticket,
+	emptyDays: CalendarDays,
+	completedCleanings: Broom,
+	completedInspections: ClipboardCheck,
 	cleaningInProgress: RefreshCw,
 	approvedForCheckin: CheckCircle2,
 	blockedProperties: AlertTriangle,
@@ -404,10 +454,9 @@ const formatKpiValue = (item) => {
 	if (!item?.available) return "Indisponível";
 	if (item.value === null || item.value === undefined) return "Sem dados";
 
-	if (item.format === "currency") return formatCurrency(item.value);
-	if (item.format === "percent")
-		return `${Math.round(Number(item.value || 0))}%`;
-	if (item.format === "rating") return Number(item.value).toFixed(1);
+	if (item.format === "currency") return reportFormatters.currency(item.value);
+	if (item.format === "percent") return reportFormatters.percent(item.value);
+	if (item.format === "rating") return reportFormatters.rating(item.value);
 
 	return item.value;
 };
@@ -1596,97 +1645,123 @@ function ChartsPanel({ charts }) {
 	);
 }
 
+function Dot() {
+	return <div className="w-1 rounded-full h-1 bg-gray-500" />;
+}
+
 function PropertyCard({ property }) {
 	const photo = property.photos?.[0] || photoDefault;
+	const photo2 = property.photos?.[1] || photoDefault;
+	const photo3 = property.photos?.[2] || photoDefault;
 	const nextEvent = property.nextEvent;
 
+	const rating =
+		typeof property.averageRating === "number"
+			? property.averageRating.toFixed(1)
+			: property.averageRating || "Sem nota";
+
 	return (
-		<article className="min-w-0 overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
-			<div className="grid min-w-0 gap-4 xl:grid-cols-[220px_minmax(0,1fr)]">
-				<img
-					src={photo}
-					alt={property.title}
-					className="h-48 w-full rounded-[16px] object-cover lg:h-full"
-				/>
+		<article className="min-w-0 rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(15,23,42,0.1)]">
+			<div className="flex items-start relative justify-between gap-4">
+				<div className="flex min-w-0 items-center gap-3">
+					<img
+						src={photo}
+						alt={property.title}
+						className="h-full aspect-square w-50  rounded-2xl border border-slate-200 object-cover"
+					/>
+					<img
+						src={photo2}
+						alt={property.title}
+						className="h-full w-50 aspect-square  rounded-2xl border border-slate-200 object-cover"
+					/>
+					<img
+						src={photo3}
+						alt={property.title}
+						className="h-full w-50 aspect-square  rounded-2xl border border-slate-200 object-cover"
+					/>
+				</div>
+
+				<button
+					type="button"
+					className="inline-flex shrink-0 items-center rounded-[10px] border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm transition hover:bg-slate-50"
+				>
+					{property.statusLabel}
+				</button>
+			</div>
+			<div className="my-2.5">
+				<Link
+					to={`/places/${property.id}`}
+					className="block text-[1.75rem] hover:underline font-semibold leading-tight tracking-[-0.03em] text-slate-950 transition hover:text-primary-700"
+				>
+					{property.title}
+				</Link>
+				<p className="truncate text-sm font-medium text-slate-950">
+					{property.city}
+				</p>
+			</div>
+
+			<div className="mt-4 flex flex-wrap gap-2">
+				<div className="flex my-2 !flex-nowrap items-center !text-xs gap-2 w-full justify-start max-w-auto">
+					<span>{property.guests} hóspedes</span>
+					<Dot />
+					<span>
+						{property.rooms} {property.rooms > 1 ? "quartos" : "quarto"}
+					</span>
+					<Dot />
+					<span>
+						{property.beds} {property.beds > 1 ? "camas" : "cama"}
+					</span>
+					<Dot />
+					<span>
+						{property.bathrooms}{" "}
+						{property.bathrooms > 1 ? "banheiros" : "banheiro"}
+					</span>
+				</div>
+
+				{property.perks?.slice(0, 2).map((perk) => (
+					<div
+						className={`flex w-fit items-center border border-primary-100 px-3 py-2 rounded-xl text-sm  gap-2.5 `}
+					>
+						<Perk place={true} perk={perk} />
+					</div>
+				))}
+			</div>
+			<div className="mt-3 flex flex-wrap gap-2">
+				<span className="rounded-[8px] bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
+					Ocupação: {property.occupancyRate ?? 0}%
+				</span>
+				<span className="rounded-[8px] bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
+					Avaliação: {rating}
+				</span>
+				{property.alerts?.slice(0, 1).map((alert) => (
+					<span
+						key={alert.id}
+						className="rounded-[8px] bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700"
+					>
+						{alert.title}
+					</span>
+				))}
+			</div>
+			<div className="mt-8 flex items-end justify-between gap-4 border-t border-slate-200 pt-4">
 				<div className="min-w-0">
-					<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-						<div className="min-w-0">
-							<p className="text-sm text-slate-500">{property.city}</p>
-							<Link
-								to={`/places/${property.id}`}
-								className="mt-1 block truncate text-xl font-semibold tracking-tight text-slate-950 hover:text-primary-700"
-							>
-								{property.title}
-							</Link>
-						</div>
-						<Pill
-							tone={
-								property.status === "critical" || property.status === "warning"
-									? "amber"
-									: "green"
-							}
-						>
-							{property.statusLabel}
-						</Pill>
-					</div>
-
-					<div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-						<MetricCardRow
-							label="Receita"
-							value={formatCurrency(property.monthlyRevenue)}
-							tone="green"
-						/>
-						<MetricCardRow
-							label="Ocupação"
-							value={`${property.occupancyRate ?? 0}%`}
-							tone="blue"
-							icon={ArrowUpRight}
-						/>
-						<MetricCardRow
-							label="Avaliação"
-							value={property.averageRating || "Sem nota"}
-							tone="violet"
-							icon={CheckCircle2}
-						/>
-						<MetricCardRow
-							label="Próxima"
-							value={
-								nextEvent
-									? `${nextEvent.type} ${formatDate(nextEvent.date)}`
-									: "Sem evento"
-							}
-							tone="slate"
-							icon={Clock3}
-						/>
-					</div>
-
-					<div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-600">
-						<span className="rounded-full bg-slate-100 px-3 py-1">
-							{property.guests || "-"} hóspedes
-						</span>
-						<span className="rounded-full bg-slate-100 px-3 py-1">
-							{property.rooms || "-"} quartos
-						</span>
-						<span className="rounded-full bg-slate-100 px-3 py-1">
-							{property.bathrooms || "-"} banheiros
-						</span>
-						{property.perks?.slice(0, 4).map((perk) => (
-							<span key={perk} className="rounded-full bg-slate-100 px-3 py-1">
-								{perk}
-							</span>
-						))}
-					</div>
-
-					<div className="mt-4 flex flex-wrap items-center gap-2">
-						{property.alerts?.slice(0, 3).map((alert) => (
-							<span
-								key={alert.id}
-								className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600"
-							>
-								{alert.title}
-							</span>
-						))}
-					</div>
+					<p className="text-2xl font-semibold tracking-[-0.03em] text-slate-950">
+						{formatCurrency(property.monthlyRevenue)}
+					</p>
+					<p className="truncate text-sm text-slate-400">{property.city}</p>
+				</div>
+				<div className="flex items-center gap-2">
+					<Link
+						to={`/places/new/${property.id}`}
+						className="flex gap-5 shrink-0 items-center justify-center rounded-[10px] bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+					>
+						<PenNewRound /> Editar
+					</Link>
+					<Link
+						to={`/places/${property.id}`}
+						className="inline-flex shrink-0 items-center justify-center rounded-[10px] bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+					>
+						Acessar
+					</Link>
 				</div>
 			</div>
 		</article>
@@ -1993,11 +2068,95 @@ function Finance({ data, action }) {
 		paymentsRefunds: [],
 		filters: [],
 	};
+	const ledgerTotals = financial.ledger?.totals || {};
+	const ledgerBySubcategory = new Map(
+		(financial.ledger?.bySubcategory || []).map((item) => [
+			item.key,
+			item.amount,
+		]),
+	);
 	const showRevenue = activeFilter === "current_month";
 	const showComparison = activeFilter === "previous_month";
 	const showReceivables = activeFilter === "upcoming_receivables";
 	const showProperties = activeFilter === "by_property";
 	const showPaymentStatus = activeFilter === "by_payment_status";
+	const expenseItems = (financial.expenses?.items || []).map((item) => {
+		if (item.key === "paymentFees") {
+			return {
+				...item,
+				value:
+					ledgerTotals.paymentFees ||
+					ledgerBySubcategory.get("payment_fee:taxa_pagamento") ||
+					0,
+				available: true,
+			};
+		}
+		if (item.key === "cleaning") {
+			return {
+				...item,
+				value: ledgerBySubcategory.get("operational_expense:limpeza") || 0,
+				available: true,
+			};
+		}
+		if (item.key === "maintenance") {
+			return {
+				...item,
+				value: ledgerBySubcategory.get("operational_expense:manutencao") || 0,
+				available: true,
+			};
+		}
+		if (item.key === "itemReplacement") {
+			return {
+				...item,
+				value: ledgerBySubcategory.get("operational_expense:reposicao") || 0,
+				available: true,
+			};
+		}
+		if (item.key === "condominium") {
+			return {
+				...item,
+				value: ledgerBySubcategory.get("recurring_expense:condominio") || 0,
+				available: true,
+			};
+		}
+		if (item.key === "propertyTax") {
+			return {
+				...item,
+				value: ledgerBySubcategory.get("recurring_expense:iptu") || 0,
+				available: true,
+			};
+		}
+		if (item.key === "water") {
+			return {
+				...item,
+				value: ledgerBySubcategory.get("recurring_expense:agua") || 0,
+				available: true,
+			};
+		}
+		if (item.key === "electricity") {
+			return {
+				...item,
+				value: ledgerBySubcategory.get("recurring_expense:luz") || 0,
+				available: true,
+			};
+		}
+		if (item.key === "internet") {
+			return {
+				...item,
+				value: ledgerBySubcategory.get("recurring_expense:internet") || 0,
+				available: true,
+			};
+		}
+		if (item.key === "otherExpenses") {
+			return {
+				...item,
+				value:
+					ledgerBySubcategory.get("operational_expense:outras_despesas") || 0,
+				available: true,
+			};
+		}
+		return item;
+	});
 
 	return (
 		<div className="space-y-5">
@@ -2037,6 +2196,13 @@ function Finance({ data, action }) {
 				}
 			/>
 
+			<FinancialEntriesPanel
+				places={data.places || []}
+				initialSummary={financial.ledger || null}
+				initialEntries={financial.ledger?.entries || []}
+				initialMonthKey={financial.ledger?.period?.key || ""}
+			/>
+
 			<PanelCard
 				title="Filtros financeiros"
 				description="Os controles usam os recortes financeiros entregues pelo back-end; nenhum valor é recalculado na interface."
@@ -2051,7 +2217,9 @@ function Finance({ data, action }) {
 			{showRevenue && (
 				<div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
 					<FinancialRevenuePanel revenue={financial.revenue} />
-					<FinancialExpensesPanel expenses={financial.expenses} />
+					<FinancialExpensesPanel
+						expenses={{ ...financial.expenses, items: expenseItems }}
+					/>
 					<div className="xl:col-span-2">
 						<FinancialProfitPanel
 							profitability={financial.profitability}
@@ -2079,40 +2247,1720 @@ function Finance({ data, action }) {
 			{showPaymentStatus && (
 				<PaymentsRefundsList items={financial.paymentsRefunds || []} />
 			)}
+		</div>
+	);
+}
 
-			{financial.unavailableData?.length > 0 && (
-				<PanelCard title="Dados financeiros ainda incompletos">
-					<div className="space-y-2">
-						{financial.unavailableData.map((item) => (
-							<div
-								key={item}
-								className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/80 px-4 py-3 text-sm text-slate-600"
-							>
-								{item}
+const reportStatusConfig = {
+	good: { label: "Bom desempenho", tone: "green" },
+	attention: { label: "Atenção", tone: "amber" },
+	critical: { label: "Crítico", tone: "red" },
+	growth: { label: "Crescimento", tone: "green" },
+	drop: { label: "Queda", tone: "amber" },
+	stable: { label: "Estável", tone: "slate" },
+	unavailable: { label: "Indisponível", tone: "slate" },
+	neutral: { label: "Estável", tone: "slate" },
+};
+
+const formatReportValue = (item = {}) => {
+	if (item.available === false) return "Indisponível";
+	if (item.value === null || item.value === undefined || item.value === "")
+		return "Sem dados";
+	if (item.format === "currency") return formatCurrency(item.value);
+	if (item.format === "percent")
+		return `${Math.round(Number(item.value || 0))}%`;
+	if (item.format === "rating") return Number(item.value).toFixed(1);
+	return item.value;
+};
+
+function ReportStatusBadge({ status, label }) {
+	const config = reportStatusConfig[status] || reportStatusConfig.stable;
+	return <Pill tone={config.tone}>{label || config.label}</Pill>;
+}
+
+function ReportsSummaryCards({ items = [] }) {
+	return (
+		<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+			{items.map((item) => {
+				const Icon = kpiIconMap[item.key] || FileBarChart;
+				const available = item.available !== false;
+				const palette = getTone(available ? item.tone || "blue" : "slate");
+				return (
+					<article
+						key={item.key || item.label}
+						className={`min-w-0 rounded-[18px] border p-4 transition-all duration-200 ${
+							available
+								? "border-slate-200/80 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.06)] hover:-translate-y-0.5 hover:border-primary-200 hover:shadow-[0_16px_36px_rgba(15,23,42,0.08)]"
+								: "border-dashed border-slate-300 bg-slate-50/80 shadow-none"
+						}`}
+					>
+						<div className="flex items-start justify-between gap-3">
+							<div className="min-w-0">
+								<p className="max-w-[9rem] text-[12px] font-semibold leading-5 text-slate-500">
+									{item.label}
+								</p>
+								<p
+									className={`mt-3 break-words font-semibold tracking-tight ${
+										available
+											? "text-[24px] leading-none text-slate-950"
+											: "text-lg text-slate-500"
+									}`}
+								>
+									{formatReportValue(item)}
+								</p>
 							</div>
-						))}
+							<span
+								className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${palette.iconBg} ${palette.iconText}`}
+							>
+								<Icon className="h-5 w-5" weight="BoldDuotone" />
+							</span>
+						</div>
+						<div className="mt-4 flex flex-wrap items-center gap-2">
+							<ReportStatusBadge
+								status={item.status}
+								label={
+									item.status === "growth" ? "Variação positiva" : undefined
+								}
+							/>
+							{item.helper && (
+								<p className="min-w-0 flex-1 text-xs leading-5 text-slate-500">
+									{item.helper}
+								</p>
+							)}
+						</div>
+					</article>
+				);
+			})}
+		</div>
+	);
+}
+
+const reportsFilterLabelOverrides = {
+	current_month: "Este mês",
+	previous_month: "Mês anterior",
+	last_3_months: "Últimos 3 meses",
+	last_6_months: "Últimos 6 meses",
+	custom: "Personalizado",
+	all: "Todos",
+	financial: "Financeiro",
+	bookings: "Reservas",
+	occupancy: "Ocupação",
+	properties: "Acomodação",
+	operational: "Operacional",
+	confirmed: "Confirmada",
+	pending: "Pendente",
+	in_progress: "Em andamento",
+	completed: "Finalizada",
+	canceled: "Cancelada",
+	evaluation: "Em avaliação",
+	review: "Em avaliação",
+	archived: "Arquivada",
+};
+
+const getReportFilterLabel = (option = {}) =>
+	reportsFilterLabelOverrides[option.key] || option.label || option.key;
+
+function ReportFilterButtonGroup({ label, options = [], value, onChange }) {
+	return (
+		<div className="min-w-0">
+			<p className="mb-2 text-xs font-semibold text-slate-700">{label}</p>
+			<div className="flex flex-wrap gap-2">
+				{options.map((option) => {
+					const active = value === option.key;
+					const disabled = option.available === false;
+					return (
+						<button
+							key={option.key}
+							type="button"
+							disabled={disabled}
+							onClick={() => onChange(option.key)}
+							className={`inline-flex min-h-10 items-center rounded-xl border px-4 text-sm font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
+								active
+									? "border-primary-700 bg-primary-700 text-white shadow-[0_8px_18px_rgba(37,99,235,0.22)]"
+									: "border-slate-200 bg-white text-slate-700 hover:border-primary-200 hover:bg-primary-50/50 hover:text-primary-800"
+							} ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+						>
+							{getReportFilterLabel(option)}
+						</button>
+					);
+				})}
+			</div>
+		</div>
+	);
+}
+
+function ReportDateField({ label, value }) {
+	return (
+		<div className="min-w-0">
+			<label className="mb-2 block text-xs font-semibold text-slate-600">
+				{label}
+			</label>
+			<div className="flex min-h-11 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.02)]">
+				<span className="truncate">
+					{value ? reportFormatters.date(value) : "Sem data"}
+				</span>
+				<CalendarDays className="h-4 w-4 shrink-0 text-slate-400" />
+			</div>
+		</div>
+	);
+}
+
+function ReportSelectControl({
+	label,
+	options = [],
+	value,
+	onChange,
+	disabled = false,
+	helper,
+}) {
+	return (
+		<div>
+			<label className="mb-2 block text-xs font-semibold text-slate-700">
+				{label}
+			</label>
+			<div className="relative">
+				<select
+					value={value}
+					onChange={(event) => onChange(event.target.value)}
+					disabled={disabled}
+					className="min-h-11 w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm font-semibold text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.02)] transition-colors duration-200 hover:border-primary-200 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+				>
+					{options.map((option) => (
+						<option
+							key={option.key}
+							value={option.key}
+							disabled={option.available === false}
+						>
+							{getReportFilterLabel(option)}
+						</option>
+					))}
+				</select>
+				<ChevronRight className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-slate-400" />
+			</div>
+			{helper && <p className="mt-2 text-xs text-slate-500">{helper}</p>}
+		</div>
+	);
+}
+
+function ReportsFilters({
+	filters = {},
+	selected,
+	onChange,
+	period,
+	onClear,
+	onApplyFilters,
+	onExportPdf,
+	onExportCsv,
+}) {
+	const defaultFilters = {
+		period: filters.periods?.[0]?.key || "current_month",
+		accommodation: filters.accommodations?.[0]?.key || "all",
+		reservationStatus: filters.reservationStatuses?.[0]?.key || "all",
+		reportType: filters.reportTypes?.[0]?.key || "financial",
+	};
+	const periodOptions = [
+		...(filters.periods || []),
+		{ key: "custom", label: "Personalizado", available: true },
+	];
+	const statusOptions = [
+		{ key: "all", label: "Todos", available: true },
+		{ key: "pending", label: "Pendente", available: true },
+		{ key: "confirmed", label: "Confirmada", available: true },
+		{ key: "in_progress", label: "Em andamento", available: true },
+		{ key: "completed", label: "Finalizada", available: true },
+		{ key: "canceled", label: "Cancelada", available: true },
+		{ key: "evaluation", label: "Em avaliação", available: true },
+		{ key: "review", label: "Em revisão", available: true },
+		{ key: "archived", label: "Arquivada", available: true },
+	].map(
+		(option) =>
+			(filters.reservationStatuses || []).find(
+				(item) => item.key === option.key,
+			) || option,
+	);
+	const accommodationOptions = filters.accommodations || [];
+	const reportTypeOptions = filters.reportTypes || [];
+	const originOptions = [
+		{ key: "all", label: "Todos os canais", available: true },
+		{ key: "airbnb", label: "Airbnb", available: false },
+		{ key: "booking", label: "Booking.com", available: false },
+		{ key: "direct", label: "Direto", available: false },
+	];
+	const selectedAccommodation = accommodationOptions.find(
+		(option) => option.key === selected.accommodation,
+	);
+	const activeChips = [
+		selected.period !== defaultFilters.period && {
+			key: "period",
+			label: getReportFilterLabel({ key: selected.period }),
+			resetTo: defaultFilters.period,
+		},
+		selected.reportType !== defaultFilters.reportType && {
+			key: "reportType",
+			label: getReportFilterLabel({ key: selected.reportType }),
+			resetTo: defaultFilters.reportType,
+		},
+		selected.accommodation !== defaultFilters.accommodation && {
+			key: "accommodation",
+			label: getReportFilterLabel(selectedAccommodation),
+			resetTo: defaultFilters.accommodation,
+		},
+		selected.reservationStatus !== defaultFilters.reservationStatus && {
+			key: "reservationStatus",
+			label: getReportFilterLabel({ key: selected.reservationStatus }),
+			resetTo: defaultFilters.reservationStatus,
+		},
+	].filter(Boolean);
+	const clearFilters =
+		onClear ||
+		(() => {
+			Object.entries(defaultFilters).forEach(([key, value]) =>
+				onChange(key, value),
+			);
+		});
+
+	return (
+		<PanelCard
+			title="Filtros"
+			description="Refine os dados e mantenha a leitura do negócio enxuta e objetiva."
+			className="overflow-hidden"
+			action={
+				<div className="flex flex-wrap items-center gap-2">
+					<button
+						type="button"
+						onClick={clearFilters}
+						className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:border-primary-200 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+					>
+						<RefreshCw className="h-4 w-4" />
+						Limpar filtros
+					</button>
+					<button
+						type="button"
+						onClick={onExportPdf}
+						className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:border-primary-200 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+					>
+						<ArrowUpRight className="h-4 w-4" />
+						Exportar PDF
+					</button>
+					<button
+						type="button"
+						onClick={onExportCsv}
+						className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:border-primary-200 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+					>
+						<Paperclip className="h-4 w-4" />
+						Exportar CSV
+					</button>
+					<button
+						type="button"
+						className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:border-primary-200 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+					>
+						<Wrench className="h-4 w-4" />
+						Mais filtros
+						<ChevronRight className="h-4 w-4 rotate-90" />
+					</button>
+				</div>
+			}
+		>
+			<div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+				<div className="space-y-5">
+					<div className="rounded-2xl border border-slate-200/70 bg-slate-50/70 p-4">
+						<ReportFilterButtonGroup
+							label="Período"
+							options={periodOptions}
+							value={selected.period}
+							onChange={(value) => onChange("period", value)}
+						/>
+						<div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+							<ReportDateField label="Data inicial" value={period?.start} />
+							<ReportDateField label="Data final" value={period?.end} />
+						</div>
 					</div>
-				</PanelCard>
+
+					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+						<ReportSelectControl
+							label="Acomodação"
+							options={accommodationOptions}
+							value={selected.accommodation}
+							onChange={(value) => onChange("accommodation", value)}
+						/>
+						<ReportSelectControl
+							label="Canal de origem"
+							options={originOptions}
+							value="all"
+							disabled
+							helper="Disponível quando o canal vier integrado ao relatório."
+						/>
+					</div>
+				</div>
+
+				<div className="space-y-5">
+					<ReportFilterButtonGroup
+						label="Tipo de relatório"
+						options={reportTypeOptions}
+						value={selected.reportType}
+						onChange={(value) => onChange("reportType", value)}
+					/>
+					<ReportFilterButtonGroup
+						label="Status da reserva"
+						options={statusOptions}
+						value={selected.reservationStatus}
+						onChange={(value) => onChange("reservationStatus", value)}
+					/>
+				</div>
+			</div>
+
+			<div className="mt-6 flex flex-col gap-4 border-t border-slate-100 pt-4 lg:flex-row lg:items-end lg:justify-between">
+				<div className="space-y-2">
+					<div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+						<span>Filtros aplicados</span>
+						<span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary-50 px-2 text-xs font-semibold text-primary-700">
+							{activeChips.length}
+						</span>
+					</div>
+					<div className="flex flex-wrap gap-2">
+						{activeChips.map((chip) => (
+							<button
+								key={chip.key}
+								type="button"
+								onClick={() => onChange(chip.key, chip.resetTo)}
+								className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors duration-200 hover:border-primary-200 hover:bg-primary-50 hover:text-primary-800"
+							>
+								{chip.label}
+								<X className="h-3.5 w-3.5" />
+							</button>
+						))}
+						{activeChips.length === 0 && (
+							<span className="text-sm text-slate-400">
+								Nenhum filtro extra aplicado
+							</span>
+						)}
+					</div>
+				</div>
+				<div className="flex flex-wrap items-center gap-2">
+					<button
+						type="button"
+						onClick={onApplyFilters}
+						className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary-700 px-5 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(37,99,235,0.24)] transition-all duration-200 hover:bg-primary-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+					>
+						<BarChart3 className="h-4 w-4" />
+						Aplicar filtros
+					</button>
+				</div>
+			</div>
+		</PanelCard>
+	);
+}
+
+function ReportMetricTile({ item }) {
+	const Icon = kpiIconMap[item.key] || BarChart3;
+	const available = item.available !== false;
+	const palette = getTone(available ? item.tone || "blue" : "slate");
+	return (
+		<div
+			className={`rounded-2xl border px-4 py-3 ${
+				available
+					? "border-slate-200/70 bg-slate-50/80"
+					: "border-dashed border-slate-300 bg-slate-50/80"
+			}`}
+		>
+			<div className="flex items-center justify-between gap-3">
+				<p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+					{item.label}
+				</p>
+				<span
+					className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${palette.iconBg} ${palette.iconText}`}
+				>
+					<Icon className="h-4 w-4" weight="BoldDuotone" />
+				</span>
+			</div>
+			<p
+				className={`mt-3 truncate text-xl font-semibold tracking-tight ${
+					available ? "text-slate-950" : "text-slate-500"
+				}`}
+			>
+				{formatReportValue(item)}
+			</p>
+			{item.helper && (
+				<p className="mt-1 text-xs text-slate-500">{item.helper}</p>
 			)}
 		</div>
 	);
 }
 
-function ReportsSection({ data, action }) {
+function ReportMetricGrid({ items = [] }) {
 	return (
-		<div className="space-y-5">
+		<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+			{items.map((item) => (
+				<ReportMetricTile key={item.key || item.label} item={item} />
+			))}
+		</div>
+	);
+}
+
+function FinancialPropertyMiniList({ title, items = [], emptyTitle }) {
+	return (
+		<div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4">
+			<h4 className="text-sm font-semibold text-slate-950">{title}</h4>
+			{items.length > 0 ? (
+				<div className="mt-3 space-y-2">
+					{items.map((item) => (
+						<div
+							key={item.id || item.title}
+							className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-sm"
+						>
+							<span className="min-w-0 truncate text-slate-600">
+								{item.title}
+							</span>
+							<span className="shrink-0 font-semibold text-slate-950">
+								{formatCurrency(item.value)}
+							</span>
+						</div>
+					))}
+				</div>
+			) : (
+				<p className="mt-3 text-sm text-slate-500">{emptyTitle}</p>
+			)}
+		</div>
+	);
+}
+
+function ReportChartTooltip({ active, payload, label, titleKey, rows = [] }) {
+	if (!active || !payload?.length) return null;
+	const item = payload[0]?.payload || {};
+	const title = titleKey ? item[titleKey] : item.title || item.label || label;
+	return (
+		<div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-[0_12px_30px_rgba(15,23,42,0.12)]">
+			<p className="mb-2 font-semibold text-slate-950">{title || label}</p>
+			<div className="space-y-1">
+				{rows
+					.filter(
+						(row) =>
+							!row.optional ||
+							(item[row.key] !== null && item[row.key] !== undefined),
+					)
+					.map((row) => (
+						<p
+							key={row.key}
+							className="flex items-center justify-between gap-5 text-slate-600"
+						>
+							<span>{row.label}</span>
+							<strong className="font-semibold text-slate-950">
+								{row.format ? row.format(item[row.key], item) : item[row.key]}
+							</strong>
+						</p>
+					))}
+			</div>
+		</div>
+	);
+}
+
+function FinancialCompositionChart({ data = [] }) {
+	return (
+		<div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4">
+			<h4 className="text-sm font-semibold text-slate-950">
+				Composição financeira
+			</h4>
+			<p className="text-xs text-slate-500">
+				Receita bruta, taxas conhecidas e lucro estimado enviados pelo back-end.
+			</p>
+			<div className="mt-4 h-[220px]">
+				{data.length > 0 ? (
+					<ResponsiveContainer width="100%" height="100%">
+						<BarChart data={data}>
+							<CartesianGrid
+								stroke="#e2e8f0"
+								strokeDasharray="4 4"
+								vertical={false}
+							/>
+							<XAxis
+								dataKey="label"
+								tickLine={false}
+								axisLine={false}
+								tick={{ fontSize: 12 }}
+							/>
+							<YAxis
+								tickLine={false}
+								axisLine={false}
+								tick={{ fontSize: 12 }}
+								tickFormatter={reportFormatters.currency}
+							/>
+							<RechartsTooltip
+								cursor={{ fill: "rgba(15, 23, 42, 0.04)" }}
+								content={
+									<ReportChartTooltip
+										rows={[
+											{
+												key: "value",
+												label: "Valor",
+												format: reportFormatters.currency,
+											},
+										]}
+									/>
+								}
+							/>
+							<Bar dataKey="value" radius={[8, 8, 0, 0]}>
+								{data.map((item) => (
+									<Cell
+										key={item.key || item.label}
+										fill={
+											item.tone === "red"
+												? "#dc2626"
+												: item.tone === "amber"
+													? "#d97706"
+													: item.tone === "green"
+														? "#16a34a"
+														: "#334155"
+										}
+									/>
+								))}
+							</Bar>
+						</BarChart>
+					</ResponsiveContainer>
+				) : (
+					<EmptyState
+						icon={Banknote}
+						title="Composição indisponível"
+						description="Este indicador depende de dados consolidados do back-end."
+					/>
+				)}
+			</div>
+		</div>
+	);
+}
+
+function FinancialReportPanel({ financial = {}, finance = {} }) {
+	const ledgerTotals = financial.ledger?.totals || {};
+	const coreItems = [
+		{
+			key: "grossRevenue",
+			label: "Receita bruta",
+			value: financial.grossRevenue,
+			format: "currency",
+			tone: "green",
+			available: financial.grossRevenue !== undefined,
+		},
+		{
+			key: "manualRevenue",
+			label: "Receitas manuais",
+			value: ledgerTotals.manualRevenue ?? 0,
+			format: "currency",
+			tone: "blue",
+			available: ledgerTotals.manualRevenue !== undefined,
+		},
+		{
+			key: "totalExpenses",
+			label: "Custos totais",
+			value: ledgerTotals.totalExpenses ?? financial.operatingExpenses,
+			format: "currency",
+			tone: "amber",
+			available:
+				ledgerTotals.totalExpenses !== undefined ||
+				financial.operatingExpenses !== undefined,
+		},
+		{
+			key: "accountingNetRevenue",
+			label: "Lucro líquido estimado",
+			value: ledgerTotals.accountingNetRevenue ?? financial.estimatedProfit,
+			format: "currency",
+			tone: "green",
+			available:
+				ledgerTotals.accountingNetRevenue !== undefined ||
+				financial.estimatedProfit !== undefined,
+		},
+		{
+			key: "fiscalNetRevenue",
+			label: "Receita líquida fiscal",
+			value: ledgerTotals.fiscalNetRevenue ?? financial.estimatedProfit,
+			format: "currency",
+			tone: "green",
+			available: ledgerTotals.fiscalNetRevenue !== undefined,
+		},
+		{
+			key: "profitMargin",
+			label: "Margem de contribuição",
+			value: ledgerTotals.contributionMargin ?? finance.profitMargin,
+			format: "percent",
+			tone:
+				(ledgerTotals.contributionMargin ?? finance.profitMargin) >= 0
+					? "green"
+					: "amber",
+			available:
+				ledgerTotals.contributionMargin !== undefined ||
+				finance.profitMargin !== undefined,
+		},
+	];
+
+	return (
+		<PanelCard
+			title="Saúde financeira"
+			description="Resumo enxuto da receita, custos e lucro consolidado pelo back-end."
+		>
+			<ReportMetricGrid items={coreItems} />
+			<div className="mt-5">
+				<FinancialCompositionChart data={financial.composition || []} />
+			</div>
+		</PanelCard>
+	);
+}
+
+function OccupancyReportPanel({ occupancy = {}, finance = {}, bookings = {} }) {
+	const canceledBookings = bookings.byStatus?.find((item) =>
+		["canceled", "rejected"].includes(normalizeStatusKey(item.key)),
+	)?.value;
+	const items = [
+		{
+			key: "averageOccupancy",
+			label: "Taxa de ocupação",
+			value: occupancy.average,
+			format: "percent",
+			tone: "green",
+			available: occupancy.average !== undefined,
+		},
+		{
+			key: "emptyDays",
+			label: "Dias vagos",
+			value: occupancy.emptyDays,
+			tone: "amber",
+			available: occupancy.emptyDays !== undefined,
+		},
+		{
+			key: "averageNightPrice",
+			label: "Diária média",
+			value: finance.averagePerNight,
+			format: "currency",
+			tone: "slate",
+			available: finance.averagePerNight !== undefined,
+		},
+		{
+			key: "availableNightEarnings",
+			label: "Receita por diária disponível",
+			value: finance.availableNightEarnings,
+			format: "currency",
+			tone: "green",
+			available: finance.availableNightEarnings !== undefined,
+		},
+		{
+			key: "cancellations",
+			label: "Cancelamentos",
+			value: canceledBookings,
+			tone: "red",
+			available: canceledBookings !== undefined,
+		},
+		{
+			key: "bookingLeadTime",
+			label: "Antecedência média da reserva",
+			value: occupancy.bookingLeadTime,
+			available: occupancy.bookingLeadTime !== undefined,
+			tone: "slate",
+		},
+	];
+
+	return (
+		<PanelCard
+			title="Ocupação e precificação"
+			description="Taxa de ocupação, diária média, rendimento por diária disponível e cancelamentos do período."
+		>
+			<ReportMetricGrid items={items} />
+			<div className="mt-5 rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4">
+				<h4 className="text-sm font-semibold text-slate-950">
+					Períodos de baixa ocupação
+				</h4>
+				{occupancy.lowOccupancyPeriods?.length > 0 ? (
+					<div className="mt-3 flex flex-wrap gap-2">
+						{occupancy.lowOccupancyPeriods.map((period) => (
+							<Pill key={period.key} tone="amber">
+								{period.label} · {period.occupancyRate}%
+							</Pill>
+						))}
+					</div>
+				) : (
+					<p className="mt-3 text-sm text-slate-500">
+						Nenhum período de baixa ocupação foi enviado pelo back-end.
+					</p>
+				)}
+			</div>
+		</PanelCard>
+	);
+}
+
+function OperationalMetricTile({ item }) {
+	const Icon = kpiIconMap[item.key] || ClipboardCheck;
+	const available = item.available !== false;
+	const palette = getTone(available ? item.tone || "blue" : "slate");
+	return (
+		<div
+			className={`rounded-2xl border p-4 transition-colors duration-200 ${
+				available
+					? "border-slate-200/70 bg-white hover:border-slate-300"
+					: "border-dashed border-slate-300 bg-slate-50/80"
+			}`}
+		>
+			<div className="flex items-start justify-between gap-3">
+				<div className="min-w-0">
+					<p className="text-[12px] font-semibold leading-5 text-slate-500">
+						{item.label}
+					</p>
+					<p
+						className={`mt-2 break-words text-2xl font-semibold tracking-tight ${
+							available ? "text-slate-950" : "text-slate-500"
+						}`}
+					>
+						{formatReportValue(item)}
+					</p>
+				</div>
+				<span
+					className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${palette.iconBg} ${palette.iconText}`}
+				>
+					<Icon className="h-4 w-4" weight="BoldDuotone" />
+				</span>
+			</div>
+			{item.helper && (
+				<p className="mt-2 text-xs leading-5 text-slate-500">{item.helper}</p>
+			)}
+		</div>
+	);
+}
+
+function OperationalReportPanel({ operational = {} }) {
+	return (
+		<PanelCard
+			title="Operação"
+			description="Limpezas, vistorias, manutenções, ocorrências e alertas em um único bloco."
+		>
+			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-4">
+				{(operational.items || []).map((item) => (
+					<OperationalMetricTile key={item.key || item.label} item={item} />
+				))}
+			</div>
+		</PanelCard>
+	);
+}
+
+function ReportChartCard({
+	title,
+	description,
+	type = "bar",
+	data = [],
+	valueFormatter,
+}) {
+	const firstItem = data[0] || {};
+	const statusKeys = new Set([
+		"pending",
+		"confirmed",
+		"in_progress",
+		"completed",
+		"canceled",
+		"rejected",
+		"evaluation",
+		"review",
+	]);
+
+	if (firstItem.revenue !== undefined && firstItem.revenueGoal !== undefined) {
+		return (
+			<PanelCard
+				title="Receita mensal"
+				description="Receita confirmada ao longo do tempo, já agrupada pelo back-end."
+			>
+				<div className="h-[300px]">
+					{data.length > 0 ? (
+						<ResponsiveContainer width="100%" height="100%">
+							<AreaChart data={data}>
+								<CartesianGrid
+									stroke="#e2e8f0"
+									strokeDasharray="4 4"
+									vertical={false}
+								/>
+								<XAxis
+									dataKey="label"
+									tickLine={false}
+									axisLine={false}
+									tick={{ fontSize: 12 }}
+								/>
+								<YAxis
+									tickLine={false}
+									axisLine={false}
+									tick={{ fontSize: 12 }}
+									tickFormatter={reportFormatters.currency}
+								/>
+								<RechartsTooltip
+									content={
+										<ReportChartTooltip
+											rows={[
+												{
+													key: "revenue",
+													label: "Receita",
+													format: reportFormatters.currency,
+												},
+												{
+													key: "revenueGoal",
+													label: "Meta",
+													format: reportFormatters.currency,
+													optional: true,
+												},
+											]}
+										/>
+									}
+								/>
+								<Area
+									type="monotone"
+									dataKey="revenue"
+									stroke="#16a34a"
+									fill="#dcfce7"
+									strokeWidth={3}
+									dot={false}
+								/>
+								<Line
+									type="monotone"
+									dataKey="revenueGoal"
+									stroke="#0f172a"
+									strokeWidth={2}
+									strokeDasharray="6 6"
+									dot={false}
+									connectNulls
+								/>
+							</AreaChart>
+						</ResponsiveContainer>
+					) : (
+						<EmptyState
+							icon={BarChart3}
+							title="Ainda não há dados suficientes para este período."
+							description="Acompanhe este gráfico quando houver mais reservas confirmadas."
+						/>
+					)}
+				</div>
+			</PanelCard>
+		);
+	}
+
+	if (
+		firstItem.occupancyRate !== undefined &&
+		firstItem.occupiedDays !== undefined
+	) {
+		return (
+			<PanelCard
+				title="Ocupação"
+				description="Percentual mensal com dias ocupados e disponíveis vindos do back-end."
+			>
+				<div className="h-[300px]">
+					{data.length > 0 ? (
+						<ResponsiveContainer width="100%" height="100%">
+							<AreaChart data={data}>
+								<CartesianGrid
+									stroke="#e2e8f0"
+									strokeDasharray="4 4"
+									vertical={false}
+								/>
+								<XAxis
+									dataKey="label"
+									tickLine={false}
+									axisLine={false}
+									tick={{ fontSize: 12 }}
+								/>
+								<YAxis
+									tickLine={false}
+									axisLine={false}
+									tick={{ fontSize: 12 }}
+									tickFormatter={reportFormatters.percent}
+								/>
+								<RechartsTooltip
+									content={
+										<ReportChartTooltip
+											rows={[
+												{
+													key: "occupancyRate",
+													label: "Ocupação",
+													format: reportFormatters.percent,
+												},
+												{ key: "occupiedDays", label: "Dias ocupados" },
+												{ key: "availableDays", label: "Dias disponíveis" },
+												{
+													key: "isolatedDays",
+													label: "Dias isolados",
+													optional: true,
+												},
+											]}
+										/>
+									}
+								/>
+								<Area
+									type="monotone"
+									dataKey="occupancyRate"
+									stroke="#2563eb"
+									fill="#dbeafe"
+									strokeWidth={3}
+									dot={false}
+								/>
+							</AreaChart>
+						</ResponsiveContainer>
+					) : (
+						<EmptyState
+							icon={BarChart3}
+							title="Ainda não há dados suficientes para este período."
+							description="Acompanhe este gráfico quando houver mais reservas confirmadas."
+						/>
+					)}
+				</div>
+			</PanelCard>
+		);
+	}
+
+	if (firstItem.revenue !== undefined && firstItem.reservations !== undefined) {
+		return (
+			<PanelCard
+				title="Receita por acomodação"
+				description="Ranking de receita por imóvel, ordenado pelo back-end."
+			>
+				<div className="h-[320px]">
+					<ResponsiveContainer width="100%" height="100%">
+						<BarChart
+							data={data}
+							layout="vertical"
+							margin={{ left: 12, right: 24 }}
+						>
+							<CartesianGrid
+								stroke="#e2e8f0"
+								strokeDasharray="4 4"
+								horizontal={false}
+							/>
+							<XAxis
+								type="number"
+								tickLine={false}
+								axisLine={false}
+								tick={{ fontSize: 12 }}
+								tickFormatter={reportFormatters.currency}
+							/>
+							<YAxis
+								type="category"
+								dataKey="label"
+								width={150}
+								tickLine={false}
+								axisLine={false}
+								tick={{ fontSize: 12 }}
+							/>
+							<RechartsTooltip
+								cursor={{ fill: "rgba(15, 23, 42, 0.04)" }}
+								content={
+									<ReportChartTooltip
+										titleKey="title"
+										rows={[
+											{ key: "title", label: "Acomodação" },
+											{
+												key: "revenue",
+												label: "Receita",
+												format: reportFormatters.currency,
+											},
+											{
+												key: "reservations",
+												label: "Reservas",
+												format: reportFormatters.reservations,
+											},
+										]}
+									/>
+								}
+							/>
+							<Bar dataKey="revenue" radius={[0, 8, 8, 0]} fill="#0f172a" />
+						</BarChart>
+					</ResponsiveContainer>
+				</div>
+			</PanelCard>
+		);
+	}
+
+	if (data.some((item) => statusKeys.has(item.key))) {
+		const visibleData = data.filter((item) => Number(item.value || 0) > 0);
+		const colors = [
+			"#16a34a",
+			"#f59e0b",
+			"#2563eb",
+			"#64748b",
+			"#dc2626",
+			"#8b5cf6",
+			"#ea580c",
+		];
+		return (
+			<PanelCard
+				title="Reservas por status"
+				description="Distribuição de reservas por status no período."
+			>
+				<div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(220px,1fr)_220px]">
+					<div className="h-[280px]">
+						{visibleData.length > 0 ? (
+							<ResponsiveContainer width="100%" height="100%">
+								<PieChart>
+									<Pie
+										data={visibleData}
+										dataKey="value"
+										nameKey="label"
+										innerRadius={68}
+										outerRadius={108}
+										paddingAngle={2}
+									>
+										{visibleData.map((item, index) => (
+											<Cell
+												key={item.key || item.label}
+												fill={colors[index % colors.length]}
+											/>
+										))}
+									</Pie>
+									<RechartsTooltip
+										content={
+											<ReportChartTooltip
+												rows={[
+													{ key: "label", label: "Status" },
+													{
+														key: "value",
+														label: "Reservas",
+														format: reportFormatters.reservations,
+													},
+												]}
+											/>
+										}
+									/>
+								</PieChart>
+							</ResponsiveContainer>
+						) : (
+							<EmptyState
+								icon={Ticket}
+								title="Nenhuma reserva encontrada com os filtros selecionados."
+								description="Acompanhe este gráfico quando houver mais reservas confirmadas."
+							/>
+						)}
+					</div>
+					<div className="space-y-2 self-center">
+						{visibleData.map((item, index) => (
+							<div
+								key={item.key || item.label}
+								className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm"
+							>
+								<span className="flex min-w-0 items-center gap-2 text-slate-600">
+									<span
+										className="h-2.5 w-2.5 shrink-0 rounded-full"
+										style={{ backgroundColor: colors[index % colors.length] }}
+									/>
+									<span className="truncate">{item.label}</span>
+								</span>
+								<strong className="font-semibold text-slate-950">
+									{item.value}
+								</strong>
+							</div>
+						))}
+					</div>
+				</div>
+			</PanelCard>
+		);
+	}
+
+	if (
+		firstItem.averageRating !== undefined ||
+		firstItem.reviewCount !== undefined
+	) {
+		return (
+			<PanelCard
+				title="Avaliação por acomodação"
+				description="Notas médias e volume de avaliações quando disponíveis no back-end."
+			>
+				{data.length > 0 ? (
+					<div className="space-y-3">
+						{data.map((item) => {
+							const hasRating =
+								Number(item.averageRating || 0) > 0 &&
+								Number(item.reviewCount || 0) > 0;
+							return (
+								<div
+									key={item.key || item.title}
+									className="flex flex-col gap-3 rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4 sm:flex-row sm:items-center sm:justify-between"
+								>
+									<div className="min-w-0">
+										<h4 className="truncate text-sm font-semibold text-slate-950">
+											{item.title || item.label}
+										</h4>
+										<p className="mt-1 text-xs text-slate-500">
+											{hasRating
+												? `Baseado em ${Number(item.reviewCount)} ${Number(item.reviewCount) === 1 ? "avaliação" : "avaliações"}`
+												: "Ainda sem avaliações suficientes"}
+										</p>
+									</div>
+									<div className="flex items-center gap-3">
+										<span className="font-semibold tracking-[0.08em] text-amber-500">
+											{[1, 2, 3, 4, 5]
+												.map((star) =>
+													star <= Math.round(Number(item.averageRating || 0))
+														? "★"
+														: "☆",
+												)
+												.join("")}
+										</span>
+										<span className="text-sm font-semibold text-slate-950">
+											{hasRating
+												? reportFormatters.rating(item.averageRating)
+												: "Sem nota"}
+										</span>
+									</div>
+								</div>
+							);
+						})}
+					</div>
+				) : (
+					<EmptyState
+						icon={CheckCircle2}
+						title="Ainda não há dados suficientes para este período."
+						description="Este indicador depende de avaliações consolidadas do back-end."
+					/>
+				)}
+			</PanelCard>
+		);
+	}
+
+	if (
+		firstItem.value !== undefined &&
+		!data.some((item) => statusKeys.has(item.key))
+	) {
+		return (
+			<PanelCard
+				title="Desempenho por acomodação"
+				description="Ranking visual por receita consolidada pelo back-end."
+			>
+				{data.length > 0 ? (
+					<div className="space-y-3">
+						{data.slice(0, 6).map((item, index) => (
+							<div
+								key={item.key || item.label}
+								className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4"
+							>
+								<div className="flex items-start justify-between gap-4">
+									<div className="min-w-0">
+										<p className="text-xs font-semibold text-slate-500">
+											#{index + 1}
+										</p>
+										<h4 className="mt-1 truncate text-sm font-semibold text-slate-950">
+											{item.label}
+										</h4>
+									</div>
+									<ReportStatusBadge status={item.status} />
+								</div>
+								<div className="mt-3">
+									<MetricCardRow
+										label="Receita"
+										value={reportFormatters.currency(item.value)}
+										tone="green"
+										icon={Banknote}
+									/>
+								</div>
+							</div>
+						))}
+					</div>
+				) : (
+					<EmptyState
+						icon={BarChart3}
+						title="Ainda não há dados suficientes para este período."
+						description="Acompanhe este ranking quando houver mais reservas confirmadas."
+					/>
+				)}
+			</PanelCard>
+		);
+	}
+
+	return (
+		<PanelCard title={title} description={description}>
+			<div className="h-[260px]">
+				{data.length > 0 ? (
+					<ResponsiveContainer width="100%" height="100%">
+						{type === "line" ? (
+							<LineChart data={data}>
+								<CartesianGrid
+									stroke="#e2e8f0"
+									strokeDasharray="4 4"
+									vertical={false}
+								/>
+								<XAxis
+									dataKey="label"
+									tickLine={false}
+									axisLine={false}
+									tick={{ fontSize: 12 }}
+								/>
+								<YAxis
+									tickLine={false}
+									axisLine={false}
+									tick={{ fontSize: 12 }}
+									tickFormatter={valueFormatter}
+								/>
+								<RechartsTooltip
+									formatter={(value) =>
+										valueFormatter ? valueFormatter(value) : value
+									}
+								/>
+								<Line
+									type="monotone"
+									dataKey="value"
+									stroke="#111827"
+									strokeWidth={3}
+									dot={false}
+								/>
+							</LineChart>
+						) : (
+							<BarChart data={data}>
+								<CartesianGrid
+									stroke="#e2e8f0"
+									strokeDasharray="4 4"
+									vertical={false}
+								/>
+								<XAxis
+									dataKey="label"
+									tickLine={false}
+									axisLine={false}
+									tick={{ fontSize: 12 }}
+								/>
+								<YAxis
+									tickLine={false}
+									axisLine={false}
+									tick={{ fontSize: 12 }}
+									tickFormatter={valueFormatter}
+								/>
+								<RechartsTooltip
+									formatter={(value) =>
+										valueFormatter ? valueFormatter(value) : value
+									}
+								/>
+								<Bar dataKey="value" radius={[6, 6, 0, 0]}>
+									{data.map((item) => (
+										<Cell
+											key={item.key || item.label}
+											fill={
+												item.status === "critical"
+													? "#dc2626"
+													: item.status === "attention"
+														? "#d97706"
+														: "#111827"
+											}
+										/>
+									))}
+								</Bar>
+							</BarChart>
+						)}
+					</ResponsiveContainer>
+				) : (
+					<EmptyState
+						icon={BarChart3}
+						title="Gráfico indisponível"
+						description="Quando o back-end enviar a série consolidada, a visualização aparecerá aqui."
+					/>
+				)}
+			</div>
+		</PanelCard>
+	);
+}
+
+function ReportsCharts({ charts = {} }) {
+	return (
+		<div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+			<ReportChartCard
+				title="Receita ao longo do tempo"
+				description="Série mensal já agrupada pelo back-end."
+				type="line"
+				data={charts.revenueOverTime || []}
+				valueFormatter={formatCurrency}
+			/>
+			<ReportChartCard
+				title="Ocupação ao longo do tempo"
+				description="Percentual mensal de ocupação calculado no back-end."
+				type="line"
+				data={charts.occupancyOverTime || []}
+				valueFormatter={(value) => `${Math.round(Number(value || 0))}%`}
+			/>
+			<ReportChartCard
+				title="Desempenho por imóvel"
+				description="Receita consolidada dos imóveis com melhor desempenho."
+				data={
+					charts.performanceByProperty?.map((item) => ({
+						key: item.id,
+						label: item.title,
+						value: item.revenue,
+						status: item.status,
+					})) || []
+				}
+				valueFormatter={formatCurrency}
+			/>
+		</div>
+	);
+}
+
+function ReportsExportCards({ onViewSection, onExportCsv, onExportPdf }) {
+	const cards = [
+		{
+			key: "financial-monthly",
+			title: "Relatório financeiro mensal",
+			description:
+				"Resumo da receita, custos e lucro para revisão rápida e impressão.",
+			actionLabel: "Exportar PDF",
+			icon: Banknote,
+			onClick: onExportPdf,
+			tone: "green",
+		},
+		{
+			key: "occupancy",
+			title: "Relatório de ocupação",
+			description:
+				"Acompanhe ocupação média, noites vagas e rendimento por diária.",
+			actionLabel: "Visualizar",
+			icon: BarChart3,
+			onClick: () => onViewSection("reports-occupancy"),
+			tone: "blue",
+		},
+		{
+			key: "operation",
+			title: "Relatório de manutenção e vistoria",
+			description:
+				"Acesse o retrato operacional com limpeza, vistoria e alertas.",
+			actionLabel: "Visualizar",
+			icon: ClipboardCheck,
+			onClick: () => onViewSection("reports-operational"),
+			tone: "amber",
+		},
+		{
+			key: "transactions",
+			title: "Histórico de transações",
+			description:
+				"Baixe uma visão em CSV com os principais números consolidados do período.",
+			actionLabel: "Exportar CSV",
+			icon: BookOpen,
+			onClick: onExportCsv,
+			tone: "slate",
+		},
+	];
+
+	return (
+		<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+			{cards.map((card) => {
+				const Icon = card.icon;
+				const palette = getTone(card.tone);
+				return (
+					<article
+						key={card.key}
+						className="flex h-full flex-col rounded-[20px] border border-slate-200/70 bg-white p-5 shadow-[0_10px_24px_rgba(15,23,42,0.05)]"
+					>
+						<div className="flex items-start justify-between gap-3">
+							<div className="min-w-0">
+								<p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+									Relatórios exportáveis
+								</p>
+								<h4 className="mt-2 text-base font-semibold tracking-tight text-slate-950">
+									{card.title}
+								</h4>
+							</div>
+							<span
+								className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${palette.iconBg} ${palette.iconText}`}
+							>
+								<Icon className="h-5 w-5" weight="BoldDuotone" />
+							</span>
+						</div>
+						<p className="mt-3 text-sm leading-6 text-slate-500">
+							{card.description}
+						</p>
+						<div className="mt-auto pt-5">
+							<button
+								type="button"
+								onClick={card.onClick}
+								className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:border-primary-200 hover:bg-primary-50 hover:text-primary-800"
+							>
+								{card.actionLabel}
+								<ArrowUpRight className="h-4 w-4" />
+							</button>
+						</div>
+					</article>
+				);
+			})}
+		</div>
+	);
+}
+
+function ReportsSection({ data, action }) {
+	const reports = data.reports || {};
+	const finance = data.finance || {};
+	const [selectedFilters, setSelectedFilters] = useState({
+		period: reports.filters?.periods?.[0]?.key || "current_month",
+		accommodation: reports.filters?.accommodations?.[0]?.key || "all",
+		reservationStatus: reports.filters?.reservationStatuses?.[0]?.key || "all",
+		reportType: reports.filters?.reportTypes?.[0]?.key || "financial",
+	});
+	const handleFilterChange = (key, value) => {
+		setSelectedFilters((current) => ({ ...current, [key]: value }));
+	};
+	const activeReportType = selectedFilters.reportType;
+	const bookingStatuses = reports.bookings?.byStatus || [];
+	const findBookingStatusValue = (keys = []) =>
+		bookingStatuses.find((item) => keys.includes(normalizeStatusKey(item.key)))
+			?.value;
+	const reportSections = [
+		{
+			key: "financial",
+			id: "reports-financial",
+			element: (
+				<FinancialReportPanel financial={reports.financial} finance={finance} />
+			),
+		},
+		{
+			key: "occupancy",
+			id: "reports-occupancy",
+			element: (
+				<OccupancyReportPanel
+					occupancy={reports.occupancy}
+					finance={finance}
+					bookings={reports.bookings}
+				/>
+			),
+		},
+		{
+			key: "operational",
+			id: "reports-operational",
+			element: <OperationalReportPanel operational={reports.operational} />,
+		},
+	];
+	const focusedSection =
+		reportSections.find((section) => section.key === activeReportType) ||
+		reportSections[0];
+	const goToSection = (sectionId) => {
+		if (typeof document === "undefined") return;
+		document.getElementById(sectionId)?.scrollIntoView({
+			behavior: "smooth",
+			block: "start",
+		});
+	};
+	const csvEscape = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+	const buildReportsCsv = () => {
+		const rows = [["Categoria", "Indicador", "Valor", "Observação"]];
+		const pushItems = (category, items = []) => {
+			items.forEach((item) => {
+				rows.push([
+					category,
+					item.label || item.title || "Indicador",
+					formatReportValue(item),
+					item.helper || "",
+				]);
+			});
+		};
+		pushItems("Resumo executivo", reports.summaryCards || []);
+		pushItems("Financeiro", [
+			{
+				label: "Receita bruta",
+				value: reports.financial?.grossRevenue,
+				format: "currency",
+				available: reports.financial?.grossRevenue !== undefined,
+			},
+			{
+				label: "Receitas manuais",
+				value: reports.financial?.manualRevenue,
+				format: "currency",
+				available: reports.financial?.manualRevenue !== undefined,
+			},
+			{
+				label: "Despesas recorrentes",
+				value: reports.financial?.recurringExpenses,
+				format: "currency",
+				available: reports.financial?.recurringExpenses !== undefined,
+			},
+			{
+				label: "Despesas operacionais",
+				value: reports.financial?.operationalExpenses,
+				format: "currency",
+				available: reports.financial?.operationalExpenses !== undefined,
+			},
+			{
+				label: "Taxas de pagamento",
+				value: reports.financial?.paymentFees,
+				format: "currency",
+				available: reports.financial?.paymentFees !== undefined,
+			},
+			{
+				label: "Reembolsos",
+				value: reports.financial?.refunds,
+				format: "currency",
+				available: reports.financial?.refunds !== undefined,
+			},
+			{
+				label: "Receita líquida contábil",
+				value: reports.financial?.accountingNetRevenue,
+				format: "currency",
+				available: reports.financial?.accountingNetRevenue !== undefined,
+			},
+			{
+				label: "Receita líquida fiscal",
+				value: reports.financial?.fiscalNetRevenue,
+				format: "currency",
+				available: reports.financial?.fiscalNetRevenue !== undefined,
+			},
+			{
+				label: "Margem de contribuição",
+				value: reports.financial?.contributionMargin ?? finance.profitMargin,
+				format: "percent",
+				available:
+					reports.financial?.contributionMargin !== undefined ||
+					finance.profitMargin !== undefined,
+			},
+			{
+				label: "Receita por diária disponível",
+				value: finance.availableNightEarnings,
+				format: "currency",
+				available: finance.availableNightEarnings !== undefined,
+			},
+		]);
+		pushItems("Ocupação", [
+			{
+				label: "Taxa de ocupação",
+				value: reports.occupancy?.average,
+				format: "percent",
+				available: reports.occupancy?.average !== undefined,
+			},
+			{
+				label: "Dias disponíveis",
+				value: reports.occupancy?.availableDays,
+				available: reports.occupancy?.availableDays !== undefined,
+			},
+			{
+				label: "Dias reservados",
+				value: reports.occupancy?.reservedDays,
+				available: reports.occupancy?.reservedDays !== undefined,
+			},
+			{
+				label: "Dias vagos",
+				value: reports.occupancy?.emptyDays,
+				available: reports.occupancy?.emptyDays !== undefined,
+			},
+			{
+				label: "Diária média",
+				value: finance.averagePerNight,
+				format: "currency",
+				available: finance.averagePerNight !== undefined,
+			},
+			{
+				label: "Cancelamentos",
+				value: findBookingStatusValue(["canceled", "rejected"]),
+				available:
+					findBookingStatusValue(["canceled", "rejected"]) !== undefined,
+			},
+		]);
+		pushItems("Operação", reports.operational?.items || []);
+		pushItems("Imóveis", reports.properties || []);
+		return rows.map((row) => row.map(csvEscape).join(",")).join("\n");
+	};
+	const exportCsv = () => {
+		const blob = new Blob([buildReportsCsv()], {
+			type: "text/csv;charset=utf-8",
+		});
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = "relatorios-saude-do-negocio.csv";
+		link.click();
+		URL.revokeObjectURL(url);
+	};
+	const exportPdf = () => {
+		if (typeof window !== "undefined") {
+			window.print();
+		}
+	};
+	const clearFilters = () => {
+		setSelectedFilters({
+			period: reports.filters?.periods?.[0]?.key || "current_month",
+			accommodation: reports.filters?.accommodations?.[0]?.key || "all",
+			reservationStatus:
+				reports.filters?.reservationStatuses?.[0]?.key || "all",
+			reportType: reports.filters?.reportTypes?.[0]?.key || "financial",
+		});
+	};
+
+	return (
+		<div className="space-y-8">
 			<SectionHeader
 				eyebrow="Relatórios"
-				title="Relatórios e tendências"
-				description="Gráficos e comparações consolidadas para analisar dinheiro, ocupação e desempenho por imóvel."
+				title="Saúde do Negócio"
+				description="Entenda receita, custos, ocupação e lucro real das suas acomodações."
 				action={action}
 			/>
-			<ChartsPanel charts={data.charts} />
-			<EmptyState
-				icon={FileBarChart}
-				title="Relatórios detalhados em construção"
-				description="Exportações, comparativos mensais e relatórios operacionais podem ser conectados aqui quando o back-end enviar esses dados."
+			<div className="space-y-3">
+				<div className="flex items-end justify-between gap-3">
+					<div className="min-w-0">
+						<p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+							Resumo executivo
+						</p>
+						<p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+							Leitura rápida para responder se o negócio está saudável.
+						</p>
+					</div>
+					<span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+						Último período consolidado
+					</span>
+				</div>
+				{reports.summaryCards?.length > 0 ? (
+					<ReportsSummaryCards items={reports.summaryCards} />
+				) : (
+					<EmptyState
+						icon={FileBarChart}
+						title="Resumo executivo sem dados"
+						description="Assim que os números consolidados estiverem prontos, os cards aparecerão aqui."
+					/>
+				)}
+			</div>
+			<ReportsFilters
+				filters={reports.filters}
+				selected={selectedFilters}
+				onChange={handleFilterChange}
+				period={reports.period}
+				onClear={clearFilters}
+				onApplyFilters={() => goToSection("reports-focus")}
+				onExportPdf={exportPdf}
+				onExportCsv={exportCsv}
 			/>
+			<div className="space-y-3" id="reports-focus">
+				<div className="flex items-end justify-between gap-3">
+					<div className="min-w-0">
+						<p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+							Painel em foco
+						</p>
+						<p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+							O filtro de tipo de relatório destaca a área principal abaixo.
+						</p>
+					</div>
+					<button
+						type="button"
+						onClick={() => goToSection(focusedSection.id)}
+						className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:border-primary-200 hover:bg-slate-50"
+					>
+						<ArrowUpRight className="h-4 w-4" />
+						Ir para foco
+					</button>
+				</div>
+				<div id={focusedSection.id}>{focusedSection.element}</div>
+			</div>
+			<div className="space-y-3" id="reports-charts">
+				<div className="min-w-0">
+					<p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+						Tendências e comparativos
+					</p>
+					<p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+						Gráficos para acompanhar receita, ocupação e distribuição de
+						reservas.
+					</p>
+				</div>
+				<ReportsCharts charts={reports.charts} />
+			</div>
+			<div id="reports-operational">
+				<OperationalReportPanel operational={reports.operational} />
+			</div>
+			<div className="space-y-3" id="reports-exports">
+				<div className="min-w-0">
+					<p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+						Relatórios exportáveis
+					</p>
+					<p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+						Acesse versões prontas para exportação ou consulta rápida.
+					</p>
+				</div>
+				<ReportsExportCards
+					onViewSection={goToSection}
+					onExportCsv={exportCsv}
+					onExportPdf={exportPdf}
+				/>
+			</div>
 		</div>
 	);
 }

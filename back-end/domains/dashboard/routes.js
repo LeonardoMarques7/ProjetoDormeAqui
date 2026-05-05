@@ -60,5 +60,15 @@ router.get("/host/financial", async (req, res) => {
   }
 });
 
-export default router;
+router.get("/host/reports", async (req, res) => {
+  try {
+    const { _id: hostId } = await JWTVerify(req, COOKIE_NAME);
+    const dashboardData = await buildHostDashboardData(hostId);
+    return res.status(200).json({ reports: dashboardData.reports });
+  } catch (error) {
+    console.error("Erro ao buscar relatórios do anfitrião:", error);
+    return res.status(500).json({ message: "Erro ao carregar relatórios do anfitrião." });
+  }
+});
 
+export default router;
