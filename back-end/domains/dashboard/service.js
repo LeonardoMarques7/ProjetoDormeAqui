@@ -142,7 +142,7 @@ const buildRevenueSeries = async (placeIds = []) => {
       { $sort: { "_id.year": 1, "_id.month": 1 } },
     ]);
     totals.forEach(({ _id, receita }) => {
-      monthTotals.set(`${_id.year}-${_id.month - 1}`, receita);
+      monthTotals.set(`${_id.year}-${_id.month}`, receita);
     });
 
     return buildRevenueProjectionSeries(anchorDate, monthTotals);
@@ -156,7 +156,7 @@ const buildRevenueProjectionSeries = (anchorDate, monthTotals) => {
 
   for (let i = 5; i >= 0; i -= 1) {
     const date = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - i, 1);
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const key = `${date.getFullYear()}-${date.getMonth() + 1}`;
     byMonth.set(key, {
       key,
       mes: monthLabel(date),
@@ -176,7 +176,7 @@ const buildRevenueProjectionSeries = (anchorDate, monthTotals) => {
   const projectionDate = new Date(anchorDate.getFullYear(), anchorDate.getMonth() + 1, 1);
   lastMonth.projecao = lastMonth.receita;
   series.push({
-    key: `${projectionDate.getFullYear()}-${projectionDate.getMonth()}`,
+    key: `${projectionDate.getFullYear()}-${projectionDate.getMonth() + 1}`,
     mes: `${monthLabel(projectionDate)} (proj.)`,
     receita: null,
     projecao: Math.max(0, lastMonth.receita * (1 + growth)),

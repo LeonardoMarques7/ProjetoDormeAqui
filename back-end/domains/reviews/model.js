@@ -34,7 +34,7 @@ reviewSchema.post("deleteOne", { document: true, query: false }, async function 
 
 reviewSchema.post("findOneAndDelete", async function (doc) {
     if (doc) {
-        await recalculateAverageRating(doc.constructor, doc.place);
+        await recalculateAverageRating(this.model, doc.place);
     }
 });
 

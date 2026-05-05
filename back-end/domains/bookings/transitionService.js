@@ -36,11 +36,11 @@ export const transitionBookingStatus = async (bookingId, toStatus, options = {})
   const { reason = "", changedBy = null } = options;
 
   try {
-    const allowedFrom = Object.entries(ALLOWED_TRANSITIONS)
-      .filter(([, transitions]) => transitions.includes(toStatus))
-      .map(([status]) => status);
+    const allowedFromStatuses = Object.keys(ALLOWED_TRANSITIONS).filter((status) =>
+      isTransitionAllowed(status, toStatus)
+    );
 
-    if (allowedFrom.length === 0) {
+    if (allowedFromStatuses.length === 0) {
       const err = new Error(
         `Transição inválida: não é possível ir para '${toStatus}'.`
       );
@@ -72,7 +72,7 @@ export const transitionBookingStatus = async (bookingId, toStatus, options = {})
     }
 
     const booking = await Booking.findOneAndUpdate(
-      { _id: bookingId, status: { $in: allowedFrom } },
+      { _id: bookingId, status: { $in: allowedFromStatuses } },
       update,
       { new: true }
     );
