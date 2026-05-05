@@ -105,23 +105,53 @@ const monthLabel = (date) =>
     date.getMonth()
   ];
 
-const buildRevenueSeries = (bookings) => {
-  const revenueBookings = bookings
-    .filter((booking) => {
-      const paymentStatus = String(booking.paymentStatus || "").toLowerCase();
-      const status = String(booking.status || "").toLowerCase();
-      return (
-        paymentStatus === "approved" &&
-        !CANCELED_BOOKING_STATUSES.has(status) &&
-        booking.checkout &&
-        Number(booking.priceTotal || 0) > 0
-      );
-    })
-    .sort((a, b) => new Date(a.checkout) - new Date(b.checkout));
+const buildRevenueSeries = async (placeIds = []) => {
+  const anchorFallback = new Date();
+  const monthTotals = new Map();
 
-  const anchorDate = revenueBookings.length
-    ? new Date(revenueBookings[revenueBookings.length - 1].checkout)
-    : new Date();
+  if (placeIds.length > 0) {
+    const match = {
+      place: { $in: placeIds },
+      paymentStatus: "approved",
+      status: { $nin: Array.from(CANCELED_BOOKING_STATUSES) },
+      checkout: { $type: "date" },
+      priceTotal: { $gt: 0 },
+    };
+    const [anchorResult] = await Booking.aggregate([
+      { $match: match },
+      { $group: { _id: null, lastCheckout: { $max: "$checkout" } } },
+    ]);
+    const anchorDate = anchorResult?.lastCheckout
+      ? new Date(anchorResult.lastCheckout)
+      : anchorFallback;
+    const rangeStart = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - 5, 1);
+    const rangeEnd = new Date(anchorDate.getFullYear(), anchorDate.getMonth() + 1, 0);
+    const totals = await Booking.aggregate([
+      {
+        $match: {
+          ...match,
+          checkout: { $gte: rangeStart, $lte: rangeEnd },
+        },
+      },
+      {
+        $group: {
+          _id: { year: { $year: "$checkout" }, month: { $month: "$checkout" } },
+          receita: { $sum: { $ifNull: ["$priceTotal", 0] } },
+        },
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } },
+    ]);
+    totals.forEach(({ _id, receita }) => {
+      monthTotals.set(`${_id.year}-${_id.month - 1}`, receita);
+    });
+
+    return buildRevenueProjectionSeries(anchorDate, monthTotals);
+  }
+
+  return buildRevenueProjectionSeries(anchorFallback, monthTotals);
+};
+
+const buildRevenueProjectionSeries = (anchorDate, monthTotals) => {
   const byMonth = new Map();
 
   for (let i = 5; i >= 0; i -= 1) {
@@ -130,18 +160,10 @@ const buildRevenueSeries = (bookings) => {
     byMonth.set(key, {
       key,
       mes: monthLabel(date),
-      receita: 0,
+      receita: monthTotals.get(key) || 0,
       projecao: null,
       tipo: "real",
     });
-  }
-
-  for (const booking of revenueBookings) {
-    const checkoutDate = new Date(booking.checkout);
-    const key = `${checkoutDate.getFullYear()}-${checkoutDate.getMonth()}`;
-    if (byMonth.has(key)) {
-      byMonth.get(key).receita += Number(booking.priceTotal || 0);
-    }
   }
 
   const series = Array.from(byMonth.values());
@@ -295,34 +317,86 @@ const getReportPerformanceStatus = ({ revenue = 0, occupancyRate = 0, alerts = [
   return { key: "stable", label: "Estavel", tone: "slate" };
 };
 
-const buildMonthlyReportSeries = ({ bookings, places, anchorDate }) => {
+const buildMonthlyReportSeries = async ({ placeIds, placeCount, anchorDate }) => {
   const series = [];
+  const hasPlaces = placeIds.length > 0;
 
   for (let i = 5; i >= 0; i -= 1) {
     const monthStart = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - i, 1);
     const monthEnd = toEndOfDay(new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0));
     const monthDays = eachDayBetween(monthStart, monthEnd);
-    const capacityNights = places.length * monthDays.length;
+    const capacityNights = placeCount * monthDays.length;
     let revenue = 0;
     let bookedNights = 0;
     let reservations = 0;
 
-    for (const booking of bookings) {
-      const checkinDate = new Date(booking.checkin);
-      const checkoutDate = new Date(booking.checkout);
-      const status = String(booking.status || "").toLowerCase();
-      const paymentStatus = String(booking.paymentStatus || "").toLowerCase();
-      const bookingIsCanceled = CANCELED_BOOKING_STATUSES.has(status);
-      const overlapsMonth = checkoutDate >= monthStart && checkinDate <= monthEnd;
+    if (hasPlaces) {
+      const [monthlyStats] = await Booking.aggregate([
+        {
+          $match: {
+            place: { $in: placeIds },
+            checkin: { $lte: monthEnd },
+            checkout: { $gte: monthStart },
+            status: { $nin: Array.from(CANCELED_BOOKING_STATUSES) },
+          },
+        },
+        {
+          $project: {
+            priceTotal: { $ifNull: ["$priceTotal", 0] },
+            paymentStatus: 1,
+            checkout: 1,
+            overlapStart: {
+              $cond: [{ $gt: ["$checkin", monthStart] }, "$checkin", monthStart],
+            },
+            overlapEnd: {
+              $cond: [{ $lt: ["$checkout", monthEnd] }, "$checkout", monthEnd],
+            },
+          },
+        },
+        {
+          $project: {
+            revenue: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ["$paymentStatus", "approved"] },
+                    { $gte: ["$checkout", monthStart] },
+                    { $lte: ["$checkout", monthEnd] },
+                  ],
+                },
+                "$priceTotal",
+                0,
+              ],
+            },
+            overlapNights: {
+              $cond: [
+                { $gt: ["$overlapEnd", "$overlapStart"] },
+                {
+                  $ceil: {
+                    $divide: [
+                      { $subtract: ["$overlapEnd", "$overlapStart"] },
+                      ONE_DAY_MS,
+                    ],
+                  },
+                },
+                0,
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            revenue: { $sum: "$revenue" },
+            bookedNights: { $sum: "$overlapNights" },
+            reservations: { $sum: 1 },
+          },
+        },
+      ]);
 
-      if (!overlapsMonth || bookingIsCanceled) continue;
-
-      reservations += 1;
-      bookedNights += overlapDays(checkinDate, checkoutDate, monthStart, monthEnd);
-
-      if (paymentStatus === "approved" && checkoutDate >= monthStart && checkoutDate <= monthEnd) {
-        revenue += Number(booking.priceTotal || 0);
-      }
+      revenue = monthlyStats?.revenue || 0;
+      bookedNights = monthlyStats?.bookedNights || 0;
+      reservations = monthlyStats?.reservations || 0;
     }
 
     series.push({
@@ -404,9 +478,10 @@ const buildBookingStatusReport = (bookings, periodStart, periodEnd) => {
   };
 };
 
-const buildReportsPayload = ({
+const buildReportsPayload = async ({
   bookings,
   places,
+  placeIds,
   operationalProperties,
   financial,
   financialLedger,
@@ -433,10 +508,14 @@ const buildReportsPayload = ({
   const previousBookingReport = buildBookingStatusReport(bookings, previousMonthStart, previousMonthEnd);
   const revenueTrend = getReportTrend(monthlyEarnings, previousMonthEarnings);
   const profitTrend = getReportTrend(estimatedProfit, previousMonthEstimatedProfit);
-  const monthlySeries = buildMonthlyReportSeries({ bookings, places, anchorDate: monthEnd });
-  const previousMonthSeries = buildMonthlyReportSeries({
-    bookings,
-    places,
+  const monthlySeries = await buildMonthlyReportSeries({
+    placeIds,
+    placeCount: places.length,
+    anchorDate: monthEnd,
+  });
+  const previousMonthSeries = await buildMonthlyReportSeries({
+    placeIds,
+    placeCount: places.length,
     anchorDate: previousMonthEnd,
   });
   const previousMonthOccupancy =
@@ -1211,9 +1290,10 @@ export const buildHostDashboardData = async (hostId) => {
         revenueProjection: [],
         propertyPerformance: [],
       },
-      reports: buildReportsPayload({
+      reports: await buildReportsPayload({
         bookings: [],
         places: [],
+        placeIds: [],
         operationalProperties: [],
         financial: {
           revenue: { items: [] },
@@ -1871,12 +1951,13 @@ export const buildHostDashboardData = async (hostId) => {
     alertGroups,
   });
   const charts = {
-    revenueProjection: buildRevenueSeries(bookings),
+    revenueProjection: await buildRevenueSeries(placeIds),
     propertyPerformance,
   };
-  const reports = buildReportsPayload({
+  const reports = await buildReportsPayload({
     bookings,
     places,
+    placeIds,
     operationalProperties,
     financial,
     financialLedger,
