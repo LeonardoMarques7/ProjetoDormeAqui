@@ -7,6 +7,7 @@ import PaymentRoutes from "../domains/payments/routes.js";
 import DashboardRoutes from "../domains/dashboard/routes.js";
 import FinancialRoutes from "../domains/financialEntries/routes.js";
 import AccommodationLogbookRoutes from "../domains/accommodationLogbook/routes.js";
+import NotificationRoutes from "../NotificationRoutes.js";
 import { handleMercadoPagoWebhook, verifyWebhook } from "../webhooks/mercadopago.js";
 import stripeWebhookRouter from "../webhooks/stripe.js"; // Stripe webhook handler
 
@@ -21,6 +22,7 @@ router.use("/payments", PaymentRoutes);
 router.use("/dashboard", DashboardRoutes);
 router.use("/finance", FinancialRoutes);
 router.use("/logbook", AccommodationLogbookRoutes);
+router.use("/notifications", NotificationRoutes);
 
 // Webhook do Mercado Pago (rota pública, sem autenticação)
 router.post("/webhook/mercadopago", handleMercadoPagoWebhook);

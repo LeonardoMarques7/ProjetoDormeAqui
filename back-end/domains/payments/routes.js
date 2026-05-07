@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { createPaymentPreference, checkPaymentStatus, testMercadoPagoConfig, captureAuthorizedPayment } from "./controller.js";
+import { listFailedPayments } from "./failedPaymentsStore.js";
 
 // Feature flag to switch between Mercado Pago and Stripe
 const USE_STRIPE = process.env.USE_STRIPE === 'true' || false;
@@ -61,10 +62,9 @@ router.get("/failed", authenticateUser, async (req, res) => {
         return res.status(403).json({ success: false, message: "Permissao insuficiente" });
     }
     try {
-        const FailedPayment = (await import("./failedPaymentModel.js")).default;
         const page = Math.max(0, parseInt(req.query.page) || 0);
         const limit = Math.min(100, parseInt(req.query.limit) || 50);
-        const items = await FailedPayment.find().sort({ receivedAt: -1 }).skip(page * limit).limit(limit);
+        const items = await listFailedPayments({ page, limit });
         return res.status(200).json({ success: true, data: items });
     } catch (err) {
         console.error("Erro ao listar failedPayments:", err);

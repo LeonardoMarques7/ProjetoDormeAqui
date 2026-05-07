@@ -50,7 +50,7 @@ O **DormeAqui** é uma aplicação web full stack de hospedagem, construída do 
 
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![Express](https://img.shields.io/badge/Express_v5-000000?style=for-the-badge&logo=express&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 
 **Autenticação & Segurança**
 
@@ -76,7 +76,7 @@ O **DormeAqui** é uma aplicação web full stack de hospedagem, construída do 
 ### Pré-requisitos
 
 - [Node.js](https://nodejs.org/) v18+
-- [MongoDB](https://www.mongodb.com/) (local ou Atlas)
+- [PostgreSQL](https://www.postgresql.org/) (local ou gerenciado)
 - Contas configuradas: AWS S3, Google OAuth2, GitHub OAuth2, Stripe ou Mercado Pago
 
 ---
@@ -101,7 +101,7 @@ Crie o arquivo `.env` na pasta `back-end/` com as variáveis abaixo:
 
 ```env
 # Banco de dados
-MONGO_URL=mongodb://localhost:27017/dormeaqui
+DATABASE_URL=postgresql://postgres:senha@localhost:5432/dormeaqui?schema=public
 
 # JWT
 JWT_SECRET=sua_chave_secreta
@@ -197,7 +197,7 @@ ProjetoDormeAqui/
 |---|---|
 | Frontend | [Vercel](https://vercel.com/) |
 | Backend | [Render](https://render.com/) |
-| Banco de dados | [MongoDB Atlas](https://www.mongodb.com/atlas) |
+| Banco de dados | PostgreSQL |
 | Imagens | [AWS S3](https://aws.amazon.com/s3/) |
 
 [![Ver Online](https://img.shields.io/badge/Acessar_Aplicação-00C851?style=for-the-badge&logo=render&logoColor=white)](https://projetodormeaqui.onrender.com/)

@@ -1,4 +1,6 @@
-import CleaningInspection from "./model.js";
+import { getPrismaClient } from "../../config/prisma.js";
+
+const prisma = getPrismaClient();
 
 export const CLEANING_INSPECTION_FILTERS = [
   { key: "all", label: "Todos" },
@@ -10,13 +12,23 @@ export const CLEANING_INSPECTION_FILTERS = [
 ];
 
 const STATUS_LABELS = {
-  awaiting_cleaning: "Aguardando limpeza",
-  cleaning_in_progress: "Em limpeza",
-  awaiting_inspection: "Aguardando vistoria",
-  approved: "Aprovado para entrada",
-  blocked: "Bloqueado",
-  done: "Concluída",
-  not_required: "Não necessária",
+  AWAITING_CLEANING: "Aguardando limpeza",
+  CLEANING_IN_PROGRESS: "Em limpeza",
+  AWAITING_INSPECTION: "Aguardando vistoria",
+  APPROVED: "Aprovado para entrada",
+  BLOCKED: "Bloqueado",
+  DONE: "Concluida",
+  NOT_REQUIRED: "Nao necessaria",
+};
+
+const STATUS_KEYS = {
+  AWAITING_CLEANING: "awaiting_cleaning",
+  CLEANING_IN_PROGRESS: "cleaning_in_progress",
+  AWAITING_INSPECTION: "awaiting_inspection",
+  APPROVED: "approved",
+  BLOCKED: "blocked",
+  DONE: "done",
+  NOT_REQUIRED: "not_required",
 };
 
 const makeSummaryItem = ({ key, label, value, tone = "slate" }) => ({
@@ -35,110 +47,115 @@ const emptySummary = () => ({
   approvedForCheckin: 0,
   blockedProperties: 0,
   items: [
-    makeSummaryItem({
-      key: "pendingCleanings",
-      label: "Limpezas pendentes",
-      value: 0,
-      tone: "amber",
-    }),
-    makeSummaryItem({
-      key: "cleaningInProgress",
-      label: "Limpezas em andamento",
-      value: 0,
-      tone: "blue",
-    }),
-    makeSummaryItem({
-      key: "pendingInspections",
-      label: "Vistorias pendentes",
-      value: 0,
-      tone: "violet",
-    }),
-    makeSummaryItem({
-      key: "approvedForCheckin",
-      label: "Imóveis aprovados para entrada",
-      value: 0,
-      tone: "green",
-    }),
-    makeSummaryItem({
-      key: "blockedProperties",
-      label: "Imóveis bloqueados",
-      value: 0,
-      tone: "red",
-    }),
+    makeSummaryItem({ key: "pendingCleanings", label: "Limpezas pendentes", value: 0, tone: "amber" }),
+    makeSummaryItem({ key: "cleaningInProgress", label: "Limpezas em andamento", value: 0, tone: "blue" }),
+    makeSummaryItem({ key: "pendingInspections", label: "Vistorias pendentes", value: 0, tone: "violet" }),
+    makeSummaryItem({ key: "approvedForCheckin", label: "Imoveis aprovados para entrada", value: 0, tone: "green" }),
+    makeSummaryItem({ key: "blockedProperties", label: "Imoveis bloqueados", value: 0, tone: "red" }),
   ],
 });
-
-const getPopulatedId = (value) => {
-  if (!value) return null;
-  return String(value._id || value);
-};
 
 const normalizeBooking = (booking) => {
   if (!booking) return null;
   return {
-    id: getPopulatedId(booking),
-    guest: booking.user?.name || "",
-    guestEmail: booking.user?.email || "",
-    checkin: booking.checkin || null,
-    checkout: booking.checkout || null,
-    status: booking.status || "",
-    paymentStatus: booking.paymentStatus || "",
+    id: booking.id,
+    guest: booking.guest?.name || "",
+    guestEmail: booking.guest?.email || "",
+    checkin: booking.checkIn || null,
+    checkout: booking.checkOut || null,
+    status: String(booking.status || "").toLowerCase(),
     guests: booking.guests || null,
   };
 };
 
+const normalizeChecklistItem = (item) => ({
+  id: item.id,
+  label: item.label,
+  status: String(item.status || "PENDING").toLowerCase(),
+  notes: item.notes || "",
+  sortOrder: item.sortOrder || 0,
+});
+
+const normalizePhoto = (photo) => ({
+  id: photo.id,
+  url: photo.url,
+  label: photo.label || "",
+  type: String(photo.type || "INSPECTION").toLowerCase(),
+  uploadedAt: photo.uploadedAt,
+  sortOrder: photo.sortOrder || 0,
+});
+
 const normalizeTask = (task) => ({
-  id: String(task._id),
+  id: task.id,
   place: task.place
     ? {
-        id: getPopulatedId(task.place),
-        title: task.place.title || "Acomodação",
+        id: task.place.id,
+        title: task.place.title || "Acomodacao",
         city: task.place.city || "",
-        photo: task.place.photos?.[0] || null,
+        photo: task.place.photos?.[0]?.url || null,
       }
     : null,
   previousBooking: normalizeBooking(task.previousBooking),
   nextBooking: normalizeBooking(task.nextBooking),
-  lastCheckout: task.lastCheckout || task.previousBooking?.checkout || null,
-  nextCheckin: task.nextCheckin || task.nextBooking?.checkin || null,
-  cleaningStatus: task.cleaningStatus,
+  lastCheckout: task.lastCheckout || task.previousBooking?.checkOut || null,
+  nextCheckin: task.nextCheckin || task.nextBooking?.checkIn || null,
+  cleaningStatus: STATUS_KEYS[task.cleaningStatus] || String(task.cleaningStatus || "").toLowerCase(),
   cleaningStatusLabel: STATUS_LABELS[task.cleaningStatus] || task.cleaningStatus,
-  inspectionStatus: task.inspectionStatus,
+  inspectionStatus: STATUS_KEYS[task.inspectionStatus] || String(task.inspectionStatus || "").toLowerCase(),
   inspectionStatusLabel: STATUS_LABELS[task.inspectionStatus] || task.inspectionStatus,
-  overallStatus: task.overallStatus,
+  overallStatus: STATUS_KEYS[task.overallStatus] || String(task.overallStatus || "").toLowerCase(),
   overallStatusLabel: STATUS_LABELS[task.overallStatus] || task.overallStatus,
-  assignee: task.assignee || null,
+  assignee: task.assigneeName
+    ? {
+        name: task.assigneeName,
+        contact: task.assigneeContact || "",
+      }
+    : null,
   deadlineLabel: task.deadlineLabel || "",
   notes: task.notes || "",
-  cleaningChecklist: task.cleaningChecklist || [],
-  inspectionChecklist: task.inspectionChecklist || [],
-  photosBefore: task.photosBefore || [],
-  photosAfter: task.photosAfter || [],
+  cleaningChecklist: (task.cleaningChecklists || []).map(normalizeChecklistItem),
+  inspectionChecklist: (task.inspectionChecklists || []).map(normalizeChecklistItem),
+  photosBefore: (task.photos || []).filter((photo) => photo.type === "BEFORE").map(normalizePhoto),
+  photosAfter: (task.photos || []).filter((photo) => photo.type === "AFTER").map(normalizePhoto),
 });
 
 export const buildCleaningInspectionData = async (hostId) => {
-  const tasks = await CleaningInspection.find({ host: hostId })
-    .sort({ nextCheckin: 1, updatedAt: -1 })
-    .populate("place", "title city photos")
-    .populate({
-      path: "previousBooking",
-      select: "checkin checkout status paymentStatus guests user",
-      populate: { path: "user", select: "name email" },
-    })
-    .populate({
-      path: "nextBooking",
-      select: "checkin checkout status paymentStatus guests user",
-      populate: { path: "user", select: "name email" },
-    })
-    .lean();
+  const tasks = await prisma.cleaningInspection.findMany({
+    where: { hostId },
+    orderBy: [{ nextCheckin: "asc" }, { updatedAt: "desc" }],
+    include: {
+      place: {
+        select: {
+          id: true,
+          title: true,
+          city: true,
+          photos: { select: { url: true }, orderBy: { sortOrder: "asc" }, take: 1 },
+        },
+      },
+      previousBooking: {
+        include: {
+          guest: { select: { id: true, name: true, email: true } },
+        },
+      },
+      nextBooking: {
+        include: {
+          guest: { select: { id: true, name: true, email: true } },
+        },
+      },
+      cleaningChecklists: { orderBy: { sortOrder: "asc" } },
+      inspectionChecklists: { orderBy: { sortOrder: "asc" } },
+      photos: { orderBy: { sortOrder: "asc" } },
+    },
+  });
 
   const summary = emptySummary();
+
   for (const task of tasks) {
-    if (task.overallStatus === "awaiting_cleaning") summary.pendingCleanings += 1;
-    if (task.overallStatus === "cleaning_in_progress") summary.cleaningInProgress += 1;
-    if (task.overallStatus === "awaiting_inspection") summary.pendingInspections += 1;
-    if (task.overallStatus === "approved") summary.approvedForCheckin += 1;
-    if (task.overallStatus === "blocked") summary.blockedProperties += 1;
+    if (task.overallStatus === "AWAITING_CLEANING") summary.pendingCleanings += 1;
+    if (task.overallStatus === "CLEANING_IN_PROGRESS") summary.cleaningInProgress += 1;
+    if (task.overallStatus === "AWAITING_INSPECTION") summary.pendingInspections += 1;
+    if (task.overallStatus === "APPROVED") summary.approvedForCheckin += 1;
+    if (task.overallStatus === "BLOCKED") summary.blockedProperties += 1;
   }
 
   summary.items = summary.items.map((item) => ({

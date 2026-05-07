@@ -43,7 +43,6 @@ No Coolify, use este Compose com `api` e `postgres` na mesma stack. Configure o 
 O servico `api` carrega `./back-end/.env` quando usado localmente. No Coolify, configure as mesmas variaveis no painel de Environment Variables do servico/stack, principalmente:
 
 - `DATABASE_URL`
-- `MONGO_URL` enquanto o codigo ainda estiver usando Mongoose
 - `JWT_SECRET_KEY`
 - `SUPABASE_URL`
 - `SUPABASE_KEY`

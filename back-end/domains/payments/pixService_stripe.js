@@ -1,6 +1,8 @@
 import QRCode from 'qrcode';
-import Place from '../places/model.js';
 import { paymentClient } from '../../config/stripe.js';
+import { getPrismaClient } from '../../config/prisma.js';
+
+const prisma = getPrismaClient();
 
 // Stripe doesn't support PIX natively in all regions. We'll implement a fallback using
 // PaymentIntents with 'boleto'/'oxxo' when available, and otherwise generate a QR code
@@ -13,7 +15,7 @@ export const createPixPayment = async (data, user) => {
     return { success: false, message: 'Dados incompletos para pagamento PIX.' };
   }
 
-  const place = await Place.findById(accommodationId);
+  const place = await prisma.place.findUnique({ where: { id: accommodationId } });
   if (!place) return { success: false, message: 'Acomodação não encontrada.' };
 
   const nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)) || 1;

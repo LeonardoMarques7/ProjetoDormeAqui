@@ -1,17 +1,45 @@
-import Booking from "../bookings/model.js";
-import Place from "../places/model.js";
-import FinancialEntry from "./model.js";
+import { getPrismaClient } from "../../config/prisma.js";
+
+const prisma = getPrismaClient();
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+const FINANCIAL_ENTRY_TYPE_TO_DB = {
+  recurring_expense: "ADJUSTMENT",
+  operational_expense: "ADJUSTMENT",
+  refund: "REFUND",
+  payment_fee: "PLATFORM_FEE",
+  manual_revenue: "CHARGE",
+};
+
+const DB_STATUS_BY_KEY = {
+  draft: "PENDING",
+  pending: "PENDING",
+  scheduled: "PENDING",
+  confirmed: "AVAILABLE",
+  paid: "SETTLED",
+  processing: "PENDING",
+  refunded: "CANCELLED",
+  failed: "CANCELLED",
+  cancelled: "CANCELLED",
+  void: "CANCELLED",
+};
+
+const STATUS_KEY_BY_DB = {
+  PENDING: "pending",
+  AVAILABLE: "confirmed",
+  SETTLED: "paid",
+  CANCELLED: "CANCELLED",
+};
 
 export const FINANCIAL_ENTRY_TYPES = {
   recurring_expense: {
     label: "Despesa recorrente",
     direction: "expense",
     categories: [
-      { key: "condominio", label: "Condomínio" },
+      { key: "condominio", label: "Condominio" },
       { key: "iptu", label: "IPTU" },
-      { key: "agua", label: "Água" },
+      { key: "agua", label: "Agua" },
       { key: "luz", label: "Luz" },
       { key: "internet", label: "Internet" },
     ],
@@ -22,8 +50,8 @@ export const FINANCIAL_ENTRY_TYPES = {
     direction: "expense",
     categories: [
       { key: "limpeza", label: "Limpeza" },
-      { key: "manutencao", label: "Manutenção" },
-      { key: "reposicao", label: "Reposição" },
+      { key: "manutencao", label: "Manutencao" },
+      { key: "reposicao", label: "Reposicao" },
       { key: "outras_despesas", label: "Outras despesas" },
     ],
     defaultStatus: "paid",
@@ -31,25 +59,19 @@ export const FINANCIAL_ENTRY_TYPES = {
   refund: {
     label: "Reembolso",
     direction: "expense",
-    categories: [
-      { key: "reembolso", label: "Reembolso" },
-    ],
+    categories: [{ key: "reembolso", label: "Reembolso" }],
     defaultStatus: "refunded",
   },
   payment_fee: {
     label: "Taxa de pagamento",
     direction: "expense",
-    categories: [
-      { key: "taxa_pagamento", label: "Taxa de pagamento" },
-    ],
+    categories: [{ key: "taxa_pagamento", label: "Taxa de pagamento" }],
     defaultStatus: "paid",
   },
   manual_revenue: {
     label: "Receita manual",
     direction: "income",
-    categories: [
-      { key: "receita_manual", label: "Receita manual" },
-    ],
+    categories: [{ key: "receita_manual", label: "Receita manual" }],
     defaultStatus: "confirmed",
   },
 };
@@ -63,7 +85,7 @@ export const FINANCIAL_ENTRY_STATUS_OPTIONS = [
   { key: "processing", label: "Em processamento" },
   { key: "refunded", label: "Reembolsado" },
   { key: "failed", label: "Falhou" },
-  { key: "canceled", label: "Cancelado" },
+  { key: "CANCELLED", label: "Cancelado" },
   { key: "void", label: "Anulado" },
 ];
 
@@ -71,538 +93,464 @@ const toMonthKey = (value) => {
   if (!value) return null;
   const raw = String(value).trim();
   if (MONTH_PATTERN.test(raw)) return raw;
-
   const date = new Date(raw);
   if (Number.isNaN(date.getTime())) return null;
-
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  return `${date.getFullYear()}-${month}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 };
 
 const getMonthBounds = (monthKey) => {
   const normalized = toMonthKey(monthKey) || toMonthKey(new Date());
   const [year, month] = normalized.split("-").map(Number);
-  const start = new Date(year, month - 1, 1, 0, 0, 0, 0);
-  const end = new Date(year, month, 0, 23, 59, 59, 999);
-  return { key: normalized, start, end };
+  return {
+    key: normalized,
+    start: new Date(year, month - 1, 1, 0, 0, 0, 0),
+    end: new Date(year, month, 0, 23, 59, 59, 999),
+  };
 };
 
 const toIso = (date) => new Date(date).toISOString();
+const toNumber = (value) => Number(value || 0);
 
 const getEntryDirection = (entryType) => FINANCIAL_ENTRY_TYPES[entryType]?.direction || "expense";
-
 const getEntryLabel = (entryType) => FINANCIAL_ENTRY_TYPES[entryType]?.label || entryType;
+const getDefaultStatus = (entryType) => FINANCIAL_ENTRY_TYPES[entryType]?.defaultStatus || "confirmed";
+const isActionableEntry = (entry) => !["draft", "CANCELLED", "void", "failed"].includes(String(entry.status || "").toLowerCase());
 
 const getCategoryLabel = (entryType, category) => {
   const config = FINANCIAL_ENTRY_TYPES[entryType];
   return config?.categories?.find((item) => item.key === category)?.label || category || getEntryLabel(entryType);
 };
 
-const getDefaultStatus = (entryType) => FINANCIAL_ENTRY_TYPES[entryType]?.defaultStatus || "confirmed";
-
-const isActionableEntry = (entry) => !["draft", "canceled", "void", "failed"].includes(String(entry.status || "").toLowerCase());
-
 const getSignedImpact = (entry) => {
   const amount = Number(entry.amount || 0);
   if (!isActionableEntry(entry)) return 0;
-  if (entry.entryType === "manual_revenue") return amount;
-  return -amount;
+  return entry.entryType === "manual_revenue" ? amount : -amount;
 };
 
-const populateEntry = (entry = {}) => ({
-  id: String(entry._id),
-  host: entry.host ? String(entry.host._id || entry.host) : null,
-  place: entry.place
-    ? {
-        id: String(entry.place._id || entry.place),
-        title: entry.place.title || "Acomodação",
-        city: entry.place.city || "",
-      }
-    : null,
-  bookingId: entry.bookingId ? String(entry.bookingId._id || entry.bookingId) : null,
-  paymentId: entry.paymentId || "",
-  recurrenceId: entry.recurrenceId || "",
-  source: entry.source || "",
-  provider: entry.provider || "",
-  competenceMonth: entry.competenceMonth || "",
-  competenceDate: entry.competenceDate || null,
-  entryDate: entry.entryDate || null,
-  entryType: entry.entryType,
-  entryTypeLabel: getEntryLabel(entry.entryType),
-  category: entry.category,
-  categoryLabel: getCategoryLabel(entry.entryType, entry.category),
-  title: entry.title,
-  description: entry.description || "",
-  amount: Number(entry.amount || 0),
-  status: entry.status,
-  taxDeductible: entry.taxDeductible !== false,
-  fiscalCategory: entry.fiscalCategory || "",
-  accountingCategory: entry.accountingCategory || "",
-  notes: entry.notes || "",
-  metadata: entry.metadata || {},
-  direction: getEntryDirection(entry.entryType),
-  signedImpact: getSignedImpact(entry),
-  createdAt: entry.createdAt || null,
-  updatedAt: entry.updatedAt || null,
-});
-
-const ensureMonth = (value) => {
-  const monthKey = toMonthKey(value);
-  if (!monthKey) {
-    const error = new Error("competenceMonth inválido. Use o formato YYYY-MM.");
-    error.statusCode = 400;
-    throw error;
-  }
-  return monthKey;
+const normalizeStatusToDb = (status, entryType) => {
+  const normalized = String(status || getDefaultStatus(entryType)).trim().toLowerCase();
+  return DB_STATUS_BY_KEY[normalized] || "PENDING";
 };
 
-const ensureEntryType = (value) => {
-  const entryType = String(value || "").trim();
-  if (!FINANCIAL_ENTRY_TYPES[entryType]) {
-    const error = new Error("entryType inválido.");
-    error.statusCode = 400;
-    throw error;
-  }
-  return entryType;
+const normalizeDbTypeToUi = (dbType, metadata = {}) => {
+  const preferred = metadata?.entryType;
+  if (preferred && FINANCIAL_ENTRY_TYPES[preferred]) return preferred;
+  if (dbType === "REFUND") return "refund";
+  if (dbType === "PLATFORM_FEE") return "payment_fee";
+  if (dbType === "CHARGE") return "manual_revenue";
+  return "operational_expense";
 };
 
-const ensurePositiveAmount = (value) => {
-  const amount = Number(value);
-  if (!Number.isFinite(amount) || amount < 0) {
-    const error = new Error("amount deve ser um número válido maior ou igual a zero.");
-    error.statusCode = 400;
-    throw error;
-  }
-  return amount;
-};
-
-const resolvePlace = async (hostId, placeId) => {
-  const place = await Place.findOne({ _id: placeId, owner: hostId }).select("_id title city").lean();
+const resolveHostPlace = async (hostId, placeId) => {
+  const place = await prisma.place.findFirst({
+    where: { id: placeId, ownerId: hostId },
+    select: { id: true, title: true, city: true },
+  });
   if (!place) {
-    const error = new Error("Acomodação não encontrada para este anfitrião.");
+    const error = new Error("Acomodacao nao encontrada para este anfitriao.");
     error.statusCode = 404;
     throw error;
   }
   return place;
 };
 
-const resolveBooking = async (hostId, bookingId, placeIds = []) => {
+const resolveBooking = async (hostId, bookingId, placeId = null) => {
   if (!bookingId) return null;
-  const booking = await Booking.findOne({
-    _id: bookingId,
-    ...(placeIds.length > 0 ? { place: { $in: placeIds } } : {}),
-  })
-    .select("_id place")
-    .lean();
+  const booking = await prisma.booking.findFirst({
+    where: {
+      id: bookingId,
+      place: {
+        ownerId: hostId,
+        ...(placeId ? { id: placeId } : {}),
+      },
+    },
+    select: { id: true, placeId: true },
+  });
   if (!booking) {
-    const error = new Error("Reserva não encontrada para este anfitrião.");
+    const error = new Error("Reserva nao encontrada para este anfitriao.");
     error.statusCode = 404;
     throw error;
   }
   return booking;
 };
 
-const buildMatch = ({ hostId, placeId, competenceMonth, entryType, status }) => {
-  const match = { host: hostId };
-  if (placeId) match.place = placeId;
-  if (competenceMonth) match.competenceMonth = competenceMonth;
-  if (entryType) match.entryType = entryType;
-  if (status) match.status = status;
-  return match;
+const mapEntry = (entry) => {
+  const metadata = entry.metadata || {};
+  const entryType = normalizeDbTypeToUi(entry.type, metadata);
+  const competenceMonth = metadata.competenceMonth || toMonthKey(entry.availableAt || entry.createdAt);
+  return {
+    id: String(entry.id),
+    _id: String(entry.id),
+    host: entry.user ? String(entry.user.id) : null,
+    place: entry.place
+      ? {
+          id: String(entry.place.id),
+          title: entry.place.title || "Acomodacao",
+          city: entry.place.city || "",
+        }
+      : null,
+    bookingId: entry.booking
+      ? {
+          id: String(entry.booking.id),
+          checkin: entry.booking.checkIn,
+          checkout: entry.booking.checkOut,
+          status: String(entry.booking.status || "").toLowerCase(),
+          paymentStatus: entry.booking.legacyPaymentStatus || "",
+          priceTotal: toNumber(entry.booking.totalPrice),
+        }
+      : null,
+    paymentId: entry.payment?.providerPaymentId || metadata.paymentId || "",
+    recurrenceId: metadata.recurrenceId || "",
+    source: metadata.source || "",
+    provider: metadata.provider || "",
+    competenceMonth,
+    competenceDate: competenceMonth ? `${competenceMonth}-01T00:00:00.000Z` : null,
+    entryDate: entry.availableAt || entry.createdAt || null,
+    entryType,
+    entryTypeLabel: getEntryLabel(entryType),
+    category: metadata.category || "",
+    categoryLabel: getCategoryLabel(entryType, metadata.category),
+    title: entry.description || metadata.title || getCategoryLabel(entryType, metadata.category),
+    description: entry.description || "",
+    amount: toNumber(entry.amount),
+    status: STATUS_KEY_BY_DB[entry.status] || "pending",
+    taxDeductible: metadata.taxDeductible !== false,
+    fiscalCategory: metadata.fiscalCategory || "",
+    accountingCategory: metadata.accountingCategory || "",
+    notes: metadata.notes || "",
+    metadata,
+    direction: getEntryDirection(entryType),
+    signedImpact: getSignedImpact({
+      amount: toNumber(entry.amount),
+      entryType,
+      status: STATUS_KEY_BY_DB[entry.status] || "pending",
+    }),
+    createdAt: entry.createdAt || null,
+    updatedAt: entry.updatedAt || null,
+  };
 };
 
 export const listFinancialEntries = async (hostId, filters = {}) => {
-  const competenceMonth = filters.competenceMonth ? ensureMonth(filters.competenceMonth) : null;
-  const entryType = filters.entryType ? ensureEntryType(filters.entryType) : null;
+  const competenceMonth = filters.competenceMonth ? toMonthKey(filters.competenceMonth) : null;
   const placeId = filters.placeId || filters.place || null;
-  const status = filters.status ? String(filters.status).trim() : null;
+  const status = filters.status ? normalizeStatusToDb(filters.status, "manual_revenue") : null;
 
-  const query = buildMatch({ hostId, placeId, competenceMonth, entryType, status });
-  const entries = await FinancialEntry.find(query)
-    .sort({ entryDate: -1, createdAt: -1 })
-    .populate("place", "title city")
-    .populate("bookingId", "checkin checkout status paymentStatus priceTotal")
-    .lean();
+  const entries = await prisma.financialEntry.findMany({
+    where: {
+      place: { ownerId: hostId },
+      ...(placeId ? { placeId } : {}),
+      ...(status ? { status } : {}),
+      ...(competenceMonth
+        ? (() => {
+            const { start, end } = getMonthBounds(competenceMonth);
+            return {
+              OR: [
+                { availableAt: { gte: start, lte: end } },
+                { createdAt: { gte: start, lte: end } },
+              ],
+            };
+          })()
+        : {}),
+    },
+    include: {
+      user: { select: { id: true } },
+      place: { select: { id: true, title: true, city: true } },
+      booking: true,
+      payment: true,
+    },
+    orderBy: [{ availableAt: "desc" }, { createdAt: "desc" }],
+  });
 
-  return entries.map(populateEntry);
+  return entries.map(mapEntry);
 };
 
 export const createFinancialEntry = async (hostId, payload = {}) => {
   const placeId = payload.placeId || payload.place;
   if (!placeId) {
-    const error = new Error("placeId é obrigatório.");
+    const error = new Error("placeId e obrigatorio.");
     error.statusCode = 400;
     throw error;
   }
 
-  const place = await resolvePlace(hostId, placeId);
-  const entryType = ensureEntryType(payload.entryType);
-  const competenceMonth = ensureMonth(payload.competenceMonth || payload.competence_month);
-  const competenceDate = getMonthBounds(competenceMonth).start;
-  const entryDate = payload.entryDate || payload.entry_date || competenceDate;
-  const amount = ensurePositiveAmount(payload.amount);
-  const bookingId = payload.bookingId || payload.booking_id || null;
-  const paymentId = String(payload.paymentId || payload.payment_id || "").trim();
-  const recurrenceId = String(payload.recurrenceId || payload.recurrence_id || "").trim();
-  const source = String(payload.source || "").trim();
-  const provider = String(payload.provider || "").trim();
-  const status = String(payload.status || getDefaultStatus(entryType)).trim() || getDefaultStatus(entryType);
-  const category = String(payload.category || payload.subcategory || "").trim() || getCategoryLabel(entryType);
-  const title = String(payload.title || payload.label || category || getEntryLabel(entryType)).trim();
-  const description = String(payload.description || "").trim();
-  const notes = String(payload.notes || "").trim();
-  const fiscalCategory = String(payload.fiscalCategory || payload.fiscal_category || "").trim();
-  const accountingCategory = String(payload.accountingCategory || payload.accounting_category || "").trim();
-  const taxDeductible = payload.taxDeductible === undefined ? entryType !== "manual_revenue" : Boolean(payload.taxDeductible);
+  const place = await resolveHostPlace(hostId, placeId);
+  const entryType = payload.entryType && FINANCIAL_ENTRY_TYPES[payload.entryType]
+    ? payload.entryType
+    : "operational_expense";
+  const competenceMonth = toMonthKey(payload.competenceMonth || payload.competence_month || new Date());
+  const amount = Number(payload.amount);
 
-  if (bookingId) {
-    await resolveBooking(hostId, bookingId, [place._id]);
+  if (!Number.isFinite(amount) || amount < 0) {
+    const error = new Error("amount deve ser um numero valido maior ou igual a zero.");
+    error.statusCode = 400;
+    throw error;
   }
 
-  const [entry] = await FinancialEntry.create([
-    {
-      host: hostId,
-      place: place._id,
-      bookingId: bookingId || null,
-      paymentId,
-      recurrenceId,
-      source,
-      provider,
-      competenceMonth,
-      competenceDate,
-      entryDate: new Date(entryDate),
-      entryType,
-      category,
-      title,
-      description,
+  const bookingId = payload.bookingId || payload.booking_id || null;
+  if (bookingId) {
+    await resolveBooking(hostId, bookingId, place.id);
+  }
+
+  const created = await prisma.financialEntry.create({
+    data: {
+      bookingId: bookingId || undefined,
+      userId: hostId,
+      placeId: place.id,
+      type: FINANCIAL_ENTRY_TYPE_TO_DB[entryType] || "ADJUSTMENT",
+      status: normalizeStatusToDb(payload.status, entryType),
       amount,
-      status,
-      taxDeductible,
-      fiscalCategory,
-      accountingCategory,
-      notes,
-      metadata: payload.metadata || {},
+      description: String(payload.title || payload.label || payload.description || "").trim() || getEntryLabel(entryType),
+      availableAt: payload.entryDate || payload.entry_date ? new Date(payload.entryDate || payload.entry_date) : getMonthBounds(competenceMonth).start,
+      metadata: {
+        entryType,
+        category: String(payload.category || payload.subcategory || "").trim(),
+        competenceMonth,
+        source: String(payload.source || "").trim(),
+        provider: String(payload.provider || "").trim(),
+        paymentId: String(payload.paymentId || payload.payment_id || "").trim(),
+        recurrenceId: String(payload.recurrenceId || payload.recurrence_id || "").trim(),
+        taxDeductible: payload.taxDeductible === undefined ? entryType !== "manual_revenue" : Boolean(payload.taxDeductible),
+        fiscalCategory: String(payload.fiscalCategory || payload.fiscal_category || "").trim(),
+        accountingCategory: String(payload.accountingCategory || payload.accounting_category || "").trim(),
+        notes: String(payload.notes || "").trim(),
+        ...(payload.metadata || {}),
+      },
     },
-  ]);
+    include: {
+      user: { select: { id: true } },
+      place: { select: { id: true, title: true, city: true } },
+      booking: true,
+      payment: true,
+    },
+  });
 
-  const populated = await FinancialEntry.findById(entry._id)
-    .populate("place", "title city")
-    .populate("bookingId", "checkin checkout status paymentStatus priceTotal")
-    .lean();
-
-  return populateEntry(populated);
+  return mapEntry(created);
 };
 
 export const updateFinancialEntry = async (hostId, entryId, payload = {}) => {
-  const existing = await FinancialEntry.findOne({ _id: entryId, host: hostId });
+  const existing = await prisma.financialEntry.findFirst({
+    where: { id: entryId, place: { ownerId: hostId } },
+    include: { place: true, booking: true, payment: true, user: { select: { id: true } } },
+  });
+
   if (!existing) {
-    const error = new Error("Lançamento financeiro não encontrado.");
+    const error = new Error("Lancamento financeiro nao encontrado.");
     error.statusCode = 404;
     throw error;
   }
 
+  let placeId = existing.placeId;
   if (payload.placeId || payload.place) {
-    const placeId = payload.placeId || payload.place;
-    const place = await resolvePlace(hostId, placeId);
-    existing.place = place._id;
+    placeId = (await resolveHostPlace(hostId, payload.placeId || payload.place)).id;
   }
 
-  if (payload.bookingId || payload.booking_id) {
-    const bookingId = payload.bookingId || payload.booking_id;
-    await resolveBooking(hostId, bookingId, [existing.place]);
-    existing.bookingId = bookingId;
+  const bookingId = payload.bookingId || payload.booking_id || existing.bookingId;
+  if (bookingId) {
+    await resolveBooking(hostId, bookingId, placeId);
   }
 
-  if (payload.entryType) existing.entryType = ensureEntryType(payload.entryType);
-  if (payload.competenceMonth || payload.competence_month) {
-    existing.competenceMonth = ensureMonth(payload.competenceMonth || payload.competence_month);
-    existing.competenceDate = getMonthBounds(existing.competenceMonth).start;
-  }
-  if (payload.entryDate || payload.entry_date) existing.entryDate = new Date(payload.entryDate || payload.entry_date);
-  if (payload.amount !== undefined) existing.amount = ensurePositiveAmount(payload.amount);
-  if (payload.status) existing.status = String(payload.status).trim();
-  if (payload.category || payload.subcategory) existing.category = String(payload.category || payload.subcategory).trim();
-  if (payload.title || payload.label) existing.title = String(payload.title || payload.label).trim();
-  if (payload.description !== undefined) existing.description = String(payload.description || "").trim();
-  if (payload.paymentId !== undefined || payload.payment_id !== undefined) existing.paymentId = String(payload.paymentId || payload.payment_id || "").trim();
-  if (payload.recurrenceId !== undefined || payload.recurrence_id !== undefined) existing.recurrenceId = String(payload.recurrenceId || payload.recurrence_id || "").trim();
-  if (payload.source !== undefined) existing.source = String(payload.source || "").trim();
-  if (payload.provider !== undefined) existing.provider = String(payload.provider || "").trim();
-  if (payload.taxDeductible !== undefined) existing.taxDeductible = Boolean(payload.taxDeductible);
-  if (payload.fiscalCategory !== undefined || payload.fiscal_category !== undefined) existing.fiscalCategory = String(payload.fiscalCategory || payload.fiscal_category || "").trim();
-  if (payload.accountingCategory !== undefined || payload.accounting_category !== undefined) existing.accountingCategory = String(payload.accountingCategory || payload.accounting_category || "").trim();
-  if (payload.notes !== undefined) existing.notes = String(payload.notes || "").trim();
-  if (payload.metadata !== undefined) existing.metadata = payload.metadata;
+  const existingMetadata = existing.metadata || {};
+  const entryType = payload.entryType && FINANCIAL_ENTRY_TYPES[payload.entryType]
+    ? payload.entryType
+    : existingMetadata.entryType || normalizeDbTypeToUi(existing.type, existingMetadata);
+  const competenceMonth = toMonthKey(payload.competenceMonth || payload.competence_month || existingMetadata.competenceMonth || existing.availableAt || existing.createdAt);
 
-  await existing.save();
+  const updated = await prisma.financialEntry.update({
+    where: { id: entryId },
+    data: {
+      placeId,
+      bookingId: bookingId || null,
+      type: FINANCIAL_ENTRY_TYPE_TO_DB[entryType] || existing.type,
+      status: payload.status ? normalizeStatusToDb(payload.status, entryType) : existing.status,
+      amount: payload.amount !== undefined ? Number(payload.amount) : existing.amount,
+      description:
+        payload.title !== undefined || payload.label !== undefined || payload.description !== undefined
+          ? String(payload.title || payload.label || payload.description || "").trim() || existing.description
+          : existing.description,
+      availableAt:
+        payload.entryDate || payload.entry_date
+          ? new Date(payload.entryDate || payload.entry_date)
+          : existing.availableAt,
+      metadata: {
+        ...existingMetadata,
+        ...(payload.metadata || {}),
+        entryType,
+        competenceMonth,
+        ...(payload.category !== undefined || payload.subcategory !== undefined
+          ? { category: String(payload.category || payload.subcategory || "").trim() }
+          : {}),
+        ...(payload.source !== undefined ? { source: String(payload.source || "").trim() } : {}),
+        ...(payload.provider !== undefined ? { provider: String(payload.provider || "").trim() } : {}),
+        ...(payload.paymentId !== undefined || payload.payment_id !== undefined
+          ? { paymentId: String(payload.paymentId || payload.payment_id || "").trim() }
+          : {}),
+        ...(payload.recurrenceId !== undefined || payload.recurrence_id !== undefined
+          ? { recurrenceId: String(payload.recurrenceId || payload.recurrence_id || "").trim() }
+          : {}),
+        ...(payload.taxDeductible !== undefined ? { taxDeductible: Boolean(payload.taxDeductible) } : {}),
+        ...(payload.fiscalCategory !== undefined || payload.fiscal_category !== undefined
+          ? { fiscalCategory: String(payload.fiscalCategory || payload.fiscal_category || "").trim() }
+          : {}),
+        ...(payload.accountingCategory !== undefined || payload.accounting_category !== undefined
+          ? { accountingCategory: String(payload.accountingCategory || payload.accounting_category || "").trim() }
+          : {}),
+        ...(payload.notes !== undefined ? { notes: String(payload.notes || "").trim() } : {}),
+      },
+    },
+    include: {
+      user: { select: { id: true } },
+      place: { select: { id: true, title: true, city: true } },
+      booking: true,
+      payment: true,
+    },
+  });
 
-  const populated = await FinancialEntry.findById(existing._id)
-    .populate("place", "title city")
-    .populate("bookingId", "checkin checkout status paymentStatus priceTotal")
-    .lean();
-
-  return populateEntry(populated);
+  return mapEntry(updated);
 };
 
 export const deleteFinancialEntry = async (hostId, entryId) => {
-  const result = await FinancialEntry.deleteOne({ _id: entryId, host: hostId });
-  if (!result.deletedCount) {
-    const error = new Error("Lançamento financeiro não encontrado.");
+  const existing = await prisma.financialEntry.findFirst({
+    where: { id: entryId, place: { ownerId: hostId } },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    const error = new Error("Lancamento financeiro nao encontrado.");
     error.statusCode = 404;
     throw error;
   }
+
+  await prisma.financialEntry.delete({ where: { id: entryId } });
   return { deleted: true };
 };
 
-const buildCategorySummary = (entries = []) => {
-  const groups = new Map();
-
-  for (const entry of entries) {
-    const groupKey = entry.entryType;
-    if (!groups.has(groupKey)) {
-      groups.set(groupKey, {
-        key: groupKey,
-        label: getEntryLabel(groupKey),
-        total: 0,
-        count: 0,
-        items: [],
-      });
-    }
-
-    const group = groups.get(groupKey);
-    group.total += getSignedImpact(entry);
-    group.count += 1;
-    group.items.push(populateEntry(entry));
-  }
-
-  return Array.from(groups.values()).map((group) => ({
+const buildCategorySummary = (entries = []) =>
+  Object.values(
+    entries.reduce((acc, entry) => {
+      const key = entry.entryType;
+      if (!acc[key]) {
+        acc[key] = {
+          key,
+          label: getEntryLabel(key),
+          total: 0,
+          count: 0,
+          items: [],
+        };
+      }
+      acc[key].total += getSignedImpact(entry);
+      acc[key].count += 1;
+      acc[key].items.push(entry);
+      return acc;
+    }, {}),
+  ).map((group) => ({
     ...group,
     amount: Math.abs(group.total),
-    direction: FINANCIAL_ENTRY_TYPES[group.key]?.direction || "expense",
+    direction: getEntryDirection(group.key),
   }));
-};
 
-const buildSubcategorySummary = (entries = []) => {
-  const groups = new Map();
-
-  for (const entry of entries) {
-    const subKey = `${entry.entryType}:${entry.category}`;
-    const subLabel = getCategoryLabel(entry.entryType, entry.category);
-
-    if (!groups.has(subKey)) {
-      groups.set(subKey, {
-        key: subKey,
-        entryType: entry.entryType,
-        category: entry.category,
-        label: subLabel,
-        total: 0,
-        count: 0,
-        items: [],
-      });
-    }
-
-    const group = groups.get(subKey);
-    group.total += getSignedImpact(entry);
-    group.count += 1;
-    group.items.push(populateEntry(entry));
-  }
-
-  return Array.from(groups.values()).map((group) => ({
-    ...group,
-    amount: Math.abs(group.total),
-  }));
-};
-
-const buildPropertySummary = (entries = [], places = [], bookings = []) => {
-  const placeMap = new Map(places.map((place) => [String(place._id), place]));
-  const bookingRevenueByPlace = new Map();
-  const bookingCountByPlace = new Map();
-
-  for (const booking of bookings) {
-    const placeId = String(booking.place?._id || booking.place || "");
-    bookingRevenueByPlace.set(placeId, (bookingRevenueByPlace.get(placeId) || 0) + Number(booking.priceTotal || 0));
-    bookingCountByPlace.set(placeId, (bookingCountByPlace.get(placeId) || 0) + 1);
-  }
-
-  const entryImpactByPlace = new Map();
-  const entryCountByPlace = new Map();
-  const entriesByPlace = new Map();
-
-  for (const entry of entries) {
-    const placeId = String(entry.place?._id || entry.place || "");
-    entryImpactByPlace.set(placeId, (entryImpactByPlace.get(placeId) || 0) + getSignedImpact(entry));
-    entryCountByPlace.set(placeId, (entryCountByPlace.get(placeId) || 0) + 1);
-    if (!entriesByPlace.has(placeId)) entriesByPlace.set(placeId, []);
-    entriesByPlace.get(placeId).push(populateEntry(entry));
-  }
-
-  return places
-    .map((place) => {
-      const placeId = String(place._id);
-      const grossRevenue = bookingRevenueByPlace.get(placeId) || 0;
-      const netImpact = entryImpactByPlace.get(placeId) || 0;
-      return {
-        id: placeId,
-        title: place.title || "Acomodação",
-        city: place.city || "",
-        grossRevenue,
-        netRevenue: grossRevenue + netImpact,
-        entriesImpact: netImpact,
-        bookingCount: bookingCountByPlace.get(placeId) || 0,
-        entryCount: entryCountByPlace.get(placeId) || 0,
-        entries: entriesByPlace.get(placeId) || [],
-      };
-    })
-    .sort((a, b) => b.grossRevenue - a.grossRevenue);
-};
+const buildSubcategorySummary = (entries = []) =>
+  Object.values(
+    entries.reduce((acc, entry) => {
+      const key = `${entry.entryType}:${entry.category || "sem_categoria"}`;
+      if (!acc[key]) {
+        acc[key] = {
+          key,
+          entryType: entry.entryType,
+          category: entry.category || "",
+          label: getCategoryLabel(entry.entryType, entry.category),
+          total: 0,
+          count: 0,
+          items: [],
+        };
+      }
+      acc[key].total += getSignedImpact(entry);
+      acc[key].count += 1;
+      acc[key].items.push(entry);
+      return acc;
+    }, {}),
+  ).map((group) => ({ ...group, amount: Math.abs(group.total) }));
 
 export const buildMonthlyFinancialSummary = async ({
   hostId,
   placeId = null,
   competenceMonth = null,
 } = {}) => {
-  const monthKey = ensureMonth(competenceMonth || new Date());
+  const monthKey = toMonthKey(competenceMonth || new Date());
   const { start: periodStart, end: periodEnd } = getMonthBounds(monthKey);
-  const places = await Place.find({
-    owner: hostId,
-    ...(placeId ? { _id: placeId } : {}),
-  })
-    .select("title city price averageRating isActive photos owner")
-    .lean();
 
-  const placeIds = places.map((place) => place._id);
-  const entries = await FinancialEntry.find({
-    host: hostId,
-    ...(placeIds.length > 0 ? { place: { $in: placeIds } } : {}),
+  const entries = await listFinancialEntries(hostId, {
+    placeId,
     competenceMonth: monthKey,
-  })
-    .sort({ entryDate: -1, createdAt: -1 })
-    .populate("place", "title city")
-    .populate("bookingId", "checkin checkout status paymentStatus priceTotal")
-    .lean();
-
-  const bookings = await Booking.find({
-    place: { $in: placeIds },
-    checkout: { $gte: periodStart, $lte: periodEnd },
-  })
-    .populate("place", "title city price averageRating isActive photos")
-    .lean();
-
-  const approvedBookings = bookings.filter((booking) => {
-    const paymentStatus = String(booking.paymentStatus || "").toLowerCase();
-    const status = String(booking.status || "").toLowerCase();
-    return paymentStatus === "approved" && !["canceled", "rejected"].includes(status);
   });
 
-  const grossRevenue = approvedBookings.reduce((total, booking) => total + Number(booking.priceTotal || 0), 0);
-  const manualRevenue = entries
-    .filter((entry) => entry.entryType === "manual_revenue" && isActionableEntry(entry))
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
-  const recurringExpenses = entries
-    .filter((entry) => entry.entryType === "recurring_expense" && isActionableEntry(entry))
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
-  const operationalExpenses = entries
-    .filter((entry) => entry.entryType === "operational_expense" && isActionableEntry(entry))
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
-  const paymentFees = entries
-    .filter((entry) => entry.entryType === "payment_fee" && isActionableEntry(entry))
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
-  const refunds = entries
-    .filter((entry) => entry.entryType === "refund" && isActionableEntry(entry))
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
-  const nonDeductibleExpenses = entries
-    .filter(
-      (entry) =>
-        entry.entryType !== "manual_revenue" &&
-        entry.taxDeductible === false &&
-        isActionableEntry(entry)
-    )
-    .reduce((total, entry) => total + Number(entry.amount || 0), 0);
+  const bookings = await prisma.booking.findMany({
+    where: {
+      place: {
+        ownerId: hostId,
+        ...(placeId ? { id: placeId } : {}),
+      },
+      checkOut: { gte: periodStart, lte: periodEnd },
+    },
+    include: {
+      place: { select: { id: true, title: true, city: true } },
+      payments: { orderBy: { createdAt: "desc" }, take: 1 },
+    },
+  });
 
-  const operatingDeductions = recurringExpenses + operationalExpenses + paymentFees + refunds;
-  const accountingNetRevenue = grossRevenue + manualRevenue - operatingDeductions;
-  const fiscalNetRevenue = accountingNetRevenue - nonDeductibleExpenses;
-  const contributionMargin = grossRevenue > 0 ? (accountingNetRevenue / grossRevenue) * 100 : null;
+  const places = await prisma.place.findMany({
+    where: {
+      ownerId: hostId,
+      ...(placeId ? { id: placeId } : {}),
+    },
+    select: { id: true, title: true, city: true },
+  });
+
+  const approvedBookings = bookings.filter((booking) => {
+    const paymentStatus = String(booking.payments?.[0]?.status || booking.legacyPaymentStatus || "").toUpperCase();
+    const status = String(booking.status || "").toUpperCase();
+    return paymentStatus === "APPROVED" && !["CANCELLED", "REJECTED", "ARCHIVED"].includes(status);
+  });
+
+  const grossRevenue = approvedBookings.reduce((total, booking) => total + toNumber(booking.totalPrice), 0);
+  const manualRevenue = entries.filter((entry) => entry.entryType === "manual_revenue" && isActionableEntry(entry)).reduce((total, entry) => total + Number(entry.amount || 0), 0);
+  const recurringExpenses = entries.filter((entry) => entry.entryType === "recurring_expense" && isActionableEntry(entry)).reduce((total, entry) => total + Number(entry.amount || 0), 0);
+  const operationalExpenses = entries.filter((entry) => entry.entryType === "operational_expense" && isActionableEntry(entry)).reduce((total, entry) => total + Number(entry.amount || 0), 0);
+  const paymentFees = entries.filter((entry) => entry.entryType === "payment_fee" && isActionableEntry(entry)).reduce((total, entry) => total + Number(entry.amount || 0), 0);
+  const refunds = entries.filter((entry) => entry.entryType === "refund" && isActionableEntry(entry)).reduce((total, entry) => total + Number(entry.amount || 0), 0);
+  const nonDeductibleExpenses = entries.filter((entry) => entry.entryType !== "manual_revenue" && entry.taxDeductible === false && isActionableEntry(entry)).reduce((total, entry) => total + Number(entry.amount || 0), 0);
+
   const totalRevenue = grossRevenue + manualRevenue;
   const totalExpenses = recurringExpenses + operationalExpenses + paymentFees + refunds;
+  const accountingNetRevenue = totalRevenue - totalExpenses;
+  const fiscalNetRevenue = accountingNetRevenue - nonDeductibleExpenses;
+  const contributionMargin = grossRevenue > 0 ? (accountingNetRevenue / grossRevenue) * 100 : null;
 
-  const byCategory = buildCategorySummary(entries);
-  const bySubcategory = buildSubcategorySummary(entries);
-  const byProperty = buildPropertySummary(entries, places, approvedBookings);
+  const byProperty = places.map((place) => {
+    const propertyEntries = entries.filter((entry) => String(entry.place?.id || "") === String(place.id));
+    const propertyBookings = approvedBookings.filter((booking) => String(booking.placeId) === String(place.id));
+    const gross = propertyBookings.reduce((total, booking) => total + toNumber(booking.totalPrice), 0);
+    const impact = propertyEntries.reduce((total, entry) => total + getSignedImpact(entry), 0);
+    return {
+      id: place.id,
+      title: place.title || "Acomodacao",
+      city: place.city || "",
+      grossRevenue: gross,
+      netRevenue: gross + impact,
+      entriesImpact: impact,
+      bookingCount: propertyBookings.length,
+      entryCount: propertyEntries.length,
+      entries: propertyEntries,
+    };
+  });
 
   const summaryCards = [
-    {
-      key: "grossRevenue",
-      label: "Receita bruta",
-      value: grossRevenue,
-      format: "currency",
-      helper: "Reservas aprovadas no mês de competência",
-      tone: "green",
-      available: true,
-    },
-    {
-      key: "manualRevenue",
-      label: "Receitas manuais",
-      value: manualRevenue,
-      format: "currency",
-      helper: "Lançamentos manuais classificados como receita",
-      tone: "blue",
-      available: true,
-    },
-    {
-      key: "recurringExpenses",
-      label: "Despesas recorrentes",
-      value: recurringExpenses,
-      format: "currency",
-      helper: "Condomínio, IPTU, água, luz e internet",
-      tone: "amber",
-      available: true,
-    },
-    {
-      key: "operationalExpenses",
-      label: "Despesas operacionais",
-      value: operationalExpenses,
-      format: "currency",
-      helper: "Limpeza, manutenção, reposição e outras despesas",
-      tone: "amber",
-      available: true,
-    },
-    {
-      key: "paymentFees",
-      label: "Taxas de pagamento",
-      value: paymentFees,
-      format: "currency",
-      helper: "Taxas reais por transação quando lançadas",
-      tone: "slate",
-      available: true,
-    },
-    {
-      key: "refunds",
-      label: "Reembolsos",
-      value: refunds,
-      format: "currency",
-      helper: "Reembolsos com valor, data e reserva vinculada",
-      tone: "red",
-      available: true,
-    },
-    {
-      key: "accountingNetRevenue",
-      label: "Receita líquida contábil",
-      value: accountingNetRevenue,
-      format: "currency",
-      helper: "Receita bruta menos lançamentos operacionais e ajustes",
-      tone: accountingNetRevenue >= 0 ? "green" : "red",
-      available: true,
-    },
-    {
-      key: "fiscalNetRevenue",
-      label: "Receita líquida fiscal",
-      value: fiscalNetRevenue,
-      format: "currency",
-      helper: "Aplicando as regras fiscais definidas no backend",
-      tone: fiscalNetRevenue >= 0 ? "green" : "red",
-      available: true,
-    },
+    { key: "grossRevenue", label: "Receita bruta", value: grossRevenue, format: "currency", helper: "Reservas aprovadas no mes de competencia", tone: "green", available: true },
+    { key: "manualRevenue", label: "Receitas manuais", value: manualRevenue, format: "currency", helper: "Lancamentos manuais classificados como receita", tone: "blue", available: true },
+    { key: "recurringExpenses", label: "Despesas recorrentes", value: recurringExpenses, format: "currency", helper: "Condominio, IPTU, agua, luz e internet", tone: "amber", available: true },
+    { key: "operationalExpenses", label: "Despesas operacionais", value: operationalExpenses, format: "currency", helper: "Limpeza, manutencao, reposicao e outras despesas", tone: "amber", available: true },
+    { key: "paymentFees", label: "Taxas de pagamento", value: paymentFees, format: "currency", helper: "Taxas reais por transacao quando lancadas", tone: "slate", available: true },
+    { key: "refunds", label: "Reembolsos", value: refunds, format: "currency", helper: "Reembolsos vinculados aos lancamentos financeiros", tone: "red", available: true },
+    { key: "accountingNetRevenue", label: "Receita liquida contabil", value: accountingNetRevenue, format: "currency", helper: "Receita bruta menos lancamentos operacionais e ajustes", tone: accountingNetRevenue >= 0 ? "green" : "red", available: true },
+    { key: "fiscalNetRevenue", label: "Receita liquida fiscal", value: fiscalNetRevenue, format: "currency", helper: "Aplicando regras fiscais armazenadas nos metadados", tone: fiscalNetRevenue >= 0 ? "green" : "red", available: true },
   ];
 
   return {
@@ -614,32 +562,24 @@ export const buildMonthlyFinancialSummary = async ({
     },
     filters: {
       periods: [
-        { key: "current_month", label: "Mês atual", available: true },
-        { key: "previous_month", label: "Mês anterior", available: true },
-        { key: "last_3_months", label: "Últimos 3 meses", available: true },
-        { key: "last_6_months", label: "Últimos 6 meses", available: true },
+        { key: "current_month", label: "Mes atual", available: true },
+        { key: "previous_month", label: "Mes anterior", available: true },
+        { key: "last_3_months", label: "Ultimos 3 meses", available: true },
+        { key: "last_6_months", label: "Ultimos 6 meses", available: true },
         { key: "custom", label: "Personalizado", available: true },
       ],
       accommodations: [
-        { key: "all", label: "Todas as acomodações", available: true },
-        ...places.map((place) => ({
-          key: String(place._id),
-          label: place.title || "Acomodação",
-          available: true,
-        })),
+        { key: "all", label: "Todas as acomodacoes", available: true },
+        ...places.map((place) => ({ key: String(place.id), label: place.title || "Acomodacao", available: true })),
       ],
-      entryTypes: Object.entries(FINANCIAL_ENTRY_TYPES).map(([key, config]) => ({
-        key,
-        label: config.label,
-        available: true,
-      })),
+      entryTypes: Object.entries(FINANCIAL_ENTRY_TYPES).map(([key, config]) => ({ key, label: config.label, available: true })),
       statuses: FINANCIAL_ENTRY_STATUS_OPTIONS.map((item) => ({ ...item, available: true })),
       categories: Object.entries(FINANCIAL_ENTRY_TYPES).flatMap(([entryType, config]) =>
         config.categories.map((item) => ({
           key: `${entryType}:${item.key}`,
           label: item.label,
           available: true,
-        }))
+        })),
       ),
     },
     summaryCards,
@@ -657,10 +597,10 @@ export const buildMonthlyFinancialSummary = async ({
       contributionMargin,
       nonDeductibleExpenses,
     },
-    byCategory,
-    bySubcategory,
+    byCategory: buildCategorySummary(entries),
+    bySubcategory: buildSubcategorySummary(entries),
     byProperty,
-    entries: entries.map(populateEntry),
+    entries,
     raw: {
       grossRevenue,
       bookings: approvedBookings.length,

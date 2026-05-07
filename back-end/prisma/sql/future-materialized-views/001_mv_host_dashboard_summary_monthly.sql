@@ -1,0 +1,20 @@
+-- Proposta futura: materialized view para dashboard mensal do anfitriao.
+-- Nao aplicar na Etapa 6.
+--
+-- Racional:
+-- A view `v_host_dashboard_summary_monthly` consolida reservas, pagamentos e avaliacoes.
+-- Caso o volume cresca e o dashboard precise de baixa latencia, ela pode virar uma
+-- materialized view com refresh programado.
+--
+-- Exemplo futuro, propositalmente comentado:
+--
+-- CREATE MATERIALIZED VIEW mv_host_dashboard_summary_monthly AS
+-- SELECT *
+-- FROM v_host_dashboard_summary_monthly;
+--
+-- CREATE UNIQUE INDEX mv_host_dashboard_summary_monthly_pk
+--   ON mv_host_dashboard_summary_monthly (host_id, summary_month);
+--
+-- Refresh futuro:
+--
+-- REFRESH MATERIALIZED VIEW CONCURRENTLY mv_host_dashboard_summary_monthly;

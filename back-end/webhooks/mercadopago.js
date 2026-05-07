@@ -1,274 +1,177 @@
 import { processPaymentNotification } from "../domains/payments/service.js";
-import Booking from "../domains/bookings/model.js";
+import { createBooking, getBookingByPaymentId } from "../prisma/repositories/bookings.repository.js";
+import { getPrismaClient } from "../config/prisma.js";
+import { saveFailedPayment } from "../domains/payments/failedPaymentsStore.js";
 import * as fs from "fs";
 import path from "path";
 
-/**
- * Webhook Handler - Mercado Pago
- * Processa notificações de pagamento e cria/atualiza reservas
- */
+const prisma = getPrismaClient();
 
-/**
- * POST /api/webhook/mercadopago
- * Recebe notificações de pagamento do Mercado Pago
- * Importante: Sempre retornar 200 para evitar reenvios
- */
-export const handleMercadoPagoWebhook = async (req, res) => {
-    try {
-        console.log("Webhook Mercado Pago recebido", {
-            type: req.body?.type || req.body?.topic,
-            hasDataId: Boolean(req.body?.data?.id || req.body?.id || req.body?.resource),
-        });
-        // Salva notificação em log para auditoria / conciliação financeira
-        try {
-            const logPath = path.resolve("tmp", "mp_notifications.log");
-            fs.appendFileSync(logPath, JSON.stringify({ timestamp: new Date().toISOString(), notification: req.body }) + "\n");
-        } catch (logErr) {
-            console.error("Falha ao gravar log de notificação:", logErr?.message || logErr);
-        }
-        
-        // Compatibilidade com diferentes formatos de webhook do Mercado Pago
-        const mpType = req.body.type || req.body.topic || (req.body.action ? String(req.body.action).split('.')[0] : undefined);
-        const data = req.body.data || {};
-        const incomingPaymentId = data.id || req.body.id || req.body.resource || (req.body?.data?.id);
-        
-        // Valida o tipo de notificação
-        if (!mpType || String(mpType).toLowerCase() !== "payment") {
-            console.log(`Tipo de notificação ignorado: ${mpType}`);
-            return res.status(200).json({ 
-                received: true, 
-                message: "Notificação recebida mas não processada (tipo não é payment)" 
-            });
-        }
-        
-        if (!incomingPaymentId) {
-            console.log("Notificação sem ID de pagamento");
-            return res.status(200).json({ 
-                received: true, 
-                message: "Notificação recebida mas sem dados de pagamento" 
-            });
-        }
-        
-        // Normaliza payload para processPaymentNotification
-        const normalizedPayload = { data: { id: incomingPaymentId } };
-        
-        // Processa a notificação de pagamento
-        const paymentData = await processPaymentNotification(normalizedPayload);
-        
-        const { 
-            paymentId, 
-            status, 
-            metadata 
-        } = paymentData;
-        
-        const {
-            userId,
-            accommodationId,
-            checkIn,
-            checkOut,
-            guests,
-            nights,
-            totalPrice,
-            pricePerNight
-        } = metadata;
-        
-        console.log("Processando pagamento:", {
-            paymentId,
-            status,
-            userId,
-            accommodationId,
-            totalPrice
-        });
-        
-        // IDEMPOTÊNCIA: Verifica se já existe reserva com este paymentId
-        const existingBooking = await Booking.findOne({ 
-            mercadopagoPaymentId: paymentId.toString() 
-        });
-        
-        if (existingBooking) {
-            console.log(`Reserva já existe para o pagamento ${paymentId}. ID: ${existingBooking._id}`);
-            
-            // Atualiza o status se mudou
-            const mappedExistingStatus = mapPaymentStatus(status);
-            if (existingBooking.paymentStatus !== mappedExistingStatus) {
-                existingBooking.paymentStatus = mappedExistingStatus;
-            }
-            if (mappedExistingStatus === "approved" && existingBooking.status === "pending") {
-                existingBooking.status = "confirmed";
-                existingBooking.lastStatusChange = new Date();
-                existingBooking.statusHistory = existingBooking.statusHistory || [];
-                existingBooking.statusHistory.push({
-                    status: "confirmed",
-                    changedBy: existingBooking.user,
-                    reason: "Pagamento aprovado",
-                });
-            }
-            await existingBooking.save();
-            console.log(`Status da reserva atualizado para: ${mappedExistingStatus}`);
-            
-            return res.status(200).json({ 
-                received: true, 
-                message: "Reserva já existente, status atualizado se necessário",
-                bookingId: existingBooking._id
-            });
-        }
-        
-        // Mapeia o status do Mercado Pago para nosso status interno
-        let paymentStatus = mapPaymentStatus(status);
+const mapPaymentStatus = (mpStatus) => ({
+  approved: "approved",
+  pending: "pending",
+  in_process: "pending",
+  in_mediation: "pending",
+  rejected: "rejected",
+  cancelled: "rejected",
+  refunded: "CANCELLED",
+  charged_back: "CANCELLED",
+}[String(mpStatus || "").toLowerCase()] || "pending");
 
-        // Se o pagamento foi rejeitado, salvar para auditoria e notificar usuário
-        if (paymentStatus === "rejected") {
-            console.log(`Pagamento ${paymentId} rejeitado. Reserva não será criada.`);
+async function upsertBookingPayment(bookingId, paymentId, paymentInfo, status) {
+  const providerPaymentId = String(paymentId);
+  const amount = Number(paymentInfo.transaction_amount || 0);
 
-            // Guarda no banco para análise posterior
-            try {
-                const FailedPayment = (await import("../domains/payments/failedPaymentModel.js")).default;
-                await FailedPayment.create({
-                    paymentId,
-                    status: paymentStatus,
-                    status_detail: paymentInfo?.status_detail || undefined,
-                    reason: paymentInfo?.status_detail || undefined,
-                    metadata,
-                    paymentInfo
-                });
-                console.log("Registro de pagamento rejeitado salvo em failedPayments.");
-            } catch (saveErr) {
-                console.error("Falha ao salvar failedPayment:", saveErr?.message || saveErr);
-            }
+  const existing = await prisma.payment.findFirst({
+    where: {
+      bookingId,
+      provider: "MERCADO_PAGO",
+      OR: [
+        { providerPaymentId },
+        { providerPreferenceId: String(paymentInfo.preference_id || "") },
+      ],
+    },
+  });
 
-            // Tenta notificar o usuário por email se disponível
-            try {
-                const nodemailer = (await import('nodemailer')).default;
-                const payerEmail = paymentInfo?.payer?.email || metadata?.userEmail || undefined;
-                if (payerEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
-                    const transporter = nodemailer.createTransport({
-                        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-                        port: process.env.SMTP_PORT || 587,
-                        secure: false,
-                        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-                    });
-
-                    const subject = `Pagamento rejeitado - DormeAqui (Pedido ${paymentId})`;
-                    const frontendUrl = (process.env.FRONTEND_URL && process.env.FRONTEND_URL.replace(/\/$/, '')) || 'http://localhost:5173';
-                    const retryLink = `${frontendUrl}/payment/retry?paymentId=${encodeURIComponent(paymentId)}`;
-
-                    const html = `<p>Olá,</p>
-                        <p>Seu pagamento (ID: ${paymentId}) foi rejeitado pelo Mercado Pago.</p>
-                        <p>Motivo: ${paymentInfo?.status_detail || 'Não informado'}</p>
-                        <p>Você pode tentar novamente clicando no link abaixo:</p>
-                        <p><a href="${retryLink}">${retryLink}</a></p>
-                        <p>Ou tente outro cartão/metodo de pagamento no checkout.</p>
-                        <p>Se precisar de ajuda, responda este e-mail.</p>`;
-
-                    await transporter.sendMail({ from: process.env.SMTP_USER, to: payerEmail, subject, html });
-                    console.log("Notificação de pagamento rejeitado enviada por email para:", payerEmail);
-                } else {
-                    console.log("Email do pagador não disponível ou SMTP não configurado; pulando notificação por email.");
-                }
-            } catch (mailErr) {
-                console.error("Falha ao enviar email de notificação:", mailErr?.message || mailErr);
-            }
-
-            return res.status(200).json({ 
-                received: true, 
-                message: "Pagamento rejeitado, reserva não criada",
-                paymentStatus: "rejected"
-            });
-        }
-
-        // Se não estiver aprovado, tentar captura automática para pagamentos em 'authorized' / 'pending_capture' quando possível
-        if (status && ["authorized", "pending_capture"].includes(String(status).toLowerCase())) {
-            try {
-                console.log(`Pagamento ${paymentId} em estado '${status}'. Tentando captura automática antes de criar reserva.`);
-                const { capturePayment } = await import("../domains/payments/captureService.js");
-                const captureResult = await capturePayment(paymentId);
-                if (captureResult) {
-                    console.log("Resultado da captura:", captureResult.status);
-                    // Atualiza status e paymentInfo para usar dados mais recentes
-                    paymentStatus = mapPaymentStatus(captureResult.status);
-                }
-            } catch (err) {
-                console.error("Falha ao tentar capturar pagamento no webhook:", err?.message || err);
-                return res.status(200).json({ received: true, message: "Notificação recebida mas captura falhou; reserva não criada", error: err?.message || err });
-            }
-        }
-
-        // Somente cria reserva quando o status final for 'approved'
-        if (paymentStatus !== "approved") {
-            console.log(`Pagamento ${paymentId} não está aprovado (status: ${paymentStatus}). Reserva não criada.`);
-            return res.status(200).json({ received: true, message: "Pagamento não aprovado - aguardando confirmação via webhook", paymentStatus });
-        }
-
-        // Validação de metadata antes de criar reserva
-        if (!userId || !accommodationId || typeof totalPrice === 'undefined' || totalPrice === null || Number.isNaN(Number(totalPrice))) {
-            console.error("Metadata incompleta ou inválida - não criando reserva", { userId, accommodationId, totalPrice, metadata });
-            return res.status(200).json({ received: true, message: "Metadata incompleta; reserva não criada", paymentStatus, metadata });
-        }
-
-        // Cria a reserva somente quando pagamento estiver aprovado
-        // Use createFromPayment for transactional checks (usuario, conflitos, intervalos)
-        const createdBooking = await Booking.createFromPayment({
-            place: accommodationId,
-            user: userId,
-            pricePerNight: Number(pricePerNight) || 0,
-            priceTotal: Number(totalPrice),
-            checkin: checkIn,
-            checkout: checkOut,
-            guests: Number(guests) || 1,
-            nights: Number(nights) || 1,
-            mercadopagoPaymentId: paymentId.toString(),
-            paymentStatus: "approved"
-        });
-
-        console.log(`Reserva criada com sucesso: ${createdBooking._id} (Status: approved)`);
-
-        return res.status(200).json({ 
-            received: true, 
-            message: "Reserva criada com sucesso",
-            bookingId: createdBooking._id,
-            paymentStatus: "approved"
-        });
-        
-    } catch (error) {
-        console.error("Erro ao processar webhook:", error);
-        
-        // Sempre retorna 200 para o Mercado Pago, mesmo em caso de erro
-        // Isso evita que o Mercado Pago fique reenviando a notificação
-        return res.status(200).json({ 
-            received: true, 
-            message: "Notificação recebida mas houve erro no processamento",
-            error: error.message
-        });
-    }
-};
-
-/**
- * Mapeia status do Mercado Pago para status interno
- * @param {string} mpStatus - Status do Mercado Pago
- * @returns {string} Status interno
- */
-const mapPaymentStatus = (mpStatus) => {
-    const statusMap = {
-        "approved": "approved",
-        "pending": "pending",
-        "in_process": "pending",
-        "in_mediation": "pending",
-        "rejected": "rejected",
-        "cancelled": "rejected",
-        "refunded": "canceled",
-        "charged_back": "canceled"
-    };
-    
-    return statusMap[mpStatus] || "pending";
-};
-
-/**
- * GET /api/webhook/mercadopago
- * Endpoint para verificação do webhook (usado pelo Mercado Pago ou para health check)
- */
-export const verifyWebhook = async (req, res) => {
-    res.status(200).json({ 
-        status: "Webhook ativo",
-        timestamp: new Date().toISOString()
+  if (existing) {
+    return prisma.payment.update({
+      where: { id: existing.id },
+      data: {
+        providerPaymentId,
+        providerPreferenceId: paymentInfo.preference_id ? String(paymentInfo.preference_id) : existing.providerPreferenceId,
+        amount: Number.isFinite(amount) ? amount : existing.amount,
+        status,
+        transactionDetails: paymentInfo,
+        approvedAt: status === "APPROVED" ? new Date() : existing.approvedAt,
+      },
     });
+  }
+
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+  return prisma.payment.create({
+    data: {
+      bookingId,
+      userId: booking.guestId,
+      provider: "MERCADO_PAGO",
+      providerPaymentId,
+      providerPreferenceId: paymentInfo.preference_id ? String(paymentInfo.preference_id) : null,
+      status,
+      amount: Number.isFinite(amount) ? amount : Number(booking.totalPrice),
+      transactionDetails: paymentInfo,
+      approvedAt: status === "APPROVED" ? new Date() : null,
+    },
+  });
+}
+
+async function finalizeApprovedPayment({ paymentId, paymentInfo, metadata }) {
+  const existingBooking = await getBookingByPaymentId(paymentId);
+  if (existingBooking) {
+    return existingBooking;
+  }
+
+  const createdBooking = await createBooking({
+    place: metadata.accommodationId,
+    user: metadata.userId,
+    checkin: metadata.checkIn,
+    checkout: metadata.checkOut,
+    guests: metadata.guests || 1,
+  });
+
+  const dbBooking = await prisma.booking.findFirst({
+    where: {
+      OR: [
+        { id: createdBooking.id },
+        { legacyMongoId: String(createdBooking._id || createdBooking.id) },
+      ],
+    },
+  });
+
+  await prisma.booking.update({
+    where: { id: dbBooking.id },
+    data: {
+      legacyMercadoPagoPaymentId: String(paymentId),
+      legacyPaymentStatus: "approved",
+      legacyPaymentMethod: String(paymentInfo.payment_method_id || paymentInfo.payment_type_id || "mercado_pago"),
+      legacyTransactionAmount: Number(paymentInfo.transaction_amount || createdBooking.totalPrice || 0),
+      legacyTransactionDetails: paymentInfo,
+      paymentApprovedAt: new Date(),
+      status: "CONFIRMED",
+      lastStatusChange: new Date(),
+    },
+  });
+
+  await upsertBookingPayment(dbBooking.id, paymentId, paymentInfo, "APPROVED");
+  return { ...createdBooking, id: dbBooking.id };
+}
+
+export const handleMercadoPagoWebhook = async (req, res) => {
+  try {
+    try {
+      const logPath = path.resolve("tmp", "mp_notifications.log");
+      fs.appendFileSync(logPath, `${JSON.stringify({ timestamp: new Date().toISOString(), notification: req.body })}\n`);
+    } catch {}
+
+    const mpType = req.body.type || req.body.topic || (req.body.action ? String(req.body.action).split(".")[0] : undefined);
+    const incomingPaymentId = req.body?.data?.id || req.body?.id || req.body?.resource;
+
+    if (!mpType || String(mpType).toLowerCase() !== "payment") {
+      return res.status(200).json({ received: true, message: "Notificacao ignorada" });
+    }
+
+    if (!incomingPaymentId) {
+      return res.status(200).json({ received: true, message: "Notificacao sem paymentId" });
+    }
+
+    const paymentData = await processPaymentNotification({ data: { id: incomingPaymentId } });
+    const paymentStatus = mapPaymentStatus(paymentData.status);
+
+    if (paymentStatus === "rejected") {
+      await saveFailedPayment({
+        provider: "mercado_pago",
+        paymentId: paymentData.paymentId,
+        status: paymentStatus,
+        statusDetail: paymentData.paymentInfo?.status_detail || null,
+        reason: paymentData.paymentInfo?.status_detail || null,
+        metadata: paymentData.metadata || {},
+        paymentInfo: paymentData.paymentInfo || {},
+      });
+      return res.status(200).json({ received: true, message: "Pagamento rejeitado registrado", paymentStatus });
+    }
+
+    if (paymentStatus !== "approved") {
+      return res.status(200).json({ received: true, message: "Pagamento ainda nao aprovado", paymentStatus });
+    }
+
+    const { userId, accommodationId, totalPrice } = paymentData.metadata || {};
+    if (!userId || !accommodationId || totalPrice === undefined || totalPrice === null) {
+      return res.status(200).json({ received: true, message: "Metadata incompleta para criacao da reserva" });
+    }
+
+    const booking = await finalizeApprovedPayment({
+      paymentId: paymentData.paymentId,
+      paymentInfo: paymentData.paymentInfo,
+      metadata: paymentData.metadata,
+    });
+
+    return res.status(200).json({
+      received: true,
+      message: "Reserva criada ou reconciliada com sucesso",
+      bookingId: booking.id || booking._id,
+      paymentStatus: "approved",
+    });
+  } catch (error) {
+    console.error("Erro ao processar webhook Mercado Pago:", error);
+    return res.status(200).json({
+      received: true,
+      message: "Notificacao recebida mas houve erro no processamento",
+      error: error.message,
+    });
+  }
+};
+
+export const verifyWebhook = async (req, res) => {
+  res.status(200).json({
+    status: "Webhook ativo",
+    timestamp: new Date().toISOString(),
+  });
 };

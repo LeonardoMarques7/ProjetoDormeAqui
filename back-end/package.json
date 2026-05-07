@@ -6,13 +6,25 @@
   "scripts": {
     "dev": "node --watch ./index.js ",
     "start": "node ./index.js ",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests",
+    "db:views:apply": "node ./prisma/sql/apply-views.js",
+    "db:views:validate": "node ./prisma/sql/validate-views.js",
+    "db:queries:test": "node ./prisma/queries/test-queries.js",
+    "dashboard:postgres:test": "node ./domains/dashboard/test-postgres-adapter.js",
+    "db:analytics:apply": "node ./prisma/sql/apply-analytics.js",
+    "db:analytics:refresh": "node ./prisma/sql/refresh-analytics.js",
+    "db:functions:apply": "node ./prisma/sql/apply-analytics.js",
+    "db:materialized-views:apply": "node ./prisma/sql/apply-analytics.js",
+    "db:materialized-views:refresh": "node ./prisma/sql/refresh-analytics.js",
+    "db:analytics:validate": "node ./prisma/sql/validate-analytics-sql.js",
+    "postgres:runtime:test": "node ./scripts/test-postgres-runtime.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@stripe/stripe-js": "^8.9.0",
     "@supabase/supabase-js": "^2.38.4",
@@ -29,9 +41,9 @@
     "image-downloader": "^4.3.0",
     "jsonwebtoken": "^9.0.2",
     "mime-types": "^3.0.1",
-    "mongoose": "^9.3.0",
     "multer": "^2.0.2",
     "nodemailer": "^8.0.7",
+    "pg": "^8.20.0",
     "projetodormeaqui": "file:..",
     "qrcode": "^1.5.4",
     "stripe": "^20.4.1",
@@ -39,7 +51,6 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "mongodb-memory-server": "^11.0.1",
     "prisma": "^7.8.0",
     "supertest": "^7.2.2"
   }
