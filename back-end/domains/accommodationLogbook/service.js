@@ -2,6 +2,9 @@ import { getPrismaClient } from "../../config/prisma.js";
 
 const prisma = getPrismaClient();
 
+const hasPrismaModel = (client, modelName) =>
+  Boolean(client && typeof client[modelName]?.findMany === "function");
+
 const STATUS_LABELS = {
   pending: "Reserva pendente",
   confirmed: "Reserva confirmada",
@@ -148,6 +151,15 @@ const buildSummary = (logs) => {
 };
 
 export const buildAccommodationLogbook = async (hostId, filters = {}) => {
+  if (!hasPrismaModel(prisma, "place") || !hasPrismaModel(prisma, "booking")) {
+    return {
+      logs: [],
+      summary: buildSummary([]),
+      options: { names: [], actions: [], contexts: [] },
+      total: 0,
+    };
+  }
+
   const places = await prisma.place.findMany({
     where: { ownerId: hostId },
     include: {
@@ -179,26 +191,34 @@ export const buildAccommodationLogbook = async (hostId, filters = {}) => {
 
   const bookingIds = bookings.map((booking) => booking.id);
 
+  const reviewQuery = hasPrismaModel(prisma, "review")
+    ? prisma.review.findMany({
+        where: { placeId: { in: placeIds } },
+        include: {
+          user: { select: { id: true, name: true } },
+          place: { select: { id: true, title: true, city: true } },
+        },
+      })
+    : Promise.resolve([]);
+
+  const notificationQuery = hasPrismaModel(prisma, "notification")
+    ? prisma.notification.findMany({
+        where: {
+          userId: hostId,
+          OR: [
+            { entityType: "place", entityId: { in: placeIds } },
+            { entityType: "reservation", entityId: { in: bookingIds } },
+            { entityType: "review" },
+            { entityType: "payment" },
+          ],
+        },
+        orderBy: { createdAt: "desc" },
+      })
+    : Promise.resolve([]);
+
   const [reviews, notifications] = await Promise.all([
-    prisma.review.findMany({
-      where: { placeId: { in: placeIds } },
-      include: {
-        user: { select: { id: true, name: true } },
-        place: { select: { id: true, title: true, city: true } },
-      },
-    }),
-    prisma.notification.findMany({
-      where: {
-        userId: hostId,
-        OR: [
-          { entityType: "place", entityId: { in: placeIds } },
-          { entityType: "reservation", entityId: { in: bookingIds } },
-          { entityType: "review" },
-          { entityType: "payment" },
-        ],
-      },
-      orderBy: { createdAt: "desc" },
-    }),
+    reviewQuery,
+    notificationQuery,
   ]);
 
   const logs = [];

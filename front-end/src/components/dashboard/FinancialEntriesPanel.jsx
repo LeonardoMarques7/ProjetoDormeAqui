@@ -15,6 +15,22 @@ import {
 	getHostFinancialEntries,
 	getHostFinancialSummary,
 } from "@/services/dashboardService";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const CATEGORY_TABS = [
 	{
@@ -124,12 +140,18 @@ const toMonthKey = (date = new Date()) => {
 const toDateInputValue = (value = new Date()) =>
 	new Date(value).toISOString().slice(0, 10);
 
+const parseMonthKey = (value) => {
+	if (!value) return new Date();
+	const [year, month] = String(value).split("-").map(Number);
+	return new Date(year || new Date().getFullYear(), (month || 1) - 1, 1);
+};
+
 const getDefaultFormState = (tabKey, placeId, monthKey) => {
 	const tab =
 		CATEGORY_TABS.find((item) => item.key === tabKey) || CATEGORY_TABS[0];
 	return {
 		entryType: tab.key,
-		placeId: placeId || "",
+		placeId: placeId && placeId !== "all" ? placeId : "",
 		competenceMonth: monthKey || toMonthKey(),
 		entryDate: toDateInputValue(),
 		category: tab.defaultCategory,
@@ -179,14 +201,14 @@ const getSummaryCards = (summary = {}) => [
 		key: "accountingNetRevenue",
 		label: "Receita líquida contábil",
 		value: summary.totals?.accountingNetRevenue ?? 0,
-		helper: "Cálculo consolidado pelo backend",
+		helper: "Resultado consolidado para o período",
 		tone: "green",
 	},
 	{
 		key: "fiscalNetRevenue",
 		label: "Receita líquida fiscal",
 		value: summary.totals?.fiscalNetRevenue ?? 0,
-		helper: "Aplicando as regras fiscais do backend",
+		helper: "Aplicando as regras fiscais do período",
 		tone: "green",
 	},
 ];
@@ -200,6 +222,76 @@ function SummaryCard({ item }) {
 			</p>
 			<p className="mt-2 text-xs leading-5 text-slate-500">{item.helper}</p>
 		</article>
+	);
+}
+
+function MonthPickerField({ label, value, onChange }) {
+	const selectedDate = parseMonthKey(value);
+
+	return (
+		<div className="min-w-[220px]">
+			{label ? (
+				<p className="mb-1 text-xs font-medium text-slate-500">{label}</p>
+			) : null}
+			<Popover>
+				<PopoverTrigger asChild>
+					<Button
+						type="button"
+						variant="outline"
+						className="h-10 w-full justify-start rounded-xl border-slate-200 bg-white px-3 text-left text-sm font-medium text-slate-700 shadow-none"
+					>
+						<CalendarDays className="mr-2 h-4 w-4 text-slate-400" />
+						{format(selectedDate, "MMMM 'de' yyyy", { locale: ptBR })}
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent className="w-auto p-0" align="start">
+					<Calendar
+						mode="single"
+						captionLayout="dropdown"
+						defaultMonth={selectedDate}
+						selected={selectedDate}
+						onSelect={(date) => date && onChange(toMonthKey(date))}
+					/>
+				</PopoverContent>
+			</Popover>
+		</div>
+	);
+}
+
+function SingleDateField({ label, value, onChange }) {
+	const selectedDate = value ? new Date(`${value}T12:00:00`) : undefined;
+
+	return (
+		<div className="space-y-1">
+			{label ? (
+				<label className="text-sm font-medium text-slate-700">{label}</label>
+			) : null}
+			<Popover>
+				<PopoverTrigger asChild>
+					<Button
+						type="button"
+						variant="outline"
+						className="h-11 w-full justify-start rounded-xl border-slate-200 bg-white px-3 text-left text-sm font-medium text-slate-800 shadow-none"
+					>
+						<CalendarDays className="mr-2 h-4 w-4 text-slate-400" />
+						{selectedDate
+							? format(selectedDate, "dd 'de' MMMM 'de' yyyy", {
+									locale: ptBR,
+								})
+							: "Selecionar data"}
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent className="w-auto p-0" align="start">
+					<Calendar
+						mode="single"
+						selected={selectedDate}
+						onSelect={(date) =>
+							onChange(date ? toDateInputValue(date) : "")
+						}
+					/>
+				</PopoverContent>
+			</Popover>
+		</div>
 	);
 }
 
@@ -252,7 +344,9 @@ export default function FinancialEntriesPanel({
 	initialMonthKey = "",
 }) {
 	const [activeTab, setActiveTab] = useState(CATEGORY_TABS[0].key);
-	const [selectedPlaceId, setSelectedPlaceId] = useState(places[0]?._id || "");
+	const [selectedPlaceId, setSelectedPlaceId] = useState(
+		places[0]?._id || "all",
+	);
 	const [selectedMonth, setSelectedMonth] = useState(
 		initialMonthKey || toMonthKey(),
 	);
@@ -297,11 +391,11 @@ export default function FinancialEntriesPanel({
 				const [summaryResponse, entriesResponse] = await Promise.all([
 					getHostFinancialSummary({
 						competenceMonth: selectedMonth,
-						placeId: selectedPlaceId || undefined,
+						placeId: selectedPlaceFilterId,
 					}),
 					getHostFinancialEntries({
 						competenceMonth: selectedMonth,
-						placeId: selectedPlaceId || undefined,
+						placeId: selectedPlaceFilterId,
 					}),
 				]);
 				setSummary(summaryResponse.data || summaryResponse);
@@ -320,6 +414,8 @@ export default function FinancialEntriesPanel({
 	}, [selectedMonth, selectedPlaceId]);
 
 	const summaryCards = useMemo(() => getSummaryCards(summary || {}), [summary]);
+	const selectedPlaceFilterId =
+		selectedPlaceId && selectedPlaceId !== "all" ? selectedPlaceId : undefined;
 
 	const handleChange = (field, value) => {
 		setForm((current) => ({ ...current, [field]: value }));
@@ -332,7 +428,7 @@ export default function FinancialEntriesPanel({
 		try {
 			const payload = {
 				...form,
-				placeId: selectedPlaceId || form.placeId,
+				placeId: selectedPlaceFilterId || form.placeId,
 				competenceMonth: selectedMonth || form.competenceMonth,
 				amount: Number(form.amount),
 				taxDeductible: Boolean(form.taxDeductible),
@@ -349,11 +445,11 @@ export default function FinancialEntriesPanel({
 			const [summaryResponse, entriesResponse] = await Promise.all([
 				getHostFinancialSummary({
 					competenceMonth: selectedMonth,
-					placeId: selectedPlaceId || undefined,
+					placeId: selectedPlaceFilterId,
 				}),
 				getHostFinancialEntries({
 					competenceMonth: selectedMonth,
-					placeId: selectedPlaceId || undefined,
+					placeId: selectedPlaceFilterId,
 				}),
 			]);
 			setSummary(summaryResponse.data || summaryResponse);
@@ -377,11 +473,11 @@ export default function FinancialEntriesPanel({
 			const [summaryResponse, entriesResponse] = await Promise.all([
 				getHostFinancialSummary({
 					competenceMonth: selectedMonth,
-					placeId: selectedPlaceId || undefined,
+					placeId: selectedPlaceFilterId,
 				}),
 				getHostFinancialEntries({
 					competenceMonth: selectedMonth,
-					placeId: selectedPlaceId || undefined,
+					placeId: selectedPlaceFilterId,
 				}),
 			]);
 			setSummary(summaryResponse.data || summaryResponse);
@@ -409,36 +505,41 @@ export default function FinancialEntriesPanel({
 						Entrada manual por acomodação e competência
 					</h3>
 					<p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
-						Cada lançamento é salvo pelo backend e consolidado no relatório
+						Cada lançamento é salvo e consolidado no relatório
 						mensal.
 					</p>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
-					<label className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600">
-						<CalendarDays className="h-4 w-4" />
-						<input
-							type="month"
-							value={selectedMonth}
-							onChange={(event) => setSelectedMonth(event.target.value)}
-							className="border-0 bg-transparent p-0 text-sm text-slate-800 outline-none focus:ring-0"
-						/>
-					</label>
-					<select
-						value={selectedPlaceId}
-						onChange={(event) => setSelectedPlaceId(event.target.value)}
-						className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
-					>
-						<option value="">Todas as acomodações</option>
-						{places.map((place) => (
-							<option key={place._id || place.id} value={place._id || place.id}>
-								{place.title || "Acomodação"}
-							</option>
-						))}
-					</select>
+					<MonthPickerField
+						label="Competência"
+						value={selectedMonth}
+						onChange={setSelectedMonth}
+					/>
+					<div className="min-w-[220px]">
+						<p className="mb-1 text-xs font-medium text-slate-500">
+							Acomodação
+						</p>
+						<Select value={selectedPlaceId} onValueChange={setSelectedPlaceId}>
+							<SelectTrigger className="h-10 w-full rounded-xl border-slate-200 bg-white text-sm text-slate-700 shadow-none">
+								<SelectValue placeholder="Todas as acomodações" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">Todas as acomodações</SelectItem>
+								{places.map((place) => (
+									<SelectItem
+										key={place._id || place.id}
+										value={String(place._id || place.id)}
+									>
+										{place.title || "Acomodação"}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
 					<button
 						type="button"
 						onClick={() => {
-							setSelectedPlaceId(places[0]?._id || "");
+							setSelectedPlaceId("all");
 							setSelectedMonth(initialMonthKey || toMonthKey());
 						}}
 						className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:border-primary-200 hover:bg-slate-50"
@@ -521,19 +622,21 @@ export default function FinancialEntriesPanel({
 								<label className="text-sm font-medium text-slate-700">
 									Categoria
 								</label>
-								<select
+								<Select
 									value={form.category}
-									onChange={(event) =>
-										handleChange("category", event.target.value)
-									}
-									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
+									onValueChange={(value) => handleChange("category", value)}
 								>
-									{categoryOptions.map((option) => (
-										<option key={option.key} value={option.key}>
-											{option.label}
-										</option>
-									))}
-								</select>
+									<SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-white text-sm text-slate-800 shadow-none">
+										<SelectValue placeholder="Selecionar categoria" />
+									</SelectTrigger>
+									<SelectContent>
+										{categoryOptions.map((option) => (
+											<SelectItem key={option.key} value={option.key}>
+												{option.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 							</div>
 
 							<div className="space-y-1">
@@ -557,13 +660,10 @@ export default function FinancialEntriesPanel({
 								<label className="text-sm font-medium text-slate-700">
 									Competência
 								</label>
-								<input
-									type="month"
+								<MonthPickerField
+									label=""
 									value={form.competenceMonth}
-									onChange={(event) =>
-										handleChange("competenceMonth", event.target.value)
-									}
-									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
+									onChange={(value) => handleChange("competenceMonth", value)}
 								/>
 							</div>
 
@@ -571,13 +671,10 @@ export default function FinancialEntriesPanel({
 								<label className="text-sm font-medium text-slate-700">
 									Data
 								</label>
-								<input
-									type="date"
+								<SingleDateField
+									label=""
 									value={form.entryDate}
-									onChange={(event) =>
-										handleChange("entryDate", event.target.value)
-									}
-									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
+									onChange={(value) => handleChange("entryDate", value)}
 								/>
 							</div>
 
@@ -585,40 +682,43 @@ export default function FinancialEntriesPanel({
 								<label className="text-sm font-medium text-slate-700">
 									Status
 								</label>
-								<select
+								<Select
 									value={form.status}
-									onChange={(event) =>
-										handleChange("status", event.target.value)
-									}
-									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
+									onValueChange={(value) => handleChange("status", value)}
 								>
-									{ENTRY_STATUS_OPTIONS.map((option) => (
-										<option key={option.key} value={option.key}>
-											{option.label}
-										</option>
-									))}
-								</select>
+									<SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-white text-sm text-slate-800 shadow-none">
+										<SelectValue placeholder="Selecionar status" />
+									</SelectTrigger>
+									<SelectContent>
+										{ENTRY_STATUS_OPTIONS.map((option) => (
+											<SelectItem key={option.key} value={option.key}>
+												{option.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 							</div>
 
 							<div className="space-y-1">
 								<label className="text-sm font-medium text-slate-700">
 									Acomodação
 								</label>
-								<select
-									value={selectedPlaceId}
-									onChange={(event) => setSelectedPlaceId(event.target.value)}
-									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
-								>
-									<option value="">Selecione no filtro acima</option>
-									{places.map((place) => (
-										<option
-											key={place._id || place.id}
-											value={place._id || place.id}
-										>
-											{place.title || "Acomodação"}
-										</option>
-									))}
-								</select>
+								<Select value={selectedPlaceId} onValueChange={setSelectedPlaceId}>
+									<SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-white text-sm text-slate-800 shadow-none">
+										<SelectValue placeholder="Selecione no filtro acima" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">Todas as acomodações</SelectItem>
+										{places.map((place) => (
+											<SelectItem
+												key={place._id || place.id}
+												value={String(place._id || place.id)}
+											>
+												{place.title || "Acomodação"}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 							</div>
 
 							<div className="space-y-1 md:col-span-2">
@@ -766,7 +866,7 @@ export default function FinancialEntriesPanel({
 								</p>
 								<button
 									type="submit"
-									disabled={saving || !selectedPlaceId}
+									disabled={saving || !selectedPlaceFilterId}
 									className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-800 disabled:cursor-not-allowed disabled:opacity-60"
 								>
 									<Plus className="h-4 w-4" />

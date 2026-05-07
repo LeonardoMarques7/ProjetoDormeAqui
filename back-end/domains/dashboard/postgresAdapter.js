@@ -506,7 +506,7 @@ function buildFinancialSummary({ dashboardRows, financialRows, placeRevenueRows,
     occupancyRate: null,
     availableNightEarnings: null,
     status: "stable",
-    statusLabel: "Dados PostgreSQL",
+    statusLabel: "Estavel",
     available: true,
   }));
 
@@ -551,7 +551,7 @@ function buildOverview({
         label: "Receita bruta do mes",
         value: financialSummary.monthlyGrossRevenue,
         format: "currency",
-        helper: "View PostgreSQL v_host_dashboard_summary_monthly",
+        helper: "Reservas confirmadas no periodo atual.",
         tone: "green",
       }),
       makeKpi({
@@ -566,7 +566,7 @@ function buildOverview({
         label: "Ocupacao media",
         value: metrics.occupancyRate,
         format: "percent",
-        helper: "Media do periodo via PostgreSQL",
+        helper: "Media das acomodacoes no periodo atual.",
         tone: "green",
         status: metrics.occupancyRate < 35 ? "attention" : "healthy",
       }),
@@ -591,7 +591,7 @@ function buildOverview({
           key: "checkinsToday",
           label: "Entradas hoje",
           value: checkinsToday,
-          helper: "Check-ins previstos para hoje via PostgreSQL",
+          helper: "Entradas previstas para hoje.",
           tone: "green",
           status: checkinsToday > 0 ? "action" : "neutral",
         }),
@@ -599,7 +599,7 @@ function buildOverview({
           key: "checkoutsToday",
           label: "Saidas hoje",
           value: checkoutsToday,
-          helper: "Check-outs previstos para hoje via PostgreSQL",
+          helper: "Saidas previstas para hoje.",
           tone: "amber",
           status: checkoutsToday > 0 ? "action" : "neutral",
         }),
@@ -615,7 +615,7 @@ function buildOverview({
           key: "pendingPreCheckins",
           label: "Pre-check-ins pendentes",
           value: null,
-          helper: "Dominio operacional ainda nao migrado para PostgreSQL",
+          helper: "Esse acompanhamento ainda esta sendo preparado.",
           tone: "slate",
           status: "unavailable",
           available: false,
@@ -624,7 +624,7 @@ function buildOverview({
           key: "pendingCleanings",
           label: "Limpezas pendentes",
           value: null,
-          helper: "Dominio operacional ainda nao migrado para PostgreSQL",
+          helper: "Esse acompanhamento ainda esta sendo preparado.",
           tone: "slate",
           status: "unavailable",
           available: false,
@@ -641,7 +641,7 @@ function buildOverview({
           key: "propertiesWithAlerts",
           label: "Imoveis com alerta",
           value: propertiesWithAlerts,
-          helper: "Alertas calculados sobre views PostgreSQL",
+          helper: "Acomodacoes que precisam de atencao.",
           tone: propertiesWithAlerts > 0 ? "amber" : "green",
           status: propertiesWithAlerts > 0 ? "attention" : "healthy",
         }),
@@ -649,7 +649,7 @@ function buildOverview({
           key: "pendingInspections",
           label: "Vistorias pendentes",
           value: null,
-          helper: "Dominio operacional ainda nao migrado para PostgreSQL",
+          helper: "Esse acompanhamento ainda esta sendo preparado.",
           tone: "slate",
           status: "unavailable",
           available: false,
@@ -658,7 +658,7 @@ function buildOverview({
           key: "openIncidents",
           label: "Ocorrencias abertas",
           value: null,
-          helper: "Dominio de ocorrencias ainda nao migrado para PostgreSQL",
+          helper: "Esse acompanhamento ainda esta sendo preparado.",
           tone: "slate",
           status: "unavailable",
           available: false,
@@ -686,7 +686,7 @@ function buildOverview({
           label: "Receita bruta do mes",
           value: financialSummary.monthlyGrossRevenue,
           format: "currency",
-          helper: "View PostgreSQL v_host_dashboard_summary_monthly",
+          helper: "Reservas confirmadas no periodo atual.",
           tone: "green",
         }),
         makeKpi({
@@ -694,7 +694,7 @@ function buildOverview({
           label: "Despesas operacionais",
           value: financialSummary.operatingExpenses,
           format: "currency",
-          helper: "Taxas conhecidas em PostgreSQL",
+          helper: "Custos ja identificados neste periodo.",
           tone: financialSummary.operatingExpenses > 0 ? "amber" : "slate",
           status: financialSummary.operatingExpenses > 0 ? "attention" : "neutral",
         }),
@@ -743,7 +743,7 @@ function buildOverview({
           label: "Ocupacao media",
           value: metrics.occupancyRate,
           format: "percent",
-          helper: "Media do periodo via PostgreSQL",
+          helper: "Media das acomodacoes no periodo atual.",
           tone: "green",
           status: metrics.occupancyRate < 35 ? "attention" : "healthy",
         }),
@@ -769,8 +769,8 @@ function buildOverview({
     unavailableData: [
       {
         key: "operationalDomains",
-        label: "Dominios operacionais detalhados",
-        requiredBackend: "Migrar pre-check-in, incidentes e tarefas operacionais para PostgreSQL.",
+        label: "Alguns acompanhamentos ainda nao estao disponiveis",
+        requiredBackend: "Novos acompanhamentos operacionais serao adicionados em etapas futuras.",
       },
     ],
   };
@@ -979,7 +979,7 @@ export async function buildPostgresHostDashboardData(hostId) {
       key: "monthlyGrossRevenue",
       label: "Receita bruta do mes",
       value: financialSummary.monthlyGrossRevenue,
-      helper: "View PostgreSQL v_host_dashboard_summary_monthly",
+      helper: "Reservas confirmadas no periodo atual.",
       tone: "green",
     }),
     makeFinancialMetric({
@@ -993,7 +993,7 @@ export async function buildPostgresHostDashboardData(hostId) {
       key: "operatingExpenses",
       label: "Despesas operacionais",
       value: financialSummary.operatingExpenses,
-      helper: "Taxas conhecidas no PostgreSQL",
+      helper: "Custos ja identificados neste periodo.",
       tone: financialSummary.operatingExpenses > 0 ? "amber" : "slate",
     }),
     makeFinancialMetric({
@@ -1124,19 +1124,30 @@ export async function buildPostgresHostDashboardData(hostId) {
     operational: {
       items: overview.operationalRisks.items,
       unavailableData: [
-        "Pre-check-in, incidentes e manutencoes ainda dependem de dominios operacionais fora das views analiticas.",
+        "Alguns acompanhamentos operacionais ainda serao adicionados em etapas futuras.",
       ],
     },
     charts: {
       revenueProjection: buildRevenueProjection(monthlyRevenueRows),
-      propertyPerformance: operationalProperties.slice(0, 6),
+      propertyPerformance: operationalProperties
+        .slice()
+        .sort((a, b) => toNumber(b.monthlyRevenue) - toNumber(a.monthlyRevenue))
+        .slice(0, 8),
       revenueOverTime,
       occupancyOverTime,
-      performanceByProperty: operationalProperties.slice(0, 6).map((property) => ({
+      performanceByProperty: operationalProperties
+        .slice()
+        .sort((a, b) => toNumber(b.monthlyRevenue) - toNumber(a.monthlyRevenue))
+        .slice(0, 12)
+        .map((property) => ({
         id: property.id,
         title: property.title,
+        city: property.city,
         revenue: property.monthlyRevenue,
         occupancyRate: property.occupancyRate,
+        averageRating: property.averageRating,
+        activeBookings: property.activeBookings,
+        statusLabel: property.statusLabel,
         status: property.status,
       })),
     },
@@ -1206,7 +1217,7 @@ export async function buildPostgresHostDashboardData(hostId) {
             key: "platformFees",
             label: "Taxas da plataforma",
             value: financialSummary.totalFees,
-            helper: "Taxas conhecidas pelo motor analitico PostgreSQL",
+            helper: "Custos da plataforma registrados no periodo.",
             tone: financialSummary.totalFees > 0 ? "amber" : "slate",
           }),
           makeUnavailableFinancialMetric(
@@ -1267,7 +1278,7 @@ export async function buildPostgresHostDashboardData(hostId) {
       composition: financialComposition,
       ledger,
       unavailableData: [
-        "Pre-check-in, incidentes, manutencoes e despesas operacionais detalhadas ainda nao possuem views PostgreSQL equivalentes.",
+        "Alguns acompanhamentos mais detalhados ainda serao adicionados em etapas futuras.",
       ],
     },
     metrics,
@@ -1279,7 +1290,11 @@ export async function buildPostgresHostDashboardData(hostId) {
     upcomingMovementGroups,
     charts: {
       revenueProjection: buildRevenueProjection(monthlyRevenueRows),
-      propertyPerformance: operationalProperties.slice(0, 6).map((property) => ({
+      propertyPerformance: operationalProperties
+        .slice()
+        .sort((a, b) => toNumber(b.monthlyRevenue) - toNumber(a.monthlyRevenue))
+        .slice(0, 8)
+        .map((property) => ({
         id: property.id,
         name: property.title?.slice(0, 16) || "Acomodacao",
         revenue: property.monthlyRevenue,
@@ -1288,11 +1303,19 @@ export async function buildPostgresHostDashboardData(hostId) {
       })),
       revenueOverTime,
       occupancyOverTime,
-      performanceByProperty: operationalProperties.slice(0, 6).map((property) => ({
+      performanceByProperty: operationalProperties
+        .slice()
+        .sort((a, b) => toNumber(b.monthlyRevenue) - toNumber(a.monthlyRevenue))
+        .slice(0, 12)
+        .map((property) => ({
         id: property.id,
         title: property.title,
+        city: property.city,
         revenue: property.monthlyRevenue,
         occupancyRate: property.occupancyRate,
+        averageRating: property.averageRating,
+        activeBookings: property.activeBookings,
+        statusLabel: property.statusLabel,
         status: property.status,
       })),
     },

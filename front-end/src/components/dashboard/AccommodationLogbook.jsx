@@ -27,7 +27,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import DatePickerAirbnb from "@/components/places/DatePickerAirbnb";
 import { getAccommodationLogbook } from "@/services/logbookService";
 
 const emptyPayload = {

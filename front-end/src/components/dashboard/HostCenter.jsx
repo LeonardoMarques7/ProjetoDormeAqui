@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import {
 	DangerTriangle as AlertTriangle,
 	ArrowRightUp as ArrowUpRight,
@@ -88,6 +89,71 @@ const groupedNavigation = [
 		.filter(Boolean),
 }));
 
+const navigationSubmenus = {
+	overview: [
+		{ id: "overview-summary-day", label: "Resumo do dia" },
+		{ id: "overview-attention", label: "Atenção" },
+		{ id: "overview-upcoming", label: "Próximas movimentações" },
+		{ id: "overview-shortcuts", label: "Atalhos" },
+	],
+	agenda: [
+		{ id: "agenda-calendar", label: "Calendário" },
+		{ id: "agenda-checkins", label: "Check-ins" },
+		{ id: "agenda-checkouts", label: "Check-outs" },
+	],
+	reservations: [{ id: "reservations-list", label: "Lista de reservas" }],
+	places: [{ id: "places-portfolio", label: "Portfólio de acomodações" }],
+	"pre-checkin": [
+		{ id: "precheckin-summary", label: "Pendências" },
+		{ id: "precheckin-list", label: "Lista de hóspedes" },
+	],
+	cleaning: [
+		{ id: "cleaning-summary", label: "Pendências" },
+		{ id: "cleaning-tasks", label: "Tarefas operacionais" },
+	],
+	finance: [
+		{ id: "finance-summary", label: "Resumo" },
+		{ id: "finance-entries", label: "Lançar despesa" },
+		{ id: "finance-profit", label: "Lucro e rentabilidade" },
+	],
+	maintenance: [
+		{ id: "maintenance-summary", label: "Ocorrências abertas" },
+		{ id: "maintenance-list", label: "Lista de ocorrências" },
+	],
+	reports: [
+		{ id: "reports-summary", label: "Resumo executivo" },
+		{ id: "reports-focus", label: "Painel em foco" },
+		{ id: "reports-charts", label: "Desempenho por acomodação" },
+		{ id: "reports-exports", label: "Exportações" },
+	],
+	logbook: [{ id: "logbook-recent", label: "Movimentos recentes" }],
+};
+
+const sectionTopAnchors = {
+	overview: "overview-summary-day",
+	agenda: "agenda-calendar",
+	reservations: "reservations-list",
+	places: "places-portfolio",
+	"pre-checkin": "precheckin-summary",
+	cleaning: "cleaning-summary",
+	finance: "finance-summary",
+	maintenance: "maintenance-summary",
+	reports: "reports-summary",
+	logbook: "logbook-recent",
+};
+
+const scrollToDashboardAnchor = (targetId) => {
+	if (!targetId || typeof document === "undefined") return;
+	window.requestAnimationFrame(() => {
+		window.requestAnimationFrame(() => {
+			document.getElementById(targetId)?.scrollIntoView({
+				behavior: "smooth",
+				block: "start",
+			});
+		});
+	});
+};
+
 const formatCurrency = (value) =>
 	new Intl.NumberFormat("pt-BR", {
 		style: "currency",
@@ -148,8 +214,9 @@ const bookingStatusLabels = {
 	evaluation: "Avaliação",
 	review: "Revisão",
 	completed: "Finalizada",
-	CANCELLED: "Cancelada",
+	cancelled: "Cancelada",
 	rejected: "Rejeitada",
+	archived: "Arquivada",
 };
 
 const preCheckinFilters = [
@@ -265,6 +332,11 @@ const normalizeStatusKey = (status) => {
 const getStatusLabel = (status) => {
 	const key = normalizeStatusKey(status);
 	return preCheckinStatusLabels[key] || status || "Indisponível";
+};
+
+const getBookingStatusLabel = (status) => {
+	const key = normalizeStatusKey(status);
+	return bookingStatusLabels[key] || status || "Indisponível";
 };
 
 const getCleaningInspectionStatusLabel = (status) => {
@@ -501,6 +573,7 @@ function OverviewKpiCard({ item }) {
 }
 
 function OverviewKpiGroup({
+	id,
 	eyebrow,
 	title,
 	description,
@@ -508,31 +581,33 @@ function OverviewKpiGroup({
 	columns = "xl:grid-cols-4",
 }) {
 	return (
-		<PanelCard className="p-5">
-			<div className="mb-4">
-				<p className="text-xs font-semibold uppercase tracking-wide text-primary-700">
-					{eyebrow}
-				</p>
-				<h3 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
-					{title}
-				</h3>
-				<p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
-					{description}
-				</p>
-			</div>
-			<div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${columns}`}>
-				{items.map((item) => (
-					<OverviewKpiCard key={item.key} item={item} />
-				))}
-			</div>
-		</PanelCard>
+		<div id={id}>
+			<PanelCard className="p-5">
+				<div className="mb-4">
+					<p className="text-xs font-semibold uppercase tracking-wide text-primary-700">
+						{eyebrow}
+					</p>
+					<h3 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+						{title}
+					</h3>
+					<p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
+						{description}
+					</p>
+				</div>
+				<div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${columns}`}>
+					{items.map((item) => (
+						<OverviewKpiCard key={item.key} item={item} />
+					))}
+				</div>
+			</PanelCard>
+		</div>
 	);
 }
 
 const unavailableKpi = (
 	key,
 	label,
-	helper = "Dados indisponíveis no back-end atual",
+	helper = "Dados indisponíveis no momento",
 ) => ({
 	key,
 	label,
@@ -851,7 +926,13 @@ function SectionHeader({ eyebrow, title, description, action }) {
 	);
 }
 
-function Sidebar({ activeSection, onChange }) {
+function Sidebar({
+	activeSection,
+	activeSubmenuId,
+	expandedSectionId,
+	onChange,
+	onToggleSection,
+}) {
 	return (
 		<aside className="hidden w-64 shrink-0 border pl-2.5 py-5 rounded-3xl h-fit border-slate-200 bg-white lg:block">
 			<div className="sticky top-0 flex flex-col overflow-y-auto">
@@ -869,20 +950,81 @@ function Sidebar({ activeSection, onChange }) {
 							{group.items.map((item) => {
 								const Icon = item.icon;
 								const isActive = activeSection === item.id;
+								const isExpanded = expandedSectionId === item.id;
+								const subItems = navigationSubmenus[item.id] || [];
 								return (
-									<button
-										key={item.id}
-										type="button"
-										onClick={() => onChange(item.id)}
-										className={`flex h-11 w-full cursor-pointer rounded-l-2xl items-center gap-3 border-r-2 px-3 text-left text-sm font-medium transition-colors ${
-											isActive
-												? "border-primary-900 bg-primary-50/70 text-primary-900"
-												: "border-transparent text-slate-600 hover:border-primary-300 hover:bg-slate-50 hover:text-primary-900"
-										}`}
-									>
-										<Icon className="h-4 w-4 shrink-0" weight="BoldDuotone" />
-										<span className="truncate">{item.label}</span>
-									</button>
+									<motion.div key={item.id} layout className="space-y-1">
+										<div className="flex items-center gap-1 ">
+											<button
+												type="button"
+												onClick={() => onChange(item.id)}
+												className={`flex h-11 min-w-0 flex-1 cursor-pointer rounded-l-2xl items-center gap-3 px-3 text-left text-sm font-medium transition-colors ${
+													isActive
+														? " bg-primary-100/70 text-primary-900"
+														: "border-transparent text-slate-600 hover:border-primary-300 hover:bg-slate-50 hover:text-primary-900"
+												}`}
+											>
+												<Icon
+													className="h-4 w-4 shrink-0"
+													weight="BoldDuotone"
+												/>
+												<span className="truncate">{item.label}</span>
+											</button>
+											{subItems.length > 0 && (
+												<button
+													type="button"
+													onClick={() => onToggleSection(item.id)}
+													aria-label={`${isExpanded ? "Fechar" : "Abrir"} submenus de ${item.label}`}
+													aria-expanded={isExpanded}
+													className={`flex h-11 w-10 shrink-0 items-center justify-center border-r-2 transition-colors ${
+														isActive
+															? "border-primary-900 bg-primary-50/70 text-primary-900"
+															: "border-transparent text-slate-500 hover:border-primary-300 hover:bg-slate-50 hover:text-primary-900"
+													}`}
+												>
+													<motion.span
+														animate={{ rotate: isExpanded ? 90 : 0 }}
+														transition={{
+															type: "spring",
+															stiffness: 320,
+															damping: 24,
+														}}
+														className="inline-flex"
+													>
+														<ChevronRight className="h-4 w-4" />
+													</motion.span>
+												</button>
+											)}
+										</div>
+										<AnimatePresence initial={false}>
+											{isExpanded && subItems.length > 0 && (
+												<motion.div
+													key={`${item.id}-submenus`}
+													initial={{ height: 0, opacity: 0 }}
+													animate={{ height: "auto", opacity: 1 }}
+													exit={{ height: 0, opacity: 0 }}
+													transition={{ duration: 0.22, ease: "easeOut" }}
+													className="overflow-hidden"
+												>
+													<div className="space-y-1 pl-10 pr-3 pb-1">
+														{subItems.map((subItem) => (
+															<button
+																key={subItem.id}
+																type="button"
+																onClick={() => onChange(item.id, subItem.id)}
+																className="flex min-h-8 w-full cursor-pointer items-center gap-2 rounded-xl px-3 text-left text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-primary-800"
+															>
+																<span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+																<span className="truncate">
+																	{subItem.label}
+																</span>
+															</button>
+														))}
+													</div>
+												</motion.div>
+											)}
+										</AnimatePresence>
+									</motion.div>
 								);
 							})}
 						</div>
@@ -893,7 +1035,13 @@ function Sidebar({ activeSection, onChange }) {
 	);
 }
 
-function MobileNav({ activeSection, onChange }) {
+function MobileNav({
+	activeSection,
+	activeSubmenuId,
+	expandedSectionId,
+	onChange,
+	onToggleSection,
+}) {
 	const [open, setOpen] = useState(false);
 	const activeItem = navigation.find((item) => item.id === activeSection);
 
@@ -933,27 +1081,341 @@ function MobileNav({ activeSection, onChange }) {
 									</p>
 									{group.items.map((item) => {
 										const Icon = item.icon;
+										const isExpanded = expandedSectionId === item.id;
+										const subItems = navigationSubmenus[item.id] || [];
 										return (
+											<motion.div key={item.id} layout className="space-y-1">
+												<div className="flex items-center gap-1">
+													<button
+														type="button"
+														onClick={() => {
+															onChange(item.id);
+															setOpen(false);
+														}}
+														className={`flex h-11 min-w-0 flex-1 items-center gap-3 rounded-l-lg px-3 text-left text-sm font-medium ${
+															activeSection === item.id
+																? "bg-primary-900 text-white"
+																: "text-slate-600 hover:bg-slate-100"
+														}`}
+													>
+														<Icon className="h-4 w-4" weight="BoldDuotone" />
+														{item.label}
+													</button>
+													{subItems.length > 0 && (
+														<button
+															type="button"
+															onClick={() => onToggleSection(item.id)}
+															aria-label={`${isExpanded ? "Fechar" : "Abrir"} submenus de ${item.label}`}
+															aria-expanded={isExpanded}
+															className={`flex h-11 w-10 items-center justify-center rounded-r-lg ${
+																activeSection === item.id
+																	? "bg-primary-900 text-white"
+																	: "text-slate-500 hover:bg-slate-100"
+															}`}
+														>
+															<motion.span
+																animate={{ rotate: isExpanded ? 90 : 0 }}
+																transition={{
+																	type: "spring",
+																	stiffness: 320,
+																	damping: 24,
+																}}
+																className="inline-flex"
+															>
+																<ChevronRight className="h-4 w-4" />
+															</motion.span>
+														</button>
+													)}
+												</div>
+												<AnimatePresence initial={false}>
+													{isExpanded && subItems.length > 0 && (
+														<motion.div
+															key={`${item.id}-mobile-submenus`}
+															initial={{ height: 0, opacity: 0 }}
+															animate={{ height: "auto", opacity: 1 }}
+															exit={{ height: 0, opacity: 0 }}
+															transition={{ duration: 0.22, ease: "easeOut" }}
+															className="overflow-hidden"
+														>
+															<div className="space-y-1 pl-10">
+																{subItems.map((subItem) => (
+																	<button
+																		key={subItem.id}
+																		type="button"
+																		onClick={() => {
+																			onChange(item.id, subItem.id);
+																			setOpen(false);
+																		}}
+																		className="flex min-h-8 w-full items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-primary-800"
+																	>
+																		<span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+																		{subItem.label}
+																	</button>
+																))}
+															</div>
+														</motion.div>
+													)}
+												</AnimatePresence>
+											</motion.div>
+										);
+									})}
+								</div>
+							))}
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+
+function SidebarReplica({
+	activeSection,
+	activeSubmenuId,
+	expandedSectionId,
+	onChange,
+	onToggleSection,
+}) {
+	return (
+		<aside className="sticky top-0 hidden h-full w-[18rem] shrink-0 rounded-2xl bg-[#f3f3f5] px-4 py-6 lg:block">
+			<nav className="space-y-2">
+				<h1 className="mt-1 text-xl font-semibold text-slate-950">
+					Central do Anfitrião
+				</h1>
+				{navigation.map((item) => {
+					const Icon = item.icon;
+					const isActive = activeSection === item.id;
+					const isExpanded = expandedSectionId === item.id;
+					const subItems = navigationSubmenus[item.id] || [];
+
+					return (
+						<motion.div key={item.id} layout className="space-y-2">
+							<div className="flex items-center gap-2">
+								<button
+									type="button"
+									onClick={() => onChange(item.id)}
+									className={`flex h-12 min-w-0 cursor-pointer flex-1 items-center gap-3 rounded-[18px] px-4 text-left text-[15px] font-medium transition-all ${
+										isActive
+											? "bg-[#191919] text-white shadow-[0_10px_26px_rgba(15,15,15,0.14)]"
+											: "text-[#1d1d1f] hover:bg-white/70"
+									}`}
+								>
+									<Icon
+										className="h-[19px] w-[19px] shrink-0"
+										weight={isActive ? "BoldDuotone" : "Linear"}
+									/>
+									<span className="truncate">{item.label}</span>
+								</button>
+								{subItems.length > 0 && (
+									<button
+										type="button"
+										onClick={() => onToggleSection(item.id)}
+										aria-label={`${isExpanded ? "Fechar" : "Abrir"} submenus de ${item.label}`}
+										aria-expanded={isExpanded}
+										className={`flex h-12 w-12 cursor-pointer shrink-0 items-center justify-center rounded-[18px] transition-colors ${
+											isActive
+												? "bg-[#191919] text-white"
+												: "text-[#1d1d1f] hover:bg-white/70"
+										}`}
+									>
+										<motion.span
+											animate={{ rotate: isExpanded ? 90 : 0 }}
+											transition={{
+												type: "spring",
+												stiffness: 320,
+												damping: 24,
+											}}
+											className="inline-flex"
+										>
+											<ChevronRight className="h-4 w-4" />
+										</motion.span>
+									</button>
+								)}
+							</div>
+							<AnimatePresence initial={false}>
+								{isExpanded && subItems.length > 0 && (
+									<motion.div
+										key={`${item.id}-replica-submenus`}
+										initial={{ height: 0, opacity: 0 }}
+										animate={{ height: "auto", opacity: 1 }}
+										exit={{ height: 0, opacity: 0 }}
+										transition={{ duration: 0.22, ease: "easeOut" }}
+										className="overflow-hidden"
+									>
+										<div className="relative ml-4 space-y-2 pl-5 before:absolute before:bottom-2 before:left-0 before:top-1 before:w-px before:bg-[#b8bcc3]">
+											{subItems.map((subItem) => {
+												const isSubmenuActive = activeSubmenuId === subItem.id;
+												return (
+													<div key={subItem.id} className="relative">
+														<button
+															type="button"
+															onClick={() => onChange(item.id, subItem.id)}
+															className={`flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[999px] px-4 text-left text-[14px] font-medium transition-all ${
+																isSubmenuActive
+																	? "bg-white text-[#1d1d1f] shadow-[0_10px_22px_rgba(15,23,42,0.08)]"
+																	: "text-[#1d1d1f] hover:bg-white/75"
+															}`}
+														>
+															{/* <Icon
+																className="h-[18px] w-[18px] shrink-0"
+																weight="Linear"
+															/> */}
+															<span className="truncate">{subItem.label}</span>
+														</button>
+													</div>
+												);
+											})}
+										</div>
+									</motion.div>
+								)}
+							</AnimatePresence>
+						</motion.div>
+					);
+				})}
+			</nav>
+		</aside>
+	);
+}
+
+function MobileNavReplica({
+	activeSection,
+	activeSubmenuId,
+	expandedSectionId,
+	onChange,
+	onToggleSection,
+}) {
+	const [open, setOpen] = useState(false);
+	const activeItem = navigation.find((item) => item.id === activeSection);
+
+	return (
+		<div className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+			<button
+				type="button"
+				onClick={() => setOpen(true)}
+				className="flex h-11 w-full cursor-pointer items-center justify-between rounded-xl border border-slate-200/70 bg-white px-3 text-sm font-semibold text-slate-950 shadow-[0_8px_20px_rgba(15,23,42,0.04)]"
+			>
+				<span className="inline-flex items-center gap-2">
+					<Menu className="h-4 w-4" />
+					{activeItem?.label || "Central"}
+				</span>
+			</button>
+
+			{open && (
+				<div className="fixed inset-0 z-40 bg-slate-950/30">
+					<div className="h-full w-[86vw] max-w-sm bg-[#f3f3f5] p-4 shadow-xl">
+						<div className="mb-4 flex items-center justify-between">
+							<h2 className="text-lg font-semibold text-slate-950">
+								Central do Anfitrião
+							</h2>
+							<button
+								type="button"
+								onClick={() => setOpen(false)}
+								className="flex h-9 w-9 items-center cursor-pointer justify-center rounded-xl border border-slate-200/70 bg-white"
+							>
+								<X className="h-4 w-4" />
+							</button>
+						</div>
+						<div className="space-y-2">
+							{navigation.map((item) => {
+								const Icon = item.icon;
+								const isExpanded = expandedSectionId === item.id;
+								const isActive = activeSection === item.id;
+								const subItems = navigationSubmenus[item.id] || [];
+
+								return (
+									<motion.div key={item.id} layout className="space-y-2">
+										<div className="flex items-center gap-2">
 											<button
-												key={item.id}
 												type="button"
 												onClick={() => {
 													onChange(item.id);
 													setOpen(false);
 												}}
-												className={`flex h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium ${
-													activeSection === item.id
-														? "bg-primary-900 text-white"
-														: "text-slate-600 hover:bg-slate-100"
+												className={`flex h-12 min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-[18px] px-4 text-left text-[15px] font-medium ${
+													isActive
+														? "bg-[#191919] text-white"
+														: "text-[#1d1d1f] hover:bg-slate-100"
 												}`}
 											>
-												<Icon className="h-4 w-4" weight="BoldDuotone" />
-												{item.label}
+												<Icon
+													className="h-[19px] w-[19px]"
+													weight={isActive ? "BoldDuotone" : "Linear"}
+												/>
+												<span className="truncate">{item.label}</span>
 											</button>
-										);
-									})}
-								</div>
-							))}
+											{subItems.length > 0 && (
+												<button
+													type="button"
+													onClick={() => onToggleSection(item.id)}
+													aria-label={`${isExpanded ? "Fechar" : "Abrir"} submenus de ${item.label}`}
+													aria-expanded={isExpanded}
+													className={`flex h-12 w-12 items-center cursor-pointer justify-center rounded-[18px] ${
+														isActive
+															? "bg-[#191919] text-white"
+															: "text-[#1d1d1f] hover:bg-slate-100"
+													}`}
+												>
+													<motion.span
+														animate={{ rotate: isExpanded ? 90 : 0 }}
+														transition={{
+															type: "spring",
+															stiffness: 320,
+															damping: 24,
+														}}
+														className="inline-flex"
+													>
+														<ChevronRight className="h-4 w-4" />
+													</motion.span>
+												</button>
+											)}
+										</div>
+										<AnimatePresence initial={false}>
+											{isExpanded && subItems.length > 0 && (
+												<motion.div
+													key={`${item.id}-mobile-replica-submenus`}
+													initial={{ height: 0, opacity: 0 }}
+													animate={{ height: "auto", opacity: 1 }}
+													exit={{ height: 0, opacity: 0 }}
+													transition={{ duration: 0.22, ease: "easeOut" }}
+													className="overflow-hidden"
+												>
+													<div className="relative ml-4 space-y-2 pl-5  before:absolute before:bottom-2 before:left-0 before:top-1 before:w-px before:bg-[#b8bcc3]">
+														{subItems.map((subItem) => {
+															const isSubmenuActive =
+																activeSubmenuId === subItem.id;
+															return (
+																<div key={subItem.id} className="relative">
+																	<span className="absolute left-[-22px] top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-[#b8bcc3]" />
+																	<button
+																		type="button"
+																		onClick={() => {
+																			onChange(item.id, subItem.id);
+																			setOpen(false);
+																		}}
+																		className={`flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[999px] px-4 text-left text-[14px] font-medium ${
+																			isSubmenuActive
+																				? "bg-white text-[#1d1d1f] shadow-[0_10px_22px_rgba(15,23,42,0.08)]"
+																				: "text-[#1d1d1f] hover:bg-slate-100"
+																		}`}
+																	>
+																		<Icon
+																			className="h-[18px] w-[18px]"
+																			weight="Linear"
+																		/>
+																		<span className="truncate">
+																			{subItem.label}
+																		</span>
+																	</button>
+																</div>
+															);
+														})}
+													</div>
+												</motion.div>
+											)}
+										</AnimatePresence>
+									</motion.div>
+								);
+							})}
 						</div>
 					</div>
 				</div>
@@ -968,7 +1430,7 @@ function AlertsPanel({ alerts = [] }) {
 			title="Alertas críticos e oportunidades"
 			description="Pontos de atenção que pedem uma ação rápida."
 		>
-			<div className="space-y-3">
+			<div id="reports-summary" className="space-y-3">
 				{alerts.slice(0, 5).map((alert) => {
 					const severityTone =
 						alert.severity === "critical" || alert.severity === "warning"
@@ -1056,7 +1518,7 @@ function MovementsBoard({ groups }) {
 			description="Quem chega e quem sai nos próximos dias."
 		>
 			<div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-				<div className="space-y-3">
+				<div id="agenda-checkins" className="space-y-3">
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="text-sm font-semibold text-slate-950">
@@ -1085,7 +1547,7 @@ function MovementsBoard({ groups }) {
 					)}
 				</div>
 
-				<div className="space-y-3">
+				<div id="agenda-checkouts" className="space-y-3">
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="text-sm font-semibold text-slate-950">
@@ -1173,9 +1635,11 @@ const financialStatusLabels = {
 	pending: "Pendente",
 	received: "Recebido",
 	refunded: "Reembolsado",
-	CANCELLED: "Cancelado",
+	cancelled: "Cancelado",
 	rejected: "Cancelado",
 	in_review: "Em análise",
+	processing: "Em processamento",
+	failed: "Falhou",
 };
 
 const getFinancialTone = (item = {}) => {
@@ -1200,7 +1664,7 @@ function FinancialStatusBadge({ status }) {
 				? "amber"
 				: key === "refunded"
 					? "blue"
-					: key === "CANCELLED" || key === "rejected"
+					: key === "cancelled" || key === "rejected"
 						? "red"
 						: "slate";
 
@@ -1217,7 +1681,7 @@ function FinancialSummaryCards({ items = [] }) {
 			<EmptyState
 				icon={Banknote}
 				title="Resumo financeiro indisponível"
-				description="Quando o back-end enviar os indicadores financeiros consolidados, eles aparecerão aqui."
+				description="Quando os indicadores estiverem disponíveis, eles aparecerão aqui."
 			/>
 		);
 	}
@@ -1318,12 +1782,12 @@ function FinancialRevenuePanel({ revenue }) {
 	return (
 		<PanelCard
 			title="Receitas"
-			description="Valores já consolidados pelo back-end para o período financeiro atual."
+			description="Valores já consolidados para o período financeiro atual."
 		>
 			<FinancialMetricGrid
 				items={revenue?.items || []}
 				emptyTitle="Receitas indisponíveis"
-				emptyDescription="Receita bruta, líquida, futura e pagamentos dependem do payload financeiro do back-end."
+				emptyDescription="Receita bruta, líquida, futura e pagamentos serão exibidos assim que estiverem disponíveis."
 				icon={Banknote}
 			/>
 		</PanelCard>
@@ -1339,7 +1803,7 @@ function FinancialExpensesPanel({ expenses }) {
 			<FinancialMetricGrid
 				items={expenses?.items || []}
 				emptyTitle="Despesas indisponíveis"
-				emptyDescription="Taxas, limpeza, manutenção, condomínio, IPTU, água, luz e internet dependem de dados do back-end."
+				emptyDescription="Taxas, limpeza, manutenção, condomínio, IPTU, água, luz e internet aparecem assim que esses dados estiverem disponíveis."
 				icon={AlertTriangle}
 			/>
 		</PanelCard>
@@ -1350,12 +1814,12 @@ function FinancialProfitPanel({ profitability, comparison }) {
 	return (
 		<PanelCard
 			title="Lucro e rentabilidade"
-			description="Resultado estimado, margem e comparativo mensal já calculados pelo back-end."
+			description="Resultado estimado, margem e comparativo mensal já calculados."
 		>
 			<FinancialMetricGrid
 				items={profitability?.items || []}
 				emptyTitle="Rentabilidade indisponível"
-				emptyDescription="Lucro, margem e comparativo mensal precisam vir consolidados pelo back-end."
+				emptyDescription="Lucro, margem e comparativo mensal aparecem assim que estiverem disponíveis."
 				icon={LineChartIcon}
 			/>
 			{comparison?.previousMonth && (
@@ -1456,7 +1920,7 @@ function FinancialPropertyList({ properties = [] }) {
 	return (
 		<PanelCard
 			title="Custos por imóvel"
-			description="Resultado financeiro por acomodação, já agrupado pelo back-end."
+			description="Resultado financeiro por acomodação, já agrupado para este período."
 		>
 			{properties.length > 0 ? (
 				<div className="space-y-3">
@@ -1471,7 +1935,7 @@ function FinancialPropertyList({ properties = [] }) {
 				<EmptyState
 					icon={Building2}
 					title="Custos por imóvel indisponíveis"
-					description="Quando o back-end enviar receitas, despesas e lucro por acomodação, a lista aparecerá aqui."
+					description="Quando houver receitas, despesas e lucro por acomodação, a lista aparecerá aqui."
 				/>
 			)}
 		</PanelCard>
@@ -1530,7 +1994,7 @@ function PaymentsRefundsList({ items = [] }) {
 				<EmptyState
 					icon={Ticket}
 					title="Pagamentos e reembolsos indisponíveis"
-					description="Quando o back-end enviar pagamentos recebidos, pendentes e reembolsos por reserva, eles aparecerão aqui."
+					description="Quando os pagamentos, pendências e reembolsos por reserva estiverem disponíveis, eles aparecerão aqui."
 				/>
 			)}
 		</PanelCard>
@@ -1683,7 +2147,7 @@ function PropertyCard({ property }) {
 
 				<button
 					type="button"
-					className="inline-flex shrink-0 items-center rounded-[10px] border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm transition hover:bg-slate-50"
+					className="inline-flex shrink-0 cursor-pointer items-center rounded-[10px] border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm transition hover:bg-slate-50"
 				>
 					{property.statusLabel}
 				</button>
@@ -1815,7 +2279,7 @@ function ReservationsTable({ bookings = [] }) {
 													: "slate"
 										}
 									>
-										{bookingStatusLabels[booking.status] || booking.status}
+										{getBookingStatusLabel(booking.status)}
 									</Pill>
 								</td>
 								<td className="px-4 py-3 text-right font-semibold text-slate-950">
@@ -1966,6 +2430,7 @@ function OverviewCompact({ data, onNavigate, action }) {
 				action={action}
 			/>
 			<OverviewKpiGroup
+				id="overview-summary-day"
 				eyebrow="Hoje"
 				title="Resumo do dia"
 				description="Entradas, saídas, pendências e alertas que merecem a primeira checagem."
@@ -1973,16 +2438,19 @@ function OverviewCompact({ data, onNavigate, action }) {
 				columns="xl:grid-cols-4"
 			/>
 			<OverviewKpiGroup
+				id="overview-attention"
 				eyebrow="Atenção"
 				title="Precisa da sua atenção"
 				description="Sinais operacionais resumidos. A execução detalhada fica nas abas de operação."
 				items={attentionItems}
 				columns="xl:grid-cols-4"
 			/>
-			<UpcomingSummary
-				movementGroups={data.upcomingMovementGroups}
-				onNavigate={onNavigate}
-			/>
+			<div id="overview-upcoming">
+				<UpcomingSummary
+					movementGroups={data.upcomingMovementGroups}
+					onNavigate={onNavigate}
+				/>
+			</div>
 			<div className="grid grid-cols-1 gap-5 2xl:grid-cols-2">
 				<OverviewKpiGroup
 					eyebrow="Financeiro"
@@ -1999,7 +2467,9 @@ function OverviewCompact({ data, onNavigate, action }) {
 					columns="xl:grid-cols-2 "
 				/>
 			</div>
-			<OverviewShortcuts onNavigate={onNavigate} />
+			<div id="overview-shortcuts">
+				<OverviewShortcuts onNavigate={onNavigate} />
+			</div>
 		</div>
 	);
 }
@@ -2014,9 +2484,13 @@ function Agenda({ data, action }) {
 				action={action}
 			/>
 			<PanelCard>
-				<CalendarGridMonth calendar={data.calendar} />
+				<div id="agenda-calendar">
+					<CalendarGridMonth calendar={data.calendar} />
+				</div>
 			</PanelCard>
-			<MovementsBoard groups={data.upcomingMovementGroups} />
+			<div>
+				<MovementsBoard groups={data.upcomingMovementGroups} />
+			</div>
 		</div>
 	);
 }
@@ -2041,7 +2515,7 @@ function PlacesSection({ properties = [], action }) {
 					</div>
 				}
 			/>
-			<div className="space-y-4">
+			<div id="places-portfolio" className="space-y-4">
 				{properties.map((property) => (
 					<PropertyCard key={property.id} property={property} />
 				))}
@@ -2166,46 +2640,50 @@ function Finance({ data, action }) {
 				description="Acompanhe receitas, despesas, lucro estimado e desempenho financeiro das suas acomodações."
 				action={action}
 			/>
-			<FinancialSummaryCards
-				items={
-					financial.summaryCards?.length > 0
-						? financial.summaryCards
-						: [
-								{
-									key: "monthlyGrossRevenue",
-									label: "Receita bruta do mês",
-									value: data.finance?.monthlyGrossRevenue,
-									helper: "Campo legado do dashboard",
-									tone: "green",
-								},
-								{
-									key: "operatingExpenses",
-									label: "Despesas operacionais",
-									value: data.finance?.operatingExpenses,
-									helper: "Campo legado do dashboard",
-									tone: "amber",
-								},
-								{
-									key: "estimatedProfit",
-									label: "Lucro estimado",
-									value: data.finance?.estimatedProfit,
-									helper: "Campo legado do dashboard",
-									tone: "green",
-								},
-							]
-				}
-			/>
+			<div id="finance-summary">
+				<FinancialSummaryCards
+					items={
+						financial.summaryCards?.length > 0
+							? financial.summaryCards
+							: [
+									{
+										key: "monthlyGrossRevenue",
+										label: "Receita bruta do mês",
+										value: data.finance?.monthlyGrossRevenue,
+										helper: "Resumo do período",
+										tone: "green",
+									},
+									{
+										key: "operatingExpenses",
+										label: "Despesas operacionais",
+										value: data.finance?.operatingExpenses,
+										helper: "Resumo do período",
+										tone: "amber",
+									},
+									{
+										key: "estimatedProfit",
+										label: "Lucro estimado",
+										value: data.finance?.estimatedProfit,
+										helper: "Resumo do período",
+										tone: "green",
+									},
+								]
+					}
+				/>
+			</div>
 
-			<FinancialEntriesPanel
-				places={data.places || []}
-				initialSummary={financial.ledger || null}
-				initialEntries={financial.ledger?.entries || []}
-				initialMonthKey={financial.ledger?.period?.key || ""}
-			/>
+			<div id="finance-entries">
+				<FinancialEntriesPanel
+					places={data.places || []}
+					initialSummary={financial.ledger || null}
+					initialEntries={financial.ledger?.entries || []}
+					initialMonthKey={financial.ledger?.period?.key || ""}
+				/>
+			</div>
 
 			<PanelCard
 				title="Filtros financeiros"
-				description="Os controles usam os recortes financeiros entregues pelo back-end; nenhum valor é recalculado na interface."
+				description="Os controles seguem os recortes financeiros já preparados pelo sistema; nenhum valor é recalculado na interface."
 			>
 				<FinancialFilterTabs
 					filters={financial.filters}
@@ -2220,7 +2698,7 @@ function Finance({ data, action }) {
 					<FinancialExpensesPanel
 						expenses={{ ...financial.expenses, items: expenseItems }}
 					/>
-					<div className="xl:col-span-2">
+					<div id="finance-profit" className="xl:col-span-2">
 						<FinancialProfitPanel
 							profitability={financial.profitability}
 							comparison={financial.comparison}
@@ -2230,10 +2708,12 @@ function Finance({ data, action }) {
 			)}
 
 			{showComparison && (
-				<FinancialProfitPanel
-					profitability={financial.profitability}
-					comparison={financial.comparison}
-				/>
+				<div id="finance-profit">
+					<FinancialProfitPanel
+						profitability={financial.profitability}
+						comparison={financial.comparison}
+					/>
+				</div>
 			)}
 
 			{showReceivables && (
@@ -2374,7 +2854,7 @@ function ReportFilterButtonGroup({ label, options = [], value, onChange }) {
 							type="button"
 							disabled={disabled}
 							onClick={() => onChange(option.key)}
-							className={`inline-flex min-h-10 items-center rounded-xl border px-4 text-sm font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
+							className={`inline-flex min-h-10 items-center cursor-pointer rounded-xl border px-4 text-sm font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
 								active
 									? "border-primary-700 bg-primary-700 text-white shadow-[0_8px_18px_rgba(37,99,235,0.22)]"
 									: "border-slate-200 bg-white text-slate-700 hover:border-primary-200 hover:bg-primary-50/50 hover:text-primary-800"
@@ -2761,7 +3241,7 @@ function FinancialCompositionChart({ data = [] }) {
 				Composição financeira
 			</h4>
 			<p className="text-xs text-slate-500">
-				Receita bruta, taxas conhecidas e lucro estimado enviados pelo back-end.
+				Receita bruta, taxas conhecidas e lucro estimado do período.
 			</p>
 			<div className="mt-4 h-[220px]">
 				{data.length > 0 ? (
@@ -2820,7 +3300,7 @@ function FinancialCompositionChart({ data = [] }) {
 					<EmptyState
 						icon={Banknote}
 						title="Composição indisponível"
-						description="Este indicador depende de dados consolidados do back-end."
+						description="Este indicador depende de dados consolidados do período."
 					/>
 				)}
 			</div>
@@ -2893,7 +3373,7 @@ function FinancialReportPanel({ financial = {}, finance = {} }) {
 	return (
 		<PanelCard
 			title="Saúde financeira"
-			description="Resumo enxuto da receita, custos e lucro consolidado pelo back-end."
+			description="Resumo enxuto da receita, custos e lucro consolidados."
 		>
 			<ReportMetricGrid items={coreItems} />
 			<div className="mt-5">
@@ -2905,7 +3385,7 @@ function FinancialReportPanel({ financial = {}, finance = {} }) {
 
 function OccupancyReportPanel({ occupancy = {}, finance = {}, bookings = {} }) {
 	const CANCELLEDBookings = bookings.byStatus?.find((item) =>
-		["CANCELLED", "rejected"].includes(normalizeStatusKey(item.key)),
+		["cancelled", "rejected"].includes(normalizeStatusKey(item.key)),
 	)?.value;
 	const items = [
 		{
@@ -2975,7 +3455,7 @@ function OccupancyReportPanel({ occupancy = {}, finance = {}, bookings = {} }) {
 					</div>
 				) : (
 					<p className="mt-3 text-sm text-slate-500">
-						Nenhum período de baixa ocupação foi enviado pelo back-end.
+						Nenhum período de baixa ocupação foi identificado até agora.
 					</p>
 				)}
 			</div>
@@ -3059,7 +3539,7 @@ function ReportChartCard({
 		return (
 			<PanelCard
 				title="Receita mensal"
-				description="Receita confirmada ao longo do tempo, já agrupada pelo back-end."
+				description="Receita confirmada ao longo do tempo."
 			>
 				<div className="h-[300px]">
 					{data.length > 0 ? (
@@ -3139,7 +3619,7 @@ function ReportChartCard({
 		return (
 			<PanelCard
 				title="Ocupação"
-				description="Percentual mensal com dias ocupados e disponíveis vindos do back-end."
+				description="Percentual mensal com dias ocupados e disponíveis."
 			>
 				<div className="h-[300px]">
 					{data.length > 0 ? (
@@ -3208,7 +3688,7 @@ function ReportChartCard({
 		return (
 			<PanelCard
 				title="Receita por acomodação"
-				description="Ranking de receita por imóvel, ordenado pelo back-end."
+				description="Ranking de receita por imóvel no período selecionado."
 			>
 				<div className="h-[320px]">
 					<ResponsiveContainer width="100%" height="100%">
@@ -3357,7 +3837,7 @@ function ReportChartCard({
 		return (
 			<PanelCard
 				title="Avaliação por acomodação"
-				description="Notas médias e volume de avaliações quando disponíveis no back-end."
+				description="Notas médias e volume de avaliações quando disponíveis."
 			>
 				{data.length > 0 ? (
 					<div className="space-y-3">
@@ -3404,7 +3884,7 @@ function ReportChartCard({
 					<EmptyState
 						icon={CheckCircle2}
 						title="Ainda não há dados suficientes para este período."
-						description="Este indicador depende de avaliações consolidadas do back-end."
+						description="Este indicador depende de avaliações já consolidadas."
 					/>
 				)}
 			</PanelCard>
@@ -3418,11 +3898,11 @@ function ReportChartCard({
 		return (
 			<PanelCard
 				title="Desempenho por acomodação"
-				description="Ranking visual por receita consolidada pelo back-end."
+				description="Compare rapidamente receita, ocupação e nota das acomodações."
 			>
 				{data.length > 0 ? (
 					<div className="space-y-3">
-						{data.slice(0, 6).map((item, index) => (
+						{data.slice(0, 12).map((item, index) => (
 							<div
 								key={item.key || item.label}
 								className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4"
@@ -3433,18 +3913,50 @@ function ReportChartCard({
 											#{index + 1}
 										</p>
 										<h4 className="mt-1 truncate text-sm font-semibold text-slate-950">
-											{item.label}
+											{item.title || item.label}
 										</h4>
+										<p className="mt-1 text-xs text-slate-500">
+											{item.city || "Cidade não informada"}
+										</p>
 									</div>
 									<ReportStatusBadge status={item.status} />
 								</div>
-								<div className="mt-3">
+								<div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
 									<MetricCardRow
 										label="Receita"
-										value={reportFormatters.currency(item.value)}
+										value={reportFormatters.currency(
+											item.revenue ?? item.value,
+										)}
 										tone="green"
 										icon={Banknote}
 									/>
+									<MetricCardRow
+										label="Ocupação"
+										value={
+											item.occupancyRate !== null &&
+											item.occupancyRate !== undefined
+												? `${Math.round(Number(item.occupancyRate || 0))}%`
+												: "Sem dados"
+										}
+										tone="blue"
+										icon={BarChart3}
+									/>
+									<MetricCardRow
+										label="Avaliação"
+										value={
+											item.averageRating
+												? reportFormatters.rating(item.averageRating)
+												: "Sem nota"
+										}
+										tone="amber"
+										icon={CheckCircle2}
+									/>
+								</div>
+								<div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+									<span>
+										{Number(item.activeBookings || 0)} reservas no período
+									</span>
+									{item.statusLabel ? <span>• {item.statusLabel}</span> : null}
 								</div>
 							</div>
 						))}
@@ -3542,7 +4054,7 @@ function ReportChartCard({
 					<EmptyState
 						icon={BarChart3}
 						title="Gráfico indisponível"
-						description="Quando o back-end enviar a série consolidada, a visualização aparecerá aqui."
+						description="Quando a série histórica estiver disponível, a visualização aparecerá aqui."
 					/>
 				)}
 			</div>
@@ -3555,14 +4067,14 @@ function ReportsCharts({ charts = {} }) {
 		<div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
 			<ReportChartCard
 				title="Receita ao longo do tempo"
-				description="Série mensal já agrupada pelo back-end."
+				description="Série mensal já agrupada."
 				type="line"
 				data={charts.revenueOverTime || []}
 				valueFormatter={formatCurrency}
 			/>
 			<ReportChartCard
 				title="Ocupação ao longo do tempo"
-				description="Percentual mensal de ocupação calculado no back-end."
+				description="Percentual mensal de ocupação calculado para o período."
 				type="line"
 				data={charts.occupancyOverTime || []}
 				valueFormatter={(value) => `${Math.round(Number(value || 0))}%`}
@@ -3687,9 +4199,12 @@ function ReportsSection({ data, action }) {
 	};
 	const activeReportType = selectedFilters.reportType;
 	const bookingStatuses = reports.bookings?.byStatus || [];
-	const findBookingStatusValue = (keys = []) =>
-		bookingStatuses.find((item) => keys.includes(normalizeStatusKey(item.key)))
-			?.value;
+	const findBookingStatusValue = (keys = []) => {
+		const normalizedKeys = keys.map((key) => normalizeStatusKey(key));
+		return bookingStatuses.find((item) =>
+			normalizedKeys.includes(normalizeStatusKey(item.key)),
+		)?.value;
+	};
 	const reportSections = [
 		{
 			key: "financial",
@@ -4117,7 +4632,7 @@ function PreCheckinList({ items, onOpen }) {
 			<EmptyState
 				icon={ShieldCheck}
 				title="Nenhum pré-check-in encontrado"
-				description="Quando o back-end enviar pré-check-ins vinculados às reservas, eles aparecerão aqui para acompanhamento."
+				description="Quando os pré-check-ins vinculados às reservas estiverem disponíveis, eles aparecerão aqui para acompanhamento."
 			/>
 		);
 	}
@@ -4278,7 +4793,8 @@ function PreCheckinDetailsDrawer({ item, onClose }) {
 						<div className="flex flex-wrap items-center gap-3">
 							<PreCheckinStatusBadge status={getRulesStatus(item)} />
 							<p className="text-sm text-slate-500">
-								O aceite detalhado depende dos campos enviados pelo back-end.
+								O aceite detalhado depende das informações disponíveis para essa
+								reserva.
 							</p>
 						</div>
 					</PanelCard>
@@ -4330,7 +4846,9 @@ function PreCheckinSection({ data, action }) {
 				description="Centralize dados dos hóspedes, documentos, horário de chegada e aceite das regras antes do check-in."
 				action={action}
 			/>
-			<PreCheckinSummaryCards items={summaryItems} />
+			<div id="precheckin-summary">
+				<PreCheckinSummaryCards items={summaryItems} />
+			</div>
 
 			<PanelCard
 				title="Pré-check-ins"
@@ -4352,7 +4870,9 @@ function PreCheckinSection({ data, action }) {
 						</button>
 					))}
 				</div>
-				<PreCheckinList items={filteredItems} onOpen={setSelectedItem} />
+				<div id="precheckin-list">
+					<PreCheckinList items={filteredItems} onOpen={setSelectedItem} />
+				</div>
 			</PanelCard>
 
 			<PreCheckinDetailsDrawer
@@ -4507,7 +5027,7 @@ function CleaningInspectionList({ items, onOpen }) {
 			<EmptyState
 				icon={ClipboardCheck}
 				title="Nenhuma tarefa de limpeza ou vistoria encontrada"
-				description="Quando o back-end enviar tarefas entre check-out e próximo check-in, elas aparecerão aqui para acompanhamento."
+				description="Quando houver tarefas entre check-out e próximo check-in, elas aparecerão aqui para acompanhamento."
 			/>
 		);
 	}
@@ -4717,7 +5237,9 @@ function CleaningInspectionSection({ data, action }) {
 				description="Acompanhe limpezas, checklists, vistorias e prazos antes da próxima entrada."
 				action={action}
 			/>
-			<CleaningInspectionSummaryCards items={summaryItems} />
+			<div id="cleaning-summary">
+				<CleaningInspectionSummaryCards items={summaryItems} />
+			</div>
 
 			<PanelCard
 				title="Tarefas operacionais"
@@ -4739,10 +5261,12 @@ function CleaningInspectionSection({ data, action }) {
 						</button>
 					))}
 				</div>
-				<CleaningInspectionList
-					items={filteredItems}
-					onOpen={setSelectedItem}
-				/>
+				<div id="cleaning-tasks">
+					<CleaningInspectionList
+						items={filteredItems}
+						onOpen={setSelectedItem}
+					/>
+				</div>
 			</PanelCard>
 
 			<CleaningInspectionDetailsDrawer
@@ -5188,7 +5712,7 @@ function MaintenanceDamageList({ items, onOpen }) {
 			<EmptyState
 				icon={Wrench}
 				title="Nenhuma ocorrência encontrada"
-				description="Quando o back-end enviar ocorrências, danos ou manutenções, elas aparecerão aqui para acompanhamento."
+				description="Quando houver ocorrências, danos ou manutenções disponíveis, elas aparecerão aqui para acompanhamento."
 			/>
 		);
 	}
@@ -5431,7 +5955,9 @@ function MaintenanceDamageSection({ data, action }) {
 				action={action}
 			/>
 
-			<MaintenanceDamageSummaryCards items={summaryItems} />
+			<div id="maintenance-summary">
+				<MaintenanceDamageSummaryCards items={summaryItems} />
+			</div>
 
 			<PanelCard
 				title="Ocorrências e manutenções"
@@ -5443,7 +5969,12 @@ function MaintenanceDamageSection({ data, action }) {
 						onChange={setActiveFilter}
 					/>
 				</div>
-				<MaintenanceDamageList items={filteredItems} onOpen={setSelectedItem} />
+				<div id="maintenance-list">
+					<MaintenanceDamageList
+						items={filteredItems}
+						onOpen={setSelectedItem}
+					/>
+				</div>
 			</PanelCard>
 
 			<MaintenanceDamageDetailsDrawer
@@ -5504,6 +6035,11 @@ function HostCenter({
 }) {
 	const [internalActiveSection, setInternalActiveSection] =
 		useState(initialView);
+	const [expandedSectionId, setExpandedSectionId] = useState(initialView);
+	const [activeSubmenuId, setActiveSubmenuId] = useState(
+		sectionTopAnchors[initialView] || "",
+	);
+	const [pendingAnchorId, setPendingAnchorId] = useState("");
 	const [payload, setPayload] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
@@ -5535,6 +6071,10 @@ function HostCenter({
 	}, [controlledActiveSection, initialView]);
 
 	useEffect(() => {
+		setExpandedSectionId(activeSection);
+	}, [activeSection]);
+
+	useEffect(() => {
 		loadDashboard();
 	}, [loadDashboard]);
 
@@ -5557,9 +6097,27 @@ function HostCenter({
 		};
 	}, [loadDashboard]);
 
-	const handleSectionChange = (sectionId) => {
+	const handleSectionChange = (
+		sectionId,
+		targetId = sectionTopAnchors[sectionId] || "",
+	) => {
 		setInternalActiveSection(sectionId);
+		setExpandedSectionId(sectionId);
+		setActiveSubmenuId(targetId || sectionTopAnchors[sectionId] || "");
+		if (targetId) {
+			setPendingAnchorId(targetId);
+		}
 	};
+
+	const handleSectionToggle = (sectionId) => {
+		setExpandedSectionId((current) => (current === sectionId ? "" : sectionId));
+	};
+
+	useEffect(() => {
+		if (!pendingAnchorId || activeSection !== internalActiveSection) return;
+		scrollToDashboardAnchor(pendingAnchorId);
+		setPendingAnchorId("");
+	}, [activeSection, internalActiveSection, pendingAnchorId, payload]);
 
 	const handleRefresh = async () => {
 		if (refreshing) return;
@@ -5615,64 +6173,89 @@ function HostCenter({
 
 	return (
 		<div className="min-h-screen w-full  text-slate-950">
-			<MobileNav activeSection={activeSection} onChange={handleSectionChange} />
+			<MobileNavReplica
+				activeSection={activeSection}
+				activeSubmenuId={activeSubmenuId}
+				expandedSectionId={expandedSectionId}
+				onChange={handleSectionChange}
+				onToggleSection={handleSectionToggle}
+			/>
 			<div className="mx-auto flex min-w-0 max-w-[1480px] items-start gap-4 px-4 py-4 sm:px-6 lg:px-8">
-				<Sidebar activeSection={activeSection} onChange={handleSectionChange} />
-				<main className="min-w-0 flex-1 overflow-hidden">
-					{activeSection === "overview" && (
-						<OverviewCompact
-							data={payload}
-							onNavigate={handleSectionChange}
-							action={refreshAction}
-						/>
-					)}
-					{activeSection === "agenda" && (
-						<Agenda data={payload} action={refreshAction} />
-					)}
-					{activeSection === "reservations" && (
-						<div>
-							<SectionHeader
-								eyebrow="Reservas"
-								title="Reservas"
-								description="Lista operacional de reservas e respectivos status."
+				<SidebarReplica
+					activeSection={activeSection}
+					activeSubmenuId={activeSubmenuId}
+					expandedSectionId={expandedSectionId}
+					onChange={handleSectionChange}
+					onToggleSection={handleSectionToggle}
+				/>
+				<AnimatePresence mode="wait" initial={false}>
+					<motion.main
+						key={activeSection}
+						layout
+						initial={{ opacity: 0, y: 16, scale: 0.99 }}
+						animate={{ opacity: 1, y: 0, scale: 1 }}
+						exit={{ opacity: 0, y: -12, scale: 0.99 }}
+						transition={{ duration: 0.24, ease: "easeOut" }}
+						className="min-w-0 flex-1 overflow-hidden"
+					>
+						{activeSection === "overview" && (
+							<OverviewCompact
+								data={payload}
+								onNavigate={handleSectionChange}
 								action={refreshAction}
 							/>
-							<ReservationsTable bookings={payload.bookings} />
-						</div>
-					)}
-					{activeSection === "places" && (
-						<PlacesSection
-							properties={payload.operationalProperties || []}
-							action={refreshAction}
-						/>
-					)}
-					{activeSection === "pre-checkin" && (
-						<PreCheckinSection data={payload} action={refreshAction} />
-					)}
-					{activeSection === "cleaning" && (
-						<CleaningInspectionSection data={payload} action={refreshAction} />
-					)}
-					{activeSection === "finance" && (
-						<Finance data={payload} action={refreshAction} />
-					)}
-					{activeSection === "maintenance" && (
-						<MaintenanceDamageSection data={payload} action={refreshAction} />
-					)}
-					{activeSection === "reports" && (
-						<ReportsSection data={payload} action={refreshAction} />
-					)}
-					{activeSection === "logbook" && (
-						<div>
-							<SectionHeader
-								eyebrow="Histórico"
-								title="Histórico operacional"
-								description="Logbook de eventos e registros das acomodações."
+						)}
+						{activeSection === "agenda" && (
+							<Agenda data={payload} action={refreshAction} />
+						)}
+						{activeSection === "reservations" && (
+							<div id="reservations-list">
+								<SectionHeader
+									eyebrow="Reservas"
+									title="Reservas"
+									description="Lista operacional de reservas e respectivos status."
+									action={refreshAction}
+								/>
+								<ReservationsTable bookings={payload.bookings} />
+							</div>
+						)}
+						{activeSection === "places" && (
+							<PlacesSection
+								properties={payload.operationalProperties || []}
 								action={refreshAction}
 							/>
-							<AccommodationLogbook />
-						</div>
-					)}
-				</main>
+						)}
+						{activeSection === "pre-checkin" && (
+							<PreCheckinSection data={payload} action={refreshAction} />
+						)}
+						{activeSection === "cleaning" && (
+							<CleaningInspectionSection
+								data={payload}
+								action={refreshAction}
+							/>
+						)}
+						{activeSection === "finance" && (
+							<Finance data={payload} action={refreshAction} />
+						)}
+						{activeSection === "maintenance" && (
+							<MaintenanceDamageSection data={payload} action={refreshAction} />
+						)}
+						{activeSection === "reports" && (
+							<ReportsSection data={payload} action={refreshAction} />
+						)}
+						{activeSection === "logbook" && (
+							<div id="logbook-recent">
+								<SectionHeader
+									eyebrow="Histórico"
+									title="Histórico operacional"
+									description="Logbook de eventos e registros das acomodações."
+									action={refreshAction}
+								/>
+								<AccommodationLogbook />
+							</div>
+						)}
+					</motion.main>
+				</AnimatePresence>
 			</div>
 		</div>
 	);

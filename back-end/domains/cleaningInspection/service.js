@@ -2,6 +2,9 @@ import { getPrismaClient } from "../../config/prisma.js";
 
 const prisma = getPrismaClient();
 
+const hasPrismaModel = (client, modelName) =>
+  Boolean(client && typeof client[modelName]?.findMany === "function");
+
 export const CLEANING_INSPECTION_FILTERS = [
   { key: "all", label: "Todos" },
   { key: "awaiting_cleaning", label: "Aguardando limpeza" },
@@ -120,6 +123,14 @@ const normalizeTask = (task) => ({
 });
 
 export const buildCleaningInspectionData = async (hostId) => {
+  if (!hasPrismaModel(prisma, "cleaningInspection")) {
+    return {
+      summary: emptySummary(),
+      filters: CLEANING_INSPECTION_FILTERS,
+      items: [],
+    };
+  }
+
   const tasks = await prisma.cleaningInspection.findMany({
     where: { hostId },
     orderBy: [{ nextCheckin: "asc" }, { updatedAt: "desc" }],
