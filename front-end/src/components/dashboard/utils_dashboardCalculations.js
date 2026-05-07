@@ -34,17 +34,17 @@ const getBookingTotal = (booking) =>
 const hasValidBookingDates = (booking) =>
   Boolean(booking && getBookingCheckin(booking) && getBookingCheckout(booking));
 
-const isCanceledBooking = (booking) => {
+const isCANCELLEDBooking = (booking) => {
   if (!booking) return true;
   const paymentStatus = String(booking.paymentStatus || "").toLowerCase();
   const status = String(booking.status || "").toLowerCase();
-  const invalidStatuses = ["canceled", "cancelled", "rejected"];
+  const invalidStatuses = ["CANCELLED", "cancelled", "rejected"];
 
   return invalidStatuses.includes(paymentStatus) || invalidStatuses.includes(status);
 };
 
 const isValidBookingForKPI = (booking) => {
-  if (!hasValidBookingDates(booking) || isCanceledBooking(booking)) return false;
+  if (!hasValidBookingDates(booking) || isCANCELLEDBooking(booking)) return false;
 
   return true;
 };
@@ -53,7 +53,7 @@ const isValidRevenueBooking = (booking) => {
   if (!booking) return false;
   const paymentStatus = String(booking.paymentStatus || "").toLowerCase();
 
-  if (!hasValidBookingDates(booking) || isCanceledBooking(booking)) return false;
+  if (!hasValidBookingDates(booking) || isCANCELLEDBooking(booking)) return false;
 
   if (paymentStatus && !["approved", "paid", "completed"].includes(paymentStatus)) {
     return false;

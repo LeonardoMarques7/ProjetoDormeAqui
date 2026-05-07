@@ -47,8 +47,8 @@ const guestInitials = (name = "") => {
 const STATUS_STYLES = {
 	confirmed: { label: "Confirmada", className: "status-confirmed" },
 	pending: { label: "Pendente", className: "status-pending" },
-	canceled: { label: "Cancelada", className: "status-canceled" },
-	rejected: { label: "Cancelada", className: "status-canceled" },
+	CANCELLED: { label: "Cancelada", className: "status-CANCELLED" },
+	rejected: { label: "Cancelada", className: "status-CANCELLED" },
 	in_progress: { label: "Em andamento", className: "status-in-progress" },
 	evaluation: { label: "Avaliação", className: "status-evaluation" },
 	review: { label: "Revisão", className: "status-review" },

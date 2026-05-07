@@ -21,7 +21,7 @@ export const isDateRangeAvailable = (checkIn, checkOut, bookings) => {
 	console.log(`    📅 Validando período: ${requestStart.toISOString().split('T')[0]} até ${requestEnd.toISOString().split('T')[0]}`);
 
 	const hasConflict = bookings.some((booking) => {
-		if (booking.paymentStatus === "canceled" || booking.paymentStatus === "rejected") {
+		if (booking.paymentStatus === "CANCELLED" || booking.paymentStatus === "rejected") {
 			console.log(`      ✓ Booking ${booking._id} foi cancelado/rejeitado, ignorado`);
 			return false;
 		}

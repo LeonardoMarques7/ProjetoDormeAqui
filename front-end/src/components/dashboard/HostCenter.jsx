@@ -148,7 +148,7 @@ const bookingStatusLabels = {
 	evaluation: "Avaliação",
 	review: "Revisão",
 	completed: "Finalizada",
-	canceled: "Cancelada",
+	CANCELLED: "Cancelada",
 	rejected: "Rejeitada",
 };
 
@@ -1173,7 +1173,7 @@ const financialStatusLabels = {
 	pending: "Pendente",
 	received: "Recebido",
 	refunded: "Reembolsado",
-	canceled: "Cancelado",
+	CANCELLED: "Cancelado",
 	rejected: "Cancelado",
 	in_review: "Em análise",
 };
@@ -1200,7 +1200,7 @@ function FinancialStatusBadge({ status }) {
 				? "amber"
 				: key === "refunded"
 					? "blue"
-					: key === "canceled" || key === "rejected"
+					: key === "CANCELLED" || key === "rejected"
 						? "red"
 						: "slate";
 
@@ -2351,7 +2351,7 @@ const reportsFilterLabelOverrides = {
 	pending: "Pendente",
 	in_progress: "Em andamento",
 	completed: "Finalizada",
-	canceled: "Cancelada",
+	CANCELLED: "Cancelada",
 	evaluation: "Em avaliação",
 	review: "Em avaliação",
 	archived: "Arquivada",
@@ -2468,7 +2468,7 @@ function ReportsFilters({
 		{ key: "confirmed", label: "Confirmada", available: true },
 		{ key: "in_progress", label: "Em andamento", available: true },
 		{ key: "completed", label: "Finalizada", available: true },
-		{ key: "canceled", label: "Cancelada", available: true },
+		{ key: "CANCELLED", label: "Cancelada", available: true },
 		{ key: "evaluation", label: "Em avaliação", available: true },
 		{ key: "review", label: "Em revisão", available: true },
 		{ key: "archived", label: "Arquivada", available: true },
@@ -2904,8 +2904,8 @@ function FinancialReportPanel({ financial = {}, finance = {} }) {
 }
 
 function OccupancyReportPanel({ occupancy = {}, finance = {}, bookings = {} }) {
-	const canceledBookings = bookings.byStatus?.find((item) =>
-		["canceled", "rejected"].includes(normalizeStatusKey(item.key)),
+	const CANCELLEDBookings = bookings.byStatus?.find((item) =>
+		["CANCELLED", "rejected"].includes(normalizeStatusKey(item.key)),
 	)?.value;
 	const items = [
 		{
@@ -2942,9 +2942,9 @@ function OccupancyReportPanel({ occupancy = {}, finance = {}, bookings = {} }) {
 		{
 			key: "cancellations",
 			label: "Cancelamentos",
-			value: canceledBookings,
+			value: CANCELLEDBookings,
 			tone: "red",
-			available: canceledBookings !== undefined,
+			available: CANCELLEDBookings !== undefined,
 		},
 		{
 			key: "bookingLeadTime",
@@ -3049,7 +3049,7 @@ function ReportChartCard({
 		"confirmed",
 		"in_progress",
 		"completed",
-		"canceled",
+		"CANCELLED",
 		"rejected",
 		"evaluation",
 		"review",
@@ -3833,9 +3833,9 @@ function ReportsSection({ data, action }) {
 			},
 			{
 				label: "Cancelamentos",
-				value: findBookingStatusValue(["canceled", "rejected"]),
+				value: findBookingStatusValue(["CANCELLED", "rejected"]),
 				available:
-					findBookingStatusValue(["canceled", "rejected"]) !== undefined,
+					findBookingStatusValue(["CANCELLED", "rejected"]) !== undefined,
 			},
 		]);
 		pushItems("Operação", reports.operational?.items || []);

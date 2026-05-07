@@ -53,7 +53,7 @@ export const notificationTemplates = {
 	},
 
 	// Reserva cancelada
-	reservationCanceled: {
+	reservationCANCELLED: {
 		title: "Reserva cancelada",
 		message:
 			"A sua reserva foi cancelada. Se foi engano, você ainda pode fazer uma nova reserva.",
@@ -196,9 +196,9 @@ export const useNotificationTemplates = (addNotification) => {
 			addNotification(
 				createNotificationFromTemplate("reservationConfirmed", overrides),
 			),
-		showReservationCanceled: (overrides) =>
+		showReservationCANCELLED: (overrides) =>
 			addNotification(
-				createNotificationFromTemplate("reservationCanceled", overrides),
+				createNotificationFromTemplate("reservationCANCELLED", overrides),
 			),
 		showReservationReminder5Days: (overrides) =>
 			addNotification(

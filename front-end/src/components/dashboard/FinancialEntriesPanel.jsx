@@ -73,7 +73,7 @@ const ENTRY_STATUS_OPTIONS = [
 	{ key: "processing", label: "Em processamento" },
 	{ key: "refunded", label: "Reembolsado" },
 	{ key: "failed", label: "Falhou" },
-	{ key: "canceled", label: "Cancelado" },
+	{ key: "CANCELLED", label: "Cancelado" },
 	{ key: "void", label: "Anulado" },
 ];
 
@@ -93,8 +93,12 @@ const OPERATIONAL_CATEGORIES = [
 ];
 
 const REIMBURSEMENT_CATEGORIES = [{ key: "reembolso", label: "Reembolso" }];
-const PAYMENT_FEE_CATEGORIES = [{ key: "taxa_pagamento", label: "Taxa de pagamento" }];
-const MANUAL_REVENUE_CATEGORIES = [{ key: "receita_manual", label: "Receita manual" }];
+const PAYMENT_FEE_CATEGORIES = [
+	{ key: "taxa_pagamento", label: "Taxa de pagamento" },
+];
+const MANUAL_REVENUE_CATEGORIES = [
+	{ key: "receita_manual", label: "Receita manual" },
+];
 
 const CATEGORY_OPTIONS = {
 	recurring_expense: RECURRENT_CATEGORIES,
@@ -121,7 +125,8 @@ const toDateInputValue = (value = new Date()) =>
 	new Date(value).toISOString().slice(0, 10);
 
 const getDefaultFormState = (tabKey, placeId, monthKey) => {
-	const tab = CATEGORY_TABS.find((item) => item.key === tabKey) || CATEGORY_TABS[0];
+	const tab =
+		CATEGORY_TABS.find((item) => item.key === tabKey) || CATEGORY_TABS[0];
 	return {
 		entryType: tab.key,
 		placeId: placeId || "",
@@ -210,15 +215,20 @@ function EntryRow({ item, onDelete, deletingId }) {
 						</span>
 					</div>
 					<p className="mt-1 text-xs text-slate-500">
-						{item.place?.title || "Acomodação"} • {item.categoryLabel} • {item.competenceMonth}
+						{item.place?.title || "Acomodação"} • {item.categoryLabel} •{" "}
+						{item.competenceMonth}
 					</p>
 					{item.description ? (
-						<p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p>
+						<p className="mt-2 text-sm leading-6 text-slate-600">
+							{item.description}
+						</p>
 					) : null}
 				</div>
 				<div className="flex shrink-0 items-center gap-3">
 					<div className="text-right">
-						<p className="text-sm font-semibold text-slate-950">{formatCurrency(item.amount)}</p>
+						<p className="text-sm font-semibold text-slate-950">
+							{formatCurrency(item.amount)}
+						</p>
 						<p className="text-xs text-slate-500">{item.status}</p>
 					</div>
 					<button
@@ -243,7 +253,9 @@ export default function FinancialEntriesPanel({
 }) {
 	const [activeTab, setActiveTab] = useState(CATEGORY_TABS[0].key);
 	const [selectedPlaceId, setSelectedPlaceId] = useState(places[0]?._id || "");
-	const [selectedMonth, setSelectedMonth] = useState(initialMonthKey || toMonthKey());
+	const [selectedMonth, setSelectedMonth] = useState(
+		initialMonthKey || toMonthKey(),
+	);
 	const [summary, setSummary] = useState(initialSummary);
 	const [entries, setEntries] = useState(initialEntries);
 	const [loading, setLoading] = useState(false);
@@ -251,12 +263,17 @@ export default function FinancialEntriesPanel({
 	const [deletingId, setDeletingId] = useState("");
 	const [error, setError] = useState("");
 	const [form, setForm] = useState(() =>
-		getDefaultFormState(CATEGORY_TABS[0].key, places[0]?._id || "", initialMonthKey || toMonthKey())
+		getDefaultFormState(
+			CATEGORY_TABS[0].key,
+			places[0]?._id || "",
+			initialMonthKey || toMonthKey(),
+		),
 	);
 
 	const activeTabConfig = useMemo(
-		() => CATEGORY_TABS.find((item) => item.key === activeTab) || CATEGORY_TABS[0],
-		[activeTab]
+		() =>
+			CATEGORY_TABS.find((item) => item.key === activeTab) || CATEGORY_TABS[0],
+		[activeTab],
 	);
 
 	useEffect(() => {
@@ -290,7 +307,10 @@ export default function FinancialEntriesPanel({
 				setSummary(summaryResponse.data || summaryResponse);
 				setEntries(entriesResponse.data || entriesResponse);
 			} catch (loadError) {
-				setError(loadError?.response?.data?.message || "Não foi possível carregar os lançamentos financeiros.");
+				setError(
+					loadError?.response?.data?.message ||
+						"Não foi possível carregar os lançamentos financeiros.",
+				);
 			} finally {
 				setLoading(false);
 			}
@@ -340,7 +360,10 @@ export default function FinancialEntriesPanel({
 			setEntries(entriesResponse.data || entriesResponse);
 			setForm(getDefaultFormState(activeTab, selectedPlaceId, selectedMonth));
 		} catch (submitError) {
-			setError(submitError?.response?.data?.message || "Não foi possível salvar o lançamento.");
+			setError(
+				submitError?.response?.data?.message ||
+					"Não foi possível salvar o lançamento.",
+			);
 		} finally {
 			setSaving(false);
 		}
@@ -364,7 +387,10 @@ export default function FinancialEntriesPanel({
 			setSummary(summaryResponse.data || summaryResponse);
 			setEntries(entriesResponse.data || entriesResponse);
 		} catch (deleteError) {
-			setError(deleteError?.response?.data?.message || "Não foi possível excluir o lançamento.");
+			setError(
+				deleteError?.response?.data?.message ||
+					"Não foi possível excluir o lançamento.",
+			);
 		} finally {
 			setDeletingId("");
 		}
@@ -383,7 +409,8 @@ export default function FinancialEntriesPanel({
 						Entrada manual por acomodação e competência
 					</h3>
 					<p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
-						Cada lançamento é salvo pelo backend e consolidado no relatório mensal.
+						Cada lançamento é salvo pelo backend e consolidado no relatório
+						mensal.
 					</p>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
@@ -459,31 +486,46 @@ export default function FinancialEntriesPanel({
 					<div className="rounded-[18px] border border-slate-200/70 bg-white p-4">
 						<div className="flex items-start justify-between gap-3">
 							<div>
-								<h4 className="text-base font-semibold text-slate-950">{activeTabConfig.label}</h4>
-								<p className="mt-1 text-sm leading-6 text-slate-500">{activeTabConfig.description}</p>
+								<h4 className="text-base font-semibold text-slate-950">
+									{activeTabConfig.label}
+								</h4>
+								<p className="mt-1 text-sm leading-6 text-slate-500">
+									{activeTabConfig.description}
+								</p>
 							</div>
 							<span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
 								{loading ? "Carregando..." : "Pronto"}
 							</span>
 						</div>
 
-						<form className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+						<form
+							className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2"
+							onSubmit={handleSubmit}
+						>
 							<div className="space-y-1 md:col-span-2">
-								<label className="text-sm font-medium text-slate-700">Título</label>
+								<label className="text-sm font-medium text-slate-700">
+									Título
+								</label>
 								<input
 									type="text"
 									value={form.title}
-									onChange={(event) => handleChange("title", event.target.value)}
+									onChange={(event) =>
+										handleChange("title", event.target.value)
+									}
 									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 									placeholder={activeTabConfig.defaultTitle}
 								/>
 							</div>
 
 							<div className="space-y-1">
-								<label className="text-sm font-medium text-slate-700">Categoria</label>
+								<label className="text-sm font-medium text-slate-700">
+									Categoria
+								</label>
 								<select
 									value={form.category}
-									onChange={(event) => handleChange("category", event.target.value)}
+									onChange={(event) =>
+										handleChange("category", event.target.value)
+									}
 									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 								>
 									{categoryOptions.map((option) => (
@@ -495,43 +537,59 @@ export default function FinancialEntriesPanel({
 							</div>
 
 							<div className="space-y-1">
-								<label className="text-sm font-medium text-slate-700">Valor</label>
+								<label className="text-sm font-medium text-slate-700">
+									Valor
+								</label>
 								<input
 									type="number"
 									min="0"
 									step="0.01"
 									value={form.amount}
-									onChange={(event) => handleChange("amount", event.target.value)}
+									onChange={(event) =>
+										handleChange("amount", event.target.value)
+									}
 									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 									placeholder="0,00"
 								/>
 							</div>
 
 							<div className="space-y-1">
-								<label className="text-sm font-medium text-slate-700">Competência</label>
+								<label className="text-sm font-medium text-slate-700">
+									Competência
+								</label>
 								<input
 									type="month"
 									value={form.competenceMonth}
-									onChange={(event) => handleChange("competenceMonth", event.target.value)}
+									onChange={(event) =>
+										handleChange("competenceMonth", event.target.value)
+									}
 									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 								/>
 							</div>
 
 							<div className="space-y-1">
-								<label className="text-sm font-medium text-slate-700">Data</label>
+								<label className="text-sm font-medium text-slate-700">
+									Data
+								</label>
 								<input
 									type="date"
 									value={form.entryDate}
-									onChange={(event) => handleChange("entryDate", event.target.value)}
+									onChange={(event) =>
+										handleChange("entryDate", event.target.value)
+									}
 									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 								/>
 							</div>
 
 							<div className="space-y-1">
-								<label className="text-sm font-medium text-slate-700">Status</label>
+								<label className="text-sm font-medium text-slate-700">
+									Status
+								</label>
 								<select
 									value={form.status}
-									onChange={(event) => handleChange("status", event.target.value)}
+									onChange={(event) =>
+										handleChange("status", event.target.value)
+									}
 									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 								>
 									{ENTRY_STATUS_OPTIONS.map((option) => (
@@ -543,7 +601,9 @@ export default function FinancialEntriesPanel({
 							</div>
 
 							<div className="space-y-1">
-								<label className="text-sm font-medium text-slate-700">Acomodação</label>
+								<label className="text-sm font-medium text-slate-700">
+									Acomodação
+								</label>
 								<select
 									value={selectedPlaceId}
 									onChange={(event) => setSelectedPlaceId(event.target.value)}
@@ -551,7 +611,10 @@ export default function FinancialEntriesPanel({
 								>
 									<option value="">Selecione no filtro acima</option>
 									{places.map((place) => (
-										<option key={place._id || place.id} value={place._id || place.id}>
+										<option
+											key={place._id || place.id}
+											value={place._id || place.id}
+										>
 											{place.title || "Acomodação"}
 										</option>
 									))}
@@ -559,10 +622,14 @@ export default function FinancialEntriesPanel({
 							</div>
 
 							<div className="space-y-1 md:col-span-2">
-								<label className="text-sm font-medium text-slate-700">Descrição</label>
+								<label className="text-sm font-medium text-slate-700">
+									Descrição
+								</label>
 								<textarea
 									value={form.description}
-									onChange={(event) => handleChange("description", event.target.value)}
+									onChange={(event) =>
+										handleChange("description", event.target.value)
+									}
 									rows={3}
 									className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 									placeholder="Observações curtas sobre o lançamento"
@@ -575,61 +642,85 @@ export default function FinancialEntriesPanel({
 								</summary>
 								<div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
 									<div className="space-y-1">
-										<label className="text-sm font-medium text-slate-700">bookingId</label>
+										<label className="text-sm font-medium text-slate-700">
+											bookingId
+										</label>
 										<input
 											type="text"
 											value={form.bookingId}
-											onChange={(event) => handleChange("bookingId", event.target.value)}
+											onChange={(event) =>
+												handleChange("bookingId", event.target.value)
+											}
 											className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 											placeholder="Opcional"
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-sm font-medium text-slate-700">paymentId</label>
+										<label className="text-sm font-medium text-slate-700">
+											paymentId
+										</label>
 										<input
 											type="text"
 											value={form.paymentId}
-											onChange={(event) => handleChange("paymentId", event.target.value)}
+											onChange={(event) =>
+												handleChange("paymentId", event.target.value)
+											}
 											className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 											placeholder="Opcional"
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-sm font-medium text-slate-700">recurrenceId</label>
+										<label className="text-sm font-medium text-slate-700">
+											recurrenceId
+										</label>
 										<input
 											type="text"
 											value={form.recurrenceId}
-											onChange={(event) => handleChange("recurrenceId", event.target.value)}
+											onChange={(event) =>
+												handleChange("recurrenceId", event.target.value)
+											}
 											className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 											placeholder="Opcional"
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-sm font-medium text-slate-700">source</label>
+										<label className="text-sm font-medium text-slate-700">
+											source
+										</label>
 										<input
 											type="text"
 											value={form.source}
-											onChange={(event) => handleChange("source", event.target.value)}
+											onChange={(event) =>
+												handleChange("source", event.target.value)
+											}
 											className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 											placeholder="manual_form"
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-sm font-medium text-slate-700">fiscalCategory</label>
+										<label className="text-sm font-medium text-slate-700">
+											fiscalCategory
+										</label>
 										<input
 											type="text"
 											value={form.fiscalCategory}
-											onChange={(event) => handleChange("fiscalCategory", event.target.value)}
+											onChange={(event) =>
+												handleChange("fiscalCategory", event.target.value)
+											}
 											className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 											placeholder="Opcional"
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-sm font-medium text-slate-700">accountingCategory</label>
+										<label className="text-sm font-medium text-slate-700">
+											accountingCategory
+										</label>
 										<input
 											type="text"
 											value={form.accountingCategory}
-											onChange={(event) => handleChange("accountingCategory", event.target.value)}
+											onChange={(event) =>
+												handleChange("accountingCategory", event.target.value)
+											}
 											className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 											placeholder="Opcional"
 										/>
@@ -639,18 +730,27 @@ export default function FinancialEntriesPanel({
 											id="taxDeductible"
 											type="checkbox"
 											checked={Boolean(form.taxDeductible)}
-											onChange={(event) => handleChange("taxDeductible", event.target.checked)}
+											onChange={(event) =>
+												handleChange("taxDeductible", event.target.checked)
+											}
 											className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
 										/>
-										<label htmlFor="taxDeductible" className="text-sm text-slate-700">
+										<label
+											htmlFor="taxDeductible"
+											className="text-sm text-slate-700"
+										>
 											Item dedutível para a receita fiscal
 										</label>
 									</div>
 									<div className="space-y-1 md:col-span-2">
-										<label className="text-sm font-medium text-slate-700">Notas</label>
+										<label className="text-sm font-medium text-slate-700">
+											Notas
+										</label>
 										<textarea
 											value={form.notes}
-											onChange={(event) => handleChange("notes", event.target.value)}
+											onChange={(event) =>
+												handleChange("notes", event.target.value)
+											}
 											rows={2}
 											className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-primary-300"
 											placeholder="Observações internas"
@@ -661,7 +761,8 @@ export default function FinancialEntriesPanel({
 
 							<div className="md:col-span-2 flex flex-wrap items-center justify-between gap-3 pt-1">
 								<p className="text-xs text-slate-500">
-									O relatório mensal usa este lançamento sem recalcular valores no front-end.
+									O relatório mensal usa este lançamento sem recalcular valores
+									no front-end.
 								</p>
 								<button
 									type="submit"
@@ -679,7 +780,9 @@ export default function FinancialEntriesPanel({
 				<div className="space-y-4 rounded-[20px] border border-slate-200/70 bg-white p-4">
 					<div className="flex items-start justify-between gap-3">
 						<div>
-							<h4 className="text-base font-semibold text-slate-950">Lançamentos do mês</h4>
+							<h4 className="text-base font-semibold text-slate-950">
+								Lançamentos do mês
+							</h4>
 							<p className="mt-1 text-sm leading-6 text-slate-500">
 								Últimos lançamentos salvos para a competência atual.
 							</p>
@@ -696,15 +799,23 @@ export default function FinancialEntriesPanel({
 					) : entries.length > 0 ? (
 						<ul className="space-y-3">
 							{entries.map((item) => (
-								<EntryRow key={item.id} item={item} onDelete={handleDelete} deletingId={deletingId} />
+								<EntryRow
+									key={item.id}
+									item={item}
+									onDelete={handleDelete}
+									deletingId={deletingId}
+								/>
 							))}
 						</ul>
 					) : (
 						<div className="flex min-h-48 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center">
 							<FileBarChart className="h-10 w-10 text-slate-300" />
-							<h5 className="mt-3 text-sm font-semibold text-slate-900">Nenhum lançamento encontrado</h5>
+							<h5 className="mt-3 text-sm font-semibold text-slate-900">
+								Nenhum lançamento encontrado
+							</h5>
 							<p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
-								Registre uma despesa, reembolso, taxa ou receita manual para que o resumo mensal seja consolidado.
+								Registre uma despesa, reembolso, taxa ou receita manual para que
+								o resumo mensal seja consolidado.
 							</p>
 						</div>
 					)}

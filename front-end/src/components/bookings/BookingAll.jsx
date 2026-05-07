@@ -11,7 +11,7 @@ import Review from "@/components/reviews/Review";
 import BookingStatusBadge from "@/components/bookings/BookingStatusBadge";
 import CancelButton from "@/components/bookings/CancelButton";
 
-const BookingAll = ({ bookingsArray, bookingId, onBookingCanceled }) => {
+const BookingAll = ({ bookingsArray, bookingId, onBookingCANCELLED }) => {
 	const [sortOrder, setSortOrder] = useState("closest"); // 'closest' or 'furthest'
 	const navigate = useNavigate();
 
@@ -91,7 +91,9 @@ const BookingAll = ({ bookingsArray, bookingId, onBookingCanceled }) => {
 
 						{/* Badge de Status */}
 						<div className="absolute top-[16px] left-[16px] z-10">
-							<BookingStatusBadge status={booking.status || booking.paymentStatus} />
+							<BookingStatusBadge
+								status={booking.status || booking.paymentStatus}
+							/>
 						</div>
 
 						{/* Imagens Menores Empilhadas à Direita */}
@@ -185,17 +187,18 @@ const BookingAll = ({ bookingsArray, bookingId, onBookingCanceled }) => {
 							{booking.status === "confirmed" && (
 								<CancelButton
 									bookingId={booking._id}
-									onCanceled={onBookingCanceled}
+									onCANCELLED={onBookingCANCELLED}
 								/>
 							)}
 						</div>
 
 						{/* Review Section */}
-						{booking.status === "evaluation" && new Date(booking.checkout) < new Date() && (
-							<div className="mt-4">
-								<Review booking={booking} />
-							</div>
-						)}
+						{booking.status === "evaluation" &&
+							new Date(booking.checkout) < new Date() && (
+								<div className="mt-4">
+									<Review booking={booking} />
+								</div>
+							)}
 					</div>
 				</div>
 			))}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { cancelBooking } from "@/services/bookingService";
 
-const CancelButton = ({ bookingId, onCanceled }) => {
+const CancelButton = ({ bookingId, onCANCELLED }) => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [confirming, setConfirming] = useState(false);
@@ -16,7 +16,7 @@ const CancelButton = ({ bookingId, onCanceled }) => {
 		setError(null);
 		try {
 			await cancelBooking(bookingId);
-			onCanceled?.();
+			onCANCELLED?.();
 		} catch (err) {
 			const msg =
 				err?.response?.data?.message ||
@@ -58,8 +58,8 @@ const CancelButton = ({ bookingId, onCanceled }) => {
 					{loading
 						? "Cancelando..."
 						: confirming
-						? "Sim, cancelar"
-						: "Cancelar reserva"}
+							? "Sim, cancelar"
+							: "Cancelar reserva"}
 				</button>
 			</div>
 		</div>

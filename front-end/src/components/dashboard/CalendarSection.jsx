@@ -64,15 +64,15 @@ const paymentLabel = (status) => {
 	if (status === "approved") return "Aprovado";
 	if (status === "pending") return "Pendente";
 	if (status === "rejected") return "Rejeitado";
-	if (status === "canceled") return "Cancelado";
+	if (status === "CANCELLED") return "Cancelado";
 	return status || "Pendente";
 };
 
 const STATUS_STYLES = {
 	confirmed: { label: "Confirmada", className: "status-confirmed" },
 	pending: { label: "Pendente", className: "status-pending" },
-	canceled: { label: "Cancelada", className: "status-canceled" },
-	rejected: { label: "Cancelada", className: "status-canceled" },
+	CANCELLED: { label: "Cancelada", className: "status-CANCELLED" },
+	rejected: { label: "Cancelada", className: "status-CANCELLED" },
 	in_progress: { label: "Em andamento", className: "status-in-progress" },
 	evaluation: { label: "Avaliação", className: "status-evaluation" },
 	review: { label: "Revisão", className: "status-review" },
@@ -251,7 +251,8 @@ const CalendarSection = ({ calendar }) => {
 											<span className="event-guest">{data.shortGuestName}</span>
 											<span className="event-title">{data.placeTitle}</span>
 											<span className="event-time">
-												{data.placeCheckin || "14:00"} → {data.placeCheckout || "11:00"}
+												{data.placeCheckin || "14:00"} →{" "}
+												{data.placeCheckout || "11:00"}
 											</span>
 										</div>
 									</div>

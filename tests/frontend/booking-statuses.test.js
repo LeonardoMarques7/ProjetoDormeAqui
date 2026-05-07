@@ -14,11 +14,11 @@ describe("booking status utilities", () => {
   test("allows only declared booking transitions", () => {
     expect(isTransitionAllowed("pending", "confirmed")).toBe(true);
     expect(isTransitionAllowed("pending", "completed")).toBe(false);
-    expect(isTransitionAllowed("completed", "canceled")).toBe(false);
+    expect(isTransitionAllowed("completed", "CANCELLED")).toBe(false);
   });
 
   test("lists available transitions for host/dashboard flows", () => {
-    expect(getAllowedTransitions("confirmed")).toEqual(["in_progress", "canceled"]);
+    expect(getAllowedTransitions("confirmed")).toEqual(["in_progress", "CANCELLED"]);
     expect(getAllowedTransitions("missing")).toEqual([]);
   });
 });
