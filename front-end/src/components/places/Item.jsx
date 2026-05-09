@@ -16,6 +16,7 @@ import {
 import { MapPin, Star } from "lucide-react";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ease, staggerContainer } from "@/lib/animations";
+import { PlaceImageFallback } from "@/components/ui/figma/ImageWithFallback";
 
 const cardInfoItem = {
 	hidden: { opacity: 0, y: 10 },
@@ -102,7 +103,6 @@ const Item = ({ place = null, placeHolder }) => {
 							isHovered && "shadow-lg border-primary-100 p-1 border-2"
 						} flex bg-white  h-full rounded-2xl gap-0 max-sm:gap-0 flex-col w-full transition-all duration-300`}
 					>
-						{/* Carrossel de imagens */}
 						<div className="relative">
 							<Carousel
 								opts={{
@@ -113,31 +113,35 @@ const Item = ({ place = null, placeHolder }) => {
 								setApi={setApi}
 							>
 								<CarouselContent>
-									{place.photos.map((photo, index) => (
-										<CarouselItem
-											className="relative overflow-hidden  rounded-2xl"
-											key={index}
-										>
-											<motion.div
-												initial={{ scale: 1.08, opacity: 0 }}
-												animate={{ scale: 1, opacity: 1 }}
-												transition={{ duration: 0.6, ease: ease.power3Out }}
-												className="w-full h-full "
+									{(place.photos?.length ? place.photos : [null]).map(
+										(photo, index) => (
+											<CarouselItem
+												className="relative overflow-hidden  rounded-2xl"
+												key={index}
 											>
-												<img
-													src={photo}
-													alt={`Imagem da acomodação ${index + 1}`}
-													className={`aspect-square z-0 w-full *:rounded-2xl object-cover transition-all rounded-2xl `}
-													loading={index === 0 ? "eager" : "lazy"}
-													width="350"
-													height="350"
-												/>
-											</motion.div>
-										</CarouselItem>
-									))}
+												<motion.div
+													initial={{ scale: 1.08, opacity: 0 }}
+													animate={{ scale: 1, opacity: 1 }}
+													transition={{
+														duration: 0.6,
+														ease: ease.power3Out,
+													}}
+													className="w-full h-full "
+												>
+													<PlaceImageFallback
+														src={photo}
+														alt={`Imagem da acomodaÃ§Ã£o ${index + 1}`}
+														className="aspect-square z-0 w-full rounded-2xl transition-all"
+														loading={index === 0 ? "eager" : "lazy"}
+														width="350"
+														height="350"
+													/>
+												</motion.div>
+											</CarouselItem>
+										),
+									)}
 								</CarouselContent>
 
-								{/* Navegação do carrossel */}
 								<div onClick={(e) => e.preventDefault()}>
 									<CarouselPrevious className="absolute border-none left-2 text-white bg-white/30 hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
 								</div>
@@ -145,7 +149,6 @@ const Item = ({ place = null, placeHolder }) => {
 									<CarouselNext className="absolute right-2 border-none bg-white/30 text-white hover:cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
 								</div>
 
-								{/* Rating badge */}
 								<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
 									<Star size={14} fill="#FFC107" stroke="#FFC107" />
 									<span className="text-sm font-semibold">
@@ -154,7 +157,6 @@ const Item = ({ place = null, placeHolder }) => {
 								</div>
 							</Carousel>
 
-							{/* Dot indicators */}
 							<div
 								className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"
 								onClick={(e) => e.preventDefault()}
@@ -169,7 +171,6 @@ const Item = ({ place = null, placeHolder }) => {
 							</div>
 						</div>
 
-						{/* Card info - estado normal */}
 						<motion.div
 							className={`px-0 max-sm:px-2 py-3 flex flex-col gap-1 ${isHovered && "sm:px-2"}`}
 							variants={staggerContainer(0.07)}
@@ -198,37 +199,6 @@ const Item = ({ place = null, placeHolder }) => {
 							>
 								R$ {place.price} por noite
 							</motion.span>
-
-							{/* Card info - estado hover (expanded) */}
-							{/* <div
-								className={`flex flex-col gap-3 px-0 border-primary-100  transition-all duration-700 ${
-									isHovered
-										? "opacity-100 max-h-96 "
-										: "opacity-0 max-h-0 overflow-hidden"
-								}`}
-							>
-								<AnimatePresence>
-									{isHovered ? (
-										<motion.div
-											className="flex items-center mb-2 flex-1 gap-3"
-											initial={{ opacity: 0, y: 10 }}
-											animate={{ opacity: 1, y: 0 }}
-											exit={{ opacity: 0, y: 10 }}
-											transition={{ duration: 0.7 }}
-										>
-											<InteractiveHoverButton
-												className="w-full rounded-xl text-center font-medium"
-												onClick={(e) => {
-													e.preventDefault();
-													setClickItem(true);
-												}}
-											>
-												Reservar
-											</InteractiveHoverButton>
-										</motion.div>
-									) : null}
-								</AnimatePresence>
-							</div> */}
 						</motion.div>
 					</Link>
 				</motion.div>

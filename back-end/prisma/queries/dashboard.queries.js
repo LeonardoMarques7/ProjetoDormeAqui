@@ -198,3 +198,95 @@ export async function getPlaceReviewSummary(prisma, filters = {}) {
     LIMIT ${normalizeLimit(limit, 50, 250)}
   `;
 }
+
+/**
+ * Cleaning and inspection operational tasks ready for host dashboard consumption.
+ */
+export async function getHostCleaningInspectionTasks(prisma, filters = {}) {
+  const {
+    hostId = null,
+    effectiveStatus = null,
+    onlyAtRisk = null,
+    limit = 200,
+  } = filters;
+
+  return prisma.$queryRaw`
+    SELECT *
+    FROM fn_host_cleaning_inspection_tasks(
+      ${hostId}::uuid,
+      ${effectiveStatus},
+      ${onlyAtRisk}::boolean,
+      ${normalizeLimit(limit, 200, 500)}::int
+    )
+  `;
+}
+
+/**
+ * Single cleaning/inspection task by id, still backed by the SQL function payload.
+ */
+export async function getHostCleaningInspectionTaskById(prisma, filters = {}) {
+  const {
+    hostId = null,
+    taskId = null,
+  } = filters;
+
+  return prisma.$queryRaw`
+    SELECT *
+    FROM fn_host_cleaning_inspection_tasks(
+      ${hostId}::uuid,
+      NULL,
+      NULL,
+      500
+    )
+    WHERE task_id = ${taskId}::uuid
+    LIMIT 1
+  `;
+}
+
+/**
+ * Host-level operational metrics for cleaning and inspection.
+ */
+export async function getHostCleaningInspectionMetrics(prisma, filters = {}) {
+  const { hostId = null } = filters;
+
+  return prisma.$queryRaw`
+    SELECT *
+    FROM fn_host_cleaning_inspection_metrics(${hostId}::uuid)
+  `;
+}
+
+/**
+ * Recurring operational problems grouped by property.
+ */
+export async function getHostCleaningInspectionProblemPlaces(prisma, filters = {}) {
+  const {
+    hostId = null,
+    limit = 10,
+  } = filters;
+
+  return prisma.$queryRaw`
+    SELECT *
+    FROM fn_host_cleaning_inspection_problem_places(
+      ${hostId}::uuid,
+      ${normalizeLimit(limit, 10, 100)}::int
+    )
+  `;
+}
+
+/**
+ * Task distribution and risk grouped by current responsible assignee.
+ */
+export async function getHostCleaningInspectionResponsibles(prisma, filters = {}) {
+  const {
+    hostId = null,
+    limit = 50,
+  } = filters;
+
+  return prisma.$queryRaw`
+    SELECT *
+    FROM fn_host_cleaning_inspection_responsibles(
+      ${hostId}::uuid,
+      ${normalizeLimit(limit, 50, 200)}::int
+    )
+  `;
+}

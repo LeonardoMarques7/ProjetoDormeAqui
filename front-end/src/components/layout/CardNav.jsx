@@ -14,6 +14,7 @@ import logoPrimary from "@/assets/logos/logo__primary.png";
 import logoPrimaryMobile from "@/assets/logo__primary__mobile.png";
 import logoSecondary from "@/assets/logos/logo__secondary.png";
 import { useMobileContext } from "../contexts/MobileContext";
+import { UserImageFallback } from "@/components/ui/figma/ImageWithFallback";
 
 const EASE = "power3.out";
 
@@ -298,7 +299,8 @@ const CardNav = ({ active, className = "", isAbsolute }) => {
 									onClick={closeMenu}
 									className="hidden md:inline-flex items-center gap-2  p-1 rounded-full hover:bg-white/10 transition-colors duration-300"
 								>
-									<img
+									<UserImageFallback
+										type="avatar"
 										src={user.photo}
 										alt={user.name}
 										className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { UserImageFallback } from "@/components/ui/figma/ImageWithFallback";
 
 export default function PublicProfile() {
 	const { userId } = useParams();

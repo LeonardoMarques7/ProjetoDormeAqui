@@ -15,6 +15,51 @@ export const getHostCleaningInspection = async () => {
   return data;
 };
 
+export const getHostCleaningInspectionTask = async (taskId) => {
+  const { data } = await axios.get(`/dashboard/host/cleaning-inspection/${taskId}`);
+  return data;
+};
+
+export const updateHostCleaningInspectionStatus = async (taskId, payload) => {
+  const { data } = await axios.patch(
+    `/dashboard/host/cleaning-inspection/${taskId}/status`,
+    payload,
+  );
+  return data;
+};
+
+export const updateHostCleaningInspectionChecklist = async (taskId, payload) => {
+  const { data } = await axios.patch(
+    `/dashboard/host/cleaning-inspection/${taskId}/checklist`,
+    payload,
+  );
+  return data;
+};
+
+export const addHostCleaningInspectionEvidence = async (taskId, payload) => {
+  const { data } = await axios.post(
+    `/dashboard/host/cleaning-inspection/${taskId}/evidence`,
+    payload,
+  );
+  return data;
+};
+
+export const updateHostCleaningInspectionAssignee = async (taskId, payload) => {
+  const { data } = await axios.patch(
+    `/dashboard/host/cleaning-inspection/${taskId}/assignee`,
+    payload,
+  );
+  return data;
+};
+
+export const updateHostCleaningInspectionNotes = async (taskId, payload) => {
+  const { data } = await axios.patch(
+    `/dashboard/host/cleaning-inspection/${taskId}/notes`,
+    payload,
+  );
+  return data;
+};
+
 export const getHostDashboardReports = async () => {
   const { data } = await axios.get("/dashboard/host/reports");
   return data;

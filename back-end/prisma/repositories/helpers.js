@@ -67,7 +67,7 @@ export function placeShape(place, options = {}) {
   const perks = (place.perks || []).map((entry) => entry.perk?.slug || entry.perk?.name).filter(Boolean);
   const owner = options.includeOwner ? publicUserShape(place.owner) : legacyId(place.owner) || place.ownerId;
 
-  return {
+  const shape = {
     _id: legacyId(place),
     id: place.id,
     legacyMongoId: place.legacyMongoId,
@@ -94,6 +94,12 @@ export function placeShape(place, options = {}) {
     createdAt: place.createdAt,
     updatedAt: place.updatedAt,
   };
+
+  if (options.extra && typeof options.extra === "object") {
+    Object.assign(shape, options.extra);
+  }
+
+  return shape;
 }
 
 export function bookingShape(booking) {
@@ -125,4 +131,3 @@ export function bookingShape(booking) {
     updatedAt: booking.updatedAt,
   };
 }
-

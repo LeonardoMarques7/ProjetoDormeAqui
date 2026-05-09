@@ -17,6 +17,8 @@ const expectedViews = [
   "v_place_review_summary",
   "v_host_financial_summary_monthly",
   "v_host_dashboard_summary_monthly",
+  "v_cleaning_inspection_task_health",
+  "v_host_cleaning_inspection_metrics",
 ];
 
 function assertSafeViewName(viewName) {

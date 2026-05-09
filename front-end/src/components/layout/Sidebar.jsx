@@ -68,6 +68,7 @@ import {
 	SidebarTrigger,
 	useSidebar,
 } from "@/components/ui/sidebar";
+import { UserImageFallback } from "@/components/ui/figma/ImageWithFallback";
 
 const AppSidebar = () => {
 	const { user, setUser } = useUserContext();
@@ -264,7 +265,8 @@ const AppSidebar = () => {
 						<DropdownMenuTrigger className="!p-0 !m-0 rounded-2xl!">
 							<SidebarMenuButton className="px-4!  group-data-[collapsible=icon]:bg-transparent! hover:bg-accent h-fit gap-3 rounded-2xl! cursor-pointer">
 								<div className="flex aspect-square size-9 group-data-[collapsible=icon]:-ml-1 items-center justify-center rounded-full">
-									<img
+									<UserImageFallback
+										type="avatar"
 										src={user.photo}
 										className="w-9 h-9 aspect-square rounded-full object-cover"
 										alt="Foto do Usuário"

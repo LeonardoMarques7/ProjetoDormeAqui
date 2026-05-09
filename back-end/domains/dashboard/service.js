@@ -13,6 +13,16 @@ export const buildHostDashboardData = async (hostId) => {
     );
     dashboardData.cleaningInspection = {
       summary: {
+        totalPending: 0,
+        inCleaning: 0,
+        awaitingInspection: 0,
+        approved: 0,
+        blocked: 0,
+        overdue: 0,
+        nextCheckInRisk: 0,
+        averageCleaningTime: null,
+        approvalRate: null,
+        missingEvidenceCount: 0,
         pendingCleanings: 0,
         cleaningInProgress: 0,
         pendingInspections: 0,
@@ -21,6 +31,12 @@ export const buildHostDashboardData = async (hostId) => {
         items: [],
       },
       filters: [],
+      filterOptions: {
+        statuses: [],
+        places: [],
+        responsibles: [],
+        riskLevels: [],
+      },
       items: [],
     };
   }

@@ -153,13 +153,17 @@ const AccProfile = ({ userId }) => {
 				// Verifica se é o próprio perfil do usuário logado
 				const isOwnProfile = user && String(user._id) === String(userId);
 
-				const endpoint = isOwnProfile
-					? "/places/owner" // Rota protegida - meus anúncios
-					: `/places/user/${userId}`; // Rota pública - anúncios de outro usuário
+                const endpoint = isOwnProfile
+                    ? "/places/owner?view=profile"
+                    : `/places/user/${userId}?view=profile`;
 
 				console.log("Endpoint usado:", endpoint);
 				const { data } = await axios.get(endpoint);
-				setPlaces(data);
+				setPlaces(data?.places || []);
+				setReviews(data?.reviews || []);
+				setTotalGuestsSatisfied(data?.summary?.totalGuestsSatisfied || 0);
+				setAverageRating(data?.summary?.averageRating || 0);
+				setTotalReviews(data?.summary?.totalReviews || 0);
 			} catch (error) {
 				console.error("Erro ao buscar anúncios:", error);
 				// Se der erro 401, pode ser que a rota requer autenticação
@@ -169,6 +173,10 @@ const AccProfile = ({ userId }) => {
 						"Não autenticado - mostrando perfil público sem anúncios privados",
 					);
 					setPlaces([]);
+					setReviews([]);
+					setTotalGuestsSatisfied(0);
+					setAverageRating(0);
+					setTotalReviews(0);
 				}
 			}
 		};
@@ -177,31 +185,6 @@ const AccProfile = ({ userId }) => {
 			fetchPlaces();
 		}
 	}, [targetUserId, user?._id, ready, profileUser]);
-
-	useEffect(() => {
-		const fetchTotalGuestsSatisfied = async () => {
-			let total = 0;
-			for (const place of places) {
-				try {
-					const { data: bookings } = await axios.get(
-						`/bookings/place/${place._id}`,
-					);
-					total += bookings.reduce((sum, booking) => sum + booking.guests, 0);
-				} catch (error) {
-					console.error(
-						"Erro ao buscar bookings para place:",
-						place._id,
-						error,
-					);
-				}
-			}
-			setTotalGuestsSatisfied(total);
-		};
-
-		if (places.length > 0) {
-			fetchTotalGuestsSatisfied();
-		}
-	}, [places]);
 
 	useEffect(() => {
 		const calculateExperienceTime = () => {
@@ -228,47 +211,6 @@ const AccProfile = ({ userId }) => {
 		}
 	}, [profileUser]);
 
-	useEffect(() => {
-		const fetchReviews = async () => {
-			let allReviews = [];
-			for (const place of places) {
-				try {
-					const { data: placeReviews } = await axios.get(
-						`/reviews/place/${place._id}`,
-					);
-					allReviews = [...allReviews, ...placeReviews];
-				} catch (error) {
-					console.error("Erro ao buscar reviews para place:", place._id, error);
-				}
-			}
-			setReviews(allReviews);
-		};
-
-		if (places.length > 0) {
-			fetchReviews();
-		}
-	}, [places]);
-
-	useEffect(() => {
-		const calculateAverageRating = () => {
-			if (reviews.length === 0) {
-				setAverageRating(0);
-				setTotalReviews(0);
-				return;
-			}
-
-			const totalRating = reviews.reduce(
-				(sum, review) => sum + review.rating,
-				0,
-			);
-			const average = totalRating / reviews.length;
-
-			setAverageRating(average);
-			setTotalReviews(reviews.length);
-		};
-
-		calculateAverageRating();
-	}, [reviews]);
 
 	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -1444,3 +1386,4 @@ const AccProfile = ({ userId }) => {
 };
 
 export default AccProfile;
+

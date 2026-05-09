@@ -1,10 +1,65 @@
-import { isUuid, normalizeStatusFromIsActive, placeShape, prisma } from "./helpers.js";
+import {
+  isUuid,
+  normalizeStatusFromIsActive,
+  placeShape,
+  prisma,
+  publicUserShape,
+  toNumber,
+} from "./helpers.js";
 
 const placeInclude = {
   owner: { include: { profile: true } },
   photos: true,
   perks: { include: { perk: true } },
 };
+
+const INACTIVE_BOOKING_STATUSES = ["CANCELLED", "REJECTED", "ARCHIVED"];
+
+function startOfMonth(date = new Date()) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function endOfMonth(date = new Date()) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+function diffDays(start, end) {
+  return Math.max(0, Math.ceil((end.getTime() - start.getTime()) / 86400000));
+}
+
+function overlapNights(checkIn, checkOut, rangeStart, rangeEnd) {
+  const start = new Date(Math.max(checkIn.getTime(), rangeStart.getTime()));
+  const end = new Date(Math.min(checkOut.getTime(), rangeEnd.getTime()));
+  return diffDays(start, end);
+}
+
+function formatShortDate(date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  }).format(date);
+}
+
+function buildReviewShape(review) {
+  return {
+    _id: review.legacyMongoId || review.id,
+    id: review.id,
+    legacyMongoId: review.legacyMongoId,
+    place: review.place
+      ? {
+          _id: review.place.legacyMongoId || review.place.id,
+          id: review.place.id,
+          title: review.place.title,
+        }
+      : review.placeId,
+    user: publicUserShape(review.user),
+    rating: review.rating,
+    comment: review.comment,
+    badges: (review.badges || []).map((badge) => badge.slug),
+    createdAt: review.createdAt,
+    updatedAt: review.updatedAt,
+  };
+}
 
 function placeWhereById(id) {
   return isUuid(id) ? { id } : { legacyMongoId: String(id) };
@@ -74,6 +129,200 @@ function placeData(input) {
   return data;
 }
 
+async function fetchReviewMetrics(db, placeIds) {
+  if (!placeIds.length) return new Map();
+
+  const reviewGroups = await db.review.groupBy({
+    by: ["placeId"],
+    where: { placeId: { in: placeIds } },
+    _count: { _all: true },
+    _avg: { rating: true },
+  });
+
+  return new Map(
+    reviewGroups.map((row) => [
+      String(row.placeId),
+      {
+        reviewsCount: toNumber(row._count?._all),
+        averageRating: row._avg?.rating === null ? null : toNumber(row._avg?.rating),
+      },
+    ]),
+  );
+}
+
+async function fetchAvailabilityConflicts(db, placeIds, checkin, checkout) {
+  if (!placeIds.length || !checkin || !checkout) return new Set();
+
+  const checkInDate = new Date(checkin);
+  const checkOutDate = new Date(checkout);
+  if (Number.isNaN(checkInDate.getTime()) || Number.isNaN(checkOutDate.getTime())) {
+    return new Set();
+  }
+
+  const conflictingBookings = await db.booking.findMany({
+    where: {
+      placeId: { in: placeIds },
+      status: { notIn: INACTIVE_BOOKING_STATUSES },
+      checkIn: { lt: checkOutDate },
+      checkOut: { gt: checkInDate },
+    },
+    select: { placeId: true },
+  });
+
+  return new Set(conflictingBookings.map((booking) => String(booking.placeId)));
+}
+
+async function fetchPlaceReviews(db, placeIds) {
+  if (!placeIds.length) return [];
+
+  const reviews = await db.review.findMany({
+    where: { placeId: { in: placeIds } },
+    include: {
+      user: { include: { profile: true } },
+      place: true,
+      badges: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return reviews.map(buildReviewShape);
+}
+
+async function fetchHostPlaceMetrics(db, places, { includeReviews = false } = {}) {
+  const placeIds = places.map((place) => place.id);
+  if (!placeIds.length) {
+    return {
+      places: [],
+      summary: {
+        totalPlaces: 0,
+        totalGuestsSatisfied: 0,
+        averageRating: 0,
+        totalReviews: 0,
+      },
+      reviews: [],
+    };
+  }
+
+  const now = new Date();
+  const monthStart = startOfMonth(now);
+  const monthEnd = endOfMonth(now);
+  const daysInCurrentMonth = diffDays(monthStart, new Date(monthEnd.getTime() + 1));
+
+  const [reviewMetrics, activeBookings, reviews] = await Promise.all([
+    fetchReviewMetrics(db, placeIds),
+    db.booking.findMany({
+      where: {
+        placeId: { in: placeIds },
+        status: { notIn: INACTIVE_BOOKING_STATUSES },
+      },
+      select: {
+        placeId: true,
+        checkIn: true,
+        checkOut: true,
+        guests: true,
+        totalPrice: true,
+        status: true,
+      },
+      orderBy: { checkIn: "asc" },
+    }),
+    includeReviews ? fetchPlaceReviews(db, placeIds) : Promise.resolve([]),
+  ]);
+
+  const bookingsByPlace = new Map();
+  for (const booking of activeBookings) {
+    const key = String(booking.placeId);
+    if (!bookingsByPlace.has(key)) bookingsByPlace.set(key, []);
+    bookingsByPlace.get(key).push(booking);
+  }
+
+  const shapedPlaces = places.map((place) => {
+    const placeBookings = bookingsByPlace.get(String(place.id)) || [];
+    const metrics = reviewMetrics.get(String(place.id)) || {
+      reviewsCount: 0,
+      averageRating: place.averageRating === null ? null : toNumber(place.averageRating),
+    };
+
+    const totalGuestsSatisfied = placeBookings.reduce(
+      (sum, booking) => sum + toNumber(booking.guests),
+      0,
+    );
+
+    const monthlyRevenue = placeBookings.reduce((sum, booking) => {
+      const bookingMonth = new Date(booking.checkIn);
+      if (
+        bookingMonth.getFullYear() === now.getFullYear() &&
+        bookingMonth.getMonth() === now.getMonth()
+      ) {
+        return sum + toNumber(booking.totalPrice);
+      }
+      return sum;
+    }, 0);
+
+    const occupiedNights = placeBookings.reduce(
+      (sum, booking) =>
+        sum +
+        overlapNights(
+          new Date(booking.checkIn),
+          new Date(booking.checkOut),
+          monthStart,
+          monthEnd,
+        ),
+      0,
+    );
+
+    const occupancyRate =
+      daysInCurrentMonth > 0 ? Number(((occupiedNights / daysInCurrentMonth) * 100).toFixed(1)) : 0;
+
+    const nextBooking = placeBookings.find(
+      (booking) => new Date(booking.checkOut).getTime() >= now.getTime(),
+    );
+
+    const nextEventLabel = nextBooking
+      ? new Date(nextBooking.checkIn).getTime() >= now.getTime()
+        ? `Check-in ${formatShortDate(new Date(nextBooking.checkIn))}`
+        : `Check-out ${formatShortDate(new Date(nextBooking.checkOut))}`
+      : null;
+
+    return placeShape(place, {
+      includeOwner: false,
+      extra: {
+        reviewsCount: metrics.reviewsCount,
+        averageRating:
+          metrics.averageRating === null ? place.averageRating : metrics.averageRating,
+        totalGuestsSatisfied,
+        monthlyRevenue,
+        occupancyRate,
+        nextEventLabel,
+        activeBookingsCount: placeBookings.length,
+        averageDailyRate: occupiedNights > 0 ? Number((monthlyRevenue / occupiedNights).toFixed(2)) : null,
+      },
+    });
+  });
+
+  const totalReviews = shapedPlaces.reduce(
+    (sum, place) => sum + toNumber(place.reviewsCount),
+    0,
+  );
+  const weightedRatingSum = shapedPlaces.reduce((sum, place) => {
+    if (!place.averageRating || !place.reviewsCount) return sum;
+    return sum + Number(place.averageRating) * Number(place.reviewsCount);
+  }, 0);
+
+  return {
+    places: shapedPlaces,
+    summary: {
+      totalPlaces: shapedPlaces.length,
+      totalGuestsSatisfied: shapedPlaces.reduce(
+        (sum, place) => sum + toNumber(place.totalGuestsSatisfied),
+        0,
+      ),
+      averageRating: totalReviews > 0 ? Number((weightedRatingSum / totalReviews).toFixed(1)) : 0,
+      totalReviews,
+    },
+    reviews,
+  };
+}
+
 export async function listPlaces(filters = {}) {
   const db = await prisma();
   const where = { status: "ACTIVE" };
@@ -81,13 +330,41 @@ export async function listPlaces(filters = {}) {
   if (filters.guests) where.maxGuests = { gte: Number(filters.guests) };
   if (filters.rooms) where.rooms = { gte: Number(filters.rooms) };
   if (filters.minRating) where.averageRating = { gte: Number(filters.minRating) };
+  const take = filters.limit ? Math.min(Number(filters.limit) || 0, 100) : undefined;
 
   const places = await db.place.findMany({
     where,
     include: placeInclude,
     orderBy: { createdAt: "desc" },
+    ...(take ? { take } : {}),
   });
-  return places.map((place) => placeShape(place, { includeOwner: false }));
+
+  const placeIds = places.map((place) => place.id);
+  const [reviewMetrics, conflictingPlaceIds] = await Promise.all([
+    fetchReviewMetrics(db, placeIds),
+    fetchAvailabilityConflicts(db, placeIds, filters.checkin, filters.checkout),
+  ]);
+
+  return places
+    .filter((place) => !conflictingPlaceIds.has(String(place.id)))
+    .map((place) => {
+      const metrics = reviewMetrics.get(String(place.id)) || {
+        reviewsCount: 0,
+        averageRating: place.averageRating === null ? null : toNumber(place.averageRating),
+      };
+
+      return placeShape(place, {
+        includeOwner: false,
+        extra: {
+          reviewsCount: metrics.reviewsCount,
+          averageRating:
+            metrics.averageRating === null ? place.averageRating : metrics.averageRating,
+          primaryPhoto: place.photos?.[0]?.url || null,
+          isAvailable:
+            filters.checkin && filters.checkout ? !conflictingPlaceIds.has(String(place.id)) : true,
+        },
+      });
+    });
 }
 
 export async function getPlaceById(id, { onlyActive = true, includeOwner = true } = {}) {
@@ -99,13 +376,54 @@ export async function getPlaceById(id, { onlyActive = true, includeOwner = true 
     },
     include: placeInclude,
   });
-  return placeShape(place, { includeOwner });
+  if (!place) return null;
+
+  const [reviewMetrics, reviews, ownerPlacesCount] = await Promise.all([
+    fetchReviewMetrics(db, [place.id]),
+    fetchPlaceReviews(db, [place.id]),
+    db.place.count({
+      where: { ownerId: place.ownerId, status: "ACTIVE" },
+    }),
+  ]);
+
+  const metrics = reviewMetrics.get(String(place.id)) || {
+    reviewsCount: 0,
+    averageRating: place.averageRating === null ? null : toNumber(place.averageRating),
+  };
+
+  return placeShape(place, {
+    includeOwner,
+    extra: {
+      reviews,
+      reviewsCount: metrics.reviewsCount,
+      reviewSummary: {
+        total: metrics.reviewsCount,
+        averageRating:
+          metrics.averageRating === null ? place.averageRating : metrics.averageRating,
+      },
+      ownerPlacesCount,
+      primaryPhoto: place.photos?.[0]?.url || null,
+    },
+  });
 }
 
-export async function getHostPlaces(ownerId, { onlyActive = true } = {}) {
+export async function getHostPlaces(ownerId, { onlyActive = true, view = "default" } = {}) {
   const db = await prisma();
   const resolvedOwnerId = await resolveOwnerId(ownerId);
-  if (!resolvedOwnerId) return [];
+  if (!resolvedOwnerId) {
+    return view === "profile"
+      ? {
+          places: [],
+          summary: {
+            totalPlaces: 0,
+            totalGuestsSatisfied: 0,
+            averageRating: 0,
+            totalReviews: 0,
+          },
+          reviews: [],
+        }
+      : [];
+  }
   const places = await db.place.findMany({
     where: {
       ownerId: resolvedOwnerId,
@@ -114,7 +432,16 @@ export async function getHostPlaces(ownerId, { onlyActive = true } = {}) {
     include: placeInclude,
     orderBy: { createdAt: "desc" },
   });
-  return places.map((place) => placeShape(place, { includeOwner: false }));
+
+  const payload = await fetchHostPlaceMetrics(db, places, {
+    includeReviews: view === "profile",
+  });
+
+  if (view === "profile") {
+    return payload;
+  }
+
+  return payload.places;
 }
 
 export async function createPlace(ownerId, input) {
@@ -173,4 +500,3 @@ export async function setPlaceActive(id, ownerId, isActive) {
 export async function softDeletePlace(id, ownerId) {
   return setPlaceActive(id, ownerId, false);
 }
-

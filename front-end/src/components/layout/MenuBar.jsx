@@ -58,6 +58,7 @@ import circleHeader from "@/assets/circleHeader.png";
 import { useUserContext } from "@/components/contexts/UserContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { UserImageFallback } from "@/components/ui/figma/ImageWithFallback";
 
 function MenuBar({ active }) {
 	const navigate = useNavigate();
@@ -249,7 +250,8 @@ function MenuBar({ active }) {
 												className="flex items-center gap-3 py-4 px-3 rounded-2xl hover:bg-primary-100 transition-colors"
 											>
 												<div className="relative">
-													<img
+													<UserImageFallback
+														type="avatar"
 														src={user.photo}
 														className="w-16 h-16 aspect-square rounded-2xl object-cover border-4 border-primary-200 shadow-lg"
 														alt="Foto do Usuário"

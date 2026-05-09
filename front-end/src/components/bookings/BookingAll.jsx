@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { BOOKING_STATUS_CONFIG } from "@/lib/bookingStatuses.js";
+import { PlaceImageFallback } from "@/components/ui/figma/ImageWithFallback";
 
 import "./Booking.css";
 
@@ -82,8 +83,8 @@ const BookingAll = ({ bookingsArray, bookingId, onBookingCANCELLED }) => {
 					<div className="relative h-[410px] w-[707px] max-sm:w-full max-sm:h-[300px] flex-shrink-0">
 						{/* Imagem Principal Grande */}
 						<div className="absolute left-0 top-0 h-full w-[497px] max-sm:w-[60%] rounded-[25px] overflow-hidden">
-							<img
-								src={booking.place.photos[0]}
+							<PlaceImageFallback
+								src={booking.place?.photos?.[0]}
 								alt={booking.place.title}
 								className="w-full h-full object-cover"
 							/>
@@ -99,15 +100,15 @@ const BookingAll = ({ bookingsArray, bookingId, onBookingCANCELLED }) => {
 						{/* Imagens Menores Empilhadas à Direita */}
 						<div className="absolute right-0 top-0 h-full flex flex-col gap-[10px] p-[10px] max-sm:hidden">
 							<div className="relative w-[200px] h-[200px] rounded-[25px] overflow-hidden flex-shrink-0">
-								<img
-									src={booking.place.photos[1]}
+								<PlaceImageFallback
+									src={booking.place?.photos?.[1]}
 									alt={booking.place.title}
 									className="w-full h-full object-cover"
 								/>
 							</div>
 							<div className="relative w-[200px] h-[200px] rounded-[25px] overflow-hidden flex-shrink-0">
-								<img
-									src={booking.place.photos[2]}
+								<PlaceImageFallback
+									src={booking.place?.photos?.[2]}
 									alt={booking.place.title}
 									className="w-full h-full object-cover"
 								/>

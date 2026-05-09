@@ -12,6 +12,7 @@ As functions recebem parametros e retornam linhas ja filtradas/consolidadas, red
 - `004_fn_host_dashboard_operational_snapshot.sql`
 - `005_core_application_read_functions.sql`
 - `006_host_analytics_payload_functions.sql`
+- `007_fn_host_cleaning_inspection.sql`
 
 ## Aplicacao
 

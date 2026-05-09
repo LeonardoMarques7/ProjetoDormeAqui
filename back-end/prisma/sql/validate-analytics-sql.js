@@ -18,6 +18,10 @@ const EXPECTED_FUNCTIONS = [
   "get_host_booking_status_summary",
   "get_host_payment_status_summary",
   "get_host_financial_summary",
+  "fn_host_cleaning_inspection_tasks",
+  "fn_host_cleaning_inspection_metrics",
+  "fn_host_cleaning_inspection_problem_places",
+  "fn_host_cleaning_inspection_responsibles",
 ];
 
 const EXPECTED_MATERIALIZED_VIEWS = ["mv_host_dashboard_summary_monthly"];
@@ -70,4 +74,3 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
-

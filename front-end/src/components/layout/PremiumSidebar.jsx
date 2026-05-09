@@ -19,6 +19,7 @@ import { useUserContext } from "@/components/contexts/UserContext";
 import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { HomeModernIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { UserImageFallback } from "@/components/ui/figma/ImageWithFallback";
 
 const PremiumSidebar = ({ open, onClose, user, onLogout }) => {
 	const { showAuthModal } = useAuthModalContext();
@@ -276,7 +277,8 @@ const PremiumSidebar = ({ open, onClose, user, onLogout }) => {
 										className="w-full flex items-center gap-3 group"
 									>
 										<div className="relative flex-shrink-0">
-											<img
+											<UserImageFallback
+												type="avatar"
 												src={user.photo}
 												alt={user.name}
 												className="w-12 h-12 rounded-full object-cover border-2 border-primary-200 shadow-md"

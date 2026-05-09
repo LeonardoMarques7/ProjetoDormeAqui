@@ -20,6 +20,8 @@ psql "$DATABASE_URL" -f back-end/prisma/sql/views/001_v_host_monthly_revenue.sql
 - `v_host_booking_status_monthly`: reservas por status, anfitriao e mes.
 - `v_host_payment_status_monthly`: pagamentos por status, anfitriao e mes.
 - `v_place_review_summary`: resumo de avaliacoes por acomodacao.
+- `v_cleaning_inspection_task_health`: saude operacional de cada tarefa de limpeza/vistoria.
+- `v_host_cleaning_inspection_metrics`: metricas agregadas da operacao de limpeza/vistoria por anfitriao.
 - `v_host_financial_summary_monthly`: lancamentos financeiros por anfitriao e mes.
 - `v_host_dashboard_summary_monthly`: resumo mensal consolidado para dashboard futuro.
 

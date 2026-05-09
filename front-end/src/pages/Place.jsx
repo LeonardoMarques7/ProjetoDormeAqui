@@ -1,11 +1,7 @@
 import axios from "axios";
-import React, { useEffect, useState, useRef } from "react";
-import { useCallback } from "react";
-import { Navigate, useParams, Link } from "react-router-dom";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Link, useParams } from "react-router-dom";
 import { useMessage } from "../components/contexts/MessageContext";
-import { useMobileContext } from "@/components/contexts/MobileContext";
-import { Skeleton } from "@/components/ui/skeleton";
-import photoDefaultLoading from "../assets/loadingGif2.gif";
 import NotFound from "./NotFound";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -17,9 +13,7 @@ import PlacePerks from "../components/places/PlacePerks";
 import PlaceLocation from "../components/places/PlaceLocation";
 import PlaceRules from "../components/places/PlaceRules";
 import PlaceReviews from "../components/places/PlaceReviews";
-import PlaceExistingBooking from "../components/places/PlaceExistingBooking";
 import PlaceBookingForm from "../components/places/PlaceBookingForm";
-
 import PlaceHolder from "../components/places/placeholder/PlaceHolder";
 import { AlertTriangle } from "lucide-react";
 
@@ -40,17 +34,13 @@ const stagger = {
 const Place = () => {
 	const { id } = useParams();
 	const { showMessage } = useMessage();
-	const { mobile } = useMobileContext();
 
 	const [place, setPlace] = useState(null);
-	const [owner, setOwner] = useState(null);
 	const [booking, setBooking] = useState(null);
 	const [bookingsPlace, setBookingsPlace] = useState(null);
-	const [reviews, setReviews] = useState([]);
 	const [loading, setLoading] = useState(false);
 	const [placeNotFound, setPlaceNotFound] = useState(false);
 	const [placeInactive, setPlaceInactive] = useState(false);
-	const [experienceTime, setExperienceTime] = useState("");
 	const [refundPolicy, setRefundPolicy] = useState(null);
 	const [showFixedBar, setShowFixedBar] = useState(false);
 	const [bookingFormData, setBookingFormData] = useState(null);
@@ -58,10 +48,6 @@ const Place = () => {
 	const [popupData, setPopupData] = useState(null);
 
 	const formRef = useRef(null);
-
-	const navigate = (url) => window.location.assign(url);
-
-	/* FETCH PLACE */
 
 	useEffect(() => {
 		if (!id) return;
@@ -83,37 +69,13 @@ const Place = () => {
 			.finally(() => setTimeout(() => setLoading(false), 50));
 	}, [id]);
 
-	/* OWNER */
-
-	useEffect(() => {
-		if (!place?.owner?._id) return;
-
-		axios
-			.get(`/places/owner/${place.owner._id}`)
-			.then(({ data }) => {
-				setOwner(data);
-
-				const days = Math.ceil(
-					(Date.now() - new Date(data?.createdAt)) / 86400000,
-				);
-
-				if (days < 30) setExperienceTime(`${days} dias`);
-				else if (days < 365)
-					setExperienceTime(`${Math.floor(days / 30)} meses`);
-				else setExperienceTime(`${Math.floor(days / 365)} anos`);
-			})
-			.catch(() => setOwner(null));
-	}, [place]);
-
-	/* USER BOOKING */
-
 	useEffect(() => {
 		if (!place) return;
 
 		axios
 			.get("/bookings/owner")
 			.then(({ data }) => {
-				const found = data.find((b) => b.place._id === place._id);
+				const found = data.find((item) => item.place._id === place._id);
 
 				if (found) {
 					setBooking(found);
@@ -121,9 +83,7 @@ const Place = () => {
 				}
 			})
 			.catch(() => {});
-	}, [place]);
-
-	/* BOOKINGS */
+	}, [place, showMessage]);
 
 	useEffect(() => {
 		if (!id) return;
@@ -134,29 +94,16 @@ const Place = () => {
 			.catch(() => {});
 	}, [id]);
 
-	/* REVIEWS */
-
-	useEffect(() => {
-		if (!id) return;
-
-		axios
-			.get(`/reviews/place/${id}`)
-			.then(({ data }) => setReviews(data))
-			.catch(() => {});
-	}, [id]);
-
-	// Lógica para mostrar popup minimalista do booking
 	useEffect(() => {
 		const handleScroll = () => {
 			const form = document.getElementById("bookingForm");
 			if (!form) return;
+
 			const rect = form.getBoundingClientRect();
-			// Se o formulário não está visível, mostra popup
 			if (rect.bottom < 0 || rect.top > window.innerHeight) {
-				// Dados mínimos para popup
 				setShowBookingPopup(true);
-				// Pega dados do formulário se possível
-				if (form && form.dataset) {
+
+				if (form.dataset) {
 					try {
 						const data = JSON.parse(form.dataset.bookingpopup || "{}");
 						setPopupData(data);
@@ -168,12 +115,12 @@ const Place = () => {
 				setShowBookingPopup(false);
 			}
 		};
+
 		window.addEventListener("scroll", handleScroll);
 		handleScroll();
+
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
-
-	/* FIXED BAR */
 
 	useEffect(() => {
 		if (!place || !formRef.current) return;
@@ -184,11 +131,9 @@ const Place = () => {
 		);
 
 		observer.observe(formRef.current);
-
 		return () => observer.disconnect();
 	}, [place]);
 
-	// Função para abrir o formulário completo ao clicar no popup
 	const handlePopupBook = useCallback(() => {
 		const form = document.getElementById("bookingForm");
 		if (form) {
@@ -223,7 +168,7 @@ const Place = () => {
 						transition={{ delay: 0.3, duration: 0.4 }}
 						className="text-3xl font-bold text-gray-900 mb-3"
 					>
-						Acomodação Indisponível
+						Acomodação indisponível
 					</motion.h1>
 
 					<motion.p
@@ -258,9 +203,11 @@ const Place = () => {
 		return <></>;
 	}
 
-	// Função para passar dados mínimos do booking para o popup
+	const reviews = place.reviews || [];
+
 	const getMinimalBookingData = () => {
 		if (!place || !bookingFormData) return null;
+
 		return {
 			price: place.price,
 			nights: bookingFormData.nights,
@@ -271,35 +218,33 @@ const Place = () => {
 
 	return (
 		<>
-			{loading == true ? (
-				<div className="  mx-auto h-full max-sm:max-w-full md:max-w-7xl">
+			{loading ? (
+				<div className="mx-auto h-full max-sm:max-w-full md:max-w-7xl">
 					<PlaceHolder />
 				</div>
 			) : (
-				<AnimatePresence className="">
+				<AnimatePresence>
 					<motion.div
-						className="  mx-auto h-full max-sm:max-w-full md:max-w-7xl"
+						className="mx-auto h-full max-sm:max-w-full md:max-w-7xl"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 					>
-						{/* GALERIA */}
 						<div>
 							<PlaceGallery photos={place.photos || []} />
 						</div>
-						{/* GRID */}
+
 						<motion.div
-							className="grid relative max-sm:grid-cols-1  grid-cols-5 h-fit  gap-2 mt-2"
+							className="grid relative max-sm:grid-cols-1 grid-cols-5 h-fit gap-2 mt-2"
 							variants={stagger}
 							initial="hidden"
 							whileInView="visible"
 						>
-							{/* COLUNA ESQUERDA */}
 							<motion.div
-								className="col-span-3  w-full max-w-2xl max-sm:flex max-sm:flex-col max-sm:gap-5"
+								className="col-span-3 w-full max-w-2xl max-sm:flex max-sm:flex-col max-sm:gap-5"
 								variants={fadeUp}
 							>
 								<PlaceHeader place={place} />
-								{owner && <PlaceOwner owner={place.owner} />}
+								{place.owner && <PlaceOwner owner={place.owner} />}
 								{place.description && (
 									<PlaceDescription description={place.description} />
 								)}
@@ -308,10 +253,10 @@ const Place = () => {
 								<PlaceRules place={place} refundPolicy={refundPolicy} />
 								{reviews.length > 0 && <PlaceReviews reviews={reviews} />}
 							</motion.div>
-							{/* COLUNA DIREITA */}
+
 							<div
 								id="bookingForm"
-								className="col-span-2 w-full "
+								className="col-span-2 w-full"
 								data-bookingpopup={JSON.stringify(getMinimalBookingData())}
 							>
 								<PlaceBookingForm
@@ -327,7 +272,6 @@ const Place = () => {
 				</AnimatePresence>
 			)}
 
-			{/* Popup minimalista do booking */}
 			{showBookingPopup && popupData && (
 				<PlaceBookingForm
 					asPopup

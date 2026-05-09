@@ -31,7 +31,9 @@ router.get("/", async (req, res) => {
 router.get("/owner", async (req, res) => {
   try {
     const { _id } = await JWTVerify(req, COOKIE_NAME);
-    const placeDocs = await getHostPlaces(_id);
+    const placeDocs = await getHostPlaces(_id, {
+      view: req.query.view === "profile" ? "profile" : "default",
+    });
     res.json(placeDocs);
   } catch (error) {
     console.error("Erro ao buscar acomodacoes do usuario autenticado:", error);
@@ -41,7 +43,9 @@ router.get("/owner", async (req, res) => {
 
 router.get("/user/:userId", async (req, res) => {
   try {
-    const placeDocs = await getHostPlaces(req.params.userId);
+    const placeDocs = await getHostPlaces(req.params.userId, {
+      view: req.query.view === "profile" ? "profile" : "default",
+    });
     res.json(placeDocs);
   } catch (error) {
     console.error("Erro ao buscar acomodacoes para o usuario:", req.params.userId, error);

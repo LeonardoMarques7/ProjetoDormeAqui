@@ -92,12 +92,14 @@ enum CleaningStatus {
   AWAITING_CLEANING
   CLEANING_IN_PROGRESS
   DONE
+  OVERDUE
   NOT_REQUIRED
 }
 
 enum InspectionStatus {
   AWAITING_INSPECTION
   APPROVED
+  REJECTED
   BLOCKED
   NOT_REQUIRED
 }
@@ -107,12 +109,15 @@ enum OverallInspectionStatus {
   CLEANING_IN_PROGRESS
   AWAITING_INSPECTION
   APPROVED
+  REJECTED
   BLOCKED
+  OVERDUE
 }
 
 enum ChecklistItemStatus {
   PENDING
   DONE
+  FAILED
   ISSUE
   NOT_APPLICABLE
 }
@@ -122,6 +127,20 @@ enum InspectionPhotoType {
   AFTER
   INSPECTION
   ISSUE
+  GENERAL
+}
+
+enum CleaningArea {
+  BATHROOM
+  KITCHEN
+  BEDROOM
+  COMMON_AREA
+  CONTACT_SURFACES
+  LINENS
+  SUPPLIES
+  BASIC_SAFETY
+  OUTDOOR
+  OTHER
 }
 
 model User {
@@ -137,6 +156,11 @@ model User {
   authIdentities            AuthIdentity[]
   bookings                  Booking[]                    @relation("GuestBookings")
   cleaningInspections       CleaningInspection[]         @relation("HostCleaningInspections")
+  cleaningAssignments       CleaningInspection[]         @relation("CleaningInspectionCleaningAssignee")
+  inspectionAssignments     CleaningInspection[]         @relation("CleaningInspectionInspectionAssignee")
+  completedCleaningChecks   CleaningChecklistItem[]      @relation("CleaningChecklistCompletedBy")
+  completedInspectionChecks InspectionChecklistItem[]    @relation("InspectionChecklistCompletedBy")
+  uploadedInspectionPhotos  CleaningInspectionPhoto[]    @relation("CleaningInspectionPhotoUploadedBy")
   financialEntries          FinancialEntry[]
   hostedPlaces              Place[]                      @relation("HostPlaces")
   payments                  Payment[]
@@ -462,14 +486,24 @@ model CleaningInspection {
   placeId              String                    @map("place_id") @db.Uuid
   previousBookingId    String?                   @unique @map("previous_booking_id") @db.Uuid
   nextBookingId        String?                   @unique @map("next_booking_id") @db.Uuid
+  cleaningAssigneeId   String?                   @map("cleaning_assignee_id") @db.Uuid
+  inspectionAssigneeId String?                   @map("inspection_assignee_id") @db.Uuid
   lastCheckout         DateTime?                 @map("last_checkout")
   nextCheckin          DateTime?                 @map("next_checkin")
+  deadlineAt           DateTime?                 @map("deadline_at")
+  cleaningStartedAt    DateTime?                 @map("cleaning_started_at")
+  cleaningCompletedAt  DateTime?                 @map("cleaning_completed_at")
+  inspectionCompletedAt DateTime?                @map("inspection_completed_at")
   cleaningStatus       CleaningStatus            @default(AWAITING_CLEANING) @map("cleaning_status")
   inspectionStatus     InspectionStatus         @default(AWAITING_INSPECTION) @map("inspection_status")
   overallStatus        OverallInspectionStatus  @default(AWAITING_CLEANING) @map("overall_status")
   assigneeName         String?                  @map("assignee_name")
   assigneeContact      String?                  @map("assignee_contact")
+  inspectionAssigneeName String?                @map("inspection_assignee_name")
+  inspectionAssigneeContact String?             @map("inspection_assignee_contact")
   deadlineLabel        String?                  @map("deadline_label")
+  requiresPhotoEvidence Boolean                 @default(true) @map("requires_photo_evidence")
+  minimumRequiredEvidenceCount Int              @default(2) @map("minimum_required_evidence_count")
   notes                String?
   createdAt            DateTime                 @default(now()) @map("created_at")
   updatedAt            DateTime                 @updatedAt @map("updated_at")
@@ -478,6 +512,8 @@ model CleaningInspection {
   place                Place                    @relation(fields: [placeId], references: [id], onDelete: Restrict)
   previousBooking      Booking?                 @relation("PreviousInspection", fields: [previousBookingId], references: [id], onDelete: SetNull)
   nextBooking          Booking?                 @relation("NextInspection", fields: [nextBookingId], references: [id], onDelete: SetNull)
+  cleaningAssignee     User?                    @relation("CleaningInspectionCleaningAssignee", fields: [cleaningAssigneeId], references: [id], onDelete: SetNull)
+  inspectionAssignee   User?                    @relation("CleaningInspectionInspectionAssignee", fields: [inspectionAssigneeId], references: [id], onDelete: SetNull)
   cleaningChecklists   CleaningChecklistItem[]
   inspectionChecklists InspectionChecklistItem[]
   photos               CleaningInspectionPhoto[]
@@ -485,9 +521,14 @@ model CleaningInspection {
   @@index([hostId])
   @@index([placeId])
   @@index([nextCheckin])
+  @@index([deadlineAt])
+  @@index([cleaningAssigneeId])
+  @@index([inspectionAssigneeId])
   @@index([cleaningStatus])
   @@index([inspectionStatus])
   @@index([overallStatus])
+  @@index([createdAt])
+  @@index([updatedAt])
   @@index([hostId, overallStatus, nextCheckin])
   @@index([hostId, placeId, nextCheckin])
   @@map("cleaning_inspections")
@@ -496,13 +537,21 @@ model CleaningInspection {
 model CleaningChecklistItem {
   id                 String                @id @default(uuid()) @db.Uuid
   cleaningInspectionId String              @map("cleaning_inspection_id") @db.Uuid
+  area               CleaningArea          @default(OTHER)
   label              String
+  description        String?
+  isRequired         Boolean               @default(true) @map("is_required")
   status             ChecklistItemStatus   @default(PENDING)
   notes              String?
+  completedAt        DateTime?             @map("completed_at")
+  completedByUserId  String?               @map("completed_by_user_id") @db.Uuid
   sortOrder          Int                   @default(0) @map("sort_order")
 
   cleaningInspection CleaningInspection    @relation(fields: [cleaningInspectionId], references: [id], onDelete: Cascade)
+  completedByUser    User?                 @relation("CleaningChecklistCompletedBy", fields: [completedByUserId], references: [id], onDelete: SetNull)
+  photos             CleaningInspectionPhoto[] @relation("PhotoToCleaningChecklistItem")
 
+  @@index([completedByUserId])
   @@index([cleaningInspectionId, sortOrder])
   @@map("cleaning_checklist_items")
 }
@@ -510,28 +559,47 @@ model CleaningChecklistItem {
 model InspectionChecklistItem {
   id                    String               @id @default(uuid()) @db.Uuid
   cleaningInspectionId  String               @map("cleaning_inspection_id") @db.Uuid
+  area                  CleaningArea         @default(OTHER)
   label                 String
+  description           String?
+  isRequired            Boolean              @default(true) @map("is_required")
   status                ChecklistItemStatus  @default(PENDING)
   notes                 String?
+  completedAt           DateTime?            @map("completed_at")
+  completedByUserId     String?              @map("completed_by_user_id") @db.Uuid
   sortOrder             Int                  @default(0) @map("sort_order")
 
   cleaningInspection    CleaningInspection   @relation(fields: [cleaningInspectionId], references: [id], onDelete: Cascade)
+  completedByUser       User?                @relation("InspectionChecklistCompletedBy", fields: [completedByUserId], references: [id], onDelete: SetNull)
+  photos                CleaningInspectionPhoto[] @relation("PhotoToInspectionChecklistItem")
 
+  @@index([completedByUserId])
   @@index([cleaningInspectionId, sortOrder])
   @@map("inspection_checklist_items")
 }
 
 model CleaningInspectionPhoto {
-  id                   String              @id @default(uuid()) @db.Uuid
-  cleaningInspectionId String              @map("cleaning_inspection_id") @db.Uuid
-  url                  String
-  label                String?
-  type                 InspectionPhotoType @default(INSPECTION)
-  uploadedAt           DateTime?           @map("uploaded_at")
-  sortOrder            Int                 @default(0) @map("sort_order")
+  id                        String                   @id @default(uuid()) @db.Uuid
+  cleaningInspectionId      String                   @map("cleaning_inspection_id") @db.Uuid
+  cleaningChecklistItemId   String?                  @map("cleaning_checklist_item_id") @db.Uuid
+  inspectionChecklistItemId String?                  @map("inspection_checklist_item_id") @db.Uuid
+  uploadedByUserId          String?                  @map("uploaded_by_user_id") @db.Uuid
+  url                       String
+  label                     String?
+  description               String?
+  area                      CleaningArea?
+  type                      InspectionPhotoType      @default(INSPECTION)
+  uploadedAt                DateTime?                @map("uploaded_at")
+  sortOrder                 Int                      @default(0) @map("sort_order")
 
-  cleaningInspection   CleaningInspection  @relation(fields: [cleaningInspectionId], references: [id], onDelete: Cascade)
+  cleaningInspection        CleaningInspection       @relation(fields: [cleaningInspectionId], references: [id], onDelete: Cascade)
+  cleaningChecklistItem     CleaningChecklistItem?   @relation("PhotoToCleaningChecklistItem", fields: [cleaningChecklistItemId], references: [id], onDelete: SetNull)
+  inspectionChecklistItem   InspectionChecklistItem? @relation("PhotoToInspectionChecklistItem", fields: [inspectionChecklistItemId], references: [id], onDelete: SetNull)
+  uploadedByUser            User?                    @relation("CleaningInspectionPhotoUploadedBy", fields: [uploadedByUserId], references: [id], onDelete: SetNull)
 
+  @@index([cleaningChecklistItemId])
+  @@index([inspectionChecklistItemId])
+  @@index([uploadedByUserId])
   @@index([cleaningInspectionId, sortOrder])
   @@map("cleaning_inspection_photos")
 }

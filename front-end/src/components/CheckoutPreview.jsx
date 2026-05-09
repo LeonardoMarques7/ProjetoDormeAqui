@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Users, MapPin, CreditCard } from 'lucide-react';
+import { PlaceImageFallback } from "@/components/ui/figma/ImageWithFallback";
 
 export default function CheckoutPreview({ checkoutData, place }) {
 	if (!checkoutData || !place) return null;
@@ -28,15 +29,13 @@ export default function CheckoutPreview({ checkoutData, place }) {
 	return (
 		<div className="w-full bg-white rounded-2xl border border-gray-200 overflow-hidden">
 			{/* Imagem da acomodação */}
-			{place?.photos && place.photos.length > 0 && (
-				<div className="w-full h-48 bg-gray-200 overflow-hidden">
-					<img
-						src={place.photos[0]}
-						alt={place.title}
-						className="w-full h-full object-cover"
-					/>
-				</div>
-			)}
+			<div className="w-full h-48 bg-gray-200 overflow-hidden">
+				<PlaceImageFallback
+					src={place?.photos?.[0]}
+					alt={place?.title}
+					className="w-full h-full"
+				/>
+			</div>
 
 			{/* Conteúdo */}
 			<div className="p-5 space-y-4">
