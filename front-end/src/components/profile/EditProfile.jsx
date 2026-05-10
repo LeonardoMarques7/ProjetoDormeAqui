@@ -18,6 +18,7 @@ import {
 	Users,
 } from "lucide-react";
 import { MarkdownEditor } from "@/components/ui/MarkdownEditor";
+import { UserImageFallback } from "@/components/ui/figma/ImageWithFallback";
 
 const EditProfile = ({ user }) => {
 	const id = user._id;
@@ -159,7 +160,8 @@ const EditProfile = ({ user }) => {
 							{/* Avatar sobreposto */}
 							<div className="icon__perfil relative w-40 h-40 rounded-full border-8 bg-gradient-to-bl from-primary-200 to-primary-500 shadow-lg flex justify-center items-center text-4xl font-bold text-white">
 								{photo ? (
-									<img
+									<UserImageFallback
+										type="avatar"
 										src={photo}
 										className="w-full h-full object-cover rounded-full"
 										alt={name}

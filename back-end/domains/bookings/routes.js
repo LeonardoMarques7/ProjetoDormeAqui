@@ -1,29 +1,18 @@
-﻿import { Router } from "express";
-import { __dirname } from "../../ultis/dirname.js";
-import Booking from "./model.js";
+import { Router } from "express";
 import { JWTVerify } from "../../ultis/jwt.js";
-import mongoose from "mongoose";
-import * as transitionService from "./transitionService.js";
 import { AUTH_COOKIE_NAME as COOKIE_NAME } from "../../security.js";
+import {
+  createBooking,
+  getBookingById,
+  getBookingByPaymentId,
+  getHostBookings,
+  getPlaceBookedDates,
+  getPlaceBookings,
+  getUserBookings,
+  updateBookingStatus,
+} from "../../prisma/repositories/bookings.repository.js";
 
 const router = Router();
-
-// Configuração do cookie baseada no ambiente (igual ao users/routes.js)
-const isProduction = process.env.NODE_ENV === 'production';
-
-const bookingPopulate = [
-  {
-    path: "place",
-    populate: {
-      path: "owner",
-      select: "name email photo avatar"
-    }
-  },
-  {
-    path: "user",
-    select: "name email photo avatar"
-  }
-];
 
 const mapProviderStatus = (status) => {
   const normalized = String(status || "").toLowerCase();
@@ -35,106 +24,34 @@ const mapProviderStatus = (status) => {
     in_mediation: "pending",
     rejected: "rejected",
     cancelled: "rejected",
-    canceled: "rejected",
     refunded: "rejected",
-    charged_back: "rejected"
+    charged_back: "rejected",
   }[normalized] || "pending";
 };
 
-const getPaymentAliases = async (paymentId) => {
-  const aliases = new Set([String(paymentId)]);
-
-  try {
-    const { getPaymentInfo } = await import("../payments/service.js");
-    const paymentInfo = await getPaymentInfo(paymentId);
-    if (paymentInfo?.id) aliases.add(String(paymentInfo.id));
-    if (paymentInfo?.raw?.id) aliases.add(String(paymentInfo.raw.id));
-    if (paymentInfo?.raw?.payment_intent) aliases.add(String(paymentInfo.raw.payment_intent));
-  } catch {
-    // Fallback only: keep the original paymentId when the provider lookup is unavailable.
-  }
-
-  return Array.from(aliases);
-};
-
 const requesterCanSeeBooking = (booking, requester) => {
-  const requesterId = String(requester?._id || "");
-  const guestId = String(booking?.user?._id || booking?.user || "");
-  const ownerId = String(booking?.place?.owner?._id || booking?.place?.owner || "");
-
-  return (
-    requesterId &&
-    (requesterId === guestId ||
-      requesterId === ownerId ||
-      ["admin", "moderator"].includes(requester?.role))
-  );
-};
-
-const syncApprovedBookingStatus = async (booking, changedBy = null) => {
-  let changed = false;
-
-  if (booking.paymentStatus !== "approved") {
-    booking.paymentStatus = "approved";
-    changed = true;
-  }
-
-  if (booking.status === "pending") {
-    booking.status = "confirmed";
-    booking.lastStatusChange = new Date();
-    booking.statusHistory = booking.statusHistory || [];
-    booking.statusHistory.push({
-      status: "confirmed",
-      changedBy,
-      reason: "Pagamento aprovado"
-    });
-    changed = true;
-  }
-
-  if (changed) await booking.save();
+  const requesterId = String(requester?._id || requester?.id || "");
+  const guestId = String(booking?.user?._id || booking?.user?.id || booking?.guest?._id || "");
+  const ownerId = String(booking?.place?.owner?._id || booking?.place?.owner?.id || booking?.place?.owner || "");
+  return requesterId && (requesterId === guestId || requesterId === ownerId || ["admin", "moderator"].includes(requester?.role));
 };
 
 router.get("/owner", async (req, res) => {
-
   try {
     const { _id: id } = await JWTVerify(req, COOKIE_NAME);
-
-    try {
-      const bookingDocs = await Booking.find({ user: id })
-        .sort({ createdAt: -1 })
-        .populate(bookingPopulate);
-
-      res.json(bookingDocs);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Deu erro ao encontrar as reservas.." });
-    }
+    res.json(await getUserBookings(id));
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Deu erro ao validar token do usuário.." });
+    console.error("Erro ao encontrar reservas do usuario:", error);
+    res.status(500).json({ message: "Deu erro ao encontrar as reservas." });
   }
 });
 
 router.get("/host", async (req, res) => {
   try {
     const { _id: hostId } = await JWTVerify(req, COOKIE_NAME);
-    const Place = (await import("../places/model.js")).default;
-    const hostPlaces = await Place.find({ owner: hostId }).select("_id").lean();
-    const placeIds = hostPlaces.map((place) => place._id);
-
-    const bookingDocs = await Booking.find({ place: { $in: placeIds } })
-      .sort({ createdAt: -1 })
-      .populate({
-        path: "place",
-        populate: {
-          path: "owner",
-          select: "name email photo avatar"
-        }
-      })
-      .populate("user", "name email photo avatar");
-
-    res.json(bookingDocs);
+    res.json(await getHostBookings(hostId));
   } catch (error) {
-    console.error(error);
+    console.error("Erro ao encontrar reservas do anfitriao:", error);
     res.status(500).json({ message: "Deu erro ao encontrar as reservas do anfitriao." });
   }
 });
@@ -142,627 +59,196 @@ router.get("/host", async (req, res) => {
 router.get("/by-payment/:paymentId", async (req, res) => {
   try {
     const requester = await JWTVerify(req, COOKIE_NAME);
-    const paymentAliases = await getPaymentAliases(req.params.paymentId);
-    const booking = await Booking.findOne({
-      mercadopagoPaymentId: { $in: paymentAliases }
-    }).populate(bookingPopulate);
-
+    const booking = await getBookingByPaymentId(req.params.paymentId);
     if (!booking) {
-      return res.status(404).json({ message: "Reserva ainda não encontrada para este pagamento." });
+      return res.status(404).json({ message: "Reserva ainda nao encontrada para este pagamento." });
     }
-
     if (!requesterCanSeeBooking(booking, requester)) {
       return res.status(403).json({ message: "Voce nao tem permissao para consultar esta reserva." });
     }
-
-    return res.json(booking);
+    res.json(booking);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Deu erro ao buscar a reserva pelo pagamento." });
+    console.error("Erro ao buscar reserva pelo pagamento:", error);
+    res.status(500).json({ message: "Deu erro ao buscar a reserva pelo pagamento." });
   }
 });
 
 router.get("/place/:id", async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const bookingDocs = await Booking.find({ place: id })
-      .select("checkin checkout status");
-
-    res.json(bookingDocs);
+    const bookingDocs = await getPlaceBookings(req.params.id);
+    res.json(bookingDocs.map((booking) => ({ checkin: booking.checkin, checkout: booking.checkout, status: booking.status })));
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Deu erro ao encontrar as reservas.." });
+    console.error("Erro ao encontrar reservas por acomodacao:", error);
+    res.status(500).json({ message: "Deu erro ao encontrar as reservas." });
   }
 });
 
 router.get("/place/:id/booked-dates", async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const bookingDocs = await Booking.find({ place: id })
-      .select('checkin checkout')
-      .sort({ checkin: 1 });
-
-    // Extrair todas as datas ocupadas (de checkin até checkout, incluindo checkout)
-    const bookedDates = [];
-    bookingDocs.forEach(booking => {
-      const checkin = booking.checkin;
-      const checkout = booking.checkout;
-
-      // Adicionar todas as datas entre checkin e checkout (incluindo checkout)
-      for (let date = new Date(checkin); date <= checkout; date.setDate(date.getDate() + 1)) {
-        bookedDates.push(date.toISOString().split('T')[0]); // YYYY-MM-DD
-      }
-    });
-
-
-    // Remover duplicatas
-    const uniqueBookedDates = [...new Set(bookedDates)];
-
-    res.json(uniqueBookedDates);
+    res.json(await getPlaceBookedDates(req.params.id));
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Deu erro ao buscar datas ocupadas.." });
+    console.error("Erro ao buscar datas ocupadas:", error);
+    res.status(500).json({ message: "Deu erro ao buscar datas ocupadas." });
   }
 });
 
 router.post("/", async (req, res) => {
-    const { place, checkin, checkout, guests } = req.body;
-    let authenticatedUser;
-    try {
-        authenticatedUser = await JWTVerify(req, COOKIE_NAME);
-    } catch {
-        return res.status(401).json({ message: "Autenticacao necessaria." });
-    }
-
-
-    // Iniciar sessão de transação para garantir atomicidade e prevenir conflitos de concorrência
-    // Isso garante que apenas uma reserva seja criada por vez, mesmo com múltiplas requisições simultâneas
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-        // Verificar se o usuário está desativado
-        const User = (await import("../users/model.js")).default;
-        const userDoc = await User.findById(authenticatedUser._id).session(session);
-
-        if (!userDoc) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(404).json({ message: "Usuário não encontrado." });
-        }
-
-        if (userDoc.deactivated) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(403).json({ message: "Conta desativada. Não é possível fazer novas reservas." });
-        }
-
-        // Buscar o lugar para obter os horários de check-in e check-out
-        const Place = (await import("../places/model.js")).default;
-        const placeDoc = await Place.findById(place).session(session);
-
-        if (!placeDoc) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(404).json({ message: "Lugar não encontrado." });
-        }
-
-        if (!placeDoc.isActive) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(410).json({ message: "Lugar não está disponível." });
-        }
-
-        const checkinDate = new Date(checkin);
-        const checkoutDate = new Date(checkout);
-        const guestsNumber = parseInt(guests, 10);
-        const calculatedNights = Math.ceil((checkoutDate - checkinDate) / (1000 * 60 * 60 * 24));
-
-        if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime()) || checkoutDate <= checkinDate) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({ message: "Periodo de reserva invalido." });
-        }
-
-        if (!Number.isInteger(guestsNumber) || guestsNumber < 1 || guestsNumber > Number(placeDoc.guests || 1)) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({ message: "Numero de hospedes invalido." });
-        }
-
-        const pricePerNight = Number(placeDoc.price) || 0;
-        const priceTotal = pricePerNight * calculatedNights;
-
-        // Verificar se há reservas conflitantes dentro da transação
-        // Esta verificação é feita atomicamente com a criação da reserva
-        const conflictingBookings = await Booking.find({
-            place: place,
-            $or: [
-                {
-                    checkin: { $lt: checkoutDate },
-                    checkout: { $gt: checkinDate }
-                }
-            ]
-        }).session(session);
-
-        if (conflictingBookings.length > 0) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(409).json({ message: "Datas conflitantes com reservas existentes. As datas selecionadas não estão disponíveis." });
-        }
-
-        // Validar intervalo mínimo entre check-out e check-in
-        // Se o check-out for no mesmo dia ou próximo, verificar os horários
-        const lastBooking = await Booking.findOne({ place: place }).sort({ checkout: -1 }).session(session);
-        if (lastBooking) {
-            const lastCheckout = lastBooking.checkout;
-            const timeDiff = checkinDate.getTime() - lastCheckout.getTime();
-            const hoursDiff = timeDiff / (1000 * 60 * 60);
-
-            // Intervalo mínimo de 3 horas (ajustável)
-            const minIntervalHours = 3;
-
-            if (hoursDiff < minIntervalHours) {
-                await session.abortTransaction();
-                session.endSession();
-                return res.status(400).json({ message: `Intervalo mínimo de ${minIntervalHours} horas entre check-out e check-in não respeitado.` });
-            }
-        }
-
-        // Criar a reserva dentro da transação
-        const newBookingDoc = await Booking.create([{
-            place,
-            user: authenticatedUser._id,
-            pricePerNight,
-            priceTotal,
-            checkin: checkinDate,
-            checkout: checkoutDate,
-            guests: guestsNumber,
-            nights: calculatedNights
-        }], { session });
-
-
-
-        // Confirmar a transação
-        await session.commitTransaction();
-        session.endSession();
-
-        res.json(newBookingDoc[0]);
-    } catch (error) {
-        // Em caso de erro, abortar a transação
-        await session.abortTransaction();
-        session.endSession();
-        console.error("Erro ao criar reserva:", error);
-        res.status(500).json({ message: "Erro interno do servidor ao criar reserva." });
-    }
+  try {
+    const authenticatedUser = await JWTVerify(req, COOKIE_NAME);
+    const booking = await createBooking({ ...req.body, user: authenticatedUser._id });
+    res.json(booking);
+  } catch (error) {
+    console.error("Erro ao criar reserva:", error);
+    res.status(error.statusCode || 500).json({ message: error.message || "Erro interno do servidor ao criar reserva." });
+  }
 });
 
-
-// Endpoint para criar/confirmar booking a partir de um paymentId (idempotente)
 router.post("/from-payment", async (req, res) => {
-    const { paymentId } = req.body;
-    let requester;
-    try {
-        requester = await JWTVerify(req, COOKIE_NAME);
-    } catch {
-        return res.status(401).json({ message: "Autenticacao necessaria." });
+  const { paymentId } = req.body;
+  if (!paymentId) return res.status(400).json({ message: "paymentId e obrigatorio." });
+
+  try {
+    const requester = await JWTVerify(req, COOKIE_NAME);
+    const existingBooking = await getBookingByPaymentId(paymentId);
+    if (existingBooking) {
+      if (!requesterCanSeeBooking(existingBooking, requester)) {
+        return res.status(403).json({ message: "Voce nao tem permissao para consultar esta reserva." });
+      }
+      return res.status(200).json(existingBooking);
     }
 
-    if (!paymentId) {
-        return res.status(400).json({ message: "paymentId é obrigatório." });
+    const { getPaymentInfo } = await import("../payments/service.js");
+    const paymentInfo = await getPaymentInfo(paymentId);
+    if (!paymentInfo?.metadata) {
+      return res.status(400).json({ message: "Nao foi possivel obter informacoes do pagamento." });
     }
 
-    try {
-        const { getPaymentInfo } = await import("../payments/service.js");
-        const paymentInfo = await getPaymentInfo(paymentId);
-
-        if (!paymentInfo || !paymentInfo.metadata) {
-            console.error('❌ /from-payment: Não foi possível obter informações do pagamento', { paymentId });
-            return res.status(400).json({ message: "Não foi possível obter informações do pagamento." });
-        }
-
-        const metadata = paymentInfo.metadata;
-
-        // Normaliza campos da metadata (suporte a diferentes formatos)
-        const userId = metadata.userId || metadata.user_id;
-        const accommodationId = metadata.accommodationId || metadata.accommodation_id;
-        let checkIn = metadata.checkIn || metadata.check_in || metadata.checkin;
-        let checkOut = metadata.checkOut || metadata.check_out || metadata.checkout;
-        const guests = parseInt(metadata.guests || metadata.guest_count || "1", 10) || 1;
-        
-        // 🔧 Parse de datas como strings
-        if (typeof checkIn === 'string') {
-            checkIn = new Date(checkIn);
-        }
-        if (typeof checkOut === 'string') {
-            checkOut = new Date(checkOut);
-        }
-
-        const nights = parseInt(metadata.nights || Math.max(1, Math.ceil((checkOut - checkIn) / (1000*60*60*24))), 10);
-        const priceTotal = parseFloat(metadata.priceTotal || metadata.totalPrice || 0) || 0;
-        const pricePerNight = parseFloat(metadata.pricePerNight || metadata.price_per_night || 0) || 0;
-
-        // Validação básica
-        if (!userId || !accommodationId) {
-            console.error('❌ /from-payment: Metadata incompleta', { userId, accommodationId, paymentId });
-            return res.status(400).json({ message: "Metadata incompleta no pagamento." });
-        }
-
-        // Verifica status do pagamento
-        const mappedStatus = mapProviderStatus(paymentInfo.status);
-        const paymentAliases = await getPaymentAliases(paymentId);
-        const resolvedPaymentId = String(
-            paymentInfo.id ||
-            paymentInfo.raw?.payment_intent ||
-            paymentId
-        );
-
-        // IDEMPOTÊNCIA: verifica se existe reserva com esse paymentId ou com o PaymentIntent da sessão
-        const existingBooking = await Booking.findOne({ mercadopagoPaymentId: { $in: paymentAliases } });
-        if (existingBooking) {
-            if (!requesterCanSeeBooking(existingBooking, requester)) {
-                return res.status(403).json({ message: "Voce nao tem permissao para consultar esta reserva." });
-            }
-
-            if (mappedStatus === "approved") {
-                await syncApprovedBookingStatus(existingBooking, requester._id);
-            }
-
-            const refreshedBooking = await Booking.findById(existingBooking._id).populate(bookingPopulate);
-            return res.status(200).json(refreshedBooking);
-        }
-
-        if (mappedStatus !== "approved") {
-            // console.warn('/from-payment: Pagamento não aprovado', { paymentId, status: mpRawStatus, mapped: mappedStatus });
-            return res.status(400).json({ 
-                message: "Pagamento não aprovado.",
-                paymentStatus: mappedStatus 
-            });
-        }
-
-        const createdBooking = await Booking.createFromPayment({
-            place: accommodationId,
-            user: userId,
-            pricePerNight: pricePerNight || 0,
-            priceTotal,
-            checkin: checkIn,
-            checkout: checkOut,
-            guests,
-            nights,
-            mercadopagoPaymentId: resolvedPaymentId,
-            paymentStatus: "approved"
-        });
-
-        const populatedCreatedBooking = await Booking.findById(createdBooking._id).populate(bookingPopulate);
-
-        return res.status(200).json(populatedCreatedBooking);
-    } catch (error) {
-        // Propaga statusCode se definido na lógica do modelo
-        if (error && error.statusCode) {
-            console.error(`❌ /from-payment: Erro com status ${error.statusCode}`, { message: error.message });
-            return res.status(error.statusCode).json({ message: error.message });
-        }
-
-        // Conflito de datas detectado no modelo
-        if (error && error.message && error.message.toLowerCase().includes("datas conflitantes")) {
-            console.warn('⚠️ /from-payment: Conflito de datas', { message: error.message });
-            return res.status(409).json({ message: error.message });
-        }
-
-        console.error("❌ /from-payment: Erro ao criar reserva", error);
-        return res.status(500).json({ message: "Erro interno ao criar reserva a partir do pagamento." });
+    const mappedStatus = mapProviderStatus(paymentInfo.status);
+    if (mappedStatus !== "approved") {
+      return res.status(400).json({ message: "Pagamento nao aprovado.", paymentStatus: mappedStatus });
     }
+
+    const metadata = paymentInfo.metadata;
+    const booking = await createBooking({
+      place: metadata.accommodationId || metadata.accommodation_id,
+      user: metadata.userId || metadata.user_id || requester._id,
+      checkin: metadata.checkIn || metadata.check_in || metadata.checkin,
+      checkout: metadata.checkOut || metadata.check_out || metadata.checkout,
+      guests: metadata.guests || metadata.guest_count || 1,
+    });
+
+    res.status(200).json(booking);
+  } catch (error) {
+    console.error("Erro ao criar reserva a partir do pagamento:", error);
+    res.status(error.statusCode || 500).json({ message: error.message || "Erro interno ao criar reserva a partir do pagamento." });
+  }
 });
 
-// ✅ Endpoint de teste para verificar se o webhook está funcionando
 router.get("/test/stripe-status", async (req, res) => {
-    try {
-        const { stripeClient, webhookSecret } = await import("../../config/stripe.js");
-        
-        const status = {
-            stripConfigured: !!stripeClient,
-            webhookSecretConfigured: !!webhookSecret,
-            useStripe: process.env.USE_STRIPE === 'true',
-            environment: process.env.NODE_ENV || 'development',
-        };
-
-        console.log('🧪 Test endpoint: Stripe status check', status);
-        return res.json(status);
-    } catch (error) {
-        console.error('❌ Test endpoint: Erro ao verificar Stripe', error.message);
-        return res.status(500).json({ error: error.message });
-    }
+  try {
+    const { stripeClient, webhookSecret } = await import("../../config/stripe.js");
+    res.json({
+      stripConfigured: Boolean(stripeClient),
+      webhookSecretConfigured: Boolean(webhookSecret),
+      useStripe: process.env.USE_STRIPE === "true",
+      environment: process.env.NODE_ENV || "development",
+    });
+  } catch (error) {
+    console.error("Erro ao verificar Stripe:", error.message);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// ✅ Endpoint de teste para simular webhook (APENAS EM DESENVOLVIMENTO)
 router.post("/test/simulate-webhook", async (req, res) => {
-    if (process.env.NODE_ENV === 'production') {
-        return res.status(403).json({ error: "Endpoint não disponível em produção" });
+  if (process.env.NODE_ENV === "production") {
+    return res.status(403).json({ error: "Endpoint nao disponivel em producao" });
+  }
+
+  try {
+    const { checkIn, checkOut, accommodationId, userId, guests = 1 } = req.body;
+    if (!checkIn || !checkOut || !accommodationId || !userId) {
+      return res.status(400).json({ error: "Campos obrigatorios: checkIn, checkOut, accommodationId, userId" });
     }
-
-    try {
-        const { paymentIntentId, checkIn, checkOut, accommodationId, userId } = req.body;
-
-        if (!paymentIntentId || !checkIn || !checkOut || !accommodationId || !userId) {
-            return res.status(400).json({ 
-                error: "Campos obrigatórios: paymentIntentId, checkIn, checkOut, accommodationId, userId" 
-            });
-        }
-
-        // Simula um evento de webhook
-        const fakeEvent = {
-            type: 'checkout.session.completed',
-            data: {
-                object: {
-                    object: 'checkout.session',
-                    id: `cs_test_${Date.now()}`,
-                    payment_intent: paymentIntentId,
-                    payment_status: 'paid',
-                    metadata: {
-                        userId,
-                        accommodationId,
-                        checkIn,
-                        checkOut,
-                        guests: '1',
-                        nights: '1',
-                        totalPrice: '100',
-                        pricePerNight: '100',
-                    }
-                }
-            }
-        };
-
-        // Processa manualmente (igual ao webhook real)
-        const { metadata, paymentId } = {
-            metadata: fakeEvent.data.object.metadata,
-            paymentId: fakeEvent.data.object.payment_intent
-        };
-
-        console.log('🧪 Simulando webhook:', { fakeEvent });
-
-        const createdBooking = await Booking.createFromPayment({
-            place: accommodationId,
-            user: userId,
-            pricePerNight: 100,
-            priceTotal: 100,
-            checkin: new Date(checkIn),
-            checkout: new Date(checkOut),
-            guests: 1,
-            nights: 1,
-            mercadopagoPaymentId: paymentId.toString(),
-            paymentStatus: 'approved',
-        });
-
-        console.log(`✅ Webhook simulado: Reserva criada ${createdBooking._id}`);
-        return res.json({ success: true, booking: createdBooking });
-    } catch (error) {
-        console.error('❌ Erro ao simular webhook:', error.message);
-        return res.status(500).json({ error: error.message });
-    }
+    const booking = await createBooking({ place: accommodationId, user: userId, checkin: checkIn, checkout: checkOut, guests });
+    res.json({ success: true, booking });
+  } catch (error) {
+    console.error("Erro ao simular webhook:", error.message);
+    res.status(error.statusCode || 500).json({ error: error.message });
+  }
 });
 
-// Endpoint para cancelar uma reserva aprovada e solicitar estorno ao Mercado Pago ou Stripe
 router.post("/:id/cancel", async (req, res) => {
-    try {
-        const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
-        const booking = await Booking.findById(req.params.id);
-
-        if (!booking) {
-            return res.status(404).json({ message: "Reserva não encontrada." });
-        }
-
-        if (booking.user.toString() !== userId.toString()) {
-            return res.status(403).json({ message: "Você não tem permissão para cancelar esta reserva." });
-        }
-
-        // Validar que a reserva está confirmada
-        if (booking.status !== "confirmed") {
-            return res.status(400).json({ 
-                message: `Só é possível cancelar reservas confirmadas. Status atual: ${booking.status}` 
-            });
-        }
-
-        if (booking.mercadopagoPaymentId) {
-            const paymentId = booking.mercadopagoPaymentId;
-
-            // Detecta se é pagamento Stripe (PaymentIntent pi_... ou Checkout Session cs_...)
-            const isStripe = paymentId.startsWith('pi_') || paymentId.startsWith('cs_');
-
-            if (isStripe) {
-                try {
-                    const { paymentClient, stripeClient } = await import("../../config/stripe.js");
-
-                    let paymentIntentId = paymentId;
-
-                    // Se for uma Checkout Session, busca o PaymentIntent vinculado
-                    if (paymentId.startsWith('cs_')) {
-                        const session = await stripeClient.checkout.sessions.retrieve(paymentId);
-                        paymentIntentId = session.payment_intent;
-                        if (!paymentIntentId) {
-                            throw new Error('Checkout Session não possui PaymentIntent associado para estorno.');
-                        }
-                    }
-
-                    await paymentClient.refund({ payment_intent: paymentIntentId });
-                    console.log(`Estorno Stripe solicitado para PaymentIntent: ${paymentIntentId} (reserva: ${booking._id})`);
-                } catch (refundErr) {
-                    console.error("Erro ao estornar no Stripe:", refundErr?.message);
-                    return res.status(502).json({
-                        message: "Erro ao solicitar estorno no Stripe. Tente novamente.",
-                        error: refundErr?.message,
-                    });
-                }
-            } else {
-                // Pagamento via Mercado Pago
-                try {
-                    const { paymentClient: mpClient } = await import("../../config/mercadopago.js");
-
-                    // Consulta estado atual no MP para decidir a ação correta:
-                    // - authorized (capture=false): deve ser cancelado via PUT status=cancelled
-                    // - approved (capture=true): deve ser estornado via POST /refunds
-                    const mpPayment = await mpClient.get({ id: paymentId });
-                    const mpStatus = mpPayment?.status;
-
-                    if (mpStatus === "authorized" || mpStatus === "pending_capture") {
-                        await mpClient.cancel({ id: paymentId });
-                        console.log(`Pagamento ${paymentId} cancelado no MP (era ${mpStatus})`);
-                    } else {
-                        await mpClient.refund({ id: paymentId });
-                        console.log(`Estorno solicitado para pagamento ${paymentId} (era ${mpStatus})`);
-                    }
-                } catch (refundErr) {
-                    console.error("Erro ao cancelar/estornar no MP:", refundErr?.response?.data || refundErr?.message);
-                    return res.status(502).json({
-                        message: "Erro ao solicitar cancelamento/estorno no Mercado Pago. Tente novamente.",
-                        error: refundErr?.response?.data?.message || refundErr?.message
-                    });
-                }
-            }
-        }
-
-        // Usar o serviço de transição para atualizar o status
-        try {
-            const updatedBooking = await transitionService.cancelBooking(
-                req.params.id,
-                userId,
-                "Cancelado pelo hóspede"
-            );
-
-            console.log(`Reserva ${booking._id} cancelada pelo usuário ${userId}`);
-            return res.status(200).json({ 
-                message: "Reserva cancelada e estorno solicitado com sucesso.", 
-                booking: updatedBooking 
-            });
-        } catch (transitionError) {
-            return res.status(transitionError.statusCode || 400).json({
-                message: transitionError.message,
-            });
-        }
-    } catch (error) {
-        console.error("Erro ao cancelar reserva:", error);
-        return res.status(500).json({ message: "Erro interno ao cancelar reserva." });
+  try {
+    const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
+    const booking = await getBookingById(req.params.id);
+    if (!booking) return res.status(404).json({ message: "Reserva nao encontrada." });
+    if (String(booking.user?._id) !== String(userId)) {
+      return res.status(403).json({ message: "Voce nao tem permissao para cancelar esta reserva." });
     }
+    if (booking.status !== "confirmed") {
+      return res.status(400).json({ message: `So e possivel cancelar reservas confirmadas. Status atual: ${booking.status}` });
+    }
+
+    const updatedBooking = await updateBookingStatus(req.params.id, "CANCELLED", {
+      reason: "Cancelado pelo hospede",
+      changedBy: userId,
+    });
+    res.status(200).json({ message: "Reserva cancelada com sucesso.", booking: updatedBooking });
+  } catch (error) {
+    console.error("Erro ao cancelar reserva:", error);
+    res.status(error.statusCode || 500).json({ message: error.message || "Erro interno ao cancelar reserva." });
+  }
 });
 
-// Endpoint para transicionar o status de uma reserva (moderador/admin)
 router.post("/:id/transition", async (req, res) => {
-    try {
-        const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
-        req.user = await JWTVerify(req, COOKIE_NAME);
-        if (!["admin", "moderator"].includes(req.user.role)) {
-            return res.status(403).json({ message: "Permissao insuficiente." });
-        }
-        const { toStatus, reason } = req.body;
-
-        if (!toStatus) {
-            return res.status(400).json({ message: "Campo 'toStatus' é obrigatório." });
-        }
-
-        const booking = await Booking.findById(req.params.id);
-
-        if (!booking) {
-            return res.status(404).json({ message: "Reserva não encontrada." });
-        }
-
-        try {
-            const updatedBooking = await transitionService.transitionBookingStatus(
-                req.params.id,
-                toStatus,
-                { reason: reason || "", changedBy: userId }
-            );
-
-            console.log(`Reserva ${req.params.id} transitou de ${booking.status} para ${toStatus} por ${userId}`);
-            return res.status(200).json({
-                message: `Status da reserva atualizado para '${toStatus}' com sucesso.`,
-                booking: updatedBooking,
-            });
-        } catch (transitionError) {
-            return res.status(transitionError.statusCode || 400).json({
-                message: transitionError.message,
-            });
-        }
-    } catch (error) {
-        console.error("Erro ao transicionar status da reserva:", error);
-        return res.status(500).json({ message: "Erro interno ao transicionar status." });
+  try {
+    const { _id: userId, role } = await JWTVerify(req, COOKIE_NAME);
+    if (!["admin", "moderator"].includes(role)) {
+      return res.status(403).json({ message: "Permissao insuficiente." });
     }
+    const updatedBooking = await updateBookingStatus(req.params.id, req.body.toStatus, {
+      reason: req.body.reason || "",
+      changedBy: userId,
+    });
+    if (!updatedBooking) return res.status(404).json({ message: "Reserva nao encontrada." });
+    res.status(200).json({ message: `Status da reserva atualizado para '${req.body.toStatus}' com sucesso.`, booking: updatedBooking });
+  } catch (error) {
+    console.error("Erro ao transicionar status:", error);
+    res.status(error.statusCode || 500).json({ message: error.message || "Erro interno ao transicionar status." });
+  }
 });
 
-// Endpoint para solicitar revisão de uma reserva (moderador)
 router.post("/:id/request-review", async (req, res) => {
-    try {
-        const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
-        req.user = await JWTVerify(req, COOKIE_NAME);
-        if (!["admin", "moderator"].includes(req.user.role)) {
-            return res.status(403).json({ message: "Permissao insuficiente." });
-        }
-        const { reason } = req.body;
-
-        const booking = await Booking.findById(req.params.id);
-
-        if (!booking) {
-            return res.status(404).json({ message: "Reserva não encontrada." });
-        }
-
-        try {
-            const updatedBooking = await transitionService.requestBookingReview(
-                req.params.id,
-                userId,
-                reason || ""
-            );
-
-            console.log(`Revisão solicitada para reserva ${req.params.id} por ${userId}`);
-            return res.status(200).json({
-                message: "Revisão solicitada com sucesso.",
-                booking: updatedBooking,
-            });
-        } catch (reviewError) {
-            return res.status(reviewError.statusCode || 400).json({
-                message: reviewError.message,
-            });
-        }
-    } catch (error) {
-        console.error("Erro ao solicitar revisão:", error);
-        return res.status(500).json({ message: "Erro interno ao solicitar revisão." });
+  try {
+    const { _id: userId, role } = await JWTVerify(req, COOKIE_NAME);
+    if (!["admin", "moderator"].includes(role)) {
+      return res.status(403).json({ message: "Permissao insuficiente." });
     }
+    const updatedBooking = await updateBookingStatus(req.params.id, "REVIEW", {
+      reason: req.body.reason || "Revisao solicitada",
+      changedBy: userId,
+    });
+    if (!updatedBooking) return res.status(404).json({ message: "Reserva nao encontrada." });
+    res.status(200).json({ message: "Revisao solicitada com sucesso.", booking: updatedBooking });
+  } catch (error) {
+    console.error("Erro ao solicitar revisao:", error);
+    res.status(error.statusCode || 500).json({ message: error.message || "Erro interno ao solicitar revisao." });
+  }
 });
 
-// Endpoint para finalizar uma reserva (moderador)
 router.post("/:id/complete", async (req, res) => {
-    try {
-        const { _id: userId } = await JWTVerify(req, COOKIE_NAME);
-        req.user = await JWTVerify(req, COOKIE_NAME);
-        if (!["admin", "moderator"].includes(req.user.role)) {
-            return res.status(403).json({ message: "Permissao insuficiente." });
-        }
-
-        const booking = await Booking.findById(req.params.id);
-
-        if (!booking) {
-            return res.status(404).json({ message: "Reserva não encontrada." });
-        }
-
-        try {
-            const updatedBooking = await transitionService.completeBooking(
-                req.params.id,
-                userId
-            );
-
-            console.log(`Reserva ${req.params.id} finalizada por ${userId}`);
-            return res.status(200).json({
-                message: "Reserva finalizada com sucesso.",
-                booking: updatedBooking,
-            });
-        } catch (completeError) {
-            return res.status(completeError.statusCode || 400).json({
-                message: completeError.message,
-            });
-        }
-    } catch (error) {
-        console.error("Erro ao finalizar reserva:", error);
-        return res.status(500).json({ message: "Erro interno ao finalizar reserva." });
+  try {
+    const { _id: userId, role } = await JWTVerify(req, COOKIE_NAME);
+    if (!["admin", "moderator"].includes(role)) {
+      return res.status(403).json({ message: "Permissao insuficiente." });
     }
+    const updatedBooking = await updateBookingStatus(req.params.id, "COMPLETED", { changedBy: userId });
+    if (!updatedBooking) return res.status(404).json({ message: "Reserva nao encontrada." });
+    res.status(200).json({ message: "Reserva finalizada com sucesso.", booking: updatedBooking });
+  } catch (error) {
+    console.error("Erro ao finalizar reserva:", error);
+    res.status(error.statusCode || 500).json({ message: error.message || "Erro interno ao finalizar reserva." });
+  }
 });
 
 export default router;

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { UserImageFallback } from "@/components/ui/figma/ImageWithFallback";
 
 const slideLeft = {
 	hidden: { opacity: 0, x: -32 },
@@ -13,6 +14,7 @@ const slideLeft = {
 
 export default function PlaceOwner({ owner }) {
 	const [experienceTime, setExperienceTime] = useState("");
+
 	useEffect(() => {
 		if (owner) {
 			calculateExperienceTime();
@@ -20,7 +22,7 @@ export default function PlaceOwner({ owner }) {
 	}, [owner]);
 
 	const calculateExperienceTime = () => {
-		const createdAt = owner?.createdAt || place?.owner?.createdAt;
+		const createdAt = owner?.createdAt;
 		if (!createdAt) return;
 
 		const createdDate = new Date(createdAt);
@@ -53,7 +55,8 @@ export default function PlaceOwner({ owner }) {
 						to={`/account/profile/${owner._id}`}
 						className="flex group rounded-2xl items-center font-normal gap-2.5"
 					>
-						<img
+						<UserImageFallback
+							type="avatar"
 							src={owner.photo}
 							className="w-12 h-12 group-hover:size-15 transition-all duration-500 aspect-square rounded-full object-cover"
 							alt="Foto do Usuário"

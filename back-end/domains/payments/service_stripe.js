@@ -1,5 +1,7 @@
 import { stripeClient, paymentClient } from '../../config/stripe.js';
-import Place from '../places/model.js';
+import { getPrismaClient } from "../../config/prisma.js";
+
+const prisma = getPrismaClient();
 
 // Utility: map Stripe status to internal style
 const mapStripeStatus = (stripeStatus) => {
@@ -8,7 +10,7 @@ const mapStripeStatus = (stripeStatus) => {
   if (s === 'succeeded' || s === 'paid') return 'approved';
   if (s === 'requires_capture' || s === 'requires_action' || s === 'requires_confirmation') return 'authorized';
   if (s === 'processing') return 'pending';
-  if (s === 'canceled' || s === 'failed') return 'rejected';
+  if (s === 'CANCELLED' || s === 'failed') return 'rejected';
   return s;
 };
 
@@ -20,7 +22,7 @@ export const createCheckoutPreference = async ({ accommodationId, userId, checkI
     throw err;
   }
 
-  let place = await Place.findById(accommodationId);
+  let place = await prisma.place.findUnique({ where: { id: accommodationId } });
   if (!place) {
     const err = new Error('Acomodação não encontrada');
     err.statusCode = 404;

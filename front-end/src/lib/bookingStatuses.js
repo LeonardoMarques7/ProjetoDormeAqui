@@ -9,7 +9,7 @@ export const BOOKING_STATUSES = {
   EVALUATION: "evaluation",
   REVIEW: "review",
   COMPLETED: "completed",
-  CANCELED: "canceled",
+  CANCELLED: "CANCELLED",
   REJECTED: "rejected",
 };
 
@@ -80,7 +80,7 @@ export const BOOKING_STATUS_CONFIG = {
     canEvaluate: false,
     canReview: false,
   },
-  canceled: {
+  CANCELLED: {
     label: "Cancelado",
     description: "Reserva cancelada",
     color: "red",
@@ -110,12 +110,12 @@ export const BOOKING_STATUS_CONFIG = {
  */
 export const BOOKING_STATE_TRANSITIONS = {
   pending: ["confirmed", "rejected"],
-  confirmed: ["in_progress", "canceled"],
+  confirmed: ["in_progress", "CANCELLED"],
   in_progress: ["evaluation"],
   evaluation: ["review", "completed"],
   review: ["completed"],
   completed: [],
-  canceled: [],
+  CANCELLED: [],
   rejected: [],
 };
 

@@ -111,43 +111,28 @@ function LeftPanel() {
 	const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
 	const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
-	const slides =
-		photos.length > 0
-			? photos
-			: [
-					"https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80",
-				];
+	
 
 	return (
-		<div className="hidden md:block md:w-1/2 rounded-l-2xl border-white border-8 relative flex-shrink-0">
+		<div className="hidden md:flex md:w-1/2 rounded-l-2xl border-white border-8 flex-shrink-0 relative">
 			<div
 				className="absolute inset-0 overflow-hidden rounded-l-2xl"
 				style={{ clipPath: "polygon(0 0, 100% 0, 84% 100%, 0 100%)" }}
 			>
-				<div className="overflow-hidden h-full rounded-l-2xl" ref={emblaRef}>
-					<div className="flex h-full touch-pan-y">
-						{slides.map((src, i) => (
-							<div key={i} className="flex-none w-full h-full relative">
-								<img
-									src={src}
-									alt=""
-									className="absolute inset-0 rounded-l-2xl w-full h-full object-cover select-none"
-									draggable="false"
-								/>
-							</div>
-						))}
-					</div>
-				</div>
+				<div
+					className="w-full h-full"
+					style={{
+						backgroundImage: 'url("https://framerusercontent.com/images/MdceQMLsNQ9bPL66TbIzc7gU8Q.png?scale-down-to=2048&width=3020&height=1609")',
+						backgroundSize: "cover",
+						backgroundPosition: "center",
+					}}
+				/>
+
 				<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-				<div className="absolute bottom-7 left-7 right-22 z-10 flex items-end justify-between">
-					<div>
-						<p className="text-white text-lg font-bold leading-tight">
-							DormeAqui
-						</p>
-						<p className="text-white/60 text-xs mt-0.5">
-							Encontre o lugar perfeito
-						</p>
-					</div>
+
+				<div className="absolute bottom-7 left-7 right-22 z-10">
+					<p className="text-white text-lg font-bold leading-tight">DormeAqui</p>
+					<p className="text-white/60 text-xs mt-0.5">Encontre o lugar perfeito</p>
 				</div>
 			</div>
 		</div>

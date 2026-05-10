@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import {
 	DangerTriangle as AlertTriangle,
 	ArrowRightUp as ArrowUpRight,
@@ -48,12 +49,24 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-import { getHostDashboard } from "@/services/dashboardService";
+import {
+	addHostCleaningInspectionEvidence,
+	getHostCleaningInspection,
+	getHostCleaningInspectionTask,
+	getHostDashboard,
+	updateHostCleaningInspectionChecklist,
+	updateHostCleaningInspectionNotes,
+	updateHostCleaningInspectionStatus,
+} from "@/services/dashboardService";
 import CalendarGridMonth from "./CalendarGridMonth";
 import AccommodationLogbook from "./AccommodationLogbook";
 import FinancialEntriesPanel from "./FinancialEntriesPanel";
 import Perk from "@/components/common/Perk";
 import photoDefault from "@/assets/photoDefault.jpg";
+import {
+	PlaceImageFallback,
+	UserImageFallback,
+} from "@/components/ui/figma/ImageWithFallback";
 
 const navigation = [
 	{ id: "overview", label: "Visão geral", icon: Home },
@@ -87,6 +100,71 @@ const groupedNavigation = [
 		.map((id) => navigation.find((item) => item.id === id))
 		.filter(Boolean),
 }));
+
+const navigationSubmenus = {
+	overview: [
+		{ id: "overview-summary-day", label: "Resumo do dia" },
+		{ id: "overview-attention", label: "Atenção" },
+		{ id: "overview-upcoming", label: "Próximas movimentações" },
+		{ id: "overview-shortcuts", label: "Atalhos" },
+	],
+	agenda: [
+		{ id: "agenda-calendar", label: "Calendário" },
+		{ id: "agenda-checkins", label: "Check-ins" },
+		{ id: "agenda-checkouts", label: "Check-outs" },
+	],
+	reservations: [{ id: "reservations-list", label: "Lista de reservas" }],
+	places: [{ id: "places-portfolio", label: "Portfólio de acomodações" }],
+	"pre-checkin": [
+		{ id: "precheckin-summary", label: "Pendências" },
+		{ id: "precheckin-list", label: "Lista de hóspedes" },
+	],
+	cleaning: [
+		{ id: "cleaning-summary", label: "Pendências" },
+		{ id: "cleaning-tasks", label: "Tarefas operacionais" },
+	],
+	finance: [
+		{ id: "finance-summary", label: "Resumo" },
+		{ id: "finance-entries", label: "Lançar despesa" },
+		{ id: "finance-profit", label: "Lucro e rentabilidade" },
+	],
+	maintenance: [
+		{ id: "maintenance-summary", label: "Ocorrências abertas" },
+		{ id: "maintenance-list", label: "Lista de ocorrências" },
+	],
+	reports: [
+		{ id: "reports-summary", label: "Resumo executivo" },
+		{ id: "reports-focus", label: "Painel em foco" },
+		{ id: "reports-charts", label: "Desempenho por acomodação" },
+		{ id: "reports-exports", label: "Exportações" },
+	],
+	logbook: [{ id: "logbook-recent", label: "Movimentos recentes" }],
+};
+
+const sectionTopAnchors = {
+	overview: "overview-summary-day",
+	agenda: "agenda-calendar",
+	reservations: "reservations-list",
+	places: "places-portfolio",
+	"pre-checkin": "precheckin-summary",
+	cleaning: "cleaning-summary",
+	finance: "finance-summary",
+	maintenance: "maintenance-summary",
+	reports: "reports-summary",
+	logbook: "logbook-recent",
+};
+
+const scrollToDashboardAnchor = (targetId) => {
+	if (!targetId || typeof document === "undefined") return;
+	window.requestAnimationFrame(() => {
+		window.requestAnimationFrame(() => {
+			document.getElementById(targetId)?.scrollIntoView({
+				behavior: "smooth",
+				block: "start",
+			});
+		});
+	});
+};
 
 const formatCurrency = (value) =>
 	new Intl.NumberFormat("pt-BR", {
@@ -148,8 +226,9 @@ const bookingStatusLabels = {
 	evaluation: "Avaliação",
 	review: "Revisão",
 	completed: "Finalizada",
-	canceled: "Cancelada",
+	cancelled: "Cancelada",
 	rejected: "Rejeitada",
+	archived: "Arquivada",
 };
 
 const preCheckinFilters = [
@@ -185,7 +264,9 @@ const cleaningInspectionFilters = [
 	{ key: "cleaning_in_progress", label: "Em limpeza" },
 	{ key: "awaiting_inspection", label: "Aguardando vistoria" },
 	{ key: "approved", label: "Aprovados" },
+	{ key: "rejected", label: "Reprovados" },
 	{ key: "blocked", label: "Bloqueados" },
+	{ key: "overdue", label: "Atrasados" },
 ];
 
 const cleaningInspectionStatusLabels = {
@@ -193,11 +274,14 @@ const cleaningInspectionStatusLabels = {
 	cleaning_in_progress: "Em limpeza",
 	awaiting_inspection: "Aguardando vistoria",
 	approved: "Aprovado para entrada",
+	rejected: "Reprovado",
 	blocked: "Bloqueado",
+	overdue: "Atrasado",
 	done: "Concluída",
 	not_required: "Não necessária",
 	pending: "Pendente",
 	issue: "Com ocorrência",
+	failed: "Falhou",
 	not_applicable: "Não se aplica",
 };
 
@@ -265,6 +349,11 @@ const normalizeStatusKey = (status) => {
 const getStatusLabel = (status) => {
 	const key = normalizeStatusKey(status);
 	return preCheckinStatusLabels[key] || status || "Indisponível";
+};
+
+const getBookingStatusLabel = (status) => {
+	const key = normalizeStatusKey(status);
+	return bookingStatusLabels[key] || status || "Indisponível";
 };
 
 const getCleaningInspectionStatusLabel = (status) => {
@@ -403,13 +492,58 @@ const getCleaningPlaceName = (item = {}) =>
 	);
 
 const getCleaningOverallStatus = (item = {}) =>
-	firstAvailable(item.overallStatus, item.status);
+	firstAvailable(
+		item.currentStatus,
+		item.effectiveOverallStatus,
+		item.overallStatus,
+		item.status,
+	);
 
 const getCleaningStatus = (item = {}) =>
 	firstAvailable(item.cleaningStatus, item.cleaning?.status);
 
 const getInspectionStatus = (item = {}) =>
 	firstAvailable(item.inspectionStatus, item.inspection?.status);
+
+const getCleaningInspectionActionLabel = (item = {}) => {
+	const status = normalizeStatusKey(getCleaningOverallStatus(item));
+	const hasChecklistPending =
+		Number(item.checklistProgress?.incompleteRequired || 0) > 0;
+	const hasEvidencePending =
+		Number(item.evidenceProgress?.missingRequired || 0) > 0;
+
+	if (status === "awaiting_cleaning") return "Iniciar limpeza";
+	if (status === "cleaning_in_progress") return "Concluir limpeza";
+	if (status === "awaiting_inspection") {
+		if (hasChecklistPending || hasEvidencePending) return "Resolver pendências";
+		return "Abrir vistoria";
+	}
+	if (status === "rejected") return "Voltar para limpeza";
+	if (status === "blocked" || status === "overdue") return "Resolver pendências";
+	return "Ver detalhes";
+};
+
+const getCleaningInspectionPrimaryAction = (item = {}) => {
+	const status = normalizeStatusKey(getCleaningOverallStatus(item));
+	if (status === "awaiting_cleaning") return "cleaning_in_progress";
+	if (status === "cleaning_in_progress") return "awaiting_inspection";
+	if (status === "rejected") return "cleaning_in_progress";
+	return null;
+};
+
+const getChecklistCompletionLabel = (progress = {}) => {
+	const completed = Number(progress.completedRequired || 0);
+	const required = Number(progress.required || 0);
+	if (!required) return "Sem itens obrigatórios";
+	return `${completed}/${required} obrigatórios`;
+};
+
+const getEvidenceCompletionLabel = (progress = {}) => {
+	const total = Number(progress.total || 0);
+	const minimumRequired = Number(progress.minimumRequired || 0);
+	if (!minimumRequired) return `${total} evidência${total === 1 ? "" : "s"}`;
+	return `${total}/${minimumRequired} evidências`;
+};
 
 const kpiIconMap = {
 	checkinsToday: DoorOpen,
@@ -501,6 +635,7 @@ function OverviewKpiCard({ item }) {
 }
 
 function OverviewKpiGroup({
+	id,
 	eyebrow,
 	title,
 	description,
@@ -508,31 +643,33 @@ function OverviewKpiGroup({
 	columns = "xl:grid-cols-4",
 }) {
 	return (
-		<PanelCard className="p-5">
-			<div className="mb-4">
-				<p className="text-xs font-semibold uppercase tracking-wide text-primary-700">
-					{eyebrow}
-				</p>
-				<h3 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
-					{title}
-				</h3>
-				<p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
-					{description}
-				</p>
-			</div>
-			<div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${columns}`}>
-				{items.map((item) => (
-					<OverviewKpiCard key={item.key} item={item} />
-				))}
-			</div>
-		</PanelCard>
+		<div id={id}>
+			<PanelCard className="p-5">
+				<div className="mb-4">
+					<p className="text-xs font-semibold uppercase tracking-wide text-primary-700">
+						{eyebrow}
+					</p>
+					<h3 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+						{title}
+					</h3>
+					<p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
+						{description}
+					</p>
+				</div>
+				<div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${columns}`}>
+					{items.map((item) => (
+						<OverviewKpiCard key={item.key} item={item} />
+					))}
+				</div>
+			</PanelCard>
+		</div>
 	);
 }
 
 const unavailableKpi = (
 	key,
 	label,
-	helper = "Dados indisponíveis no back-end atual",
+	helper = "Dados indisponíveis no momento",
 ) => ({
 	key,
 	label,
@@ -775,7 +912,11 @@ function CleaningInspectionStatusBadge({ status }) {
 	const tone =
 		key === "approved" || key === "done"
 			? "green"
-			: key === "blocked" || key === "issue"
+			: key === "blocked" ||
+				  key === "issue" ||
+				  key === "rejected" ||
+				  key === "failed" ||
+				  key === "overdue"
 				? "red"
 				: key === "cleaning_in_progress"
 					? "blue"
@@ -851,7 +992,13 @@ function SectionHeader({ eyebrow, title, description, action }) {
 	);
 }
 
-function Sidebar({ activeSection, onChange }) {
+function Sidebar({
+	activeSection,
+	activeSubmenuId,
+	expandedSectionId,
+	onChange,
+	onToggleSection,
+}) {
 	return (
 		<aside className="hidden w-64 shrink-0 border pl-2.5 py-5 rounded-3xl h-fit border-slate-200 bg-white lg:block">
 			<div className="sticky top-0 flex flex-col overflow-y-auto">
@@ -869,20 +1016,81 @@ function Sidebar({ activeSection, onChange }) {
 							{group.items.map((item) => {
 								const Icon = item.icon;
 								const isActive = activeSection === item.id;
+								const isExpanded = expandedSectionId === item.id;
+								const subItems = navigationSubmenus[item.id] || [];
 								return (
-									<button
-										key={item.id}
-										type="button"
-										onClick={() => onChange(item.id)}
-										className={`flex h-11 w-full cursor-pointer rounded-l-2xl items-center gap-3 border-r-2 px-3 text-left text-sm font-medium transition-colors ${
-											isActive
-												? "border-primary-900 bg-primary-50/70 text-primary-900"
-												: "border-transparent text-slate-600 hover:border-primary-300 hover:bg-slate-50 hover:text-primary-900"
-										}`}
-									>
-										<Icon className="h-4 w-4 shrink-0" weight="BoldDuotone" />
-										<span className="truncate">{item.label}</span>
-									</button>
+									<motion.div key={item.id} layout className="space-y-1">
+										<div className="flex items-center gap-1 ">
+											<button
+												type="button"
+												onClick={() => onChange(item.id)}
+												className={`flex h-11 min-w-0 flex-1 cursor-pointer rounded-l-2xl items-center gap-3 px-3 text-left text-sm font-medium transition-colors ${
+													isActive
+														? " bg-primary-100/70 text-primary-900"
+														: "border-transparent text-slate-600 hover:border-primary-300 hover:bg-slate-50 hover:text-primary-900"
+												}`}
+											>
+												<Icon
+													className="h-4 w-4 shrink-0"
+													weight="BoldDuotone"
+												/>
+												<span className="truncate">{item.label}</span>
+											</button>
+											{subItems.length > 0 && (
+												<button
+													type="button"
+													onClick={() => onToggleSection(item.id)}
+													aria-label={`${isExpanded ? "Fechar" : "Abrir"} submenus de ${item.label}`}
+													aria-expanded={isExpanded}
+													className={`flex h-11 w-10 shrink-0 items-center justify-center border-r-2 transition-colors ${
+														isActive
+															? "border-primary-900 bg-primary-50/70 text-primary-900"
+															: "border-transparent text-slate-500 hover:border-primary-300 hover:bg-slate-50 hover:text-primary-900"
+													}`}
+												>
+													<motion.span
+														animate={{ rotate: isExpanded ? 90 : 0 }}
+														transition={{
+															type: "spring",
+															stiffness: 320,
+															damping: 24,
+														}}
+														className="inline-flex"
+													>
+														<ChevronRight className="h-4 w-4" />
+													</motion.span>
+												</button>
+											)}
+										</div>
+										<AnimatePresence initial={false}>
+											{isExpanded && subItems.length > 0 && (
+												<motion.div
+													key={`${item.id}-submenus`}
+													initial={{ height: 0, opacity: 0 }}
+													animate={{ height: "auto", opacity: 1 }}
+													exit={{ height: 0, opacity: 0 }}
+													transition={{ duration: 0.22, ease: "easeOut" }}
+													className="overflow-hidden"
+												>
+													<div className="space-y-1 pl-10 pr-3 pb-1">
+														{subItems.map((subItem) => (
+															<button
+																key={subItem.id}
+																type="button"
+																onClick={() => onChange(item.id, subItem.id)}
+																className="flex min-h-8 w-full cursor-pointer items-center gap-2 rounded-xl px-3 text-left text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-primary-800"
+															>
+																<span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+																<span className="truncate">
+																	{subItem.label}
+																</span>
+															</button>
+														))}
+													</div>
+												</motion.div>
+											)}
+										</AnimatePresence>
+									</motion.div>
 								);
 							})}
 						</div>
@@ -893,7 +1101,13 @@ function Sidebar({ activeSection, onChange }) {
 	);
 }
 
-function MobileNav({ activeSection, onChange }) {
+function MobileNav({
+	activeSection,
+	activeSubmenuId,
+	expandedSectionId,
+	onChange,
+	onToggleSection,
+}) {
 	const [open, setOpen] = useState(false);
 	const activeItem = navigation.find((item) => item.id === activeSection);
 
@@ -933,27 +1147,327 @@ function MobileNav({ activeSection, onChange }) {
 									</p>
 									{group.items.map((item) => {
 										const Icon = item.icon;
+										const isExpanded = expandedSectionId === item.id;
+										const subItems = navigationSubmenus[item.id] || [];
 										return (
+											<motion.div key={item.id} layout className="space-y-1">
+												<div className="flex items-center gap-1">
+													<button
+														type="button"
+														onClick={() => {
+															onChange(item.id);
+															setOpen(false);
+														}}
+														className={`flex h-11 min-w-0 flex-1 items-center gap-3 rounded-l-lg px-3 text-left text-sm font-medium ${
+															activeSection === item.id
+																? "bg-primary-900 text-white"
+																: "text-slate-600 hover:bg-slate-100"
+														}`}
+													>
+														<Icon className="h-4 w-4" weight="BoldDuotone" />
+														{item.label}
+													</button>
+													{subItems.length > 0 && (
+														<button
+															type="button"
+															onClick={() => onToggleSection(item.id)}
+															aria-label={`${isExpanded ? "Fechar" : "Abrir"} submenus de ${item.label}`}
+															aria-expanded={isExpanded}
+															className={`flex h-11 w-10 items-center justify-center rounded-r-lg ${
+																activeSection === item.id
+																	? "bg-primary-900 text-white"
+																	: "text-slate-500 hover:bg-slate-100"
+															}`}
+														>
+															<motion.span
+																animate={{ rotate: isExpanded ? 90 : 0 }}
+																transition={{
+																	type: "spring",
+																	stiffness: 320,
+																	damping: 24,
+																}}
+																className="inline-flex"
+															>
+																<ChevronRight className="h-4 w-4" />
+															</motion.span>
+														</button>
+													)}
+												</div>
+												<AnimatePresence initial={false}>
+													{isExpanded && subItems.length > 0 && (
+														<motion.div
+															key={`${item.id}-mobile-submenus`}
+															initial={{ height: 0, opacity: 0 }}
+															animate={{ height: "auto", opacity: 1 }}
+															exit={{ height: 0, opacity: 0 }}
+															transition={{ duration: 0.22, ease: "easeOut" }}
+															className="overflow-hidden"
+														>
+															<div className="space-y-1 pl-10">
+																{subItems.map((subItem) => (
+																	<button
+																		key={subItem.id}
+																		type="button"
+																		onClick={() => {
+																			onChange(item.id, subItem.id);
+																			setOpen(false);
+																		}}
+																		className="flex min-h-8 w-full items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-primary-800"
+																	>
+																		<span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+																		{subItem.label}
+																	</button>
+																))}
+															</div>
+														</motion.div>
+													)}
+												</AnimatePresence>
+											</motion.div>
+										);
+									})}
+								</div>
+							))}
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+
+function SidebarReplica({
+	activeSection,
+	activeSubmenuId,
+	expandedSectionId,
+	onChange,
+	onToggleSection,
+}) {
+	return (
+		<aside className="sticky top-0 hidden h-full w-[18rem] shrink-0 rounded-2xl bg-[#f3f3f5] px-4 py-6 lg:block">
+			<nav className="space-y-2">
+				<h1 className="mt-1 text-xl font-semibold text-slate-950">
+					Central do Anfitrião
+				</h1>
+				{navigation.map((item) => {
+					const Icon = item.icon;
+					const isActive = activeSection === item.id;
+					const isExpanded = expandedSectionId === item.id;
+					const subItems = navigationSubmenus[item.id] || [];
+
+					return (
+						<div key={item.id} className="space-y-2">
+							<div className="flex items-center gap-2">
+								<button
+									type="button"
+									onClick={() => onChange(item.id)}
+									className={`flex h-12 min-w-0 cursor-pointer flex-1 items-center gap-3 rounded-[18px] px-4 text-left text-[15px] font-medium transition-all ${
+										isActive
+											? "bg-[#191919] text-white shadow-[0_10px_26px_rgba(15,15,15,0.14)]"
+											: "text-[#1d1d1f] hover:bg-white/70"
+									}`}
+								>
+									<Icon
+										className="h-[19px] w-[19px] shrink-0"
+										weight={isActive ? "BoldDuotone" : "Linear"}
+									/>
+									<span className="truncate">{item.label}</span>
+								</button>
+								{subItems.length > 0 && (
+									<button
+										type="button"
+										onClick={() => onToggleSection(item.id)}
+										aria-label={`${isExpanded ? "Fechar" : "Abrir"} submenus de ${item.label}`}
+										aria-expanded={isExpanded}
+										className={`flex h-12 w-12 cursor-pointer shrink-0 items-center justify-center rounded-[18px] transition-colors ${
+											isActive
+												? "bg-[#191919] text-white"
+												: "text-[#1d1d1f] hover:bg-white/70"
+										}`}
+									>
+										<span
+											className={`inline-flex transition-transform duration-200 ease-out ${
+												isExpanded ? "rotate-90" : "rotate-0"
+											}`}
+										>
+											<ChevronRight className="h-4 w-4" />
+										</span>
+									</button>
+								)}
+							</div>
+							{subItems.length > 0 && (
+								<div
+									className={`grid overflow-hidden transition-[grid-template-rows,opacity,margin] duration-200 ease-out ${
+										isExpanded
+											? "mt-0 grid-rows-[1fr] opacity-100"
+											: "grid-rows-[0fr] opacity-0"
+									}`}
+								>
+									<div className="min-h-0">
+										<div className="relative ml-4 space-y-2 pl-5 pt-0.5 before:absolute before:bottom-2 before:left-0 before:top-1 before:w-px before:bg-[#b8bcc3]">
+											{subItems.map((subItem) => {
+												const isSubmenuActive = activeSubmenuId === subItem.id;
+												return (
+													<div key={subItem.id} className="relative">
+														<button
+															type="button"
+															onClick={() => onChange(item.id, subItem.id)}
+															className={`flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[999px] px-4 text-left text-[14px] font-medium transition-colors ${
+																isSubmenuActive
+																	? "bg-white text-[#1d1d1f] shadow-[0_10px_22px_rgba(15,23,42,0.08)]"
+																	: "text-[#1d1d1f] hover:bg-white/75"
+															}`}
+														>
+															<span className="truncate">{subItem.label}</span>
+														</button>
+													</div>
+												);
+											})}
+										</div>
+									</div>
+								</div>
+							)}
+						</div>
+					);
+				})}
+			</nav>
+		</aside>
+	);
+}
+
+function MobileNavReplica({
+	activeSection,
+	activeSubmenuId,
+	expandedSectionId,
+	onChange,
+	onToggleSection,
+}) {
+	const [open, setOpen] = useState(false);
+	const activeItem = navigation.find((item) => item.id === activeSection);
+
+	return (
+		<div className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+			<button
+				type="button"
+				onClick={() => setOpen(true)}
+				className="flex h-11 w-full cursor-pointer items-center justify-between rounded-xl border border-slate-200/70 bg-white px-3 text-sm font-semibold text-slate-950 shadow-[0_8px_20px_rgba(15,23,42,0.04)]"
+			>
+				<span className="inline-flex items-center gap-2">
+					<Menu className="h-4 w-4" />
+					{activeItem?.label || "Central"}
+				</span>
+			</button>
+
+			{open && (
+				<div className="fixed inset-0 z-40 bg-slate-950/30">
+					<div className="h-full w-[86vw] max-w-sm bg-[#f3f3f5] p-4 shadow-xl">
+						<div className="mb-4 flex items-center justify-between">
+							<h2 className="text-lg font-semibold text-slate-950">
+								Central do Anfitrião
+							</h2>
+							<button
+								type="button"
+								onClick={() => setOpen(false)}
+								className="flex h-9 w-9 items-center cursor-pointer justify-center rounded-xl border border-slate-200/70 bg-white"
+							>
+								<X className="h-4 w-4" />
+							</button>
+						</div>
+						<div className="space-y-2">
+							{navigation.map((item) => {
+								const Icon = item.icon;
+								const isExpanded = expandedSectionId === item.id;
+								const isActive = activeSection === item.id;
+								const subItems = navigationSubmenus[item.id] || [];
+
+								return (
+									<div key={item.id} className="space-y-2">
+										<div className="flex items-center gap-2">
 											<button
-												key={item.id}
 												type="button"
 												onClick={() => {
 													onChange(item.id);
 													setOpen(false);
 												}}
-												className={`flex h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium ${
-													activeSection === item.id
-														? "bg-primary-900 text-white"
-														: "text-slate-600 hover:bg-slate-100"
+												className={`flex h-12 min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-[18px] px-4 text-left text-[15px] font-medium ${
+													isActive
+														? "bg-[#191919] text-white"
+														: "text-[#1d1d1f] hover:bg-slate-100"
 												}`}
 											>
-												<Icon className="h-4 w-4" weight="BoldDuotone" />
-												{item.label}
+												<Icon
+													className="h-[19px] w-[19px]"
+													weight={isActive ? "BoldDuotone" : "Linear"}
+												/>
+												<span className="truncate">{item.label}</span>
 											</button>
-										);
-									})}
-								</div>
-							))}
+											{subItems.length > 0 && (
+												<button
+													type="button"
+													onClick={() => onToggleSection(item.id)}
+													aria-label={`${isExpanded ? "Fechar" : "Abrir"} submenus de ${item.label}`}
+													aria-expanded={isExpanded}
+													className={`flex h-12 w-12 items-center cursor-pointer justify-center rounded-[18px] ${
+														isActive
+															? "bg-[#191919] text-white"
+															: "text-[#1d1d1f] hover:bg-slate-100"
+													}`}
+												>
+													<span
+														className={`inline-flex transition-transform duration-200 ease-out ${
+															isExpanded ? "rotate-90" : "rotate-0"
+														}`}
+													>
+														<ChevronRight className="h-4 w-4" />
+													</span>
+												</button>
+											)}
+										</div>
+										{subItems.length > 0 && (
+											<div
+												className={`grid overflow-hidden transition-[grid-template-rows,opacity,margin] duration-200 ease-out ${
+													isExpanded
+														? "mt-0 grid-rows-[1fr] opacity-100"
+														: "grid-rows-[0fr] opacity-0"
+												}`}
+											>
+												<div className="min-h-0">
+													<div className="relative ml-4 space-y-2 pl-5 pt-0.5 before:absolute before:bottom-2 before:left-0 before:top-1 before:w-px before:bg-[#b8bcc3]">
+														{subItems.map((subItem) => {
+															const isSubmenuActive =
+																activeSubmenuId === subItem.id;
+															return (
+																<div key={subItem.id} className="relative">
+																	<span className="absolute left-[-22px] top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-[#b8bcc3]" />
+																	<button
+																		type="button"
+																		onClick={() => {
+																			onChange(item.id, subItem.id);
+																			setOpen(false);
+																		}}
+																		className={`flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[999px] px-4 text-left text-[14px] font-medium transition-colors ${
+																			isSubmenuActive
+																				? "bg-white text-[#1d1d1f] shadow-[0_10px_22px_rgba(15,23,42,0.08)]"
+																				: "text-[#1d1d1f] hover:bg-slate-100"
+																		}`}
+																	>
+																		<Icon
+																			className="h-[18px] w-[18px]"
+																			weight="Linear"
+																		/>
+																		<span className="truncate">
+																			{subItem.label}
+																		</span>
+																	</button>
+																</div>
+															);
+														})}
+													</div>
+												</div>
+											</div>
+										)}
+									</div>
+								);
+							})}
 						</div>
 					</div>
 				</div>
@@ -968,7 +1482,7 @@ function AlertsPanel({ alerts = [] }) {
 			title="Alertas críticos e oportunidades"
 			description="Pontos de atenção que pedem uma ação rápida."
 		>
-			<div className="space-y-3">
+			<div id="reports-summary" className="space-y-3">
 				{alerts.slice(0, 5).map((alert) => {
 					const severityTone =
 						alert.severity === "critical" || alert.severity === "warning"
@@ -1022,7 +1536,8 @@ function MovementCard({ event, accent = "primary" }) {
 	return (
 		<div className="flex min-w-0 items-center gap-3 rounded-[999px] border border-slate-200/70 bg-white px-3 py-3 shadow-sm">
 			<div className="relative shrink-0">
-				<img
+				<UserImageFallback
+					type="avatar"
 					src={photo}
 					alt={event.guest}
 					className="h-14 w-14 rounded-full object-cover ring-2 ring-white"
@@ -1056,7 +1571,7 @@ function MovementsBoard({ groups }) {
 			description="Quem chega e quem sai nos próximos dias."
 		>
 			<div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-				<div className="space-y-3">
+				<div id="agenda-checkins" className="space-y-3">
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="text-sm font-semibold text-slate-950">
@@ -1085,7 +1600,7 @@ function MovementsBoard({ groups }) {
 					)}
 				</div>
 
-				<div className="space-y-3">
+				<div id="agenda-checkouts" className="space-y-3">
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="text-sm font-semibold text-slate-950">
@@ -1173,9 +1688,11 @@ const financialStatusLabels = {
 	pending: "Pendente",
 	received: "Recebido",
 	refunded: "Reembolsado",
-	canceled: "Cancelado",
+	cancelled: "Cancelado",
 	rejected: "Cancelado",
 	in_review: "Em análise",
+	processing: "Em processamento",
+	failed: "Falhou",
 };
 
 const getFinancialTone = (item = {}) => {
@@ -1200,7 +1717,7 @@ function FinancialStatusBadge({ status }) {
 				? "amber"
 				: key === "refunded"
 					? "blue"
-					: key === "canceled" || key === "rejected"
+					: key === "cancelled" || key === "rejected"
 						? "red"
 						: "slate";
 
@@ -1217,7 +1734,7 @@ function FinancialSummaryCards({ items = [] }) {
 			<EmptyState
 				icon={Banknote}
 				title="Resumo financeiro indisponível"
-				description="Quando o back-end enviar os indicadores financeiros consolidados, eles aparecerão aqui."
+				description="Quando os indicadores estiverem disponíveis, eles aparecerão aqui."
 			/>
 		);
 	}
@@ -1318,12 +1835,12 @@ function FinancialRevenuePanel({ revenue }) {
 	return (
 		<PanelCard
 			title="Receitas"
-			description="Valores já consolidados pelo back-end para o período financeiro atual."
+			description="Valores já consolidados para o período financeiro atual."
 		>
 			<FinancialMetricGrid
 				items={revenue?.items || []}
 				emptyTitle="Receitas indisponíveis"
-				emptyDescription="Receita bruta, líquida, futura e pagamentos dependem do payload financeiro do back-end."
+				emptyDescription="Receita bruta, líquida, futura e pagamentos serão exibidos assim que estiverem disponíveis."
 				icon={Banknote}
 			/>
 		</PanelCard>
@@ -1339,7 +1856,7 @@ function FinancialExpensesPanel({ expenses }) {
 			<FinancialMetricGrid
 				items={expenses?.items || []}
 				emptyTitle="Despesas indisponíveis"
-				emptyDescription="Taxas, limpeza, manutenção, condomínio, IPTU, água, luz e internet dependem de dados do back-end."
+				emptyDescription="Taxas, limpeza, manutenção, condomínio, IPTU, água, luz e internet aparecem assim que esses dados estiverem disponíveis."
 				icon={AlertTriangle}
 			/>
 		</PanelCard>
@@ -1350,12 +1867,12 @@ function FinancialProfitPanel({ profitability, comparison }) {
 	return (
 		<PanelCard
 			title="Lucro e rentabilidade"
-			description="Resultado estimado, margem e comparativo mensal já calculados pelo back-end."
+			description="Resultado estimado, margem e comparativo mensal já calculados."
 		>
 			<FinancialMetricGrid
 				items={profitability?.items || []}
 				emptyTitle="Rentabilidade indisponível"
-				emptyDescription="Lucro, margem e comparativo mensal precisam vir consolidados pelo back-end."
+				emptyDescription="Lucro, margem e comparativo mensal aparecem assim que estiverem disponíveis."
 				icon={LineChartIcon}
 			/>
 			{comparison?.previousMonth && (
@@ -1456,7 +1973,7 @@ function FinancialPropertyList({ properties = [] }) {
 	return (
 		<PanelCard
 			title="Custos por imóvel"
-			description="Resultado financeiro por acomodação, já agrupado pelo back-end."
+			description="Resultado financeiro por acomodação, já agrupado para este período."
 		>
 			{properties.length > 0 ? (
 				<div className="space-y-3">
@@ -1471,7 +1988,7 @@ function FinancialPropertyList({ properties = [] }) {
 				<EmptyState
 					icon={Building2}
 					title="Custos por imóvel indisponíveis"
-					description="Quando o back-end enviar receitas, despesas e lucro por acomodação, a lista aparecerá aqui."
+					description="Quando houver receitas, despesas e lucro por acomodação, a lista aparecerá aqui."
 				/>
 			)}
 		</PanelCard>
@@ -1530,7 +2047,7 @@ function PaymentsRefundsList({ items = [] }) {
 				<EmptyState
 					icon={Ticket}
 					title="Pagamentos e reembolsos indisponíveis"
-					description="Quando o back-end enviar pagamentos recebidos, pendentes e reembolsos por reserva, eles aparecerão aqui."
+					description="Quando os pagamentos, pendências e reembolsos por reserva estiverem disponíveis, eles aparecerão aqui."
 				/>
 			)}
 		</PanelCard>
@@ -1664,17 +2181,17 @@ function PropertyCard({ property }) {
 		<article className="min-w-0 rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(15,23,42,0.1)]">
 			<div className="flex items-start relative justify-between gap-4">
 				<div className="flex min-w-0 items-center gap-3">
-					<img
+					<PlaceImageFallback
 						src={photo}
 						alt={property.title}
 						className="h-full aspect-square w-50  rounded-2xl border border-slate-200 object-cover"
 					/>
-					<img
+					<PlaceImageFallback
 						src={photo2}
 						alt={property.title}
 						className="h-full w-50 aspect-square  rounded-2xl border border-slate-200 object-cover"
 					/>
-					<img
+					<PlaceImageFallback
 						src={photo3}
 						alt={property.title}
 						className="h-full w-50 aspect-square  rounded-2xl border border-slate-200 object-cover"
@@ -1683,7 +2200,7 @@ function PropertyCard({ property }) {
 
 				<button
 					type="button"
-					className="inline-flex shrink-0 items-center rounded-[10px] border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm transition hover:bg-slate-50"
+					className="inline-flex shrink-0 cursor-pointer items-center rounded-[10px] border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm transition hover:bg-slate-50"
 				>
 					{property.statusLabel}
 				</button>
@@ -1815,7 +2332,7 @@ function ReservationsTable({ bookings = [] }) {
 													: "slate"
 										}
 									>
-										{bookingStatusLabels[booking.status] || booking.status}
+										{getBookingStatusLabel(booking.status)}
 									</Pill>
 								</td>
 								<td className="px-4 py-3 text-right font-semibold text-slate-950">
@@ -1966,6 +2483,7 @@ function OverviewCompact({ data, onNavigate, action }) {
 				action={action}
 			/>
 			<OverviewKpiGroup
+				id="overview-summary-day"
 				eyebrow="Hoje"
 				title="Resumo do dia"
 				description="Entradas, saídas, pendências e alertas que merecem a primeira checagem."
@@ -1973,16 +2491,19 @@ function OverviewCompact({ data, onNavigate, action }) {
 				columns="xl:grid-cols-4"
 			/>
 			<OverviewKpiGroup
+				id="overview-attention"
 				eyebrow="Atenção"
 				title="Precisa da sua atenção"
 				description="Sinais operacionais resumidos. A execução detalhada fica nas abas de operação."
 				items={attentionItems}
 				columns="xl:grid-cols-4"
 			/>
-			<UpcomingSummary
-				movementGroups={data.upcomingMovementGroups}
-				onNavigate={onNavigate}
-			/>
+			<div id="overview-upcoming">
+				<UpcomingSummary
+					movementGroups={data.upcomingMovementGroups}
+					onNavigate={onNavigate}
+				/>
+			</div>
 			<div className="grid grid-cols-1 gap-5 2xl:grid-cols-2">
 				<OverviewKpiGroup
 					eyebrow="Financeiro"
@@ -1999,7 +2520,9 @@ function OverviewCompact({ data, onNavigate, action }) {
 					columns="xl:grid-cols-2 "
 				/>
 			</div>
-			<OverviewShortcuts onNavigate={onNavigate} />
+			<div id="overview-shortcuts">
+				<OverviewShortcuts onNavigate={onNavigate} />
+			</div>
 		</div>
 	);
 }
@@ -2014,9 +2537,13 @@ function Agenda({ data, action }) {
 				action={action}
 			/>
 			<PanelCard>
-				<CalendarGridMonth calendar={data.calendar} />
+				<div id="agenda-calendar">
+					<CalendarGridMonth calendar={data.calendar} />
+				</div>
 			</PanelCard>
-			<MovementsBoard groups={data.upcomingMovementGroups} />
+			<div>
+				<MovementsBoard groups={data.upcomingMovementGroups} />
+			</div>
 		</div>
 	);
 }
@@ -2041,7 +2568,7 @@ function PlacesSection({ properties = [], action }) {
 					</div>
 				}
 			/>
-			<div className="space-y-4">
+			<div id="places-portfolio" className="space-y-4">
 				{properties.map((property) => (
 					<PropertyCard key={property.id} property={property} />
 				))}
@@ -2166,46 +2693,50 @@ function Finance({ data, action }) {
 				description="Acompanhe receitas, despesas, lucro estimado e desempenho financeiro das suas acomodações."
 				action={action}
 			/>
-			<FinancialSummaryCards
-				items={
-					financial.summaryCards?.length > 0
-						? financial.summaryCards
-						: [
-								{
-									key: "monthlyGrossRevenue",
-									label: "Receita bruta do mês",
-									value: data.finance?.monthlyGrossRevenue,
-									helper: "Campo legado do dashboard",
-									tone: "green",
-								},
-								{
-									key: "operatingExpenses",
-									label: "Despesas operacionais",
-									value: data.finance?.operatingExpenses,
-									helper: "Campo legado do dashboard",
-									tone: "amber",
-								},
-								{
-									key: "estimatedProfit",
-									label: "Lucro estimado",
-									value: data.finance?.estimatedProfit,
-									helper: "Campo legado do dashboard",
-									tone: "green",
-								},
-							]
-				}
-			/>
+			<div id="finance-summary">
+				<FinancialSummaryCards
+					items={
+						financial.summaryCards?.length > 0
+							? financial.summaryCards
+							: [
+									{
+										key: "monthlyGrossRevenue",
+										label: "Receita bruta do mês",
+										value: data.finance?.monthlyGrossRevenue,
+										helper: "Resumo do período",
+										tone: "green",
+									},
+									{
+										key: "operatingExpenses",
+										label: "Despesas operacionais",
+										value: data.finance?.operatingExpenses,
+										helper: "Resumo do período",
+										tone: "amber",
+									},
+									{
+										key: "estimatedProfit",
+										label: "Lucro estimado",
+										value: data.finance?.estimatedProfit,
+										helper: "Resumo do período",
+										tone: "green",
+									},
+								]
+					}
+				/>
+			</div>
 
-			<FinancialEntriesPanel
-				places={data.places || []}
-				initialSummary={financial.ledger || null}
-				initialEntries={financial.ledger?.entries || []}
-				initialMonthKey={financial.ledger?.period?.key || ""}
-			/>
+			<div id="finance-entries">
+				<FinancialEntriesPanel
+					places={data.places || []}
+					initialSummary={financial.ledger || null}
+					initialEntries={financial.ledger?.entries || []}
+					initialMonthKey={financial.ledger?.period?.key || ""}
+				/>
+			</div>
 
 			<PanelCard
 				title="Filtros financeiros"
-				description="Os controles usam os recortes financeiros entregues pelo back-end; nenhum valor é recalculado na interface."
+				description="Os controles seguem os recortes financeiros já preparados pelo sistema; nenhum valor é recalculado na interface."
 			>
 				<FinancialFilterTabs
 					filters={financial.filters}
@@ -2220,7 +2751,7 @@ function Finance({ data, action }) {
 					<FinancialExpensesPanel
 						expenses={{ ...financial.expenses, items: expenseItems }}
 					/>
-					<div className="xl:col-span-2">
+					<div id="finance-profit" className="xl:col-span-2">
 						<FinancialProfitPanel
 							profitability={financial.profitability}
 							comparison={financial.comparison}
@@ -2230,10 +2761,12 @@ function Finance({ data, action }) {
 			)}
 
 			{showComparison && (
-				<FinancialProfitPanel
-					profitability={financial.profitability}
-					comparison={financial.comparison}
-				/>
+				<div id="finance-profit">
+					<FinancialProfitPanel
+						profitability={financial.profitability}
+						comparison={financial.comparison}
+					/>
+				</div>
 			)}
 
 			{showReceivables && (
@@ -2351,7 +2884,7 @@ const reportsFilterLabelOverrides = {
 	pending: "Pendente",
 	in_progress: "Em andamento",
 	completed: "Finalizada",
-	canceled: "Cancelada",
+	CANCELLED: "Cancelada",
 	evaluation: "Em avaliação",
 	review: "Em avaliação",
 	archived: "Arquivada",
@@ -2374,7 +2907,7 @@ function ReportFilterButtonGroup({ label, options = [], value, onChange }) {
 							type="button"
 							disabled={disabled}
 							onClick={() => onChange(option.key)}
-							className={`inline-flex min-h-10 items-center rounded-xl border px-4 text-sm font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
+							className={`inline-flex min-h-10 items-center cursor-pointer rounded-xl border px-4 text-sm font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
 								active
 									? "border-primary-700 bg-primary-700 text-white shadow-[0_8px_18px_rgba(37,99,235,0.22)]"
 									: "border-slate-200 bg-white text-slate-700 hover:border-primary-200 hover:bg-primary-50/50 hover:text-primary-800"
@@ -2468,7 +3001,7 @@ function ReportsFilters({
 		{ key: "confirmed", label: "Confirmada", available: true },
 		{ key: "in_progress", label: "Em andamento", available: true },
 		{ key: "completed", label: "Finalizada", available: true },
-		{ key: "canceled", label: "Cancelada", available: true },
+		{ key: "CANCELLED", label: "Cancelada", available: true },
 		{ key: "evaluation", label: "Em avaliação", available: true },
 		{ key: "review", label: "Em revisão", available: true },
 		{ key: "archived", label: "Arquivada", available: true },
@@ -2761,7 +3294,7 @@ function FinancialCompositionChart({ data = [] }) {
 				Composição financeira
 			</h4>
 			<p className="text-xs text-slate-500">
-				Receita bruta, taxas conhecidas e lucro estimado enviados pelo back-end.
+				Receita bruta, taxas conhecidas e lucro estimado do período.
 			</p>
 			<div className="mt-4 h-[220px]">
 				{data.length > 0 ? (
@@ -2820,7 +3353,7 @@ function FinancialCompositionChart({ data = [] }) {
 					<EmptyState
 						icon={Banknote}
 						title="Composição indisponível"
-						description="Este indicador depende de dados consolidados do back-end."
+						description="Este indicador depende de dados consolidados do período."
 					/>
 				)}
 			</div>
@@ -2893,7 +3426,7 @@ function FinancialReportPanel({ financial = {}, finance = {} }) {
 	return (
 		<PanelCard
 			title="Saúde financeira"
-			description="Resumo enxuto da receita, custos e lucro consolidado pelo back-end."
+			description="Resumo enxuto da receita, custos e lucro consolidados."
 		>
 			<ReportMetricGrid items={coreItems} />
 			<div className="mt-5">
@@ -2904,8 +3437,8 @@ function FinancialReportPanel({ financial = {}, finance = {} }) {
 }
 
 function OccupancyReportPanel({ occupancy = {}, finance = {}, bookings = {} }) {
-	const canceledBookings = bookings.byStatus?.find((item) =>
-		["canceled", "rejected"].includes(normalizeStatusKey(item.key)),
+	const CANCELLEDBookings = bookings.byStatus?.find((item) =>
+		["cancelled", "rejected"].includes(normalizeStatusKey(item.key)),
 	)?.value;
 	const items = [
 		{
@@ -2942,9 +3475,9 @@ function OccupancyReportPanel({ occupancy = {}, finance = {}, bookings = {} }) {
 		{
 			key: "cancellations",
 			label: "Cancelamentos",
-			value: canceledBookings,
+			value: CANCELLEDBookings,
 			tone: "red",
-			available: canceledBookings !== undefined,
+			available: CANCELLEDBookings !== undefined,
 		},
 		{
 			key: "bookingLeadTime",
@@ -2975,7 +3508,7 @@ function OccupancyReportPanel({ occupancy = {}, finance = {}, bookings = {} }) {
 					</div>
 				) : (
 					<p className="mt-3 text-sm text-slate-500">
-						Nenhum período de baixa ocupação foi enviado pelo back-end.
+						Nenhum período de baixa ocupação foi identificado até agora.
 					</p>
 				)}
 			</div>
@@ -3049,7 +3582,7 @@ function ReportChartCard({
 		"confirmed",
 		"in_progress",
 		"completed",
-		"canceled",
+		"CANCELLED",
 		"rejected",
 		"evaluation",
 		"review",
@@ -3059,7 +3592,7 @@ function ReportChartCard({
 		return (
 			<PanelCard
 				title="Receita mensal"
-				description="Receita confirmada ao longo do tempo, já agrupada pelo back-end."
+				description="Receita confirmada ao longo do tempo."
 			>
 				<div className="h-[300px]">
 					{data.length > 0 ? (
@@ -3139,7 +3672,7 @@ function ReportChartCard({
 		return (
 			<PanelCard
 				title="Ocupação"
-				description="Percentual mensal com dias ocupados e disponíveis vindos do back-end."
+				description="Percentual mensal com dias ocupados e disponíveis."
 			>
 				<div className="h-[300px]">
 					{data.length > 0 ? (
@@ -3208,7 +3741,7 @@ function ReportChartCard({
 		return (
 			<PanelCard
 				title="Receita por acomodação"
-				description="Ranking de receita por imóvel, ordenado pelo back-end."
+				description="Ranking de receita por imóvel no período selecionado."
 			>
 				<div className="h-[320px]">
 					<ResponsiveContainer width="100%" height="100%">
@@ -3357,7 +3890,7 @@ function ReportChartCard({
 		return (
 			<PanelCard
 				title="Avaliação por acomodação"
-				description="Notas médias e volume de avaliações quando disponíveis no back-end."
+				description="Notas médias e volume de avaliações quando disponíveis."
 			>
 				{data.length > 0 ? (
 					<div className="space-y-3">
@@ -3404,7 +3937,7 @@ function ReportChartCard({
 					<EmptyState
 						icon={CheckCircle2}
 						title="Ainda não há dados suficientes para este período."
-						description="Este indicador depende de avaliações consolidadas do back-end."
+						description="Este indicador depende de avaliações já consolidadas."
 					/>
 				)}
 			</PanelCard>
@@ -3418,11 +3951,11 @@ function ReportChartCard({
 		return (
 			<PanelCard
 				title="Desempenho por acomodação"
-				description="Ranking visual por receita consolidada pelo back-end."
+				description="Compare rapidamente receita, ocupação e nota das acomodações."
 			>
 				{data.length > 0 ? (
 					<div className="space-y-3">
-						{data.slice(0, 6).map((item, index) => (
+						{data.slice(0, 12).map((item, index) => (
 							<div
 								key={item.key || item.label}
 								className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4"
@@ -3433,18 +3966,50 @@ function ReportChartCard({
 											#{index + 1}
 										</p>
 										<h4 className="mt-1 truncate text-sm font-semibold text-slate-950">
-											{item.label}
+											{item.title || item.label}
 										</h4>
+										<p className="mt-1 text-xs text-slate-500">
+											{item.city || "Cidade não informada"}
+										</p>
 									</div>
 									<ReportStatusBadge status={item.status} />
 								</div>
-								<div className="mt-3">
+								<div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
 									<MetricCardRow
 										label="Receita"
-										value={reportFormatters.currency(item.value)}
+										value={reportFormatters.currency(
+											item.revenue ?? item.value,
+										)}
 										tone="green"
 										icon={Banknote}
 									/>
+									<MetricCardRow
+										label="Ocupação"
+										value={
+											item.occupancyRate !== null &&
+											item.occupancyRate !== undefined
+												? `${Math.round(Number(item.occupancyRate || 0))}%`
+												: "Sem dados"
+										}
+										tone="blue"
+										icon={BarChart3}
+									/>
+									<MetricCardRow
+										label="Avaliação"
+										value={
+											item.averageRating
+												? reportFormatters.rating(item.averageRating)
+												: "Sem nota"
+										}
+										tone="amber"
+										icon={CheckCircle2}
+									/>
+								</div>
+								<div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+									<span>
+										{Number(item.activeBookings || 0)} reservas no período
+									</span>
+									{item.statusLabel ? <span>• {item.statusLabel}</span> : null}
 								</div>
 							</div>
 						))}
@@ -3542,7 +4107,7 @@ function ReportChartCard({
 					<EmptyState
 						icon={BarChart3}
 						title="Gráfico indisponível"
-						description="Quando o back-end enviar a série consolidada, a visualização aparecerá aqui."
+						description="Quando a série histórica estiver disponível, a visualização aparecerá aqui."
 					/>
 				)}
 			</div>
@@ -3555,14 +4120,14 @@ function ReportsCharts({ charts = {} }) {
 		<div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
 			<ReportChartCard
 				title="Receita ao longo do tempo"
-				description="Série mensal já agrupada pelo back-end."
+				description="Série mensal já agrupada."
 				type="line"
 				data={charts.revenueOverTime || []}
 				valueFormatter={formatCurrency}
 			/>
 			<ReportChartCard
 				title="Ocupação ao longo do tempo"
-				description="Percentual mensal de ocupação calculado no back-end."
+				description="Percentual mensal de ocupação calculado para o período."
 				type="line"
 				data={charts.occupancyOverTime || []}
 				valueFormatter={(value) => `${Math.round(Number(value || 0))}%`}
@@ -3687,9 +4252,12 @@ function ReportsSection({ data, action }) {
 	};
 	const activeReportType = selectedFilters.reportType;
 	const bookingStatuses = reports.bookings?.byStatus || [];
-	const findBookingStatusValue = (keys = []) =>
-		bookingStatuses.find((item) => keys.includes(normalizeStatusKey(item.key)))
-			?.value;
+	const findBookingStatusValue = (keys = []) => {
+		const normalizedKeys = keys.map((key) => normalizeStatusKey(key));
+		return bookingStatuses.find((item) =>
+			normalizedKeys.includes(normalizeStatusKey(item.key)),
+		)?.value;
+	};
 	const reportSections = [
 		{
 			key: "financial",
@@ -3833,9 +4401,9 @@ function ReportsSection({ data, action }) {
 			},
 			{
 				label: "Cancelamentos",
-				value: findBookingStatusValue(["canceled", "rejected"]),
+				value: findBookingStatusValue(["CANCELLED", "rejected"]),
 				available:
-					findBookingStatusValue(["canceled", "rejected"]) !== undefined,
+					findBookingStatusValue(["CANCELLED", "rejected"]) !== undefined,
 			},
 		]);
 		pushItems("Operação", reports.operational?.items || []);
@@ -4117,7 +4685,7 @@ function PreCheckinList({ items, onOpen }) {
 			<EmptyState
 				icon={ShieldCheck}
 				title="Nenhum pré-check-in encontrado"
-				description="Quando o back-end enviar pré-check-ins vinculados às reservas, eles aparecerão aqui para acompanhamento."
+				description="Quando os pré-check-ins vinculados às reservas estiverem disponíveis, eles aparecerão aqui para acompanhamento."
 			/>
 		);
 	}
@@ -4278,7 +4846,8 @@ function PreCheckinDetailsDrawer({ item, onClose }) {
 						<div className="flex flex-wrap items-center gap-3">
 							<PreCheckinStatusBadge status={getRulesStatus(item)} />
 							<p className="text-sm text-slate-500">
-								O aceite detalhado depende dos campos enviados pelo back-end.
+								O aceite detalhado depende das informações disponíveis para essa
+								reserva.
 							</p>
 						</div>
 					</PanelCard>
@@ -4330,7 +4899,9 @@ function PreCheckinSection({ data, action }) {
 				description="Centralize dados dos hóspedes, documentos, horário de chegada e aceite das regras antes do check-in."
 				action={action}
 			/>
-			<PreCheckinSummaryCards items={summaryItems} />
+			<div id="precheckin-summary">
+				<PreCheckinSummaryCards items={summaryItems} />
+			</div>
 
 			<PanelCard
 				title="Pré-check-ins"
@@ -4352,7 +4923,9 @@ function PreCheckinSection({ data, action }) {
 						</button>
 					))}
 				</div>
-				<PreCheckinList items={filteredItems} onOpen={setSelectedItem} />
+				<div id="precheckin-list">
+					<PreCheckinList items={filteredItems} onOpen={setSelectedItem} />
+				</div>
 			</PanelCard>
 
 			<PreCheckinDetailsDrawer
@@ -4363,20 +4936,94 @@ function PreCheckinSection({ data, action }) {
 	);
 }
 
-function CleaningInspectionSummaryCards({ items = [] }) {
+function CleaningInspectionSummaryCards({ summary = {}, metrics = {} }) {
+	const cards = [
+		{
+			key: "nextCheckInRisk",
+			label: "Próximo check-in em risco",
+			value: summary.nextCheckInRisk,
+			helper: "Itens que exigem ação imediata para não comprometer a próxima entrada.",
+			tone: "red",
+			icon: AlertTriangle,
+		},
+		{
+			key: "overdue",
+			label: "Atrasadas",
+			value: summary.overdue,
+			helper: "Tarefas com prazo vencido ou já fora da janela segura.",
+			tone: "red",
+			icon: Clock3,
+		},
+		{
+			key: "awaitingInspection",
+			label: "Aguardando vistoria",
+			value: summary.awaitingInspection,
+			helper: "Limpezas concluídas que precisam de aprovação final.",
+			tone: "amber",
+			icon: ClipboardCheck,
+		},
+		{
+			key: "totalPending",
+			label: "Pendentes",
+			value: summary.totalPending,
+			helper: "Todas as tarefas que ainda não foram aprovadas para entrada.",
+			tone: "amber",
+			icon: ClipboardCheck,
+		},
+		{
+			key: "inCleaning",
+			label: "Em limpeza",
+			value: summary.inCleaning,
+			helper: "Acomodações em preparação neste momento.",
+			tone: "blue",
+			icon: Broom,
+		},
+		{
+			key: "approved",
+			label: "Aprovados",
+			value: summary.approved,
+			helper: "Imóveis já liberados para receber o próximo hóspede.",
+			tone: "green",
+			icon: CheckCircle2,
+		},
+		{
+			key: "blocked",
+			label: "Bloqueados",
+			value: summary.blocked,
+			helper: "Tarefas travadas por problema operacional ou vistoria.",
+			tone: "red",
+			icon: ShieldCheck,
+		},
+		{
+			key: "pendingChecklist",
+			label: "Checklist pendente",
+			value: metrics.tasksWithIncompleteChecklistCount,
+			helper: "Tarefas com itens obrigatórios ainda não concluídos.",
+			tone: "violet",
+			icon: PenNewRound,
+		},
+		{
+			key: "missingEvidenceCount",
+			label: "Fotos pendentes",
+			value: summary.missingEvidenceCount,
+			helper: "Tarefas sem evidência mínima para validar a preparação.",
+			tone: "slate",
+			icon: Gallery,
+		},
+	];
+
 	return (
-		<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-			{items.map((item) => {
-				const Icon = kpiIconMap[item.key] || ClipboardCheck;
-				const available = item.available !== false;
-				const palette = getTone(available ? item.tone || "blue" : "slate");
+		<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+			{cards.map((item) => {
+				const Icon = item.icon || ClipboardCheck;
+				const palette = getTone(item.tone || "blue");
 				return (
 					<article
-						key={item.key || item.label}
-						className={`rounded-[18px] border p-4 ${
-							available
-								? "border-slate-200/70 bg-white shadow-[0_8px_20px_rgba(15,23,42,0.05)]"
-								: "border-dashed border-slate-300 bg-slate-50/80"
+						key={item.key}
+						className={`rounded-[20px] border p-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)] ${
+							item.tone === "red"
+								? "border-red-200/80 bg-red-50/70"
+								: "border-slate-200/70 bg-white"
 						}`}
 					>
 						<div className="flex items-start justify-between gap-3">
@@ -4384,34 +5031,19 @@ function CleaningInspectionSummaryCards({ items = [] }) {
 								<p className="text-[13px] font-medium text-slate-500">
 									{item.label}
 								</p>
-								<p
-									className={`mt-3 truncate font-semibold tracking-tight ${
-										available
-											? "text-[26px] leading-none text-slate-950"
-											: "text-lg text-slate-500"
-									}`}
-								>
-									{available
-										? firstAvailable(
-												item.value,
-												item.count,
-												item.total,
-												"Sem dados",
-											)
-										: "Indisponível"}
+								<p className="mt-3 text-[28px] font-semibold tracking-tight text-slate-950">
+									{firstAvailable(item.value, 0)}
 								</p>
 							</div>
 							<span
-								className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${palette.iconBg} ${palette.iconText}`}
+								className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${palette.iconBg} ${palette.iconText}`}
 							>
 								<Icon className="h-5 w-5" weight="BoldDuotone" />
 							</span>
 						</div>
-						{item.helper && (
-							<p className="mt-3 text-xs leading-5 text-slate-500">
-								{item.helper}
-							</p>
-						)}
+						<p className="mt-3 text-xs leading-5 text-slate-500">
+							{item.helper}
+						</p>
 					</article>
 				);
 			})}
@@ -4419,24 +5051,201 @@ function CleaningInspectionSummaryCards({ items = [] }) {
 	);
 }
 
-function CleaningInspectionCard({ item, onOpen }) {
+function CleaningInspectionProgressBar({
+	label,
+	value,
+	max,
+	tone = "blue",
+	helper,
+}) {
+	const palette = getTone(tone);
+	const safeMax = Math.max(Number(max || 0), 1);
+	const percentage = Math.max(
+		0,
+		Math.min(100, Math.round((Number(value || 0) / safeMax) * 100)),
+	);
+
+	return (
+		<div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 px-4 py-3">
+			<div className="flex items-center justify-between gap-3">
+				<p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+					{label}
+				</p>
+				<span className="text-xs font-semibold text-slate-600">{helper}</span>
+			</div>
+			<div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+				<div
+					className={`h-full rounded-full ${palette.iconBg.replace("bg-", "bg-")}`}
+					style={{ width: `${percentage}%` }}
+				/>
+			</div>
+		</div>
+	);
+}
+
+function CleaningInspectionInlineBanner({ tone = "slate", message, action }) {
+	if (!message) return null;
+	const palette = getTone(tone);
+	return (
+		<div
+			className={`flex flex-wrap items-center justify-between gap-3 rounded-[18px] border px-4 py-3 ${palette.iconBg} border-slate-200/70`}
+		>
+			<p className={`text-sm font-medium ${palette.iconText}`}>{message}</p>
+			{action}
+		</div>
+	);
+}
+
+function CleaningInspectionFiltersPanel({
+	filterOptions = {},
+	filters,
+	onChange,
+	onReset,
+}) {
+	const statuses = filterOptions.statuses?.length
+		? filterOptions.statuses
+		: cleaningInspectionFilters;
+	const places = filterOptions.places || [];
+	const responsibles = filterOptions.responsibles || [];
+
+	return (
+		<PanelCard
+			title="Filtros operacionais"
+			description="Refine por status, imóvel, responsável e pendências para chegar primeiro no que pode comprometer o próximo check-in."
+			action={
+				<button
+					type="button"
+					onClick={onReset}
+					className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:border-primary-200 hover:bg-slate-50"
+				>
+					<RefreshCw className="h-4 w-4" />
+					Limpar filtros
+				</button>
+			}
+		>
+			<div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+				<div>
+					<label className="mb-2 block text-xs font-semibold text-slate-600">
+						Status
+					</label>
+					<select
+						value={filters.status}
+						onChange={(event) => onChange("status", event.target.value)}
+						className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition-colors hover:border-primary-200 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-100"
+					>
+						{statuses.map((option) => (
+							<option key={option.key} value={option.key}>
+								{option.label}
+							</option>
+						))}
+					</select>
+				</div>
+
+				<div>
+					<label className="mb-2 block text-xs font-semibold text-slate-600">
+						Imóvel
+					</label>
+					<select
+						value={filters.placeId}
+						onChange={(event) => onChange("placeId", event.target.value)}
+						className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition-colors hover:border-primary-200 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-100"
+					>
+						<option value="all">Todos os imóveis</option>
+						{places.map((option) => (
+							<option key={option.key} value={option.key}>
+								{option.label}
+							</option>
+						))}
+					</select>
+				</div>
+
+				<div>
+					<label className="mb-2 block text-xs font-semibold text-slate-600">
+						Responsável
+					</label>
+					<select
+						value={filters.responsibleId}
+						onChange={(event) => onChange("responsibleId", event.target.value)}
+						className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition-colors hover:border-primary-200 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-100"
+					>
+						<option value="all">Todos os responsáveis</option>
+						{responsibles.map((option) => (
+							<option key={option.key} value={option.key}>
+								{option.label}
+							</option>
+						))}
+					</select>
+				</div>
+			</div>
+
+			<div className="mt-4 flex flex-wrap gap-2">
+				{[
+					{ key: "onlyOverdue", label: "Somente atrasadas" },
+					{ key: "onlyRisk", label: "Próximo check-in em risco" },
+					{ key: "onlyChecklistPending", label: "Checklist pendente" },
+					{ key: "onlyEvidencePending", label: "Foto/evidência pendente" },
+				].map((toggle) => {
+					const active = Boolean(filters[toggle.key]);
+					return (
+						<button
+							key={toggle.key}
+							type="button"
+							onClick={() => onChange(toggle.key, !active)}
+							className={`inline-flex min-h-10 cursor-pointer items-center rounded-full border px-4 text-sm font-semibold transition-colors ${
+								active
+									? "border-primary-900 bg-primary-900 text-white"
+									: "border-slate-200 bg-white text-slate-600 hover:border-primary-200 hover:bg-primary-50 hover:text-primary-900"
+							}`}
+						>
+							{toggle.label}
+						</button>
+					);
+				})}
+			</div>
+		</PanelCard>
+	);
+}
+
+function CleaningInspectionCard({
+	item,
+	onOpen,
+	onPrimaryAction,
+	actionLoadingId,
+}) {
 	const lastCheckout = firstAvailable(
+		item.lastCheckoutAt,
 		item.lastCheckout,
 		item.previousBooking?.checkout,
 	);
 	const nextCheckin = firstAvailable(
+		item.nextCheckInAt,
 		item.nextCheckin,
 		item.nextBooking?.checkin,
 	);
-	const relatedBooking = firstAvailable(
-		item.nextBooking?.id,
-		item.previousBooking?.id,
-		item.bookingId,
+	const assignee = firstAvailable(
+		item.responsible?.name,
+		item.assignee?.name,
+		item.cleaningAssignee?.name,
+		item.inspectionAssignee?.name,
 	);
-	const assignee = firstAvailable(item.assignee?.name, item.assigneeName);
+	const currentStatus = normalizeStatusKey(getCleaningOverallStatus(item));
+	const requiresDrawerAction =
+		currentStatus === "awaiting_inspection" ||
+		currentStatus === "blocked" ||
+		currentStatus === "overdue" ||
+		currentStatus === "approved";
+	const isLoadingAction = actionLoadingId === item.id;
 
 	return (
-		<article className="rounded-[20px] border border-slate-200/70 bg-white p-4 shadow-[0_8px_20px_rgba(15,23,42,0.05)]">
+		<article
+			className={`rounded-[22px] border p-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)] ${
+				item.isNextCheckInRisk
+					? "border-red-200 bg-red-50/40"
+					: item.isOverdue
+						? "border-amber-200 bg-amber-50/40"
+						: "border-slate-200/70 bg-white"
+			}`}
+		>
 			<div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
 				<div className="min-w-0">
 					<div className="flex flex-wrap items-center gap-2">
@@ -4446,19 +5255,37 @@ function CleaningInspectionCard({ item, onOpen }) {
 						<CleaningInspectionStatusBadge
 							status={getCleaningOverallStatus(item)}
 						/>
+						{item.isNextCheckInRisk && (
+							<Pill tone="red">Próximo check-in em risco</Pill>
+						)}
 					</div>
-					<p className="mt-1 truncate text-sm text-slate-500">
-						Reserva relacionada: {relatedBooking || "Indisponível"}
+					<p className="mt-1 text-sm text-slate-500">
+						{firstAvailable(item.place?.city, "Cidade não informada")}
 					</p>
 				</div>
-				<button
-					type="button"
-					onClick={() => onOpen(item)}
-					className="inline-flex cursor-pointer h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-800"
-				>
-					Ver detalhes
-					<ChevronRight className="h-4 w-4" />
-				</button>
+
+				<div className="flex flex-wrap gap-2">
+					<button
+						type="button"
+						onClick={() =>
+							requiresDrawerAction
+								? onOpen(item.id)
+								: onPrimaryAction(item)
+						}
+						disabled={isLoadingAction}
+						className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-primary-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-800 disabled:cursor-not-allowed disabled:opacity-60"
+					>
+						{isLoadingAction ? "Atualizando..." : getCleaningInspectionActionLabel(item)}
+					</button>
+					<button
+						type="button"
+						onClick={() => onOpen(item.id)}
+						className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:border-primary-200 hover:bg-slate-50"
+					>
+						Ver detalhes
+						<ChevronRight className="h-4 w-4" />
+					</button>
+				</div>
 			</div>
 
 			<div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -4471,43 +5298,81 @@ function CleaningInspectionCard({ item, onOpen }) {
 				<MetricCardRow
 					label="Próximo check-in"
 					value={formatDateTime(nextCheckin)}
-					tone="blue"
+					tone={item.isNextCheckInRisk ? "red" : "blue"}
 					icon={DoorOpen}
 				/>
 				<MetricCardRow
 					label="Responsável"
-					value={assignee || "Indisponível"}
+					value={assignee || "Sem responsável"}
 					tone="slate"
 					icon={ShieldCheck}
 				/>
 				<MetricCardRow
 					label="Prazo"
-					value={item.deadlineLabel || "Indisponível"}
-					tone="violet"
+					value={firstAvailable(item.deadlineLabel, formatDateTime(item.dueDate))}
+					tone={item.isOverdue ? "red" : "violet"}
 					icon={CalendarDays}
+				/>
+			</div>
+
+			<div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-2">
+				<CleaningInspectionProgressBar
+					label="Checklist obrigatório"
+					value={item.checklistProgress?.completedRequired}
+					max={item.checklistProgress?.required}
+					helper={getChecklistCompletionLabel(item.checklistProgress)}
+					tone={
+						Number(item.checklistProgress?.incompleteRequired || 0) > 0
+							? "amber"
+							: "green"
+					}
+				/>
+				<CleaningInspectionProgressBar
+					label="Evidências"
+					value={item.evidenceProgress?.total}
+					max={
+						Math.max(
+							Number(item.evidenceProgress?.minimumRequired || 0),
+							Number(item.evidenceProgress?.total || 0),
+							1,
+						)
+					}
+					helper={getEvidenceCompletionLabel(item.evidenceProgress)}
+					tone={
+						Number(item.evidenceProgress?.missingRequired || 0) > 0
+							? "amber"
+							: "green"
+					}
 				/>
 			</div>
 
 			<div className="mt-4 flex flex-wrap gap-2">
 				<CleaningInspectionStatusBadge status={getCleaningStatus(item)} />
 				<CleaningInspectionStatusBadge status={getInspectionStatus(item)} />
-				{item.notes && (
-					<span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
-						Com observações
-					</span>
+				{Number(item.checklistProgress?.incompleteRequired || 0) > 0 && (
+					<Pill tone="amber">Checklist pendente</Pill>
 				)}
+				{Number(item.evidenceProgress?.missingRequired || 0) > 0 && (
+					<Pill tone="slate">Evidência pendente</Pill>
+				)}
+				{item.notes && <Pill tone="slate">Com observações</Pill>}
 			</div>
 		</article>
 	);
 }
 
-function CleaningInspectionList({ items, onOpen }) {
+function CleaningInspectionList({
+	items,
+	onOpen,
+	onPrimaryAction,
+	actionLoadingId,
+}) {
 	if (items.length === 0) {
 		return (
 			<EmptyState
 				icon={ClipboardCheck}
-				title="Nenhuma tarefa de limpeza ou vistoria encontrada"
-				description="Quando o back-end enviar tarefas entre check-out e próximo check-in, elas aparecerão aqui para acompanhamento."
+				title="Nenhuma tarefa operacional encontrada"
+				description="Quando houver tarefas de limpeza ou vistoria entre reservas, elas aparecerão aqui com prioridade para risco, atraso e liberação da próxima entrada."
 			/>
 		);
 	}
@@ -4519,99 +5384,264 @@ function CleaningInspectionList({ items, onOpen }) {
 					key={item.id || item._id || index}
 					item={item}
 					onOpen={onOpen}
+					onPrimaryAction={onPrimaryAction}
+					actionLoadingId={actionLoadingId}
 				/>
 			))}
 		</div>
 	);
 }
 
-function ChecklistPreview({ title, items = [] }) {
+function ChecklistEditableItem({
+	item,
+	scope,
+	value,
+	onChange,
+	onSubmit,
+	submittingKey,
+}) {
+	const submitting = submittingKey === `${scope}:${item.id}`;
 	return (
-		<PanelCard title={title}>
-			{items.length > 0 ? (
-				<div className="space-y-2">
-					{items.map((item, index) => (
-						<div
-							key={item.id || item.label || index}
-							className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/70 bg-slate-50/80 px-4 py-3"
-						>
-							<div className="min-w-0">
-								<p className="text-sm font-semibold text-slate-950">
-									{item.label || "Item do checklist"}
-								</p>
-								{item.notes && (
-									<p className="mt-1 text-xs text-slate-500">{item.notes}</p>
-								)}
-							</div>
-							<CleaningInspectionStatusBadge status={item.status} />
-						</div>
-					))}
+		<div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4">
+			<div className="flex flex-wrap items-start justify-between gap-3">
+				<div className="min-w-0">
+					<div className="flex flex-wrap items-center gap-2">
+						<p className="text-sm font-semibold text-slate-950">
+							{item.label || "Item do checklist"}
+						</p>
+						<CleaningInspectionStatusBadge status={item.status} />
+						{item.required ? (
+							<Pill tone="amber">Obrigatório</Pill>
+						) : (
+							<Pill tone="slate">Opcional</Pill>
+						)}
+					</div>
+					{item.description && (
+						<p className="mt-1 text-sm text-slate-500">{item.description}</p>
+					)}
 				</div>
-			) : (
-				<p className="text-sm text-slate-500">
-					Checklist indisponível no retorno atual da API.
-				</p>
-			)}
-		</PanelCard>
+			</div>
+			<div className="mt-3 flex flex-wrap gap-2">
+				{[
+					{ key: "done", label: "Concluído" },
+					{ key: "failed", label: "Falhou" },
+					{ key: "pending", label: "Pendente" },
+					{ key: "not_applicable", label: "Não se aplica" },
+				].map((option) => (
+					<button
+						key={option.key}
+						type="button"
+						onClick={() => onSubmit(item, scope, option.key, value)}
+						disabled={submitting}
+						className={`inline-flex min-h-9 cursor-pointer items-center rounded-full border px-3 text-xs font-semibold transition-colors ${
+							normalizeStatusKey(item.status) === option.key
+								? "border-primary-900 bg-primary-900 text-white"
+								: "border-slate-200 bg-white text-slate-600 hover:border-primary-200 hover:bg-primary-50 hover:text-primary-900"
+						}`}
+					>
+						{option.label}
+					</button>
+				))}
+			</div>
+			<textarea
+				value={value}
+				onChange={(event) => onChange(item.id, event.target.value)}
+				placeholder="Observação do item"
+				className="mt-3 min-h-[84px] w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 transition-colors focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-100"
+			/>
+			<div className="mt-3 flex justify-end">
+				<button
+					type="button"
+					onClick={() => onSubmit(item, scope, normalizeStatusKey(item.status), value)}
+					disabled={submitting}
+					className="inline-flex h-10 cursor-pointer items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:border-primary-200 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+				>
+					{submitting ? "Salvando..." : "Salvar observação"}
+				</button>
+			</div>
+		</div>
 	);
 }
 
-function PhotoPreview({ title, photos = [] }) {
-	return (
-		<PanelCard title={title}>
-			{photos.length > 0 ? (
-				<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-					{photos.map((photo, index) => (
-						<div
-							key={photo.url || index}
-							className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
-						>
-							<img
-								src={photo.url}
-								alt={photo.label || title}
-								className="aspect-square w-full object-cover"
-							/>
-							<p className="truncate px-3 py-2 text-xs font-medium text-slate-600">
-								{photo.label || "Foto"}
-							</p>
-						</div>
-					))}
-				</div>
-			) : (
-				<p className="text-sm text-slate-500">
-					Fotos indisponíveis no retorno atual da API.
-				</p>
-			)}
-		</PanelCard>
-	);
-}
+function CleaningInspectionDetailsDrawer({
+	taskId,
+	onClose,
+	onRefreshOverview,
+}) {
+	const [detail, setDetail] = useState(null);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState("");
+	const [message, setMessage] = useState("");
+	const [messageTone, setMessageTone] = useState("green");
+	const [submittingKey, setSubmittingKey] = useState("");
+	const [reasonDraft, setReasonDraft] = useState("");
+	const [notesDraft, setNotesDraft] = useState("");
+	const [evidenceDraft, setEvidenceDraft] = useState({
+		type: "after",
+		url: "",
+		description: "",
+		area: "common_area",
+	});
+	const [checklistNotes, setChecklistNotes] = useState({});
 
-function CleaningInspectionDetailsDrawer({ item, onClose }) {
-	if (!item) return null;
+	const loadDetail = useCallback(async () => {
+		if (!taskId) return;
+		setLoading(true);
+		setError("");
+		try {
+			const response = await getHostCleaningInspectionTask(taskId);
+			setDetail(response.item || null);
+			setNotesDraft(response.item?.notes || "");
+		} catch (err) {
+			console.error("Erro ao carregar detalhe de limpeza e vistoria:", err);
+			setError(
+				err?.response?.data?.error ||
+					"Não foi possível carregar o detalhe da tarefa.",
+			);
+		} finally {
+			setLoading(false);
+		}
+	}, [taskId]);
+
+	useEffect(() => {
+		if (!taskId) return;
+		setMessage("");
+		setReasonDraft("");
+		setChecklistNotes({});
+		loadDetail();
+	}, [taskId, loadDetail]);
+
+	if (!taskId) return null;
+
+	const item = detail;
+	const approvalBlockers = item?.approvalBlockers || [];
+
+	const setSuccess = (text) => {
+		setMessage(text);
+		setMessageTone("green");
+	};
+
+	const setFailure = (text) => {
+		setMessage(text);
+		setMessageTone("red");
+	};
+
+	const refreshAfterMutation = async (response, successMessage) => {
+		setDetail(response?.item || null);
+		setNotesDraft(response?.item?.notes || "");
+		setSuccess(successMessage || response?.message || "Ação concluída.");
+		await onRefreshOverview?.();
+	};
+
+	const handleStatusAction = async (status, reason = "") => {
+		if (!item?.id) return;
+		setSubmittingKey(`status:${status}`);
+		setMessage("");
+		try {
+			const response = await updateHostCleaningInspectionStatus(item.id, {
+				status,
+				reason,
+			});
+			await refreshAfterMutation(response);
+			setReasonDraft("");
+		} catch (err) {
+			setFailure(
+				err?.response?.data?.error || "Não foi possível atualizar o status.",
+			);
+		} finally {
+			setSubmittingKey("");
+		}
+	};
+
+	const handleChecklistChange = async (checklistItem, scope, status, notes) => {
+		setSubmittingKey(`${scope}:${checklistItem.id}`);
+		setMessage("");
+		try {
+			const response = await updateHostCleaningInspectionChecklist(item.id, {
+				scope,
+				itemId: checklistItem.id,
+				status,
+				notes,
+			});
+			await refreshAfterMutation(response, "Checklist atualizado com sucesso.");
+		} catch (err) {
+			setFailure(
+				err?.response?.data?.error || "Não foi possível atualizar o checklist.",
+			);
+		} finally {
+			setSubmittingKey("");
+		}
+	};
+
+	const handleSaveNotes = async () => {
+		setSubmittingKey("notes");
+		setMessage("");
+		try {
+			const response = await updateHostCleaningInspectionNotes(item.id, {
+				notes: notesDraft,
+			});
+			await refreshAfterMutation(response, "Observações salvas com sucesso.");
+		} catch (err) {
+			setFailure(
+				err?.response?.data?.error || "Não foi possível salvar as observações.",
+			);
+		} finally {
+			setSubmittingKey("");
+		}
+	};
+
+	const handleAddEvidence = async () => {
+		setSubmittingKey("evidence");
+		setMessage("");
+		try {
+			const response = await addHostCleaningInspectionEvidence(item.id, {
+				type: evidenceDraft.type,
+				url: evidenceDraft.url,
+				description: evidenceDraft.description,
+				area: evidenceDraft.area,
+			});
+			await refreshAfterMutation(response, "Evidência adicionada com sucesso.");
+			setEvidenceDraft({
+				type: "after",
+				url: "",
+				description: "",
+				area: "common_area",
+			});
+		} catch (err) {
+			setFailure(
+				err?.response?.data?.error || "Não foi possível registrar a evidência.",
+			);
+		} finally {
+			setSubmittingKey("");
+		}
+	};
+
 	const lastCheckout = firstAvailable(
-		item.lastCheckout,
-		item.previousBooking?.checkout,
+		item?.lastCheckoutAt,
+		item?.lastCheckout,
+		item?.previousBooking?.checkout,
 	);
 	const nextCheckin = firstAvailable(
-		item.nextCheckin,
-		item.nextBooking?.checkin,
+		item?.nextCheckInAt,
+		item?.nextCheckin,
+		item?.nextBooking?.checkin,
 	);
 	const relatedBooking = firstAvailable(
-		item.nextBooking?.id,
-		item.previousBooking?.id,
-		item.bookingId,
+		item?.nextBooking?.id,
+		item?.previousBooking?.id,
+		item?.bookingId,
 	);
 
 	return (
-		<div className="fixed inset-0 z-50 bg-slate-950/30">
-			<div className="ml-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto bg-white p-5 shadow-2xl">
+		<div className="fixed inset-0 z-50 bg-slate-950/35 backdrop-blur-[2px]">
+			<div className="ml-auto flex h-full w-full max-w-[920px] flex-col overflow-y-auto bg-[#f6f7f8] p-5 shadow-2xl">
 				<div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
 					<div>
 						<p className="text-xs font-semibold uppercase tracking-wide text-primary-700">
-							Detalhe da limpeza e vistoria
+							Operação entre reservas
 						</p>
 						<h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
-							{getCleaningPlaceName(item) || "Acomodação não informada"}
+							{getCleaningPlaceName(item || {}) || "Acomodação não informada"}
 						</h2>
 						<p className="mt-1 text-sm text-slate-500">
 							Reserva relacionada: {relatedBooking || "Indisponível"}
@@ -4627,64 +5657,533 @@ function CleaningInspectionDetailsDrawer({ item, onClose }) {
 				</div>
 
 				<div className="mt-5 space-y-5">
-					<PanelCard title="Dados da acomodação">
-						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-							<DetailRow
-								label="Acomodação"
-								value={getCleaningPlaceName(item)}
-							/>
-							<DetailRow label="Cidade" value={item.place?.city} />
-							<DetailRow label="Status geral" value={item.overallStatusLabel} />
-							<DetailRow label="Responsável" value={item.assignee?.name} />
-						</div>
-					</PanelCard>
+					{message && (
+						<CleaningInspectionInlineBanner
+							tone={messageTone}
+							message={message}
+						/>
+					)}
 
-					<PanelCard title="Reserva e horários">
-						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-							<DetailRow label="Reserva" value={relatedBooking} />
-							<DetailRow
-								label="Último check-out"
-								value={formatDateTime(lastCheckout)}
-							/>
-							<DetailRow
-								label="Próximo check-in"
-								value={formatDateTime(nextCheckin)}
-							/>
-							<DetailRow
-								label="Prazo antes da entrada"
-								value={item.deadlineLabel}
-							/>
-						</div>
-					</PanelCard>
+					{loading && (
+						<PanelCard title="Carregando tarefa">
+							<div className="space-y-3">
+								<div className="h-20 animate-pulse rounded-2xl bg-slate-200/70" />
+								<div className="h-40 animate-pulse rounded-2xl bg-slate-200/70" />
+							</div>
+						</PanelCard>
+					)}
 
-					<PanelCard title="Status operacional">
-						<div className="flex flex-wrap gap-2">
-							<CleaningInspectionStatusBadge status={getCleaningStatus(item)} />
-							<CleaningInspectionStatusBadge
-								status={getInspectionStatus(item)}
-							/>
-							<CleaningInspectionStatusBadge
-								status={getCleaningOverallStatus(item)}
-							/>
-						</div>
-					</PanelCard>
+					{error && !loading && (
+						<PanelCard title="Erro ao carregar detalhes">
+							<p className="text-sm text-red-700">{error}</p>
+							<button
+								type="button"
+								onClick={loadDetail}
+								className="mt-4 inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-primary-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-800"
+							>
+								Tentar novamente
+							</button>
+						</PanelCard>
+					)}
 
-					<ChecklistPreview
-						title="Checklist de limpeza"
-						items={item.cleaningChecklist || []}
-					/>
-					<ChecklistPreview
-						title="Checklist de vistoria"
-						items={item.inspectionChecklist || []}
-					/>
-					<PhotoPreview title="Fotos antes" photos={item.photosBefore || []} />
-					<PhotoPreview title="Fotos depois" photos={item.photosAfter || []} />
+					{item && !loading && (
+						<>
+							<PanelCard title="Prioridade operacional">
+								<div className="flex flex-wrap gap-2">
+									<CleaningInspectionStatusBadge
+										status={getCleaningOverallStatus(item)}
+									/>
+									<CleaningInspectionStatusBadge
+										status={getCleaningStatus(item)}
+									/>
+									<CleaningInspectionStatusBadge
+										status={getInspectionStatus(item)}
+									/>
+									{item.isNextCheckInRisk && (
+										<Pill tone="red">Próximo check-in em risco</Pill>
+									)}
+									{item.isOverdue && <Pill tone="red">Atrasado</Pill>}
+								</div>
+								{approvalBlockers.length > 0 && (
+									<div className="mt-4 space-y-2">
+										{approvalBlockers.map((blocker) => (
+											<div
+												key={blocker.code}
+												className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3"
+											>
+												<p className="text-sm font-semibold text-red-800">
+													{blocker.label}
+												</p>
+												<p className="mt-1 text-sm text-red-700">
+													{blocker.description}
+												</p>
+											</div>
+										))}
+									</div>
+								)}
+							</PanelCard>
 
-					<PanelCard title="Observações operacionais">
-						<p className="text-sm leading-6 text-slate-600">
-							{item.notes || "Nenhuma observação operacional informada."}
-						</p>
-					</PanelCard>
+							<PanelCard title="Dados do imóvel e da janela operacional">
+								<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+									<DetailRow
+										label="Acomodação"
+										value={getCleaningPlaceName(item)}
+									/>
+									<DetailRow label="Cidade" value={item.place?.city} />
+									<DetailRow
+										label="Responsável atual"
+										value={firstAvailable(
+											item.responsible?.name,
+											item.cleaningAssignee?.name,
+											item.inspectionAssignee?.name,
+											"Sem responsável",
+										)}
+									/>
+									<DetailRow
+										label="Prazo"
+										value={firstAvailable(
+											item.deadlineLabel,
+											formatDateTime(item.dueDate),
+										)}
+									/>
+									<DetailRow
+										label="Último check-out"
+										value={formatDateTime(lastCheckout)}
+									/>
+									<DetailRow
+										label="Próximo check-in"
+										value={formatDateTime(nextCheckin)}
+									/>
+								</div>
+							</PanelCard>
+
+							<PanelCard
+								title="Ações principais"
+								description="A aprovação só deve acontecer quando checklist, evidências e vistoria estiverem sem pendência."
+							>
+								<div className="flex flex-wrap gap-2">
+									{normalizeStatusKey(getCleaningOverallStatus(item)) ===
+										"awaiting_cleaning" && (
+										<button
+											type="button"
+											onClick={() =>
+												handleStatusAction("cleaning_in_progress")
+											}
+											disabled={submittingKey === "status:cleaning_in_progress"}
+											className="inline-flex h-10 cursor-pointer items-center rounded-xl bg-primary-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-800 disabled:opacity-60"
+										>
+											Iniciar limpeza
+										</button>
+									)}
+									{normalizeStatusKey(getCleaningOverallStatus(item)) ===
+										"cleaning_in_progress" && (
+										<button
+											type="button"
+											onClick={() =>
+												handleStatusAction("awaiting_inspection")
+											}
+											disabled={submittingKey === "status:awaiting_inspection"}
+											className="inline-flex h-10 cursor-pointer items-center rounded-xl bg-primary-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-800 disabled:opacity-60"
+										>
+											Concluir limpeza
+										</button>
+									)}
+									{normalizeStatusKey(getCleaningOverallStatus(item)) ===
+										"awaiting_inspection" && (
+										<button
+											type="button"
+											onClick={() => handleStatusAction("approved")}
+											disabled={
+												submittingKey === "status:approved" ||
+												approvalBlockers.length > 0
+											}
+											className="inline-flex h-10 cursor-pointer items-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+										>
+											Aprovar vistoria
+										</button>
+									)}
+									{normalizeStatusKey(getCleaningOverallStatus(item)) ===
+										"rejected" && (
+										<button
+											type="button"
+											onClick={() =>
+												handleStatusAction("cleaning_in_progress")
+											}
+											disabled={submittingKey === "status:cleaning_in_progress"}
+											className="inline-flex h-10 cursor-pointer items-center rounded-xl bg-primary-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-800 disabled:opacity-60"
+										>
+											Voltar para limpeza
+										</button>
+									)}
+								</div>
+
+								<div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+									<div className="rounded-2xl border border-slate-200 bg-white p-4">
+										<p className="text-sm font-semibold text-slate-950">
+											Reprovar vistoria
+										</p>
+										<textarea
+											value={reasonDraft}
+											onChange={(event) =>
+												setReasonDraft(event.target.value)
+											}
+											placeholder="Descreva o que impede a aprovação"
+											className="mt-3 min-h-[96px] w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-100"
+										/>
+										<div className="mt-3 flex gap-2">
+											<button
+												type="button"
+												onClick={() =>
+													handleStatusAction("rejected", reasonDraft)
+												}
+												disabled={submittingKey === "status:rejected"}
+												className="inline-flex h-10 cursor-pointer items-center rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-60"
+											>
+												Reprovar
+											</button>
+											<button
+												type="button"
+												onClick={() =>
+													handleStatusAction("blocked", reasonDraft)
+												}
+												disabled={submittingKey === "status:blocked"}
+												className="inline-flex h-10 cursor-pointer items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:border-primary-200 hover:bg-slate-50 disabled:opacity-60"
+											>
+												Bloquear imóvel
+											</button>
+										</div>
+									</div>
+
+									<div className="rounded-2xl border border-slate-200 bg-white p-4">
+										<p className="text-sm font-semibold text-slate-950">
+											Resumo do progresso
+										</p>
+										<div className="mt-4 space-y-3">
+											<CleaningInspectionProgressBar
+												label="Checklist obrigatório"
+												value={item.checklistProgress?.completedRequired}
+												max={item.checklistProgress?.required}
+												helper={getChecklistCompletionLabel(
+													item.checklistProgress,
+												)}
+												tone={
+													Number(
+														item.checklistProgress?.incompleteRequired || 0,
+													) > 0
+														? "amber"
+														: "green"
+												}
+											/>
+											<CleaningInspectionProgressBar
+												label="Evidências"
+												value={item.evidenceProgress?.total}
+												max={Math.max(
+													Number(item.evidenceProgress?.minimumRequired || 0),
+													Number(item.evidenceProgress?.total || 0),
+													1,
+												)}
+												helper={getEvidenceCompletionLabel(
+													item.evidenceProgress,
+												)}
+												tone={
+													Number(
+														item.evidenceProgress?.missingRequired || 0,
+													) > 0
+														? "amber"
+														: "green"
+												}
+											/>
+										</div>
+									</div>
+								</div>
+							</PanelCard>
+
+							<PanelCard title="Checklist por ambiente">
+								{item.checklistByArea?.length > 0 ? (
+									<div className="space-y-4">
+										{item.checklistByArea.map((area) => (
+											<div key={area.key} className="space-y-3">
+												<div className="flex items-center justify-between gap-3">
+													<div>
+														<p className="text-sm font-semibold text-slate-950">
+															{area.label}
+														</p>
+														<p className="text-xs text-slate-500">
+															Opcional e obrigatório aparecem separados pelo status e pela observação do item.
+														</p>
+													</div>
+												</div>
+												<div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+													<div className="space-y-3">
+														<p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+															Limpeza
+														</p>
+														{area.cleaningItems?.length > 0 ? (
+															area.cleaningItems.map((checklistItem) => (
+																<ChecklistEditableItem
+																	key={checklistItem.id}
+																	item={checklistItem}
+																	scope="cleaning"
+																	value={
+																		checklistNotes[checklistItem.id] ??
+																		checklistItem.notes ??
+																		""
+																	}
+																	onChange={(id, value) =>
+																		setChecklistNotes((current) => ({
+																			...current,
+																			[id]: value,
+																		}))
+																	}
+																	onSubmit={handleChecklistChange}
+																	submittingKey={submittingKey}
+																/>
+															))
+														) : (
+															<div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/80 p-4 text-sm text-slate-500">
+																Sem itens de limpeza neste ambiente.
+															</div>
+														)}
+													</div>
+
+													<div className="space-y-3">
+														<p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+															Vistoria
+														</p>
+														{area.inspectionItems?.length > 0 ? (
+															area.inspectionItems.map((checklistItem) => (
+																<ChecklistEditableItem
+																	key={checklistItem.id}
+																	item={checklistItem}
+																	scope="inspection"
+																	value={
+																		checklistNotes[checklistItem.id] ??
+																		checklistItem.notes ??
+																		""
+																	}
+																	onChange={(id, value) =>
+																		setChecklistNotes((current) => ({
+																			...current,
+																			[id]: value,
+																		}))
+																	}
+																	onSubmit={handleChecklistChange}
+																	submittingKey={submittingKey}
+																/>
+															))
+														) : (
+															<div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/80 p-4 text-sm text-slate-500">
+																Sem itens de vistoria neste ambiente.
+															</div>
+														)}
+													</div>
+												</div>
+											</div>
+										))}
+									</div>
+								) : (
+									<EmptyState
+										icon={ClipboardCheck}
+										title="Sem checklist cadastrado"
+										description="Esta tarefa ainda não tem itens de checklist retornados pela API."
+									/>
+								)}
+							</PanelCard>
+
+							<PanelCard
+								title="Fotos e evidências"
+								description="Use links ou paths já resolvidos até a integração com upload/storage ficar pronta."
+							>
+								<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+									{[
+										{ key: "before", label: "Antes", items: item.evidence?.before || [] },
+										{ key: "after", label: "Depois", items: item.evidence?.after || [] },
+										{
+											key: "inspection",
+											label: "Vistoria",
+											items: item.evidence?.inspection || [],
+										},
+										{
+											key: "issue",
+											label: "Problemas",
+											items: item.evidence?.issue || [],
+										},
+									].map((group) => (
+										<div
+											key={group.key}
+											className="rounded-2xl border border-slate-200 bg-white p-4"
+										>
+											<div className="flex items-center justify-between gap-3">
+												<p className="text-sm font-semibold text-slate-950">
+													Fotos {group.label.toLowerCase()}
+												</p>
+												<Pill tone={group.items.length > 0 ? "green" : "slate"}>
+													{group.items.length} item{group.items.length === 1 ? "" : "s"}
+												</Pill>
+											</div>
+											{group.items.length > 0 ? (
+												<div className="mt-3 grid grid-cols-2 gap-3">
+													{group.items.map((photo, index) => (
+														<div
+															key={photo.url || `${group.key}-${index}`}
+															className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+														>
+															<img
+																src={photo.url}
+																alt={photo.label || group.label}
+																className="aspect-square w-full object-cover"
+															/>
+															<div className="space-y-1 px-3 py-2">
+																<p className="truncate text-xs font-semibold text-slate-700">
+																	{photo.label || "Evidência"}
+																</p>
+																{photo.description && (
+																	<p className="text-xs text-slate-500">
+																		{photo.description}
+																	</p>
+																)}
+															</div>
+														</div>
+													))}
+												</div>
+											) : (
+												<p className="mt-3 text-sm text-slate-500">
+													Sem evidência nessa categoria.
+												</p>
+											)}
+										</div>
+									))}
+								</div>
+
+								<div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+									<p className="text-sm font-semibold text-slate-950">
+										Adicionar evidência por URL/path
+									</p>
+									<div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+										<select
+											value={evidenceDraft.type}
+											onChange={(event) =>
+												setEvidenceDraft((current) => ({
+													...current,
+													type: event.target.value,
+												}))
+											}
+											className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-100"
+										>
+											<option value="before">Antes</option>
+											<option value="after">Depois</option>
+											<option value="inspection">Vistoria</option>
+											<option value="issue">Problema</option>
+											<option value="general">Geral</option>
+										</select>
+										<select
+											value={evidenceDraft.area}
+											onChange={(event) =>
+												setEvidenceDraft((current) => ({
+													...current,
+													area: event.target.value,
+												}))
+											}
+											className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-100"
+										>
+											<option value="bathroom">Banheiro</option>
+											<option value="kitchen">Cozinha</option>
+											<option value="bedroom">Quarto</option>
+											<option value="common_area">Áreas comuns</option>
+											<option value="contact_surfaces">Superfícies de contato</option>
+											<option value="linens">Enxoval</option>
+											<option value="supplies">Insumos</option>
+											<option value="basic_safety">Segurança básica</option>
+											<option value="outdoor">Área externa</option>
+											<option value="other">Outros</option>
+										</select>
+										<input
+											value={evidenceDraft.url}
+											onChange={(event) =>
+												setEvidenceDraft((current) => ({
+													...current,
+													url: event.target.value,
+												}))
+											}
+											placeholder="https://... ou /tmp/arquivo.jpg"
+											className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-100 lg:col-span-2"
+										/>
+										<textarea
+											value={evidenceDraft.description}
+											onChange={(event) =>
+												setEvidenceDraft((current) => ({
+													...current,
+													description: event.target.value,
+												}))
+											}
+											placeholder="Descrição da evidência"
+											className="min-h-[96px] rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-100 lg:col-span-2"
+										/>
+									</div>
+									<div className="mt-3 flex justify-end">
+										<button
+											type="button"
+											onClick={handleAddEvidence}
+											disabled={submittingKey === "evidence"}
+											className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-primary-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-800 disabled:opacity-60"
+										>
+											{submittingKey === "evidence"
+												? "Adicionando..."
+												: "Adicionar evidência"}
+										</button>
+									</div>
+								</div>
+							</PanelCard>
+
+							<PanelCard title="Observações operacionais">
+								<textarea
+									value={notesDraft}
+									onChange={(event) => setNotesDraft(event.target.value)}
+									placeholder="Registre observações da tarefa, bloqueios, contexto da limpeza ou da vistoria."
+									className="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-100"
+								/>
+								<div className="mt-3 flex justify-end">
+									<button
+										type="button"
+										onClick={handleSaveNotes}
+										disabled={submittingKey === "notes"}
+										className="inline-flex h-10 cursor-pointer items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:border-primary-200 hover:bg-slate-50 disabled:opacity-60"
+									>
+										{submittingKey === "notes"
+											? "Salvando..."
+											: "Salvar observações"}
+									</button>
+								</div>
+							</PanelCard>
+
+							<PanelCard title="Timeline básica">
+								{item.timeline?.length > 0 ? (
+									<div className="space-y-3">
+										{item.timeline.map((event, index) => (
+											<div
+												key={`${event.type}-${event.at}-${index}`}
+												className="flex gap-3"
+											>
+												<span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary-700" />
+												<div className="min-w-0">
+													<p className="text-sm font-semibold text-slate-950">
+														{event.label}
+													</p>
+													<p className="text-sm text-slate-500">
+														{formatDateTime(event.at)}
+													</p>
+												</div>
+											</div>
+										))}
+									</div>
+								) : (
+									<p className="text-sm text-slate-500">
+										A timeline ainda não tem eventos disponíveis para esta tarefa.
+									</p>
+								)}
+							</PanelCard>
+						</>
+					)}
 				</div>
 			</div>
 		</div>
@@ -4692,62 +6191,234 @@ function CleaningInspectionDetailsDrawer({ item, onClose }) {
 }
 
 function CleaningInspectionSection({ data, action }) {
-	const [activeFilter, setActiveFilter] = useState("all");
-	const [selectedItem, setSelectedItem] = useState(null);
-	const cleaningInspectionPayload = getCleaningInspectionPayload(data);
-	const items = getCleaningInspectionItems(cleaningInspectionPayload);
-	const summaryItems = getCleaningInspectionSummaryItems(
-		cleaningInspectionPayload,
+	const [fallbackPayload] = useState(() => getCleaningInspectionPayload(data));
+	const [payload, setPayload] = useState(fallbackPayload);
+	const [loading, setLoading] = useState(!fallbackPayload?.items?.length);
+	const [refreshing, setRefreshing] = useState(false);
+	const [error, setError] = useState("");
+	const [warning, setWarning] = useState("");
+	const [actionMessage, setActionMessage] = useState("");
+	const [selectedTaskId, setSelectedTaskId] = useState("");
+	const [actionLoadingId, setActionLoadingId] = useState("");
+	const [filters, setFilters] = useState({
+		status: "all",
+		placeId: "all",
+		responsibleId: "all",
+		onlyOverdue: false,
+		onlyRisk: false,
+		onlyChecklistPending: false,
+		onlyEvidencePending: false,
+	});
+
+	const loadCleaningInspection = useCallback(
+		async ({ silent = false } = {}) => {
+			if (silent) {
+				setRefreshing(true);
+			} else {
+				setLoading(true);
+			}
+			setError("");
+		try {
+			const response = await getHostCleaningInspection();
+			setPayload(response.cleaningInspection || {});
+			setWarning("");
+		} catch (err) {
+				console.error("Erro ao carregar limpeza e vistoria:", err);
+				const message =
+					err?.response?.data?.error ||
+					err?.response?.data?.message ||
+					"Não foi possível carregar a operação de limpeza e vistoria.";
+				if (fallbackPayload?.items?.length) {
+					setWarning(
+						`${message} Exibindo o último snapshot carregado no dashboard.`,
+					);
+				} else {
+					setError(message);
+				}
+			} finally {
+				setLoading(false);
+				setRefreshing(false);
+			}
+		},
+		[fallbackPayload],
 	);
-	const filters =
-		cleaningInspectionPayload.filters || cleaningInspectionFilters;
-	const filteredItems =
-		activeFilter === "all"
-			? items
-			: items.filter(
-					(item) =>
-						normalizeStatusKey(getCleaningOverallStatus(item)) === activeFilter,
-				);
+
+	useEffect(() => {
+		loadCleaningInspection();
+	}, [loadCleaningInspection]);
+
+	const handlePrimaryAction = async (item) => {
+		const nextStatus = getCleaningInspectionPrimaryAction(item);
+		if (!nextStatus) {
+			setSelectedTaskId(item.id);
+			return;
+		}
+
+		setActionLoadingId(item.id);
+		setActionMessage("");
+		try {
+			await updateHostCleaningInspectionStatus(item.id, { status: nextStatus });
+			await loadCleaningInspection({ silent: true });
+			setActionMessage("Tarefa atualizada com sucesso.");
+		} catch (err) {
+			setWarning(
+				err?.response?.data?.error ||
+					"Não foi possível executar a ação principal desta tarefa.",
+			);
+		} finally {
+			setActionLoadingId("");
+		}
+	};
+
+	const items = getCleaningInspectionItems(payload);
+	const summary = payload.summary || {};
+	const metrics = payload.metrics || {};
+	const filterOptions = payload.filterOptions || {};
+
+	const filteredItems = items.filter((item) => {
+		if (
+			filters.status !== "all" &&
+			normalizeStatusKey(getCleaningOverallStatus(item)) !== filters.status
+		) {
+			return false;
+		}
+		if (filters.placeId !== "all" && item.place?.id !== filters.placeId) {
+			return false;
+		}
+		if (filters.responsibleId !== "all") {
+			const responsibleKey = item.responsible?.id || "unassigned";
+			if (responsibleKey !== filters.responsibleId) return false;
+		}
+		if (filters.onlyOverdue && !item.isOverdue) return false;
+		if (filters.onlyRisk && !item.isNextCheckInRisk) return false;
+		if (
+			filters.onlyChecklistPending &&
+			Number(item.checklistProgress?.incompleteRequired || 0) <= 0
+		) {
+			return false;
+		}
+		if (
+			filters.onlyEvidencePending &&
+			Number(item.evidenceProgress?.missingRequired || 0) <= 0
+		) {
+			return false;
+		}
+		return true;
+	});
 
 	return (
 		<div className="space-y-5">
 			<SectionHeader
 				eyebrow="Operação"
 				title="Limpeza e vistoria"
-				description="Acompanhe limpezas, checklists, vistorias e prazos antes da próxima entrada."
-				action={action}
-			/>
-			<CleaningInspectionSummaryCards items={summaryItems} />
-
-			<PanelCard
-				title="Tarefas operacionais"
-				description="Controle o preparo da acomodação entre o check-out e o próximo check-in."
-			>
-				<div className="mb-4 flex flex-wrap gap-2">
-					{filters.map((filter) => (
+				description="Priorize risco de próximo check-in, atraso e pendências de checklist ou evidência antes de liberar o imóvel para a próxima entrada."
+				action={
+					<div className="flex flex-wrap items-center gap-2">
+						{action}
 						<button
-							key={filter.key}
 							type="button"
-							onClick={() => setActiveFilter(filter.key)}
-							className={`h-9 rounded-full border px-3 text-sm font-semibold transition-colors ${
-								activeFilter === filter.key
-									? "border-primary-900 bg-primary-900 text-white"
-									: "border-slate-200 bg-white text-slate-600 hover:bg-primary-100 cursor-pointer hover:border-primary-200 hover:text-primary-900"
-							}`}
+							onClick={() => loadCleaningInspection({ silent: true })}
+							disabled={refreshing}
+							className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:border-primary-200 hover:bg-slate-50 disabled:opacity-60"
 						>
-							{filter.label}
+							<RefreshCw
+								className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+							/>
+							Atualizar operação
 						</button>
-					))}
-				</div>
-				<CleaningInspectionList
-					items={filteredItems}
-					onOpen={setSelectedItem}
+					</div>
+				}
+			/>
+
+			{warning && (
+				<CleaningInspectionInlineBanner
+					tone="amber"
+					message={warning}
+					action={
+						<button
+							type="button"
+							onClick={() => setWarning("")}
+							className="text-xs font-semibold text-slate-700"
+						>
+							Fechar
+						</button>
+					}
 				/>
-			</PanelCard>
+			)}
+			{actionMessage && (
+				<CleaningInspectionInlineBanner
+					tone="green"
+					message={actionMessage}
+				/>
+			)}
+
+			{loading && !items.length ? (
+				<PanelCard title="Carregando operação">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+						{Array.from({ length: 8 }).map((_, index) => (
+							<div
+								key={index}
+								className="h-32 animate-pulse rounded-[20px] bg-slate-200/70"
+							/>
+						))}
+					</div>
+				</PanelCard>
+			) : error ? (
+				<EmptyState
+					icon={AlertTriangle}
+					title="Não foi possível carregar limpeza e vistoria"
+					description={error}
+				/>
+			) : (
+				<>
+					<div id="cleaning-summary">
+						<CleaningInspectionSummaryCards
+							summary={summary}
+							metrics={metrics}
+						/>
+					</div>
+
+					<div id="cleaning-filters">
+						<CleaningInspectionFiltersPanel
+							filterOptions={filterOptions}
+							filters={filters}
+							onChange={(key, value) =>
+								setFilters((current) => ({ ...current, [key]: value }))
+							}
+							onReset={() =>
+								setFilters({
+									status: "all",
+									placeId: "all",
+									responsibleId: "all",
+									onlyOverdue: false,
+									onlyRisk: false,
+									onlyChecklistPending: false,
+									onlyEvidencePending: false,
+								})
+							}
+						/>
+					</div>
+
+					<PanelCard
+						title="Fila operacional"
+						description="A lista já chega priorizada para ação. Use os filtros para isolar atraso, risco de entrada e pendências que ainda impedem a aprovação."
+					>
+						<div id="cleaning-tasks">
+							<CleaningInspectionList
+								items={filteredItems}
+								onOpen={setSelectedTaskId}
+								onPrimaryAction={handlePrimaryAction}
+								actionLoadingId={actionLoadingId}
+							/>
+						</div>
+					</PanelCard>
+				</>
+			)}
 
 			<CleaningInspectionDetailsDrawer
-				item={selectedItem}
-				onClose={() => setSelectedItem(null)}
+				taskId={selectedTaskId}
+				onClose={() => setSelectedTaskId("")}
+				onRefreshOverview={() => loadCleaningInspection({ silent: true })}
 			/>
 		</div>
 	);
@@ -5188,7 +6859,7 @@ function MaintenanceDamageList({ items, onOpen }) {
 			<EmptyState
 				icon={Wrench}
 				title="Nenhuma ocorrência encontrada"
-				description="Quando o back-end enviar ocorrências, danos ou manutenções, elas aparecerão aqui para acompanhamento."
+				description="Quando houver ocorrências, danos ou manutenções disponíveis, elas aparecerão aqui para acompanhamento."
 			/>
 		);
 	}
@@ -5431,7 +7102,9 @@ function MaintenanceDamageSection({ data, action }) {
 				action={action}
 			/>
 
-			<MaintenanceDamageSummaryCards items={summaryItems} />
+			<div id="maintenance-summary">
+				<MaintenanceDamageSummaryCards items={summaryItems} />
+			</div>
 
 			<PanelCard
 				title="Ocorrências e manutenções"
@@ -5443,7 +7116,12 @@ function MaintenanceDamageSection({ data, action }) {
 						onChange={setActiveFilter}
 					/>
 				</div>
-				<MaintenanceDamageList items={filteredItems} onOpen={setSelectedItem} />
+				<div id="maintenance-list">
+					<MaintenanceDamageList
+						items={filteredItems}
+						onOpen={setSelectedItem}
+					/>
+				</div>
 			</PanelCard>
 
 			<MaintenanceDamageDetailsDrawer
@@ -5504,6 +7182,11 @@ function HostCenter({
 }) {
 	const [internalActiveSection, setInternalActiveSection] =
 		useState(initialView);
+	const [expandedSectionId, setExpandedSectionId] = useState(initialView);
+	const [activeSubmenuId, setActiveSubmenuId] = useState(
+		sectionTopAnchors[initialView] || "",
+	);
+	const [pendingAnchorId, setPendingAnchorId] = useState("");
 	const [payload, setPayload] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
@@ -5535,6 +7218,10 @@ function HostCenter({
 	}, [controlledActiveSection, initialView]);
 
 	useEffect(() => {
+		setExpandedSectionId(activeSection);
+	}, [activeSection]);
+
+	useEffect(() => {
 		loadDashboard();
 	}, [loadDashboard]);
 
@@ -5557,9 +7244,27 @@ function HostCenter({
 		};
 	}, [loadDashboard]);
 
-	const handleSectionChange = (sectionId) => {
+	const handleSectionChange = (
+		sectionId,
+		targetId = sectionTopAnchors[sectionId] || "",
+	) => {
 		setInternalActiveSection(sectionId);
+		setExpandedSectionId(sectionId);
+		setActiveSubmenuId(targetId || sectionTopAnchors[sectionId] || "");
+		if (targetId) {
+			setPendingAnchorId(targetId);
+		}
 	};
+
+	const handleSectionToggle = (sectionId) => {
+		setExpandedSectionId((current) => (current === sectionId ? "" : sectionId));
+	};
+
+	useEffect(() => {
+		if (!pendingAnchorId || activeSection !== internalActiveSection) return;
+		scrollToDashboardAnchor(pendingAnchorId);
+		setPendingAnchorId("");
+	}, [activeSection, internalActiveSection, pendingAnchorId, payload]);
 
 	const handleRefresh = async () => {
 		if (refreshing) return;
@@ -5615,64 +7320,89 @@ function HostCenter({
 
 	return (
 		<div className="min-h-screen w-full  text-slate-950">
-			<MobileNav activeSection={activeSection} onChange={handleSectionChange} />
+			<MobileNavReplica
+				activeSection={activeSection}
+				activeSubmenuId={activeSubmenuId}
+				expandedSectionId={expandedSectionId}
+				onChange={handleSectionChange}
+				onToggleSection={handleSectionToggle}
+			/>
 			<div className="mx-auto flex min-w-0 max-w-[1480px] items-start gap-4 px-4 py-4 sm:px-6 lg:px-8">
-				<Sidebar activeSection={activeSection} onChange={handleSectionChange} />
-				<main className="min-w-0 flex-1 overflow-hidden">
-					{activeSection === "overview" && (
-						<OverviewCompact
-							data={payload}
-							onNavigate={handleSectionChange}
-							action={refreshAction}
-						/>
-					)}
-					{activeSection === "agenda" && (
-						<Agenda data={payload} action={refreshAction} />
-					)}
-					{activeSection === "reservations" && (
-						<div>
-							<SectionHeader
-								eyebrow="Reservas"
-								title="Reservas"
-								description="Lista operacional de reservas e respectivos status."
+				<SidebarReplica
+					activeSection={activeSection}
+					activeSubmenuId={activeSubmenuId}
+					expandedSectionId={expandedSectionId}
+					onChange={handleSectionChange}
+					onToggleSection={handleSectionToggle}
+				/>
+				<AnimatePresence mode="wait" initial={false}>
+					<motion.main
+						key={activeSection}
+						layout
+						initial={{ opacity: 0, y: 16, scale: 0.99 }}
+						animate={{ opacity: 1, y: 0, scale: 1 }}
+						exit={{ opacity: 0, y: -12, scale: 0.99 }}
+						transition={{ duration: 0.24, ease: "easeOut" }}
+						className="min-w-0 flex-1 overflow-hidden"
+					>
+						{activeSection === "overview" && (
+							<OverviewCompact
+								data={payload}
+								onNavigate={handleSectionChange}
 								action={refreshAction}
 							/>
-							<ReservationsTable bookings={payload.bookings} />
-						</div>
-					)}
-					{activeSection === "places" && (
-						<PlacesSection
-							properties={payload.operationalProperties || []}
-							action={refreshAction}
-						/>
-					)}
-					{activeSection === "pre-checkin" && (
-						<PreCheckinSection data={payload} action={refreshAction} />
-					)}
-					{activeSection === "cleaning" && (
-						<CleaningInspectionSection data={payload} action={refreshAction} />
-					)}
-					{activeSection === "finance" && (
-						<Finance data={payload} action={refreshAction} />
-					)}
-					{activeSection === "maintenance" && (
-						<MaintenanceDamageSection data={payload} action={refreshAction} />
-					)}
-					{activeSection === "reports" && (
-						<ReportsSection data={payload} action={refreshAction} />
-					)}
-					{activeSection === "logbook" && (
-						<div>
-							<SectionHeader
-								eyebrow="Histórico"
-								title="Histórico operacional"
-								description="Logbook de eventos e registros das acomodações."
+						)}
+						{activeSection === "agenda" && (
+							<Agenda data={payload} action={refreshAction} />
+						)}
+						{activeSection === "reservations" && (
+							<div id="reservations-list">
+								<SectionHeader
+									eyebrow="Reservas"
+									title="Reservas"
+									description="Lista operacional de reservas e respectivos status."
+									action={refreshAction}
+								/>
+								<ReservationsTable bookings={payload.bookings} />
+							</div>
+						)}
+						{activeSection === "places" && (
+							<PlacesSection
+								properties={payload.operationalProperties || []}
 								action={refreshAction}
 							/>
-							<AccommodationLogbook />
-						</div>
-					)}
-				</main>
+						)}
+						{activeSection === "pre-checkin" && (
+							<PreCheckinSection data={payload} action={refreshAction} />
+						)}
+						{activeSection === "cleaning" && (
+							<CleaningInspectionSection
+								data={payload}
+								action={refreshAction}
+							/>
+						)}
+						{activeSection === "finance" && (
+							<Finance data={payload} action={refreshAction} />
+						)}
+						{activeSection === "maintenance" && (
+							<MaintenanceDamageSection data={payload} action={refreshAction} />
+						)}
+						{activeSection === "reports" && (
+							<ReportsSection data={payload} action={refreshAction} />
+						)}
+						{activeSection === "logbook" && (
+							<div id="logbook-recent">
+								<SectionHeader
+									eyebrow="Histórico"
+									title="Histórico operacional"
+									description="Logbook de eventos e registros das acomodações."
+									action={refreshAction}
+								/>
+								<AccommodationLogbook />
+							</div>
+						)}
+					</motion.main>
+				</AnimatePresence>
 			</div>
 		</div>
 	);

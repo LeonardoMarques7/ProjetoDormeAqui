@@ -1,10 +1,8 @@
 import { preferenceClient, paymentClient, testToken, validateToken, createPreferenceWithBackUrls } from "../../config/mercadopago.js";
 import * as stripeService from './service_stripe.js';
+import { getPrismaClient } from "../../config/prisma.js";
 
-// Read USE_STRIPE dynamically at runtime so tests can toggle it per-case
-// Avoid capturing the value at module load time.
-
-import Place from "../places/model.js";
+const prisma = getPrismaClient();
 
 
 /**
@@ -43,7 +41,12 @@ export const calculateTotalPrice = (pricePerNight, nights) => {
  * @throws {Error} Se acomodação não for encontrada
  */
 export const getAccommodationDetails = async (accommodationId) => {
-    const place = await Place.findById(accommodationId);
+    const place = await prisma.place.findFirst({
+        where: {
+            OR: [{ id: accommodationId }, { legacyMongoId: String(accommodationId) }],
+            status: "ACTIVE",
+        }
+    });
     
     if (!place) {
         const error = new Error("Acomodação não encontrada");
@@ -83,7 +86,7 @@ export const createCheckoutPreference = async ({
         }
         const place = await getAccommodationDetails(accommodationId);
         const nights = calculateNights(checkIn, checkOut);
-        const totalPrice = calculateTotalPrice(place.price, nights);
+        const totalPrice = calculateTotalPrice(Number(place.pricePerNight || 0), nights);
         const result = await stripeService.createCheckoutPreference({ accommodationId, userId, checkIn, checkOut, guests, frontendUrl, payerEmail });
         return { ...result, totalPrice };
     }
@@ -130,7 +133,7 @@ export const createCheckoutPreference = async ({
     let place;
     try {
         place = await getAccommodationDetails(accommodationId);
-        console.log("✅ [SERVICE] Acomodação:", place.title, "- R$", place.price);
+        console.log("✅ [SERVICE] Acomodação:", place.title, "- R$", place.pricePerNight);
     } catch (error) {
         console.error("❌ [SERVICE] Erro ao buscar acomodação:", error.message);
         throw error;
@@ -138,9 +141,9 @@ export const createCheckoutPreference = async ({
     
     // Calcula noites e preço total
     const nights = calculateNights(checkIn, checkOut);
-    const totalPrice = calculateTotalPrice(place.price, nights);
+    const totalPrice = calculateTotalPrice(Number(place.pricePerNight || 0), nights);
     
-    console.log("💰 [SERVICE] Cálculo:", { nights, pricePerNight: place.price, totalPrice });
+    console.log("💰 [SERVICE] Cálculo:", { nights, pricePerNight: place.pricePerNight, totalPrice });
     
     // Validações de negócio
     if (nights <= 0) {
@@ -149,7 +152,7 @@ export const createCheckoutPreference = async ({
         throw error;
     }
     
-    if (guests > place.guests) {
+    if (guests > place.maxGuests) {
         const error = new Error("Número de hóspedes excede o limite da acomodação");
         error.statusCode = 400;
         throw error;
@@ -187,7 +190,7 @@ export const createCheckoutPreference = async ({
                 quantity: 1,
                 currency_id: "BRL",
                 unit_price: Number(totalPrice),
-                picture_url: place.photos?.[0] || undefined,
+                picture_url: undefined,
                 category_id: itemCategoryId
             }
         ],
@@ -216,7 +219,7 @@ export const createCheckoutPreference = async ({
             guests: guests.toString(),
             nights: nights.toString(),
             totalPrice: totalPrice.toString(),
-            pricePerNight: place.price.toString()
+            pricePerNight: String(place.pricePerNight)
         }
     };
 
@@ -249,7 +252,7 @@ export const createCheckoutPreference = async ({
             sandboxInitPoint: response.sandbox_init_point,
             totalPrice,
             nights,
-            pricePerNight: place.price,
+            pricePerNight: Number(place.pricePerNight || 0),
             accommodationTitle: place.title,
             backUrls: responseBackUrls // Retorna para o controller verificar
         };

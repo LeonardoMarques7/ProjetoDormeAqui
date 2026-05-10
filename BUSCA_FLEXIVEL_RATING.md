@@ -106,7 +106,7 @@ GET /places
 
 - ✅ Rota `GET /` atualizada:
   - Adicionado filtro `minRating`
-  - Query MongoDB: `averageRating: { $gte: parseFloat(minRating) }`
+  - Query PostgreSQL/Prisma com `averageRating >= minRating`
   - Comportamento: só aplica filtro se valor > 0
 
 ---
@@ -236,7 +236,7 @@ minRating: z.coerce
 
 - [x] Schema Zod com validação de rating
 - [x] Backend aceita `minRating` via query param
-- [x] MongoDB query implementada ($gte)
+- [x] Filtro relacional implementado (`averageRating >= minRating`)
 - [x] SearchBar compacta com dropdown
 - [x] SearchBar completa com dropdown
 - [x] Home.jsx integrada

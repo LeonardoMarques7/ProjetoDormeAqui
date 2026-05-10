@@ -1,82 +1,52 @@
 import { Router } from "express";
-import { authenticateToken } from "../middleware/auth.js";
+import { requireAuth } from "./domains/middleware.js";
 import {
-  createNotification,
-  getUserNotifications,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
+  clearAllNotifications,
   dismissNotification,
   getUnreadCount,
-} from "../NotificationService.js";
+  getUserNotifications,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+} from "./NotificationService.js";
 
 const router = Router();
 
-/**
- * GET /notifications
- * Obtém notificações do usuário autenticado
- * Query params:
- *   - page: número da página (padrão 1)
- *   - limit: itens por página (padrão 10)
- */
-router.get("/", authenticateToken, async (req, res) => {
+router.use(requireAuth);
+
+router.get("/", async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const userId = req.user.id;
-
-    const result = await getUserNotifications(userId, page, limit);
-
-    res.json(result);
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    res.json(await getUserNotifications(req.user._id, page, limit));
   } catch (error) {
     console.error("[Notifications Route] Erro ao buscar:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-/**
- * GET /notifications/unread-count
- * Obtém contagem de notificações não lidas
- */
-router.get("/unread-count", authenticateToken, async (req, res) => {
+router.get("/unread-count", async (req, res) => {
   try {
-    const userId = req.user.id;
-    const count = await getUnreadCount(userId);
-
-    res.json({ unreadCount: count });
+    res.json({ unreadCount: await getUnreadCount(req.user._id) });
   } catch (error) {
     console.error("[Notifications Route] Erro ao contar:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-/**
- * PATCH /notifications/:id/read
- * Marca uma notificação como lida
- */
-router.patch("/:id/read", authenticateToken, async (req, res) => {
+router.patch("/:id/read", async (req, res) => {
   try {
-    const notificationId = req.params.id;
-    const notification = await markNotificationAsRead(notificationId);
-
-    res.json(notification);
+    res.json(await markNotificationAsRead(req.params.id));
   } catch (error) {
     console.error("[Notifications Route] Erro ao marcar como lida:", error);
     res.status(error.statusCode || 500).json({ error: error.message });
   }
 });
 
-/**
- * PATCH /notifications/mark-all-read
- * Marca todas as notificações como lidas
- */
-router.patch("/mark-all-read", authenticateToken, async (req, res) => {
+router.patch("/mark-all-read", async (req, res) => {
   try {
-    const userId = req.user.id;
-    const result = await markAllNotificationsAsRead(userId);
-
     res.json({
       success: true,
-      modifiedCount: result.modifiedCount,
+      ...(await markAllNotificationsAsRead(req.user._id)),
     });
   } catch (error) {
     console.error("[Notifications Route] Erro ao marcar todas:", error);
@@ -84,19 +54,33 @@ router.patch("/mark-all-read", authenticateToken, async (req, res) => {
   }
 });
 
-/**
- * PATCH /notifications/:id/dismiss
- * Descarta uma notificação
- */
-router.patch("/:id/dismiss", authenticateToken, async (req, res) => {
+router.patch("/:id/dismiss", async (req, res) => {
   try {
-    const notificationId = req.params.id;
-    const notification = await dismissNotification(notificationId);
-
-    res.json(notification);
+    res.json(await dismissNotification(req.params.id));
   } catch (error) {
     console.error("[Notifications Route] Erro ao descartar:", error);
     res.status(error.statusCode || 500).json({ error: error.message });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    res.json(await dismissNotification(req.params.id));
+  } catch (error) {
+    console.error("[Notifications Route] Erro ao remover:", error);
+    res.status(error.statusCode || 500).json({ error: error.message });
+  }
+});
+
+router.delete("/clear", async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      ...(await clearAllNotifications(req.user._id)),
+    });
+  } catch (error) {
+    console.error("[Notifications Route] Erro ao limpar:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 

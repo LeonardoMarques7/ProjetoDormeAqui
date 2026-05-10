@@ -1,19 +1,16 @@
-import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from "react";
+import { useState, useImperativeHandle, forwardRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import {
-	MapPin,
-	Calendar,
-	Users,
-	Search,
-	AlertCircle,
-	DoorOpen,
-	Star,
-} from "lucide-react";
+import { Search, AlertCircle, DoorOpen, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Select } from "@mantine/core";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import {
+	Tooltip,
+	TooltipTrigger,
+	TooltipContent,
+} from "@/components/ui/tooltip";
 import { useMobileContext } from "../contexts/MobileContext";
 import DatePickerSearch from "@/components/places/DatePickerSearch";
 import DatePickerAirbnb from "@/components/places/DatePickerAirbnb";
@@ -24,21 +21,14 @@ import {
 } from "@heroicons/react/24/outline";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import GooglePlacesInput from "@/components/places/GooglePlacesInput";
-import {
-	filterAccommodations,
-	fetchBookingsForAccommodations,
-} from "@/lib/searchFilters";
 
 const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { mobile } = useMobileContext();
-	const searchInputRef = useRef(null);
 	const [isSearching, setIsSearching] = useState(false);
 	const [datePickerKey, setDatePickerKey] = useState(0);
-	const [selectKey, setSelectKey] = useState(0); // Para forçar re-render dos Selects
-
-	// Estados para drawer mobile
+	const [selectKey, setSelectKey] = useState(0);
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [tempGuests, setTempGuests] = useState(null);
 	const [tempRooms, setTempRooms] = useState(null);
@@ -66,11 +56,72 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 		mode: "onSubmit",
 	});
 
+	const watchedValues = watch();
+	const hasDateFilter = Boolean(watchedValues.checkin || watchedValues.checkout);
+	const hasAnyFilter = Boolean(
+		watchedValues.city ||
+			watchedValues.checkin ||
+			watchedValues.checkout ||
+			watchedValues.guests ||
+			watchedValues.rooms ||
+			watchedValues.minRating,
+	);
+
+	const clearField = (fieldName) => {
+		switch (fieldName) {
+			case "city":
+				setValue("city", "");
+				clearErrors("city");
+				break;
+			case "checkin":
+			case "checkout":
+				setValue("checkin", null);
+				setValue("checkout", null);
+				clearErrors("checkin");
+				clearErrors("checkout");
+				setDatePickerKey((prev) => prev + 1);
+				break;
+			case "guests":
+				setValue("guests", null);
+				clearErrors("guests");
+				trigger("guests");
+				setSelectKey((prev) => prev + 1);
+				break;
+			case "rooms":
+				setValue("rooms", null);
+				clearErrors("rooms");
+				trigger("rooms");
+				setSelectKey((prev) => prev + 1);
+				break;
+			case "minRating":
+				setValue("minRating", null);
+				clearErrors("minRating");
+				break;
+			default:
+				setValue(fieldName, null);
+				clearErrors(fieldName);
+		}
+	};
+
+	const resetForm = () => {
+		reset({
+			city: "",
+			checkin: null,
+			checkout: null,
+			guests: null,
+			rooms: null,
+			minRating: null,
+		});
+		setTempGuests(null);
+		setTempRooms(null);
+		setDatePickerKey((prev) => prev + 1);
+		setSelectKey((prev) => prev + 1);
+	};
+
 	const onSubmit = async (formData) => {
 		setIsSearching(true);
 
 		try {
-			// Construir query params
 			const queryParams = new URLSearchParams();
 			if (formData.city && formData.city.trim() !== "") {
 				queryParams.append("city", formData.city);
@@ -84,53 +135,20 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 			if (formData.minRating) {
 				queryParams.append("minRating", formData.minRating);
 			}
+			if (formData.checkin) {
+				queryParams.append("checkin", formData.checkin);
+			}
+			if (formData.checkout) {
+				queryParams.append("checkout", formData.checkout);
+			}
 
-			// Fazer requisição ao backend com filtros
 			const { data: searchResults } = await axios.get(
 				`/places?${queryParams.toString()}`,
 			);
 
-			console.log(
-				"🔎 [SearchBar] Resultados do backend:",
-				searchResults.length,
-				"acomodações",
-			);
-
-			// Enriquecer com dados de bookings apenas se tiver datas
-			let enrichedResults = searchResults;
-			if (formData.checkin && formData.checkout) {
-				console.log("📦 [SearchBar] Enriquecendo com bookings...");
-				enrichedResults = await fetchBookingsForAccommodations(
-					searchResults,
-					axios,
-				);
-				console.log("✅ [SearchBar] Enriquecimento concluído");
-			} else {
-				console.log(
-					"ℹ️ [SearchBar] Sem datas, pulando enriquecimento de bookings",
-				);
-			}
-
-			// Aplicar filtros adicionais localmente (datas, validações)
-			console.log("🔧 [SearchBar] Aplicando filtros locais...");
-			const filteredResults = filterAccommodations(enrichedResults, {
-				city: formData.city || "",
-				guests: formData.guests,
-				rooms: formData.rooms,
-				checkIn: formData.checkin,
-				checkOut: formData.checkout,
-			});
-
-			console.log(
-				"📊 [SearchBar] Resultado final:",
-				filteredResults.length,
-				"acomodações",
-			);
-
-			// Se estiver na Home e houver callback, usar callback local
 			if (location.pathname === "/" && onSearch) {
 				onSearch({
-					results: filteredResults,
+					results: searchResults,
 					city: formData.city || "",
 					guests: formData.guests,
 					rooms: formData.rooms,
@@ -139,20 +157,23 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 					minRating: formData.minRating,
 				});
 			} else {
-				// Caso contrário, navega para a home com os resultados
 				navigate("/", {
 					state: {
-						searchResults: filteredResults,
+						searchResults,
 						searchCity: formData.city || "",
+						searchFilters: {
+							city: formData.city || "",
+							guests: formData.guests,
+							rooms: formData.rooms,
+							checkIn: formData.checkin,
+							checkOut: formData.checkout,
+							minRating: formData.minRating,
+						},
 					},
 				});
 			}
 
-			// Não fazer reset para manter os dados da pesquisa visíveis
-			setDatePickerKey((prev) => prev + 1);
-
-			// Aguarda 300ms adicional para finalizar animação do spinner
-			await new Promise((resolve) => setTimeout(resolve, 1500));
+			await new Promise((resolve) => setTimeout(resolve, 600));
 		} catch (err) {
 			console.error("Erro na busca:", err);
 		} finally {
@@ -160,73 +181,10 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 		}
 	};
 
-	const watchedValues = watch();
-
-	// Expor funções para Home.jsx via ref
 	useImperativeHandle(ref, () => ({
-		resetForm: () => {
-			reset({
-				city: "",
-				checkin: null,
-				checkout: null,
-				guests: null,
-				rooms: null,
-				minRating: null,
-			});
-			setDatePickerKey((prev) => prev + 1);
-			setSelectKey((prev) => prev + 1); // Forçar re-render dos Selects
-		},
-		clearField: (fieldName) => {
-			// Limpar valor específico do campo
-			switch (fieldName) {
-				case "city":
-					// Input de texto - apenas setar valor vazio
-					setValue("city", "");
-					clearErrors("city");
-					break;
-				
-				case "checkin":
-				case "checkout":
-					// Datas - limpar ambas e forçar re-render do DatePicker
-					if (fieldName === "checkin" || fieldName === "checkout") {
-						setValue("checkin", null);
-						setValue("checkout", null);
-						clearErrors("checkin");
-						clearErrors("checkout");
-						setDatePickerKey((prev) => prev + 1);
-					}
-					break;
-				
-				case "guests":
-					// Select de hóspedes - setar como null
-					setValue("guests", null);
-					clearErrors("guests");
-					trigger("guests");
-					setSelectKey((prev) => prev + 1); // Forçar re-render do Select
-					break;
-				
-				case "rooms":
-					// Select de quartos - setar como null
-					setValue("rooms", null);
-					clearErrors("rooms");
-					trigger("rooms");
-					setSelectKey((prev) => prev + 1); // Forçar re-render do Select
-					break;
-				
-				case "minRating":
-					// Input de rating
-					setValue("minRating", null);
-					clearErrors("minRating");
-					break;
-				
-				default:
-					setValue(fieldName, null);
-					clearErrors(fieldName);
-			}
-		},
-		clearAllErrors: () => {
-			clearErrors();
-		},
+		resetForm,
+		clearField,
+		clearAllErrors: () => clearErrors(),
 	}));
 
 	const handleApplyFilters = () => {
@@ -243,76 +201,110 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 		setValue("rooms", null);
 	};
 
+	const clearAllButton = hasAnyFilter ? (
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<button
+					type="button"
+					onClick={resetForm}
+					className="h-12 w-12 flex-shrink-0 rounded-2xl bg-gradient-to-br from-red-500 via-rose-500 to-red-600 text-white shadow-[0_12px_30px_rgba(239,68,68,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(239,68,68,0.45)] focus:outline-none focus:ring-2 focus:ring-red-300"
+					aria-label="Limpar filtros"
+				>
+					<X className="mx-auto h-5 w-5" />
+				</button>
+			</TooltipTrigger>
+			<TooltipContent className="bg-red-500" align="center">
+				<p>Limpar filtros</p>
+			</TooltipContent>
+		</Tooltip>
+	) : null;
+
 	if (compact) {
-		// Versão compacta para o header
 		return (
 			<form
 				onSubmit={handleSubmit(onSubmit)}
 				className="w-full max-w-2xl mx-auto"
 			>
-				<div className="flex items-center gap-5 bg-white rounded-3xl shadow-2xl text-primary-900 px-3 py-2  transition-shadow">
-					{/* Input de cidade com Google Places */}
-					<div className="flex-1">
+				<div className="flex items-center gap-3 bg-white rounded-3xl shadow-2xl text-primary-900 px-3 py-2 transition-shadow">
+					<div className="flex-1 relative">
 						<GooglePlacesInput
 							value={watchedValues.city}
 							onChange={(e) => setValue("city", e.target.value)}
 							placeholder="Para onde você vai?"
 							error={errors.city?.message}
-							className="border-0 rounded-full px-0 placeholder:text-primary-500"
+							className="border-0 rounded-full px-0 placeholder:text-primary-500 pr-10"
 							icon={false}
 						/>
+						{watchedValues.city && (
+							<button
+								type="button"
+								onClick={() => clearField("city")}
+								className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+								aria-label="Limpar destino"
+							>
+								<X className="w-4 h-4 text-gray-500" />
+							</button>
+						)}
 					</div>
 
-					{/* Separador */}
 					<span className="w-px h-6 bg-gray-200" />
 
-					{/* DatePicker */}
-					<div className="flex-1 ">
-						<Controller
-							name="checkin"
-							control={control}
-							render={({ field }) => (
-								<Controller
-									name="checkout"
-									control={control}
-									render={({ field: checkoutField }) => (
-										<DatePickerAirbnb
-											key={datePickerKey}
-											onDateSelect={({ checkin, checkout }) => {
-												field.onChange(checkin);
-												checkoutField.onChange(checkout);
-											}}
-											initialCheckin={field.value}
-											initialCheckout={checkoutField.value}
-											search={true}
-											compact={true}
-										/>
-									)}
-								/>
-							)}
-						/>
+					<div className="flex-1 flex items-center gap-2">
+						<div className="flex-1">
+							<Controller
+								name="checkin"
+								control={control}
+								render={({ field }) => (
+									<Controller
+										name="checkout"
+										control={control}
+										render={({ field: checkoutField }) => (
+											<DatePickerAirbnb
+												key={datePickerKey}
+												onDateSelect={({ checkin, checkout }) => {
+													field.onChange(checkin);
+													checkoutField.onChange(checkout);
+												}}
+												initialCheckin={field.value}
+												initialCheckout={checkoutField.value}
+												search={true}
+												compact={true}
+											/>
+										)}
+									/>
+								)}
+							/>
+						</div>
+						{hasDateFilter && (
+							<button
+								type="button"
+								onClick={() => clearField("checkin")}
+								className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+								aria-label="Limpar datas"
+							>
+								<X className="w-4 h-4 text-gray-500" />
+							</button>
+						)}
 					</div>
 
-					{/* Separador */}
-					<div className="w-px h-6 bg-gray-200" />
+					<span className="w-px h-6 bg-gray-200" />
 
-					{/* Ícone de pessoas */}
 					<UsersIcon className="w-6 h-6 text-primary-900 flex-shrink-0" />
 
-					{/* Input de hóspedes */}
 					<input
 						type="number"
 						placeholder="Quem?"
-						className="outline-none w-30 text-sm bg-transparent placeholder:text-primary-600!"
+						className="outline-none w-24 text-sm bg-transparent placeholder:text-primary-600!"
 						{...register("guests", {
 							valueAsNumber: true,
-							setValueAs: (v) => (v === "" ? null : parseInt(v)),
+							setValueAs: (value) => (value === "" ? null : parseInt(value)),
 						})}
 						min="1"
 						max="20"
 					/>
 
-					{/* Botão de busca */}
+					{clearAllButton}
+
 					<ShimmerButton
 						type="submit"
 						disabled={isSearching}
@@ -332,7 +324,6 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 					</ShimmerButton>
 				</div>
 
-				{/* Erros */}
 				{Object.keys(errors).length > 0 && (
 					<div className="mt-2 text-xs text-red-500 flex items-center gap-1">
 						<AlertCircle className="w-4 h-4" />
@@ -343,56 +334,72 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 		);
 	}
 
-	// Versão padrão (como estava antes)
 	return (
 		<form
 			onSubmit={handleSubmit(onSubmit)}
 			className="w-full max-w-full mx-auto"
 		>
 			<div className="flex flex-col bg-white rounded-3xl shadow-2xl text-primary-900 px-3 py-2 hover:shadow-lg transition-shadow">
-				{/* Input de cidade com Google Places */}
-				<div className="flex-1 z-50">
+				<div className="flex-1 z-50 relative">
 					<GooglePlacesInput
 						value={watchedValues.city}
 						onChange={(e) => setValue("city", e.target.value)}
 						placeholder="Para onde você vai?"
 						error={errors.city?.message}
-						className="border-0 rounded-full px-3! py-4! "
+						className="border-0 rounded-full px-3! py-4! pr-12!"
 						icon={true}
 					/>
+					{watchedValues.city && (
+						<button
+							type="button"
+							onClick={() => clearField("city")}
+							className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-gray-100 transition-colors z-[60]"
+							aria-label="Limpar destino"
+						>
+							<X className="w-4 h-4 text-gray-500" />
+						</button>
+					)}
 				</div>
 
-				{/* Separador */}
-				<div className="flex items-center gap-5 bg-white border-t text-primary-900 px-3 py-2 max-w-full transition-shadow">
-					{/* DatePicker */}
-					<div className="flex-1">
-						<Controller
-							name="checkin"
-							control={control}
-							render={({ field }) => (
-								<Controller
-									name="checkout"
-									control={control}
-									render={({ field: checkoutField }) => (
-										<DatePickerSearch
-											datePickerKey={datePickerKey}
-											onDateSelect={({ checkin, checkout }) => {
-												field.onChange(checkin);
-												checkoutField.onChange(checkout);
-											}}
-											initialCheckin={field.value}
-											initialCheckout={checkoutField.value}
-										/>
-									)}
-								/>
-							)}
-						/>
+				<div className="flex items-center gap-3 bg-white border-t text-primary-900 px-3 py-2 max-w-full transition-shadow">
+					<div className="flex-1 flex items-center gap-2">
+						<div className="flex-1">
+							<Controller
+								name="checkin"
+								control={control}
+								render={({ field }) => (
+									<Controller
+										name="checkout"
+										control={control}
+										render={({ field: checkoutField }) => (
+											<DatePickerSearch
+												datePickerKey={datePickerKey}
+												onDateSelect={({ checkin, checkout }) => {
+													field.onChange(checkin);
+													checkoutField.onChange(checkout);
+												}}
+												initialCheckin={field.value}
+												initialCheckout={checkoutField.value}
+											/>
+										)}
+									/>
+								)}
+							/>
+						</div>
+						{hasDateFilter && (
+							<button
+								type="button"
+								onClick={() => clearField("checkin")}
+								className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+								aria-label="Limpar datas"
+							>
+								<X className="w-4 h-4 text-gray-500" />
+							</button>
+						)}
 					</div>
 
-					{/* Separador */}
-					<div className="w-px h-6 bg-gray-200" />
+					<span className="w-px h-6 bg-gray-200" />
 
-					{/* Mobile filter button */}
 					{mobile && (
 						<button
 							type="button"
@@ -407,16 +414,14 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 						</button>
 					)}
 
-					{/* Mobile filter drawer */}
 					{mobile && (
 						<Drawer open={drawerOpen} onOpenChange={setDrawerOpen} modal={true}>
 							<DrawerContent className="rounded-tl-3xl h-auto p-5 py-6 max-h-[80vh]">
 								<p className="text-xl font-medium text-gray-900 mb-6">
-									Hóspedes e Quartos
+									Hóspedes e quartos
 								</p>
 
 								<div className="flex flex-col gap-6">
-									{/* Hóspedes */}
 									<div className="flex flex-col gap-4">
 										<label className="text-sm font-medium text-gray-700">
 											Hóspedes:
@@ -439,7 +444,6 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 										</div>
 									</div>
 
-									{/* Quartos */}
 									<div className="flex flex-col gap-4">
 										<label className="text-sm font-medium text-gray-700">
 											Quartos:
@@ -483,16 +487,13 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 						</Drawer>
 					)}
 
-					{/* Desktop filters */}
 					{!mobile && (
 						<>
 							<div className="flex gap-2 items-center">
 								<UsersIcon className="w-6 h-6 text-primary-900 flex-shrink-0" />
 								<Select
 									key={`guests-${selectKey}`}
-									value={
-										watchedValues.guests ? watchedValues.guests.toString() : ""
-									}
+									value={watchedValues.guests ? watchedValues.guests.toString() : ""}
 									onChange={(value) =>
 										setValue("guests", value ? parseInt(value) : null)
 									}
@@ -510,7 +511,7 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 									]}
 									placeholder="Quem?"
 									clearable
-									className="w-[140px]  "
+									className="w-[140px]"
 									styles={{
 										input: {
 											border: "transparent",
@@ -523,16 +524,13 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 								/>
 							</div>
 
-							{/* Separador */}
-							<div className="w-px h-6 bg-gray-200" />
+							<span className="w-px h-6 bg-gray-200" />
 
 							<div className="flex gap-2 items-center">
 								<DoorOpen className="w-6 h-6 text-primary-900 flex-shrink-0" />
 								<Select
 									key={`rooms-${selectKey}`}
-									value={
-										watchedValues.rooms ? watchedValues.rooms.toString() : ""
-									}
+									value={watchedValues.rooms ? watchedValues.rooms.toString() : ""}
 									onChange={(value) =>
 										setValue("rooms", value ? parseInt(value) : null)
 									}
@@ -565,7 +563,8 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 						</>
 					)}
 
-					{/* Botão de busca */}
+					{clearAllButton}
+
 					<ShimmerButton
 						type="submit"
 						disabled={isSearching}
@@ -586,7 +585,6 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 				</div>
 			</div>
 
-			{/* Erros */}
 			{Object.keys(errors).length > 0 && (
 				<div className="mt-2 text-xs text-red-500 flex items-center gap-1">
 					<AlertCircle className="w-4 h-4" />

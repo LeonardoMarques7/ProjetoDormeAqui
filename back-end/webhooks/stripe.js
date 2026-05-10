@@ -1,170 +1,141 @@
-import express from 'express';
-import { stripeClient, webhookSecret } from '../config/stripe.js';
-import Booking from '../domains/bookings/model.js';
+import express from "express";
+import { stripeClient, webhookSecret } from "../config/stripe.js";
+import { createBooking, getBookingByPaymentId } from "../prisma/repositories/bookings.repository.js";
+import { getPrismaClient } from "../config/prisma.js";
 
-// NOTE: This route uses express.raw middleware to preserve the raw body required for
-// Stripe signature verification. When mounting this router in your main routes,
-// ensure it is mounted like: router.use('/webhook/stripe', stripeWebhookRouter);
-
+const prisma = getPrismaClient();
 const router = express.Router();
 
-/**
- * Extrai metadata e paymentId de eventos relevantes do Stripe.
- * Suporta: checkout.session.completed, payment_intent.succeeded, charge.succeeded
- */
 const extractPaymentData = (event) => {
   const obj = event.data?.object;
   if (!obj) return null;
 
-  let metadata = null;
-  let paymentId = null;
-  let approved = false;
-
-  if (obj.object === 'checkout.session') {
-    // Checkout Session: metadata está diretamente no objeto da sessão
-    if (obj.payment_status === 'paid') {
-      metadata = obj.metadata || {};
-      paymentId = obj.payment_intent || obj.id;
-      approved = true;
-    }
-  } else if (obj.object === 'payment_intent' && obj.status === 'succeeded') {
-    // PaymentIntent: metadata propagada via payment_intent_data.metadata
-    metadata = obj.metadata || {};
-    paymentId = obj.id;
-    approved = true;
-  } else if (obj.object === 'charge' && obj.paid) {
-    metadata = obj.metadata || {};
-    paymentId = obj.payment_intent || obj.id;
-    approved = true;
+  if (obj.object === "checkout.session" && obj.payment_status === "paid") {
+    return { metadata: obj.metadata || {}, paymentId: obj.payment_intent || obj.id, paymentInfo: obj };
   }
-
-  if (!approved || !paymentId) return null;
-  return { metadata, paymentId };
+  if (obj.object === "payment_intent" && obj.status === "succeeded") {
+    return { metadata: obj.metadata || {}, paymentId: obj.id, paymentInfo: obj };
+  }
+  if (obj.object === "charge" && obj.paid) {
+    return { metadata: obj.metadata || {}, paymentId: obj.payment_intent || obj.id, paymentInfo: obj };
+  }
+  return null;
 };
 
-router.post('/', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
+async function upsertStripePayment(bookingId, paymentId, paymentInfo) {
+  const providerPaymentId = String(paymentId);
+  const amount = Number((paymentInfo.amount_received ?? paymentInfo.amount_total ?? 0) / 100);
+  const existing = await prisma.payment.findFirst({
+    where: { bookingId, provider: "STRIPE", providerPaymentId },
+  });
 
+  if (existing) {
+    return prisma.payment.update({
+      where: { id: existing.id },
+      data: {
+        status: "APPROVED",
+        amount: amount || existing.amount,
+        transactionDetails: paymentInfo,
+        approvedAt: new Date(),
+      },
+    });
+  }
+
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+  return prisma.payment.create({
+    data: {
+      bookingId,
+      userId: booking.guestId,
+      provider: "STRIPE",
+      providerPaymentId,
+      status: "APPROVED",
+      amount: amount || Number(booking.totalPrice),
+      transactionDetails: paymentInfo,
+      approvedAt: new Date(),
+    },
+  });
+}
+
+router.post("/", express.raw({ type: "application/json" }), async (req, res) => {
+  const sig = req.headers["stripe-signature"];
   let event;
+
   try {
     if (stripeClient && webhookSecret) {
       const rawBody = req.rawBody || req.body;
       event = stripeClient.webhooks.constructEvent(rawBody, sig, webhookSecret);
     } else {
-      if (process.env.NODE_ENV === 'production') {
-        return res.status(500).json({ error: 'Stripe webhook secret not configured' });
+      if (process.env.NODE_ENV === "production") {
+        return res.status(500).json({ error: "Stripe webhook secret not configured" });
       }
       const body = Buffer.isBuffer(req.body) ? req.body.toString() : JSON.stringify(req.body);
       event = JSON.parse(body);
     }
   } catch (err) {
-    console.error('❌ Stripe webhook signature verification failed:', err && err.message ? err.message : err);
-    return res.status(400).json({ error: 'Webhook signature verification failed' });
+    console.error("Stripe webhook signature verification failed:", err?.message || err);
+    return res.status(400).json({ error: "Webhook signature verification failed" });
   }
 
-  console.log('🔔 Stripe webhook received:', event.type);
-
-  // Ignora eventos que não criam reservas
-  const handledTypes = ['checkout.session.completed', 'payment_intent.succeeded', 'charge.succeeded'];
-  if (!handledTypes.includes(event.type)) {
-    return res.status(200).json({ received: true, message: 'event-ignored' });
+  if (!["checkout.session.completed", "payment_intent.succeeded", "charge.succeeded"].includes(event.type)) {
+    return res.status(200).json({ received: true, message: "event-ignored" });
   }
 
   try {
     const extracted = extractPaymentData(event);
     if (!extracted) {
-      console.log('⚠️ Stripe webhook: sem dados de pagamento acionáveis em:', event.type);
-      return res.status(200).json({ received: true, message: 'no-action-needed' });
+      return res.status(200).json({ received: true, message: "no-action-needed" });
     }
 
-    const { metadata, paymentId } = extracted;
-
+    const { metadata, paymentId, paymentInfo } = extracted;
     const userId = metadata.userId || metadata.user_id;
     const accommodationId = metadata.accommodationId || metadata.accommodation_id;
-    let checkIn = metadata.checkIn || metadata.check_in;
-    let checkOut = metadata.checkOut || metadata.check_out;
+    const checkIn = metadata.checkIn || metadata.check_in;
+    const checkOut = metadata.checkOut || metadata.check_out;
     const guests = Number(metadata.guests) || 1;
-    const nights = Number(metadata.nights) || 1;
-    const rawTotalPrice = Number(metadata.totalPrice || metadata.total_price);
-    const rawPricePerNight = Number(metadata.pricePerNight || metadata.price_per_night);
-    const totalPrice = isNaN(rawTotalPrice) ? 0 : rawTotalPrice;
-    const pricePerNight = isNaN(rawPricePerNight) ? 0 : rawPricePerNight;
-
-    // 🔧 Garante que checkIn e checkOut sejam Dates válidas
-    if (checkIn && typeof checkIn === 'string') {
-      try {
-        checkIn = new Date(checkIn);
-      } catch (err) {
-        console.error('❌ Stripe webhook: checkIn inválido', { checkIn: metadata.checkIn, error: err.message });
-        return res.status(200).json({ received: true, message: 'invalid-checkin-date' });
-      }
-    }
-    if (checkOut && typeof checkOut === 'string') {
-      try {
-        checkOut = new Date(checkOut);
-      } catch (err) {
-        console.error('❌ Stripe webhook: checkOut inválido', { checkOut: metadata.checkOut, error: err.message });
-        return res.status(200).json({ received: true, message: 'invalid-checkout-date' });
-      }
-    }
 
     if (!userId || !accommodationId || !checkIn || !checkOut) {
-      console.error('❌ Stripe webhook: metadata incompleta', { userId, accommodationId, checkIn, checkOut, paymentId });
-      return res.status(200).json({ received: true, message: 'missing-metadata' });
+      return res.status(200).json({ received: true, message: "missing-metadata" });
     }
 
-    if (totalPrice <= 0) {
-      console.error('❌ Stripe webhook: totalPrice inválido na metadata', { totalPrice, paymentId });
-      return res.status(200).json({ received: true, message: 'invalid-price-metadata' });
+    let booking = await getBookingByPaymentId(paymentId);
+    if (!booking) {
+      booking = await createBooking({
+        place: accommodationId,
+        user: userId,
+        checkin: checkIn,
+        checkout: checkOut,
+        guests,
+      });
     }
 
-    // Idempotência: não cria reserva duplicada para o mesmo pagamento
-    const existing = await Booking.findOne({ mercadopagoPaymentId: String(paymentId) });
-    if (existing) {
-      let changed = false;
-      if (existing.paymentStatus !== 'approved') {
-        existing.paymentStatus = 'approved';
-        changed = true;
-      }
-      if (existing.status === 'pending') {
-        existing.status = 'confirmed';
-        existing.lastStatusChange = new Date();
-        existing.statusHistory = existing.statusHistory || [];
-        existing.statusHistory.push({
-          status: 'confirmed',
-          changedBy: existing.user,
-          reason: 'Pagamento aprovado',
-        });
-        changed = true;
-      }
-      if (changed) await existing.save();
-      console.log(`✅ Reserva já existe para o pagamento ${paymentId}: ${existing._id}`);
-      return res.status(200).json({ received: true, message: 'booking-already-exists', bookingId: existing._id });
-    }
-
-    const createdBooking = await Booking.createFromPayment({
-      place: accommodationId,
-      user: userId,
-      pricePerNight,
-      priceTotal: totalPrice,
-      checkin: checkIn,
-      checkout: checkOut,
-      guests,
-      nights,
-      mercadopagoPaymentId: paymentId.toString(),
-      paymentStatus: 'approved',
+    const dbBooking = await prisma.booking.findFirst({
+      where: {
+        OR: [
+          { id: booking.id },
+          { legacyMongoId: String(booking._id || booking.id) },
+        ],
+      },
     });
 
-    console.log(`✅ Reserva criada via webhook Stripe: ${createdBooking._id} (pagamento: ${paymentId})`);
-    return res.status(200).json({ received: true, bookingId: createdBooking._id });
+    await prisma.booking.update({
+      where: { id: dbBooking.id },
+      data: {
+        legacyMercadoPagoPaymentId: String(paymentId),
+        legacyPaymentStatus: "approved",
+        legacyPaymentMethod: "stripe",
+        legacyTransactionAmount: Number((paymentInfo.amount_received ?? paymentInfo.amount_total ?? 0) / 100),
+        legacyTransactionDetails: paymentInfo,
+        paymentApprovedAt: new Date(),
+        status: "CONFIRMED",
+        lastStatusChange: new Date(),
+      },
+    });
+
+    await upsertStripePayment(dbBooking.id, paymentId, paymentInfo);
+    return res.status(200).json({ received: true, bookingId: dbBooking.id });
   } catch (err) {
-    console.error('❌ Erro ao processar webhook Stripe:', err && err.message ? err.message : err);
-    // Retorna 200 para conflitos de data (não deve retentar — é um erro de negócio)
-    if (err?.statusCode === 409 || (err?.message || '').toLowerCase().includes('conflitantes')) {
-      return res.status(200).json({ received: true, message: 'date-conflict', error: err.message });
-    }
-    // Para outros erros, retorna 200 também para evitar retentativas infinitas do Stripe
-    return res.status(200).json({ received: true, message: 'processing-error', error: err?.message });
+    console.error("Erro ao processar webhook Stripe:", err?.message || err);
+    return res.status(200).json({ received: true, message: "processing-error", error: err?.message });
   }
 });
 

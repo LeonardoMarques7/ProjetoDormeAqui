@@ -1,6 +1,6 @@
 import { createCheckoutPreference, verifyMercadoPagoConfig } from "./service.js";
-
 import { capturePayment } from "./captureService.js";
+import { getFailedPaymentByPaymentId, registerFailedPaymentRetry } from "./failedPaymentsStore.js";
 
 
 
@@ -266,35 +266,13 @@ export const retryFailedPayment = async (req, res, next) => {
     const { paymentId } = req.params;
     if (!paymentId) return res.status(400).json({ success: false, message: 'paymentId é obrigatório' });
 
-    const FailedPayment = (await import("./failedPaymentModel.js")).default;
-    const failed = await FailedPayment.findOne({ paymentId });
+    const failed = await getFailedPaymentByPaymentId(paymentId);
     if (!failed) return res.status(404).json({ success: false, message: 'FailedPayment não encontrado' });
+    const metadata = failed.metadata || {};
+    const paymentInfo = failed.paymentInfo || {};
 
-    const { metadata, paymentInfo } = failed;
-
-    // Tentar re-criar pagamento direto se tivermos token (pode expirar)
     try {
-      const { paymentClient } = await import("../../config/mercadopago.js");
-      const token = paymentInfo?.token || metadata?.token;
-      if (token) {
-        const body = {
-          transaction_amount: Number(metadata?.totalPrice) || Number(paymentInfo?.transaction_amount) || 0,
-          token,
-          description: paymentInfo?.description || metadata?.description || 'Retry de pagamento',
-          installments: Number(metadata?.installments) || Number(paymentInfo?.installments) || 1,
-          payment_method_id: paymentInfo?.payment_method_id || metadata?.payment_method_id,
-          payer: paymentInfo?.payer || { email: metadata?.userEmail || metadata?.payerEmail }
-        };
-        const resp = await paymentClient.create({ body });
-        return res.status(200).json({ success: true, method: 'direct_payment', payment: resp });
-      }
-    } catch (err) {
-      console.error('Falha ao tentar criar pagamento direto no retry:', err?.response?.data || err.message || err);
-      // continua para fallback
-    }
-
-    // Fallback: criar preferência de checkout para o usuário refazer o checkout
-    try {
+      await registerFailedPaymentRetry(paymentId);
       const frontendUrl = (process.env.FRONTEND_URL && process.env.FRONTEND_URL.replace(/\/$/, '')) || 'http://localhost:5173';
       const accommodationId = metadata?.accommodationId || metadata?.accommodation_id || metadata?.external_reference?.split('_')?.pop();
       const userId = metadata?.userId || metadata?.user_id || metadata?.userIdString;
