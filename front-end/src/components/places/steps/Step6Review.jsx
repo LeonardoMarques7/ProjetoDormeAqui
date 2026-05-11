@@ -18,9 +18,19 @@ const CHECKLIST = [
 		value: (d) => d.title,
 	},
 	{
-		label: "Cidade",
-		check: (d) => !!d.city?.trim(),
-		value: (d) => d.city,
+		label: "Localização",
+		check: (d) =>
+			!!d.addressZipCode?.trim() &&
+			!!d.addressStreet?.trim() &&
+			!!d.addressNumber?.trim() &&
+			!!(d.addressCity?.trim() || d.city?.trim()),
+		value: (d) =>
+			[
+				[d.addressStreet, d.addressNumber].filter(Boolean).join(", "),
+				[d.addressCity || d.city, d.addressState].filter(Boolean).join(" - "),
+			]
+				.filter(Boolean)
+				.join(" • "),
 	},
 	{
 		label: "Quartos / Camas / Banheiros",
@@ -41,14 +51,6 @@ const CHECKLIST = [
 			`${d.photos?.length || 0} foto${d.photos?.length !== 1 ? "s" : ""}`,
 		recommended: (d) => d.photos?.length < 5,
 		recommendedMsg: "Recomendamos pelo menos 5 fotos",
-	},
-	{
-		label: "Descrição",
-		check: (d) => !!d.description?.trim(),
-		value: (d) =>
-			d.description?.length > 40
-				? d.description.substring(0, 40) + "…"
-				: d.description,
 	},
 	{
 		label: "Comodidades",
@@ -79,7 +81,7 @@ const CHECKLIST = [
  * Step 6 – Revisão final
  * Preview completo + checklist automático + botão salvar.
  */
-const Step6Review = ({ data, onSubmit, isSubmitting }) => {
+const Step6Review = ({ data, onSubmit, isSubmitting, mode = "create" }) => {
 	const allCriticalOk = CHECKLIST.filter((item) => !item.optional).every(
 		(item) => item.check(data),
 	);
@@ -202,7 +204,11 @@ const Step6Review = ({ data, onSubmit, isSubmitting }) => {
 					`}
 				>
 					<SaveAll size={18} />
-					{isSubmitting ? "Salvando…" : "Publicar acomodação"}
+					{isSubmitting
+						? "Salvando…"
+						: mode === "edit"
+							? "Salvar alterações"
+							: "Publicar acomodação"}
 				</button>
 			</form>
 		</div>

@@ -1,0 +1,189 @@
+<h2>Wizard de acomodação</h2>
+<p class="subtitle">Direção inicial: duas colunas fixas, timeline vertical, card branco e mapa integrado com destaque.</p>
+
+<div class="split" style="align-items: stretch; gap: 28px;">
+  <div class="mockup" style="min-height: 780px; background: linear-gradient(180deg, #fbfaf8 0%, #f5f1ea 100%); border-radius: 32px; border: 1px solid #ece4d8; overflow: hidden;">
+    <div class="mockup-header" style="background: transparent; border-bottom: none; padding-bottom: 0;">Coluna esquerda</div>
+    <div class="mockup-body" style="padding: 28px; display: flex; flex-direction: column; gap: 24px;">
+      <div style="display: inline-flex; align-items: center; gap: 10px; width: fit-content; border: 1px solid #ddd3c5; border-radius: 999px; padding: 10px 14px; background: rgba(255,255,255,0.78);">
+        <span style="width: 8px; height: 8px; border-radius: 999px; background: #9a6b2f;"></span>
+        <span class="label" style="margin: 0; color: #7a5a34;">Anúncio em preparação</span>
+      </div>
+
+      <div>
+        <h3 style="font-size: 46px; line-height: 1.02; margin-bottom: 14px; max-width: 360px;">Cadastre sua acomodação com clareza e confiança</h3>
+        <p class="subtitle" style="max-width: 420px;">
+          O lado esquerdo funciona como guia visual: explica a etapa atual, mostra progresso, contexto da localização
+          e ajuda o anfitrião a entender o que falta para publicar.
+        </p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 28px 1fr; gap: 18px; align-items: start;">
+        <div style="position: relative; min-height: 320px;">
+          <div style="position: absolute; left: 13px; top: 6px; bottom: 6px; width: 2px; background: linear-gradient(180deg, #d6c5ad 0%, #eadfce 100%);"></div>
+          <div title="Informações básicas" style="position: relative; z-index: 1; width: 28px; height: 28px; border-radius: 999px; background: #ffffff; border: 2px solid #9a6b2f; box-shadow: 0 10px 25px rgba(154,107,47,0.14); margin-bottom: 26px;"></div>
+          <div title="Localização da acomodação" style="position: relative; z-index: 1; width: 28px; height: 28px; border-radius: 999px; background: #9a6b2f; border: 2px solid #9a6b2f; box-shadow: 0 12px 28px rgba(154,107,47,0.24); margin-bottom: 26px;"></div>
+          <div title="Fotos e destaques" style="position: relative; z-index: 1; width: 28px; height: 28px; border-radius: 999px; background: #ffffff; border: 2px solid #d9cebf; margin-bottom: 26px;"></div>
+          <div title="Comodidades" style="position: relative; z-index: 1; width: 28px; height: 28px; border-radius: 999px; background: #ffffff; border: 2px solid #d9cebf; margin-bottom: 26px;"></div>
+          <div title="Preço e regras" style="position: relative; z-index: 1; width: 28px; height: 28px; border-radius: 999px; background: #ffffff; border: 2px solid #d9cebf; margin-bottom: 26px;"></div>
+          <div title="Revisão final" style="position: relative; z-index: 1; width: 28px; height: 28px; border-radius: 999px; background: #ffffff; border: 2px solid #d9cebf;"></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="padding-top: 2px;">
+            <div class="label" style="margin-bottom: 8px; color: #9a6b2f;">Etapa em foco</div>
+            <div style="font-size: 22px; font-weight: 700; color: #231f1a;">Localização da acomodação</div>
+            <p class="subtitle" style="margin-top: 8px;">
+              Informe o endereço completo. Esses dados ajudam o hóspede a entender melhor a região e habilitam mapa,
+              distância e localização aproximada.
+            </p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.82); border: 1px solid #e7ddcf; border-radius: 24px; padding: 16px;">
+            <div class="label" style="margin-bottom: 8px;">Resumo da etapa</div>
+            <div style="display: grid; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; gap: 12px;">
+                <span style="color: #6f6557;">Campos essenciais</span>
+                <strong style="color: #231f1a;">CEP, rua, número, bairro, cidade, estado, país</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; gap: 12px;">
+                <span style="color: #6f6557;">Coordenadas</span>
+                <strong style="color: #231f1a;">Opcionais, com mapa como apoio</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; gap: 12px;">
+                <span style="color: #6f6557;">Compatibilidade</span>
+                <strong style="color: #231f1a;">Fallback para city/state legados</strong>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: #f0e7d8; border-radius: 28px; padding: 14px; border: 1px solid #e0d3bc;">
+            <div style="height: 250px; border-radius: 20px; background:
+              radial-gradient(circle at 20% 18%, rgba(255,255,255,0.95), rgba(255,255,255,0.6) 24%, transparent 25%),
+              linear-gradient(135deg, #d8e8d4 0%, #eaf0f4 35%, #dce7f4 68%, #f4eee4 100%);
+              position: relative; overflow: hidden;">
+              <div style="position: absolute; inset: 18px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.5);"></div>
+              <div style="position: absolute; left: 58%; top: 42%; width: 18px; height: 18px; border-radius: 999px; background: #9a6b2f; box-shadow: 0 0 0 10px rgba(154,107,47,0.16);"></div>
+              <div style="position: absolute; left: 24px; right: 24px; bottom: 18px; display: grid; gap: 10px;">
+                <div style="background: rgba(255,255,255,0.92); border-radius: 16px; padding: 12px 14px; color: #2b251e;">
+                  Rua exemplo, 245 • Centro • Florianópolis, SC
+                </div>
+                <div style="background: rgba(255,255,255,0.82); border-radius: 16px; padding: 10px 14px; color: #6f6557;">
+                  Prévia do mapa com fallback elegante quando ainda não houver coordenadas.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup" style="min-height: 780px; background:
+    radial-gradient(circle at top left, rgba(255,255,255,0.88), rgba(255,255,255,0.4) 30%, transparent 62%),
+    linear-gradient(180deg, #f8f6f2 0%, #f4efe7 100%);
+    border-radius: 32px; border: 1px solid #efe7db; overflow: hidden;">
+    <div class="mockup-header" style="background: transparent; border-bottom: none; padding-bottom: 0;">Coluna direita</div>
+    <div class="mockup-body" style="padding: 32px; display: flex; flex-direction: column; gap: 18px;">
+      <div style="align-self: flex-start; border-radius: 999px; border: 1px solid #ded6ca; padding: 8px 12px; background: rgba(255,255,255,0.7); color: #756a5d; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">
+        /places/new
+      </div>
+
+      <div style="background: rgba(255,255,255,0.88); border: 1px solid #ece4d8; border-radius: 28px; padding: 22px; box-shadow: 0 18px 60px rgba(68,48,20,0.08);">
+        <div style="display: grid; gap: 20px;">
+          <div>
+            <div style="font-size: 30px; font-weight: 700; color: #231f1a;">Nova acomodação</div>
+            <p class="subtitle" style="margin-top: 6px;">
+              Preencha os dados da localização com calma. Você poderá revisar tudo antes de publicar.
+            </p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <div class="label" style="margin-bottom: 8px; color: #7a7063;">CEP</div>
+              <div class="mock-input" style="height: 46px; border-radius: 14px; background: #fff;">88000-000</div>
+            </div>
+            <div>
+              <div class="label" style="margin-bottom: 8px; color: #7a7063;">Número</div>
+              <div class="mock-input" style="height: 46px; border-radius: 14px; background: #fff;">245</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="label" style="margin-bottom: 8px; color: #7a7063;">Rua</div>
+            <div class="mock-input" style="height: 46px; border-radius: 14px; background: #fff;">Rua das Palmeiras</div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <div class="label" style="margin-bottom: 8px; color: #7a7063;">Complemento</div>
+              <div class="mock-input" style="height: 46px; border-radius: 14px; background: #fff;">Apto 203</div>
+            </div>
+            <div>
+              <div class="label" style="margin-bottom: 8px; color: #7a7063;">Bairro</div>
+              <div class="mock-input" style="height: 46px; border-radius: 14px; background: #fff;">Centro</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
+            <div>
+              <div class="label" style="margin-bottom: 8px; color: #7a7063;">Cidade</div>
+              <div class="mock-input" style="height: 46px; border-radius: 14px; background: #fff;">Florianópolis</div>
+            </div>
+            <div>
+              <div class="label" style="margin-bottom: 8px; color: #7a7063;">Estado</div>
+              <div class="mock-input" style="height: 46px; border-radius: 14px; background: #fff;">SC</div>
+            </div>
+            <div>
+              <div class="label" style="margin-bottom: 8px; color: #7a7063;">País</div>
+              <div class="mock-input" style="height: 46px; border-radius: 14px; background: #fff;">Brasil</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="label" style="margin-bottom: 8px; color: #7a7063;">Ponto de referência</div>
+            <div class="mock-input" style="height: 46px; border-radius: 14px; background: #fff;">Próximo ao mercado central</div>
+          </div>
+
+          <div>
+            <div class="label" style="margin-bottom: 8px; color: #7a7063;">Descrição da região</div>
+            <div class="placeholder" style="height: 108px; border-radius: 18px; background: #fff; border-color: #ddd4c8; text-align: left; padding: 14px; color: #8a7f73;">
+              Região tranquila, com restaurantes, mercado e acesso rápido à beira-mar.
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <div class="label" style="margin-bottom: 8px; color: #7a7063;">Latitude</div>
+              <div class="mock-input" style="height: 46px; border-radius: 14px; background: #fff;">-27.5954</div>
+            </div>
+            <div>
+              <div class="label" style="margin-bottom: 8px; color: #7a7063;">Longitude</div>
+              <div class="mock-input" style="height: 46px; border-radius: 14px; background: #fff;">-48.5480</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px;">
+            <button class="mock-button" style="flex: 1; border-radius: 999px; background: #231f1a;">Salvar rascunho</button>
+            <button class="mock-button" style="flex: 1; border-radius: 999px; background: #9a6b2f;">Continuar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards" style="grid-template-columns: 1fr 1fr;">
+        <div class="card" data-choice="left-summary-map" onclick="toggleSelect(this)">
+          <div class="card-body">
+            <h3>Mapa no painel esquerdo</h3>
+            <p>Segue a referência mais de perto, deixando o formulário limpo e o mapa como apoio visual.</p>
+          </div>
+        </div>
+        <div class="card" data-choice="inline-map-step" onclick="toggleSelect(this)">
+          <div class="card-body">
+            <h3>Mapa dentro da etapa</h3>
+            <p>O mapa cresce na própria coluna de preenchimento quando o step de localização estiver ativo.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

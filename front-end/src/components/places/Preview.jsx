@@ -47,6 +47,10 @@ const Preview = ({ data }) => {
 	const {
 		title,
 		city,
+		addressCity,
+		addressStreet,
+		addressNumber,
+		addressComplement,
 		photos,
 		description,
 		extras,
@@ -59,6 +63,10 @@ const Preview = ({ data }) => {
 		checkout,
 		guests,
 	} = data;
+	const locationLabel = addressCity || city;
+	const addressLine = [addressStreet, addressNumber, addressComplement]
+		.filter(Boolean)
+		.join(", ");
 
 	const md = new MarkdownIt({
 		html: false,
@@ -193,8 +201,11 @@ const Preview = ({ data }) => {
 							</div>
 							<div className="flex items-center max-sm:text-sm text-gray-600 gap-2">
 								<MapPin size={13} />
-								<span>{city}</span>
+								<span>{locationLabel}</span>
 							</div>
+							{addressLine && (
+								<p className="text-sm text-gray-500">{addressLine}</p>
+							)}
 						</div>
 						{!mobile && (
 							<div className="flex gap-4  !flex-nowrap items-center max-sm:text-xs! max-sm:gap-2! max-sm:w-fit max-sm:justify-center justify-start mt-4 max-w-auto">

@@ -1,5 +1,10 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
+import {
+	hasGoogleMapsApi,
+	loadGoogleMapsScript,
+	parseAddressComponents,
+} from "@/lib/googleMaps";
 
 const SEARCH_TYPES = {
 	address: ["address"],
@@ -7,55 +12,7 @@ const SEARCH_TYPES = {
 	establishments: ["establishment"],
 };
 
-const GOOGLE_PLACES_API_KEY =
-	import.meta.env.VITE_GOOGLE_PLACES_API_KEY ||
-	import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
-const GOOGLE_PLACES_SCRIPT_ID = "google-maps-places-script";
-let googlePlacesScriptPromise = null;
-
-const hasPlacesApi = () =>
-	typeof window !== "undefined" && !!window.google?.maps?.places?.Autocomplete;
-
-const loadGooglePlacesScript = () => {
-	if (hasPlacesApi()) {
-		return Promise.resolve(true);
-	}
-
-	if (!GOOGLE_PLACES_API_KEY) {
-		return Promise.resolve(false);
-	}
-
-	if (googlePlacesScriptPromise) {
-		return googlePlacesScriptPromise;
-	}
-
-	googlePlacesScriptPromise = new Promise((resolve) => {
-		const existingScript = document.getElementById(GOOGLE_PLACES_SCRIPT_ID);
-		if (existingScript) {
-			existingScript.addEventListener("load", () => resolve(hasPlacesApi()), {
-				once: true,
-			});
-			existingScript.addEventListener("error", () => resolve(false), {
-				once: true,
-			});
-			return;
-		}
-
-		const script = document.createElement("script");
-		script.id = GOOGLE_PLACES_SCRIPT_ID;
-		script.async = true;
-		script.defer = true;
-		script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_PLACES_API_KEY}&libraries=places`;
-		script.addEventListener("load", () => resolve(hasPlacesApi()), {
-			once: true,
-		});
-		script.addEventListener("error", () => resolve(false), { once: true });
-		document.head.appendChild(script);
-	});
-
-	return googlePlacesScriptPromise;
-};
+const hasPlacesApi = () => hasGoogleMapsApi() && !!window.google?.maps?.places?.Autocomplete;
 
 export const GooglePlacesInput = ({
 	value = "",
@@ -87,6 +44,11 @@ export const GooglePlacesInput = ({
 	const [suggestions, setSuggestions] = useState([]);
 	const [isOpen, setIsOpen] = useState(false);
 	const [activeIndex, setActiveIndex] = useState(-1);
+
+	const emitSelection = (selection) => {
+		onSelectRef.current?.(selection);
+		onPlaceSelectRef.current?.(selection);
+	};
 
 	const handleValueChange = (nextValue) => {
 		onChange?.({ target: { value: nextValue, name } });
@@ -129,7 +91,7 @@ export const GooglePlacesInput = ({
 	useEffect(() => {
 		let isMounted = true;
 
-		loadGooglePlacesScript().then((loaded) => {
+		loadGoogleMapsScript({ libraries: ["places"] }).then((loaded) => {
 			if (!isMounted) return;
 			setGoogleAvailable(loaded);
 			if (loaded) {
@@ -193,17 +155,19 @@ export const GooglePlacesInput = ({
 			.slice(0, 2)
 			.join(", ");
 
-		// Seleção imediata para não depender do callback de detalhes.
 		handleValueChange(fallbackAddress);
-		onSelectRef.current?.({
+		emitSelection({
 			address: fallbackAddress,
+			fullAddress: prediction.description || fallbackAddress,
 			name: prediction.structured_formatting?.main_text || fallbackAddress,
-			latitude: undefined,
-			longitude: undefined,
-		});
-		onPlaceSelectRef.current?.({
-			address: fallbackAddress,
-			name: prediction.structured_formatting?.main_text || fallbackAddress,
+			city: fallbackAddress,
+			state: "",
+			street: "",
+			streetNumber: "",
+			complement: "",
+			zipCode: "",
+			country: "Brasil",
+			neighborhood: "",
 			latitude: undefined,
 			longitude: undefined,
 		});
@@ -214,36 +178,45 @@ export const GooglePlacesInput = ({
 		service.getDetails(
 			{
 				placeId: prediction.place_id,
-				fields: ["formatted_address", "geometry", "name"],
+				fields: ["formatted_address", "geometry", "name", "address_components"],
 				sessionToken: sessionTokenRef.current || undefined,
 			},
 			(place, status) => {
 				const isOk =
 					status === window.google.maps.places.PlacesServiceStatus.OK;
-				const address = (
+				const fullAddress =
 					place?.formatted_address ||
+					prediction.description ||
 					fallbackAddress ||
 					place?.name ||
-					""
-				)
-					.split(",")
-					.map((part) => part.trim())
-					.slice(0, 2)
-					.join(", ");
+					"";
+				const locationDetails = parseAddressComponents(
+					place?.address_components || [],
+				);
+				const address = locationDetails.cityLabel || fallbackAddress || place?.name || "";
 				const latitude = isOk ? place?.geometry?.location?.lat?.() : undefined;
 				const longitude = isOk ? place?.geometry?.location?.lng?.() : undefined;
 				const selection = {
 					address,
+					fullAddress,
 					name:
 						place?.name ||
 						prediction.structured_formatting?.main_text ||
 						address,
+					city: locationDetails.city || address,
+					state: locationDetails.state,
+					street: locationDetails.street,
+					streetNumber: locationDetails.streetNumber,
+					complement: locationDetails.complement,
+					zipCode: locationDetails.zipCode,
+					country: locationDetails.country,
+					neighborhood: locationDetails.neighborhood,
 					latitude,
 					longitude,
 				};
 
-				onSelectRef.current?.(selection);
-				onPlaceSelectRef.current?.(selection);
+				handleValueChange(address);
+				emitSelection(selection);
 
 				if (hasPlacesApi()) {
 					sessionTokenRef.current =
@@ -304,16 +277,14 @@ export const GooglePlacesInput = ({
 						icon
 							? "grid-cols-[auto_minmax(0,1fr)] gap-4 px-4 py-3"
 							: "grid-cols-1 px-4 py-3",
-						error ? "" : "",
-						isFocused ? "" : "",
-						disabled ? "opacity-60 cursor-not-allowed" : "",
+						disabled ? "cursor-not-allowed opacity-60" : "",
 						className,
 					]
 						.filter(Boolean)
 						.join(" ")}
 				>
 					{icon && (
-						<MapPin className="w-6 h-6 text-primary-900 flex-shrink-0" />
+						<MapPin className="h-6 w-6 flex-shrink-0 text-primary-900" />
 					)}
 
 					<input
@@ -335,9 +306,8 @@ export const GooglePlacesInput = ({
 						disabled={disabled}
 						autoComplete="off"
 						className={[
-							"w-full bg-transparent text-sm text-gray-900 outline-none",
+							"min-h-7 w-full bg-transparent text-sm text-gray-900 outline-none",
 							"placeholder:text-gray-600",
-							"min-h-7",
 							inputClassName,
 						]
 							.filter(Boolean)
@@ -365,7 +335,7 @@ export const GooglePlacesInput = ({
 											selectPrediction(prediction);
 										}}
 										className={[
-											"grid grid-cols-[auto_minmax(0,1fr)] cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors",
+											"grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors",
 											isActive
 												? "bg-gray-100 text-gray-900"
 												: "text-gray-700 hover:bg-gray-50",
@@ -388,13 +358,13 @@ export const GooglePlacesInput = ({
 					</div>
 				)}
 			</div>
-{/* 
-			{!googleAvailable && (
+
+			{!googleAvailable && isFocused && (
 				<p className="mt-2 text-xs text-amber-600">
 					Google Places ainda não está disponível. Verifique a chave{" "}
-					<code>VITE_GOOGLE_PLACES_API_KEY</code>.
+					<code>VITE_GOOGLE_MAPS_API_KEY</code>.
 				</p>
-			)} */}
+			)}
 
 			{error && (
 				<p className="mt-2 flex items-center gap-1 text-sm text-red-500">

@@ -33,6 +33,8 @@ export default function PlaceHeader({ place }) {
 	const { mobile } = useMobileContext();
 	const IconComponent = config.icon;
 	const timeAgo = "Agora mesmo";
+	const locationLabel =
+		place.addressCity || place.city || place.addressNeighborhood || "Localização indisponível";
 
 	return (
 		<div className="max-sm:py-0 w-full ">
@@ -99,7 +101,7 @@ export default function PlaceHeader({ place }) {
 					className="flex items-center max-sm:text-sm text-gray-600 gap-2"
 				>
 					<MapPin size={13} />
-					<span>{place.city}</span>
+					<span>{locationLabel}</span>
 				</motion.div>
 			</motion.div>
 

@@ -105,9 +105,56 @@ async function syncPerks(tx, placeId, perks = []) {
 
 function placeData(input) {
   const data = {};
+  const resolvedCity = input.addressCity ?? input.address_city ?? input.city;
+  const resolvedState = input.addressState ?? input.address_state;
+  const resolvedStreet = input.addressStreet ?? input.address_street;
+  const resolvedNumber = input.addressNumber ?? input.address_number;
+  const resolvedAddress =
+    input.address !== undefined
+      ? input.address
+      : [resolvedStreet, resolvedNumber].filter(Boolean).join(", ");
   if (input.type !== undefined) data.type = input.type || null;
   if (input.title !== undefined) data.title = input.title;
-  if (input.city !== undefined) data.city = input.city;
+  if (resolvedCity !== undefined) data.city = resolvedCity || "";
+  if (resolvedAddress !== undefined) data.address = resolvedAddress || null;
+  if (resolvedStreet !== undefined) data.addressStreet = resolvedStreet || null;
+  if (resolvedNumber !== undefined) data.addressNumber = resolvedNumber || null;
+  if (input.addressComplement !== undefined || input.address_complement !== undefined) {
+    data.addressComplement =
+      input.addressComplement || input.address_complement || null;
+  }
+  if (input.addressNeighborhood !== undefined || input.address_neighborhood !== undefined) {
+    data.addressNeighborhood =
+      input.addressNeighborhood || input.address_neighborhood || null;
+  }
+  if (resolvedCity !== undefined) data.addressCity = resolvedCity || null;
+  if (resolvedState !== undefined) data.addressState = resolvedState || null;
+  if (input.addressZipCode !== undefined || input.address_zip_code !== undefined) {
+    data.addressZipCode = input.addressZipCode || input.address_zip_code || null;
+  }
+  if (input.addressCountry !== undefined || input.address_country !== undefined) {
+    data.addressCountry = input.addressCountry || input.address_country || null;
+  }
+  if (input.latitude !== undefined) {
+    data.latitude =
+      input.latitude === null || input.latitude === ""
+        ? null
+        : Number(input.latitude);
+  }
+  if (input.longitude !== undefined) {
+    data.longitude =
+      input.longitude === null || input.longitude === ""
+        ? null
+        : Number(input.longitude);
+  }
+  if (input.locationReference !== undefined || input.location_reference !== undefined) {
+    data.locationReference =
+      input.locationReference || input.location_reference || null;
+  }
+  if (input.locationDescription !== undefined || input.location_description !== undefined) {
+    data.locationDescription =
+      input.locationDescription || input.location_description || null;
+  }
   if (input.description !== undefined) data.description = input.description;
   if (input.extras !== undefined) data.extras = input.extras || null;
   if (input.price !== undefined || input.pricePerNight !== undefined) {
@@ -448,14 +495,28 @@ export async function createPlace(ownerId, input) {
   const db = await prisma();
   const resolvedOwnerId = await resolveOwnerId(ownerId);
   if (!resolvedOwnerId) return null;
+  const normalized = placeData(input);
 
   const created = await db.$transaction(async (tx) => {
     const place = await tx.place.create({
       data: {
         ownerId: resolvedOwnerId,
-        title: input.title,
-        city: input.city,
-        description: input.description,
+        title: normalized.title || input.title,
+        city: normalized.city || input.city || "",
+        address: normalized.address,
+        addressStreet: normalized.addressStreet || null,
+        addressNumber: normalized.addressNumber || null,
+        addressComplement: normalized.addressComplement || null,
+        addressNeighborhood: normalized.addressNeighborhood || null,
+        addressCity: normalized.addressCity || normalized.city || null,
+        addressState: normalized.addressState || null,
+        addressZipCode: normalized.addressZipCode || null,
+        addressCountry: normalized.addressCountry || "Brasil",
+        latitude: normalized.latitude,
+        longitude: normalized.longitude,
+        locationReference: normalized.locationReference || null,
+        locationDescription: normalized.locationDescription || null,
+        description: normalized.description || input.description,
         pricePerNight: Number(input.price || 0),
         checkInTime: input.checkin || "14:00",
         checkOutTime: input.checkout || "11:00",

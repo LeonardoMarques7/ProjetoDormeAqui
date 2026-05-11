@@ -45,6 +45,15 @@ const Item = ({ place = null, placeHolder }) => {
 	const [isHovered, setIsHovered] = useState(false);
 	const [clickItem, setClickItem] = useState(false);
 	const cardRef = useRef(null);
+	const placeRating =
+		place?.averageRating === null || place?.averageRating === undefined
+			? null
+			: Number(place.averageRating);
+	const locationLabel =
+		place?.addressCity ||
+		place?.city ||
+		place?.addressNeighborhood ||
+		"Localização indisponível";
 
 	const onDotButtonClick = useCallback(
 		(index) => {
@@ -130,7 +139,7 @@ const Item = ({ place = null, placeHolder }) => {
 												>
 													<PlaceImageFallback
 														src={photo}
-														alt={`Imagem da acomodaÃ§Ã£o ${index + 1}`}
+														alt={`Imagem da acomodação ${index + 1}`}
 														className="aspect-square z-0 w-full rounded-2xl transition-all"
 														loading={index === 0 ? "eager" : "lazy"}
 														width="350"
@@ -152,7 +161,7 @@ const Item = ({ place = null, placeHolder }) => {
 								<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
 									<Star size={14} fill="#FFC107" stroke="#FFC107" />
 									<span className="text-sm font-semibold">
-										{place.averageRating.toFixed(1)}
+										{placeRating ? placeRating.toFixed(1) : "Novo"}
 									</span>
 								</div>
 							</Carousel>
@@ -183,7 +192,7 @@ const Item = ({ place = null, placeHolder }) => {
 							>
 								<MapPin size={12} className="flex-shrink-0" />
 								<span className="line-clamp-1">
-									{place.city}
+									{locationLabel}
 									{place.uf ? `, ${place.uf}` : ""}
 								</span>
 							</motion.div>

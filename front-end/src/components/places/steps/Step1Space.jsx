@@ -1,50 +1,44 @@
 import {
-	Home,
-	Building2,
-	BedDouble,
-	TreePine,
-	Hotel,
-	Leaf,
-	Users2,
+	Home2 as Home,
+	Buildings2 as Building2,
 	Bed,
+	HomeAngle as TreePine,
+	Shop,
+	Leaf,
+	UsersGroupRounded as Users2,
 	Bath,
-	DoorOpen,
-} from "lucide-react";
-import { GuestsInput } from "@/components/ui/GuestsInput";
-import GooglePlacesInput from "@/components/places/GooglePlacesInput";
+} from "@solar-icons/react";
 
-// ============================================
-// TIPOS DE ESPAÇO
-// ============================================
+import { GuestsInput } from "@/components/ui/GuestsInput";
+import { DoorOpenIcon } from "lucide-react";
+
 const SPACE_TYPES = [
 	{ value: "casa", label: "Casa", icon: Home },
 	{ value: "apartamento", label: "Apartamento", icon: Building2 },
-	{ value: "quarto", label: "Quarto", icon: BedDouble },
+	{ value: "quarto", label: "Quarto", icon: Bed },
 	{ value: "chalé", label: "Chalé", icon: TreePine },
-	{ value: "pousada", label: "Pousada", icon: Hotel },
+	{ value: "pousada", label: "Pousada", icon: Building2 },
 	{ value: "sítio", label: "Sítio", icon: Leaf },
 ];
 
-/**
- * Step 1 – Sobre o espaço
- * Tipo, título, cidade, quartos, banheiros, camas, hóspedes.
- */
+const textFieldClassName =
+	"w-full rounded-2xl border border-[#ddd7cf] bg-white px-4 py-3 text-sm text-slate-800 transition-all placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-300";
+
 const Step1Space = ({ data, dispatch, errors }) => {
 	const set = (field, value) => dispatch({ type: "SET_FIELD", field, value });
 
 	return (
 		<div className="space-y-8">
 			<StepHeader
-				title="Sobre o espaço"
-				description="Comece escolhendo o tipo de acomodação e as informações básicas."
+				title="Informações básicas"
+				description="Defina o tipo da acomodação, um bom título e uma descrição clara para começar o anúncio."
 			/>
 
-			{/* Tipo do espaço */}
 			<section className="space-y-3">
 				<label className="block text-base font-semibold text-gray-700">
 					Tipo de espaço
 				</label>
-				<div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+				<div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
 					{SPACE_TYPES.map(({ value, label, icon: Icon }) => {
 						const selected = data.type === value;
 						return (
@@ -52,18 +46,15 @@ const Step1Space = ({ data, dispatch, errors }) => {
 								key={value}
 								type="button"
 								onClick={() => set("type", value)}
-								className={`
-									flex flex-col items-center justify-center gap-2 py-4 px-2
-									rounded-2xl border-2 transition-all duration-200 cursor-pointer
-									${
-										selected
-											? "border-primary-700 bg-primary-50 text-primary-800 shadow-sm"
-											: "border-gray-200 hover:border-gray-400 text-gray-600"
-									}
-								`}
+								className={[
+									"flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 px-2 py-4 transition-all duration-200",
+									selected
+										? "border-primary-700 bg-primary-50 text-primary-800 shadow-sm"
+										: "border-gray-200 text-gray-600 hover:border-gray-400",
+								].join(" ")}
 							>
 								<Icon size={22} />
-								<span className="text-xs font-medium leading-tight text-center">
+								<span className="text-center text-xs font-medium leading-tight">
 									{label}
 								</span>
 							</button>
@@ -73,7 +64,6 @@ const Step1Space = ({ data, dispatch, errors }) => {
 				{errors?.type && <FieldError message={errors.type} />}
 			</section>
 
-			{/* Título */}
 			<section className="space-y-2">
 				<label className="block text-base font-semibold text-gray-700">
 					Título do anúncio
@@ -83,14 +73,13 @@ const Step1Space = ({ data, dispatch, errors }) => {
 					maxLength={80}
 					placeholder="Ex: Apartamento aconchegante com vista para o mar"
 					value={data.title}
-					onChange={(e) => set("title", e.target.value)}
-					className={`
-						w-full px-4 py-3 border rounded-2xl text-sm
-						focus:outline-none focus:ring-2 focus:ring-primary-400 transition-all
-						${errors?.title ? "border-red-400 bg-red-50" : "border-gray-300"}
-					`}
+					onChange={(event) => set("title", event.target.value)}
+					className={[
+						textFieldClassName,
+						errors?.title ? "border-red-400 bg-red-50" : "",
+					].join(" ")}
 				/>
-				<div className="flex justify-between items-center">
+				<div className="flex items-center justify-between">
 					{errors?.title ? <FieldError message={errors.title} /> : <span />}
 					<span className="text-xs text-gray-400">
 						{data.title?.length || 0}/80
@@ -98,33 +87,41 @@ const Step1Space = ({ data, dispatch, errors }) => {
 				</div>
 			</section>
 
-			{/* Cidade */}
 			<section className="space-y-2">
-				<label className="block text-base font-semibold text-gray-700">
-					Cidade e Estado
-				</label>
-				<GooglePlacesInput
-					value={data.city}
-					onChange={(e) => set("city", e.target.value)}
-					placeholder="Ex: Florianópolis, SC"
-					error={errors?.city}
-					icon={true}
+				<div className="flex items-center justify-between">
+					<label className="block text-base font-semibold text-gray-700">
+						Descrição principal
+					</label>
+					<span className="rounded-full bg-[#f4efe7] px-3 py-1 text-xs font-medium text-slate-600">
+						Obrigatório
+					</span>
+				</div>
+				<textarea
+					value={data.description}
+					onChange={(event) => set("description", event.target.value)}
+					placeholder="Descreva o clima do espaço, o diferencial da hospedagem e o tipo de experiência que o hóspede encontrará."
+					rows={6}
+					className={[
+						textFieldClassName,
+						"min-h-[160px] resize-y py-4",
+						errors?.description ? "border-red-400 bg-red-50" : "",
+					].join(" ")}
 				/>
+				{errors?.description && <FieldError message={errors.description} />}
 			</section>
 
-			{/* Capacidade - 4 counters */}
 			<section className="space-y-3">
 				<label className="block text-base font-semibold text-gray-700">
 					Capacidade
 				</label>
-				<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+				<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
 					<GuestsInput
 						label="Quartos"
 						min={0}
 						max={20}
 						value={data.rooms}
-						onChange={(e) => set("rooms", e.target.value)}
-						icon={DoorOpen}
+						onChange={(event) => set("rooms", event.target.value)}
+						icon={DoorOpenIcon}
 						unitSingular="quarto"
 						unitPlural="quartos"
 					/>
@@ -133,7 +130,7 @@ const Step1Space = ({ data, dispatch, errors }) => {
 						min={0}
 						max={20}
 						value={data.bathrooms}
-						onChange={(e) => set("bathrooms", e.target.value)}
+						onChange={(event) => set("bathrooms", event.target.value)}
 						icon={Bath}
 						unitSingular="banheiro"
 						unitPlural="banheiros"
@@ -143,7 +140,7 @@ const Step1Space = ({ data, dispatch, errors }) => {
 						min={1}
 						max={30}
 						value={data.beds}
-						onChange={(e) => set("beds", e.target.value)}
+						onChange={(event) => set("beds", event.target.value)}
 						icon={Bed}
 						unitSingular="cama"
 						unitPlural="camas"
@@ -153,7 +150,7 @@ const Step1Space = ({ data, dispatch, errors }) => {
 						min={1}
 						max={20}
 						value={data.guests}
-						onChange={(e) => set("guests", e.target.value)}
+						onChange={(event) => set("guests", event.target.value)}
 						icon={Users2}
 						unitSingular="hóspede"
 						unitPlural="hóspedes"
@@ -174,22 +171,14 @@ const Step1Space = ({ data, dispatch, errors }) => {
 	);
 };
 
-// ──────────────────────────────────────────
-// Helpers internos reutilizados nos steps
-// ──────────────────────────────────────────
 export function StepHeader({ title, description }) {
-	return (
-		<div className="text-start">
-			<h1 className="text-2xl font-semibold text-gray-800 mb-1">{title}</h1>
-			<p className="text-gray-500 text-sm">{description}</p>
-		</div>
-	);
+	return null;
 }
 
 export function FieldError({ message }) {
 	return (
-		<p className="flex items-center gap-1 text-sm text-red-500 mt-1">
-			<span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+		<p className="mt-1 flex items-center gap-1 text-sm text-red-500">
+			<span className="h-1.5 w-1.5 rounded-full bg-red-400" />
 			{message}
 		</p>
 	);

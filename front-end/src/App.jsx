@@ -5,6 +5,7 @@ import {
 	Route,
 	useLocation,
 	useParams,
+	Navigate,
 } from "react-router-dom";
 
 import { UserContextProvider } from "./components/contexts/UserContext";
@@ -74,6 +75,12 @@ function ScrollToTop() {
 	return null;
 }
 
+function PlacesRouteRedirect({ target }) {
+	const params = useParams();
+	const resolvedTarget = typeof target === "function" ? target(params) : target;
+	return <Navigate to={resolvedTarget} replace />;
+}
+
 // AppContent fica dentro do MobileContextProvider para ter acesso ao contexto
 function AppContent() {
 	const { mobile } = useContext(MobileContext); // ← aqui consome o contexto
@@ -127,6 +134,24 @@ function AppContent() {
 														element={
 															<PrivateRoute>
 																<Account />
+															</PrivateRoute>
+														}
+													/>
+													<Route
+														path="/places/new"
+														element={
+															<PrivateRoute>
+																<PlacesRouteRedirect target="/account/places/new" />
+															</PrivateRoute>
+														}
+													/>
+													<Route
+														path="/places/edit/:id"
+														element={
+															<PrivateRoute>
+																<PlacesRouteRedirect
+																	target={({ id }) => `/account/places/edit/${id}`}
+																/>
 															</PrivateRoute>
 														}
 													/>

@@ -1,4 +1,3 @@
-import { HousePlus, Trash2 } from "lucide-react";
 import { Navigate, useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -7,26 +6,20 @@ import NewPlace from "@/components/places/NewPlace";
 import Places from "@/components/places/Places";
 import DeletePlaceDialog from "@/components/places/DeletePlaceDialog";
 import "@/components/places/Places.css";
-import { useMobileContext } from "@/components/contexts/MobileContext";
 import { useUserContext } from "@/components/contexts/UserContext";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import {
-	Tooltip,
-	TooltipTrigger,
-	TooltipContent,
-	TooltipProvider,
-} from "@/components/ui/tooltip";
-
 const AccPlaces = () => {
-	const { action, id, edit } = useParams();
-	const { mobile } = useMobileContext();
+	const { action, id } = useParams();
 	const { user } = useUserContext();
 	const [places, setPlaces] = useState([]);
 	const [redirect, setRedirect] = useState(false);
 	const [loadingPlaces, setLoadingPlaces] = useState(true);
 	const [showDeletePlaceDialog, setShowDeletePlaceDialog] = useState(false);
 	const [selectedPlace, setSelectedPlace] = useState(null);
+
+	const isWizardRoute = action === "new" || action === "edit";
+	const isEditMode = action === "edit" && Boolean(id);
 
 	useEffect(() => {
 		if (!user) {
@@ -35,7 +28,7 @@ const AccPlaces = () => {
 			return;
 		}
 
-		const axiosGet = async () => {
+		const fetchPlaces = async () => {
 			const { data } = await axios.get("/places/owner");
 			setTimeout(() => {
 				setPlaces(data);
@@ -43,13 +36,12 @@ const AccPlaces = () => {
 			}, 50);
 		};
 
-		axiosGet();
+		fetchPlaces();
 	}, [action, user?._id]);
 
-	// Handle delete place when action is "r" (remove)
 	useEffect(() => {
 		if (action === "r" && id && user && places.length > 0) {
-			const place = places.find((p) => String(p._id) === String(id));
+			const place = places.find((item) => String(item._id) === String(id));
 			if (place) {
 				setSelectedPlace(place);
 				setShowDeletePlaceDialog(true);
@@ -81,20 +73,22 @@ const AccPlaces = () => {
 
 	return (
 		<>
-			<div className="flex w-full mx-auto  max-sm:max-w-full md:max-w-7xl md:px-5 max-h-full h-full flex-col gap-8 relative justify-start items-start  max-sm:my-0 max-sm:px-3.5">
-				<div className=" flex border-l-3 pl-4 justify-between items-center w-full ">
-					<span className="text-gray-500 flex-col gap-3 flex text-sm font-light pl-0.5">
-						<span className=" text-3xl max-sm:text-xl text-nowrap flex items-end gap-3 text-black">
-							<span className=" text-3xl max-sm:text-xl text-black">
-								{edit
-									? "Editando acomodação"
-									: action !== "new"
-										? "Meus lugares"
-										: ""}{" "}
-								<span className="text-sm text-gray-500">({places.length})</span>
+			<div className="relative mx-auto flex h-full max-h-full w-full flex-col items-start justify-start gap-8 md:max-w-7xl md:px-5 max-sm:my-0 max-sm:max-w-full max-sm:px-3.5">
+				<div className="flex w-full items-center justify-between border-l-3 pl-4">
+					<span className="flex flex-col gap-3 pl-0.5 text-sm font-light text-gray-500">
+						<span className="flex items-end gap-3 text-nowrap text-3xl text-black max-sm:text-xl">
+							<span className="text-3xl text-black max-sm:text-xl">
+								{isEditMode
+									? "Editar acomodação"
+									: action === "new"
+										? "Nova acomodação"
+										: "Meus lugares"}{" "}
+								{!isWizardRoute && (
+									<span className="text-sm text-gray-500">({places.length})</span>
+								)}
 							</span>
-							<span className="text-lg max-sm:text-sm flex items-center gap-3">
-								{action !== "new" && (
+							<span className="flex items-center gap-3 text-lg max-sm:text-sm">
+								{!isWizardRoute && (
 									<Link
 										to="/account/places/new"
 										className="text-sm underline max-sm:hidden"
@@ -106,86 +100,52 @@ const AccPlaces = () => {
 							</span>
 						</span>
 					</span>
-
-					{edit && (
-						<Link
-							to="/account/places/new"
-							className="flex w-fit bg-white/95 backdrop-blur-md gap-2 cursor-pointer border-red-500 border-2 ease-in-out duration-500 text-red-500 px-5 hover:scale-110 hover:shadow-xl py-2.5 rounded-full"
-						>
-							<Trash2 /> Deletar acomodação
-						</Link>
-					)}
 				</div>
-				{places.length === 0 && action !== "new" ? (
+
+				{places.length === 0 && !isWizardRoute ? (
 					user ? (
-						<p className="text-gray-500 text-center py-8">
-							Você não possue acomodações.
+						<p className="py-8 text-center text-gray-500">
+							Você não possui acomodações.
 						</p>
 					) : (
-						<p className="text-gray-500 text-center py-8">
-							Você precisa estar logado para ter informações das acomodações.
+						<p className="py-8 text-center text-gray-500">
+							Você precisa estar logado para ver suas acomodações.
 						</p>
 					)
-				) : (
-					<></>
-				)}
+				) : null}
 
-				<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(400px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
-					{/* {!action && !mobile && (
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Link
-									// title="Anuncie uma acomodação"
-									className="grid gap-2 grid-cols-8 justify-center items-center grid-rows-3 h-50 max-sm:col-span-4 max-sm:row-span-2"
-									to="/account/places/new"
+				{isWizardRoute ? (
+					<div className="w-full">
+						<NewPlace />
+					</div>
+				) : (
+					<div className="relative grid max-w-full transition-transform gap-8 lg:max-w-7xl grid-cols-[repeat(auto-fit,minmax(400px,1fr))] max-sm:grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
+						{loadingPlaces ? (
+						<div className="relative grid max-w-full transition-transform gap-8 lg:max-w-7xl grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
+							{[...Array(2)].map((_, index) => (
+								<div
+									key={index}
+									className="relative flex h-fit w-[350px] flex-1 flex-col gap-5 rounded-3xl bg-white/80"
 								>
-									<div className="row-span-4 hover:bg-primary-100/50 col-span-5 justify-center border border-dashed border-primary-900 flex items-center flex-1 text-center h-full w-40 object-cover rounded-2xl">
-										<HousePlus size={45} className="text-primary-900" />
-									</div>
-								</Link>
-							</TooltipTrigger>
-							<TooltipContent className="bg-primary-900">
-								<p>Anuncie uma acomodação</p>
-							</TooltipContent>
-						</Tooltip>
-					)} */}
-					{loadingPlaces ? (
-						<div className="grid max-w-full relative transition-transform grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 lg:max-w-7xl">
-							<>
-								{[...Array(2)].map((_, index) => (
-									<div
-										key={index}
-										className="flex-col bg-white/80 w-[350px] h-fit relative flex-1 flex rounded-3xl gap-5"
-									>
-										<Skeleton className="aspect-square w-full rounded-none rounded-t-2xl" />
-										<div className="space-y-2">
-											<Skeleton className="h-5 w-50 mt-1" />
-											<Skeleton className="h-4 w-1/4" />
-											<div className="mt-2 flex items-center gap-2">
-												<Skeleton className="h-5 w-5" />
-												<Skeleton className="h-5 w-5" />
-												<Skeleton className="h-5 w-5" />
-												<Skeleton className="ml-auto h-5 w-15" />
-											</div>
+									<Skeleton className="aspect-square w-full rounded-none rounded-t-2xl" />
+									<div className="space-y-2">
+										<Skeleton className="mt-1 h-5 w-50" />
+										<Skeleton className="h-4 w-1/4" />
+										<div className="mt-2 flex items-center gap-2">
+											<Skeleton className="h-5 w-5" />
+											<Skeleton className="h-5 w-5" />
+											<Skeleton className="h-5 w-5" />
+											<Skeleton className="ml-auto h-5 w-15" />
 										</div>
 									</div>
-								))}
-							</>
+								</div>
+							))}
 						</div>
-					) : (
-						action !== "new" && (
+						) : (
 							<Places places={places} onDelete={handleDeletePlace} />
-						)
-					)}
-
-					{action !== "new" ? (
-						<></>
-					) : (
-						<div className="flex flex-col justify-center w-full   items-center gap-2.5">
-							<NewPlace />
-						</div>
-					)}
-				</div>
+						)}
+					</div>
+				)}
 			</div>
 
 			<DeletePlaceDialog

@@ -2,7 +2,7 @@ import { useState, useImperativeHandle, forwardRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import { Search, AlertCircle, DoorOpen, X } from "lucide-react";
+import { Search, AlertCircle, DoorOpen, X, Trash } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Select } from "@mantine/core";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
@@ -18,6 +18,7 @@ import searchSchema from "@/components/schemas/searchSchema.jsx";
 import {
 	UsersIcon,
 	AdjustmentsHorizontalIcon,
+	TrashIcon,
 } from "@heroicons/react/24/outline";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import GooglePlacesInput from "@/components/places/GooglePlacesInput";
@@ -57,14 +58,16 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 	});
 
 	const watchedValues = watch();
-	const hasDateFilter = Boolean(watchedValues.checkin || watchedValues.checkout);
+	const hasDateFilter = Boolean(
+		watchedValues.checkin || watchedValues.checkout,
+	);
 	const hasAnyFilter = Boolean(
 		watchedValues.city ||
-			watchedValues.checkin ||
-			watchedValues.checkout ||
-			watchedValues.guests ||
-			watchedValues.rooms ||
-			watchedValues.minRating,
+		watchedValues.checkin ||
+		watchedValues.checkout ||
+		watchedValues.guests ||
+		watchedValues.rooms ||
+		watchedValues.minRating,
 	);
 
 	const clearField = (fieldName) => {
@@ -207,10 +210,10 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 				<button
 					type="button"
 					onClick={resetForm}
-					className="h-12 w-12 flex-shrink-0 rounded-2xl bg-gradient-to-br from-red-500 via-rose-500 to-red-600 text-white shadow-[0_12px_30px_rgba(239,68,68,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(239,68,68,0.45)] focus:outline-none focus:ring-2 focus:ring-red-300"
+					className="h-10 cursor-pointer w-10 flex-shrink-0  max-sm:hidden  text-rose-500 transition-all duration-300 hover:opacity-90 focus:outline-none "
 					aria-label="Limpar filtros"
 				>
-					<X className="mx-auto h-5 w-5" />
+					<TrashIcon className="mx-auto h-5 w-5" />
 				</button>
 			</TooltipTrigger>
 			<TooltipContent className="bg-red-500" align="center">
@@ -493,7 +496,9 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 								<UsersIcon className="w-6 h-6 text-primary-900 flex-shrink-0" />
 								<Select
 									key={`guests-${selectKey}`}
-									value={watchedValues.guests ? watchedValues.guests.toString() : ""}
+									value={
+										watchedValues.guests ? watchedValues.guests.toString() : ""
+									}
 									onChange={(value) =>
 										setValue("guests", value ? parseInt(value) : null)
 									}
@@ -530,7 +535,9 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 								<DoorOpen className="w-6 h-6 text-primary-900 flex-shrink-0" />
 								<Select
 									key={`rooms-${selectKey}`}
-									value={watchedValues.rooms ? watchedValues.rooms.toString() : ""}
+									value={
+										watchedValues.rooms ? watchedValues.rooms.toString() : ""
+									}
 									onChange={(value) =>
 										setValue("rooms", value ? parseInt(value) : null)
 									}
@@ -571,7 +578,7 @@ const SearchBar = forwardRef(({ compact = false, onSearch }, ref) => {
 						background="rgba(17, 24, 39, 1)"
 						shimmerColor="#ffffff"
 						shimmerDuration="2s"
-						className="px-3 py-3 flex items-center justify-center gap-2"
+						className="px-3 py-3 flex items-center justify-center gap-2 transition-all duration-300 hover:opacity-90!"
 					>
 						{isSearching ? (
 							<div className="relative w-5 h-5">

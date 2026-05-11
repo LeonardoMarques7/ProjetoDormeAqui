@@ -66,6 +66,8 @@ const PlaceCard = ({ place, index, onDelete }) => {
 
 	const rating = place.averageRating ? Number(place.averageRating).toFixed(1) : "—";
 	const statusLabel = place.isActive ? "Anúncio ativo" : "Anúncio inativo";
+	const locationLabel =
+		place.addressCity || place.city || place.addressNeighborhood || "Localização pendente";
 
 	return (
 		<div
@@ -95,7 +97,7 @@ const PlaceCard = ({ place, index, onDelete }) => {
 			<div className="relative flex flex-col w-full justify-between gap-2">
 				<div className="flex flex-col">
 					<p className="absolute -top-6 max-sm:static text-primary-700 cursor-pointer uppercase font-light">
-						{place.city}
+						{locationLabel}
 					</p>
 					<Link
 						to={`/places/${place._id}`}
@@ -170,7 +172,7 @@ const PlaceCard = ({ place, index, onDelete }) => {
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<Link
-									to={`/account/places/new/${place._id}`}
+									to={`/account/places/edit/${place._id}`}
 									className="edit__btn group cursor-pointer flex items-center hover:text-white justify-center transition-all duration-300 ease-in-out px-3 hover:bg-blue-600 gap-0 hover:gap-3 text-blue-500 rounded-xl text-center py-2.5 overflow-hidden"
 								>
 									<Edit

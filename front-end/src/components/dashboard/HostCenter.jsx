@@ -2268,7 +2268,7 @@ function PropertyCard({ property }) {
 				</div>
 				<div className="flex items-center gap-2">
 					<Link
-						to={`/places/new/${property.id}`}
+						to={`/account/places/edit/${property.id}`}
 						className="flex gap-5 shrink-0 items-center justify-center rounded-[10px] bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
 					>
 						<PenNewRound /> Editar

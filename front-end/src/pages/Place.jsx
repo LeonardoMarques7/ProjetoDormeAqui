@@ -249,7 +249,9 @@ const Place = () => {
 									<PlaceDescription description={place.description} />
 								)}
 								{place.perks?.length > 0 && <PlacePerks perks={place.perks} />}
-								{place.city && <PlaceLocation city={place.city} />}
+								{(place.addressCity || place.city) && (
+									<PlaceLocation city={place.addressCity || place.city} />
+								)}
 								<PlaceRules place={place} refundPolicy={refundPolicy} />
 								{reviews.length > 0 && <PlaceReviews reviews={reviews} />}
 							</motion.div>

@@ -1,0 +1,2 @@
+{"type":"click","text":"Mapa dentro da etapa\n            O mapa cresce na própria coluna de preenchimento quando o step de localização estiver ativo.","choice":"inline-map-step","id":null,"timestamp":1778353012230}
+{"type":"click","text":"Mapa no painel esquerdo\n            Segue a referência mais de perto, deixando o formulário limpo e o mapa como apoio visual.","choice":"left-summary-map","id":null,"timestamp":1778353012848}

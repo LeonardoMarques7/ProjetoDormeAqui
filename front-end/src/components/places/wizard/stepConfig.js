@@ -1,4 +1,11 @@
-import { Home, Camera, FileText, Sparkles, Tag, ClipboardCheck } from "lucide-react";
+import {
+	Home,
+	MapPinned,
+	Camera,
+	Sparkles,
+	Tag,
+	ClipboardCheck,
+} from "lucide-react";
 
 // ============================================
 // CONFIGURAÇÃO DOS STEPS DO WIZARD
@@ -17,15 +24,24 @@ import { Home, Camera, FileText, Sparkles, Tag, ClipboardCheck } from "lucide-re
 export const STEPS_CONFIG = [
 	{
 		id: 1,
-		title: "Sobre o espaço",
-		description: "Tipo de acomodação, localização e capacidade.",
+		title: "Informações básicas",
+		description: "Tipo de acomodação, resumo do anúncio e capacidade.",
 		icon: Home,
-		fields: ["type", "title", "city", "rooms", "bathrooms", "beds", "guests"],
+		fields: [
+			"type",
+			"title",
+			"description",
+			"rooms",
+			"bathrooms",
+			"beds",
+			"guests",
+		],
 		validate: (data) => {
 			const errors = {};
 			if (!data.type) errors.type = "Selecione o tipo do espaço";
 			if (!data.title?.trim()) errors.title = "Título é obrigatório";
-			if (!data.city?.trim()) errors.city = "Cidade é obrigatória";
+			if (!data.description?.trim())
+				errors.description = "Escreva uma descrição curta da acomodação";
 			if (!data.rooms || Number(data.rooms) < 1)
 				errors.rooms = "Informe o número de quartos";
 			if (!data.bathrooms || Number(data.bathrooms) < 1)
@@ -39,6 +55,33 @@ export const STEPS_CONFIG = [
 	},
 	{
 		id: 2,
+		title: "Localização",
+		description: "Endereço completo, referência e coordenadas.",
+		icon: MapPinned,
+		fields: [
+			"addressZipCode",
+			"addressStreet",
+			"addressNumber",
+			"addressNeighborhood",
+			"addressCity",
+			"addressState",
+			"addressCountry",
+		],
+		validate: (data) => {
+			const errors = {};
+			if (!data.addressZipCode?.trim()) errors.addressZipCode = "CEP é obrigatório";
+			if (!data.addressStreet?.trim()) errors.addressStreet = "Rua é obrigatória";
+			if (!data.addressNumber?.trim()) errors.addressNumber = "Número é obrigatório";
+			if (!data.addressNeighborhood?.trim())
+				errors.addressNeighborhood = "Bairro é obrigatório";
+			if (!data.addressCity?.trim()) errors.addressCity = "Cidade é obrigatória";
+			if (!data.addressState?.trim()) errors.addressState = "Estado é obrigatório";
+			if (!data.addressCountry?.trim()) errors.addressCountry = "País é obrigatório";
+			return errors;
+		},
+	},
+	{
+		id: 3,
 		title: "Fotos",
 		description: "Mostre seu espaço com boas fotos.",
 		icon: Camera,
@@ -47,19 +90,6 @@ export const STEPS_CONFIG = [
 			const errors = {};
 			if (!data.photos || data.photos.length === 0)
 				errors.photos = "Adicione pelo menos 1 foto para continuar";
-			return errors;
-		},
-	},
-	{
-		id: 3,
-		title: "Descrição",
-		description: "Conte o que torna o seu espaço especial.",
-		icon: FileText,
-		fields: ["description"],
-		validate: (data) => {
-			const errors = {};
-			if (!data.description?.trim())
-				errors.description = "Escreva uma descrição do espaço";
 			return errors;
 		},
 	},
@@ -74,8 +104,8 @@ export const STEPS_CONFIG = [
 	},
 	{
 		id: 5,
-		title: "Preço",
-		description: "Defina preço e disponibilidade.",
+		title: "Preço e regras",
+		description: "Defina diária, horários e orientações ao hóspede.",
 		icon: Tag,
 		fields: ["price", "checkin", "checkout"],
 		validate: (data) => {
@@ -124,13 +154,19 @@ export function computeProgress(data) {
 	const allRequired = [
 		{ field: "type", check: (v) => !!v },
 		{ field: "title", check: (v) => !!v?.trim() },
-		{ field: "city", check: (v) => !!v?.trim() },
+		{ field: "description", check: (v) => !!v?.trim() },
+		{ field: "addressZipCode", check: (v) => !!v?.trim() },
+		{ field: "addressStreet", check: (v) => !!v?.trim() },
+		{ field: "addressNumber", check: (v) => !!v?.trim() },
+		{ field: "addressNeighborhood", check: (v) => !!v?.trim() },
+		{ field: "addressCity", check: (v) => !!v?.trim() },
+		{ field: "addressState", check: (v) => !!v?.trim() },
+		{ field: "addressCountry", check: (v) => !!v?.trim() },
 		{ field: "rooms", check: (v) => Number(v) >= 1 },
 		{ field: "bathrooms", check: (v) => Number(v) >= 1 },
 		{ field: "beds", check: (v) => Number(v) >= 1 },
 		{ field: "guests", check: (v) => Number(v) >= 1 },
 		{ field: "photos", check: (v) => Array.isArray(v) && v.length > 0 },
-		{ field: "description", check: (v) => !!v?.trim() },
 		{ field: "price", check: (v) => Number(v) > 0 },
 		{ field: "checkin", check: (v) => !!v },
 		{ field: "checkout", check: (v) => !!v },
