@@ -33,7 +33,6 @@ import Footer from "@/components/layout/Footer";
 import StaggeredMenu from "@/components/layout/StaggeredMenu";
 import AppSidebar from "@/components/layout/Sidebar";
 import MobileTopBar from "@/components/layout/MobileTopBar";
-import MobileBottomNavigation from "@/components/layout/MobileNavBar";
 import PrivateRoute from "@/components/PrivateRoute";
 import {
 	SidebarInset,
@@ -102,6 +101,7 @@ function AppContent() {
 									{!mobile && (
 										<Header isAbsolute={isHome} />
 									)}
+									{mobile && <MobileTopBar />}
 									{/* <NotificationToast /> */}
 									<ScrollToTop />
 
@@ -112,7 +112,7 @@ function AppContent() {
 												isHome && !mobile ? "min-h-screen" : "min-h-full"
 											} relative max-sm:justify-center flex flex-col ${
 												isHome ? "" : "p-4"
-											} w-full md:pt-0`}
+											} w-full ${mobile ? "pt-24" : ""} md:pt-0`}
 										>
 											<PageTransition>
 												<Routes>
@@ -200,8 +200,6 @@ function AppContent() {
 											<Footer active={isComponentActive} />
 										</div>
 									)}
-									{/* Mobile Navigation */}
-									<MobileBottomNavigation />
 								</div>
 							</MessageProvider>
 						</NotificationProvider>
