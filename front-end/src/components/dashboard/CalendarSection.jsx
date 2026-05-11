@@ -85,6 +85,29 @@ const getStatusClass = (status) =>
 const getStatusLabel = (status) =>
 	STATUS_STYLES[status]?.label || STATUS_STYLES.pending.label;
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+const toIsoDay = (date) => new Date(date).toISOString().split("T")[0];
+
+const toStartOfDay = (date) => {
+	const current = new Date(date);
+	return new Date(current.getFullYear(), current.getMonth(), current.getDate());
+};
+
+const getDatesBetweenExclusive = (startDate, endDate) => {
+	const start = toStartOfDay(startDate);
+	const end = toStartOfDay(endDate);
+	const days = [];
+	const startTime = start.getTime();
+	const endTime = end.getTime();
+
+	for (let time = startTime + ONE_DAY_MS; time < endTime; time += ONE_DAY_MS) {
+		days.push(new Date(time));
+	}
+
+	return days;
+};
+
 const CalendarSection = ({ calendar }) => {
 	const [selectedEvent, setSelectedEvent] = useState(null);
 	const events = calendar?.events || [];
@@ -95,43 +118,62 @@ const CalendarSection = ({ calendar }) => {
 		[emptyDays],
 	);
 
-	const fullCalendarEvents = useMemo(
-		() =>
-			events.map((event) => {
-				const isCheckin = event.type === "checkin";
-				const isCheckout = event.type === "checkout";
-				const isStay = event.type === "stay";
+	const fullCalendarEvents = useMemo(() => {
+		const expandedEvents = [];
 
-				const startDate = isCheckin
-					? buildDateWithTime(event.startDate, event.placeCheckin, 14, 0)
-					: isCheckout
-						? buildDateWithTime(event.startDate, event.placeCheckout, 11, 0)
-						: buildDateWithTime(event.startDate, "12:00", 12, 0);
-
-				const endDate = new Date(startDate);
-				endDate.setMinutes(endDate.getMinutes() + (isStay ? 45 : 75));
-
-				return {
-					id: event.id,
-					title: event.title,
-					start: startDate,
-					end: endDate,
-					allDay: false,
-					classNames: [
-						"host-calendar-event",
-						getStatusClass(event.rawStatus),
-						`host-event-type-${event.type}`,
-					],
-					extendedProps: {
+		events.forEach((event) => {
+			if (event.type === "range") {
+				const stayDates = getDatesBetweenExclusive(event.startDate, event.endDate);
+				const stayIdBase = event.bookingId || event.id;
+				stayDates.forEach((day) => {
+					expandedEvents.push({
 						...event,
-						statusLabel: getStatusLabel(event.rawStatus),
-						shortGuestName: shortGuestName(event.guest),
-						guestInitials: guestInitials(event.guest),
-					},
-				};
-			}),
-		[events],
-	);
+						id: `${stayIdBase}-stay-${toIsoDay(day)}`,
+						type: "stay",
+						startDate: day,
+						endDate: day,
+					});
+				});
+				return;
+			}
+
+			expandedEvents.push(event);
+		});
+
+		return expandedEvents.map((event) => {
+			const isCheckin = event.type === "checkin";
+			const isCheckout = event.type === "checkout";
+			const isStay = event.type === "stay";
+
+			const startDate = isCheckin
+				? buildDateWithTime(event.startDate, event.placeCheckin, 14, 0)
+				: isCheckout
+					? buildDateWithTime(event.startDate, event.placeCheckout, 11, 0)
+					: buildDateWithTime(event.startDate, "12:00", 12, 0);
+
+			const endDate = new Date(startDate);
+			endDate.setMinutes(endDate.getMinutes() + (isStay ? 45 : 75));
+
+			return {
+				id: event.id,
+				title: event.title,
+				start: startDate,
+				end: endDate,
+				allDay: false,
+				classNames: [
+					"host-calendar-event",
+					getStatusClass(event.rawStatus),
+					`host-event-type-${event.type}`,
+				],
+				extendedProps: {
+					...event,
+					statusLabel: getStatusLabel(event.rawStatus),
+					shortGuestName: shortGuestName(event.guest),
+					guestInitials: guestInitials(event.guest),
+				},
+			};
+		});
+	}, [events]);
 
 	const selectedEventData = useMemo(() => {
 		if (selectedEvent) return selectedEvent;
