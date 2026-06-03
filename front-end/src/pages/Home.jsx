@@ -463,7 +463,7 @@ const Home = () => {
 						}}
 						className="text-xl max-w-xl max-sm:hidden max-sm:px-4  max-sm:text-xl text-white mb-1 text-center font-light"
 					>
-						Encontre acomodações únicas em Sorocaba e em todo o Brasil. Reserve
+						Encontre acomodações únicas em São Paulo e em todo o Brasil. Reserve
 						com segurança e descubra novos lugares.
 					</motion.span>
 
