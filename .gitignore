@@ -17,3 +17,8 @@ seed.js
 
 backupJira
 .vscode/mcp.json
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example

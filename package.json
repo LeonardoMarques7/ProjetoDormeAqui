@@ -73,7 +73,9 @@
     "test:backend": "node --experimental-vm-modules ./back-end/node_modules/jest/bin/jest.js --config ./tests/backend/jest.config.cjs --runInBand",
     "test:backend:existing": "npm test --prefix back-end -- --runInBand",
     "test:frontend": "npm run test --prefix front-end -- --config ../tests/frontend/vitest.config.mjs --run",
-    "test:frontend:watch": "npm run test --prefix front-end -- --config ../tests/frontend/vitest.config.mjs"
+    "test:frontend:watch": "npm run test --prefix front-end -- --config ../tests/frontend/vitest.config.mjs",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "repository": {
     "type": "git",
@@ -86,5 +88,8 @@
   "bugs": {
     "url": "https://github.com/LeonardoMarques7/ProjetoDormeAqui/issues"
   },
-  "homepage": "https://github.com/LeonardoMarques7/ProjetoDormeAqui#readme"
+  "homepage": "https://github.com/LeonardoMarques7/ProjetoDormeAqui#readme",
+  "devDependencies": {
+    "wrangler": "^4.97.0"
+  }
 }
